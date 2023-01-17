@@ -1,0 +1,271 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@inject IUserContext _userContext;
+
+@{
+    ViewData["Title"] = "Citizen Asset List";
+    Layout = null;
+}
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" type="text/css" rel="stylesheet" />
+<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+<link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet" />
+<script src="/geojson/geojsonleafletconfig.js"></script>
+
+<style>
+
+    /* width */
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+        background: #888;
+    }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+    .k-listview-content {
+        height: unset !important;
+        overflow-y: hidden !important;
+        padding-top: 10px !important;
+    }
+
+    .k-listview {
+        border-style: none !important;
+        height: unset !important;
+    }
+
+    .row {
+        margin-right: 0px;
+        margin-left: 0px;
+    }
+
+    .card {
+        float: left;
+        position: relative;
+        /* width: 450px;
+            height: 240px;*/
+        margin: 0 10px;
+        padding: 0;
+    }
+
+    p {
+        margin-bottom: 10px !important;
+    }
+
+    .dueamount {
+        color: #007bff;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .duedate {
+        color: #ffc107;
+        font-size: 14px;
+    }
+
+    .asset-img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .map-Section {
+        width: calc(100vw - 18.5rem) !important;
+        max-width: calc(100vw - 10.5rem) !important;
+    }
+
+    .asset-Section {
+        margin-right: calc(100vw - 18.5rem) !important;
+    }
+</style>
+
+
+<div class="page has-sidebar has-sidebar-fluid has-sidebar-expand-lg">
+    <div class="sidebar-backdrop"></div>
+    <div class="page-inner p-0 asset-Section">
+        <div class="page-section">
+            <div class="container-fluid py-3">
+                <h1 class="page-title"> Asset List </h1>
+                <div id="listViewSL" style="overflow: auto;max-height: 80vh;width:100%;"></div>
+                <script type="text/x-kendo-template" id="assestTemplate">
+
+                    <div class="card shadow mb-5 bg-white rounded" style="margin-left:25px;width:80%;" onclick="onSearchParcel('#:pcl_id#')">
+                      <div class="row no-gutters" style="width:100%;">
+                        <div class="col-md-12" style="display:flex;justify-content:center;">
+                          <img class="card-img shadow bg-white rounded asset-img" src="../../images/EGOV/Jammu/Building.png" alt="Card image cap" onerror="OnAssetImageError(this);" style="margin-top:15px;width:80%;height:150px;">
+                        </div>
+                        <div class="col-md-12">
+                          <div class="card-body px-4 pt-3 pb-1">
+                            <h5 class="card-title">#:prop_id#</h5>
+                            <span style="float:right">
+                            <button class="btn btn-primary btn-sm" style="float:right" onclick="raiseService('#:gid#','#:ward_no#','#:own_name#','#:tel_no#','#:usg_cat_gf#','#:AssetTypeId#');">Create</button>
+                    @*<button class="btn btn-secondary btn-sm" style="float:right" onclick="onSearchParcel('#:pcl_id#')">Search</button>*@
+                    </span>
+                    @*<p class="card-text">#if(AssetTypeName != null){# #:AssetTypeName# #}#</p>*@
+                            <p class="card-text">#if(wrd_name != null){# #:wrd_name# #}#</p>
+                    @*<p class="card-text text-muted">#if(AllotmentFromDate != null){# <i class="fa-duotone fa-calendar-days"></i> #:kendo.toString(kendo.parseDate(AllotmentFromDate), 'dd MMM yyyy')# - #:kendo.toString(kendo.parseDate(AllotmentToDate), 'dd MMM yyyy')# #}#</p>
+                            <p class="card-text text-muted"><small><i class="fa-solid fa-location-dot"></i>  #:SpecificLocation#</small>
+                            #if(TaskId != null && PaymentStatusName != "Success" && PaymentStatusName != "Error" && Amount > 0)
+                            {#
+                                <div class="row">
+                                    <div class="col-6" style="padding-left:0px;"><p class="card-text dueamount" title="Click To Pay Now" onclick="OnPaymentClick('#:TaskId#','#:UdfNoteTableId#','#:Amount#','#:AssignedToUserId#');"><i class="fa-light fa-money-bill"></i>  #:Amount#</p></div>
+                                    <div class="col-6" style="padding-left:0px;"><p class="card-text duedate"><i class="fa-regular fa-calendar-circle-exclamation"></i>  #:kendo.toString(kendo.parseDate(DueDate), 'dd MMM yyyy')#</p></div>
+                                </div>
+                            #}#*@
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </script>
+
+            </div>
+        </div>
+    </div>
+    <div class="page-sidebar map-Section">
+        <header class="sidebar-header d-xl-none">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item active">
+                        <a href="#" onclick="Looper.toggleSidebar()"><i class="breadcrumb-icon fa fa-angle-left mr-2"></i>Back</a>
+                    </li>
+                </ol>
+            </nav>
+        </header>
+        <div class="sidebar-section">
+            <br />
+
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        var element = document.getElementById('map');
+        element.style = 'height:550px;';
+
+        var dataSourceAssests = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/EGov/SmartCity/GetParcelListByUser?userId=@_userContext.UserId",
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listViewSL").kendoListView({
+            dataSource: dataSourceAssests,
+            scrollable: "endless",
+            template: kendo.template($("#assestTemplate").html()),
+            dataBound: function () {
+                debugger;
+                 //var geom = extractColumn($("#listViewSL").data("kendoListView").dataSource.data(), "geometry");
+                loadMap($("#listViewSL").data("kendoListView").dataSource.data());
+            }
+        });
+    });
+
+
+
+    function onSearchParcel(id) {
+        $.ajax({
+            type: "GET",
+            url: "/EGov/SmartCity/GetParcelDataByPclId?id=" + id,
+            success: function (response) {
+                debugger;
+                var list = [];
+                list.push(response);
+                loadMap(list);
+
+            }
+        });
+    }
+
+    function onEachFeature(feature, layer) {
+        //if (feature) {
+        //    debugger;
+        //    var text = "Type - " + feature.usg_cat_gf
+        //        + " <br/>Property Id - " + feature.prop_id
+        //        + " <br/>Residential Status - " + feature.res_stat
+        //        //+ " <br/>Road Details - " + feature.road_desc
+        //        //+ " <br/>Road Type - " + feature.road_type
+        //        + " <br/>Owner Details - " + feature.own_dtls
+        //        + " <br/>Owner Name - " + feature.own_name
+        //        + " <br/>Telephone No - " + feature.tel_no
+        //        + " <br/>Aadhar No - " + feature.aadhar
+        //        + " <br/>Ward No - " + feature.wrd_name;
+
+        //    layer.bindPopup(text);
+        //}
+        feature.usg_cat_gf = feature.usg_cat_gf == null ? "" : feature.usg_cat_gf;
+        feature.prop_id = feature.prop_id == null ? "" : feature.prop_id;
+        feature.res_stat = feature.res_stat == null ? "" : feature.res_stat;
+        feature.own_dtls = feature.own_dtls == null ? "" : feature.own_dtls;
+        feature.own_name = feature.own_name == null ? "" : feature.own_name;
+        feature.tel_no = feature.tel_no == null ? "" : feature.tel_no;
+        feature.aadhar = feature.aadhar == null ? "" : feature.aadhar;
+        feature.wrd_name = feature.wrd_name == null ? "" : feature.wrd_name;
+        if (feature) {
+            var text = "Type - " + feature.usg_cat_gf
+                + " <br/>Property Id - " + feature.prop_id
+                + " <br/>Residential Status - " + feature.res_stat
+                + " <br/>Owner Details - " + feature.own_dtls
+                + " <br/>Owner Name - " + feature.own_name
+                + " <br/>Telephone No - " + feature.tel_no
+                + " <br/>Aadhar No - " + feature.aadhar
+                + " <br/> " + feature.wrd_name;
+            layer.bindPopup(text);
+        }
+    }
+
+    function onAfterServiceCreate() {
+        debugger;
+    }
+
+    function raiseService(pclId, wrdNo, ownName, telNo, propertyType,assetTypeId) {
+        /*e.preventDefault();*/
+        var portalId = "";
+        var prms = "";
+        var callbackMethod = "onAfterServiceCreate";
+        if (window.parent == "" || window.parent == undefined) {
+            portalId = $("#GlobalPortalId").val();
+        }
+        else {
+            portalId = window.parent.$("#GlobalPortalId").val();
+        }
+        var citizen = '@_userContext.Name';
+        //var udfs = encodeURIComponent('CommunityHallNameId=' + ch + '&BookingFromDate=' + fd + '&BookingToDate=' + td + '&WardNo=' + wd + '&BaseCharges=' + base + '&ACCharges=' + ac + '&ElectricityCharges=' + ele + '&CleaningCharges=' + cl + '&TotalCharges=' + tot);
+        var udfs = encodeURIComponent('CitizenName=' + citizen + '&PropertyTypeId=' + assetTypeId+'&ApplicantName=' + ownName + '&ContactNumber=' + telNo + '&WardId=' + wrdNo + '&ParcelId=' + pclId + '&PropertyType=' + propertyType);
+        var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=' + callbackMethod + '&source=Create&dataAction=Create&templateCodes=@ViewBag.TemplateCode&portalId=' + portalId + '&udfs=' + udfs;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        var title = "@ViewBag.TemplateName";
+        win.OpenWindow({ Title: title, Width: 1000, Height: 700 });
+        return false;
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+
+    function extractColumn(arr, column) {
+        function reduction(previousValue, currentValue) {
+            previousValue.push(currentValue[column]);
+            return previousValue;
+        }
+        return arr.reduce(reduction, []);
+    }
+</script>

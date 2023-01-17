@@ -1,0 +1,273 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext
+@model ServiceTemplateViewModel
+<script src="~/lib/formio/js/formio.full.js" asp-append-version="true"></script>
+
+<style>
+
+    .page-item:last-child .page-link {
+        border-top-right-radius: 3rem;
+        border-bottom-right-radius: 3rem;
+    }
+
+    .page-item:first-child .page-link {
+        border-top-left-radius: 3rem;
+        border-bottom-left-radius: 3rem;
+    }
+
+    div > ul > li > .row {
+        width: 100% !important;
+    }
+
+    .nts-display-item:hover {
+        background-color: #cccccc !important;
+        color: var(--dark) !important;
+    }
+
+    .list-group-item.active {
+        box-shadow: none !important;
+    }
+
+    .steps .step-primary .step-indicator, .steps .step-primary a {
+        color: rgb(255, 255, 255);
+    }
+
+    .steps .step-primary + li::before, .steps .step-primary a {
+        background-color: var(--primary);
+    }
+
+    .steps .step-success .step-indicator, .steps .step-success a {
+        color: rgb(255, 255, 255);
+    }
+
+    .steps .step-success + li::before, .steps .step-success a {
+        background-color: var(--success);
+    }
+
+    .steps .step-info .step-indicator, .steps .step-info a {
+        color: rgb(255, 255, 255);
+    }
+
+    .steps .step-info + li::before, .steps .step-info a {
+        background-color: var(--info);
+    }
+
+    .steps .step-danger .step-indicator, .steps .step-danger a {
+        color: rgb(255, 255, 255);
+    }
+
+    .steps .step-danger + li::before, .steps .step-danger a {
+        background-color: var(--danger);
+    }
+
+    .steps .step-warning .step-indicator, .steps .step-warning a {
+        color: #363642;
+    }
+
+    .steps .step-warning + li::before, .steps .step-warning a {
+        background-color: var(--warning);
+    }
+
+    .steps li:hover + li:before, .steps li:hover a {
+        background-color: #b3b3b3;
+    }
+</style>
+ 
+<script>
+    var json = null;
+    var initialId = '@Model.InitialItemId';
+    var initialType = '@Model.InitialItemType';
+    $(document).ready(function () {
+        $('.step-popover').webuiPopover('destroy').webuiPopover(stepPopoverSettings);
+        var parms = window.location.search;
+        if (initialType == 'Service') {
+            json = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model));
+            LoadService(json, initialId);
+        }
+        else if (initialType == 'StepTask') {
+            json = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TaskTemplate));
+            LoadStepTask(json, initialId);
+        }
+        $("li.nts-step>a").click(function (e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+            var type = $(this).data("type");
+            var code = $(this).data("template-code");
+            var statusCode = $(this).data("status-code");
+            if (statusCode === "SERVICE_STATUS_DRAFT") {
+                return false;
+            }
+            if (type === 'Service') {
+                ReloadService(id, code);
+            }
+            else if (type === 'StepTask') {
+                ReloadTask(id, code)
+            }
+        });
+    });
+    function OnStepClick(item) {
+        //$(item).parent().siblings('li.active').removeClass("active");
+        //$(item).parent().addClass("active");
+        var id = $(item).data("id");
+        var type = $(item).data("type");
+        var code = $(item).data("template-code");
+        if (type === 'Service') {
+            ReloadService(id, code);
+        }
+        else if (type === 'StepTask') {
+            ReloadTask(id, code)
+        }
+    }
+    function ReloadService(id, code) {
+        ShowLoader($('#main-content'));
+        $(".action-section").hide();
+        var portalId = "";
+        if (window.parent == "" || window.parent == undefined) {
+            portalId = $("#GlobalPortalId").val();
+        }
+        else {
+            portalId = window.parent.$("#GlobalPortalId").val();
+        }
+        var url = '/Cms/Page?lo=Popup&pageType=Service&source=View&dataAction=View&templateCodes=' + code + '&recordId=' + id + '&portalId=' + portalId;
+        location.href = url;
+    }
+    function ReloadTask(id, code) {
+        ShowLoader($('#main-content'));
+        $(".action-section").hide();
+        var portalId = "";
+        if (window.parent == "" || window.parent == undefined) {
+            portalId = $("#GlobalPortalId").val();
+        }
+        else {
+            portalId = window.parent.$("#GlobalPortalId").val();
+        }
+        var url = '/Cms/Page?lo=Popup&pageType=Task&source=View&dataAction=View&templateCodes=' + code + '&recordId=' + id + '&portalId=' + portalId;
+        location.href = url;
+    }
+    function LoadService(model, id) {
+        var container = $('#lv-tab-content');
+        ShowLoader($('#main-content'));
+        var url = '/Core/Cms/GetServiceContent';
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: JSON.stringify(model),
+            cache: false,
+            contentType: "application/json;charset=utf-8",
+            dataType: 'json',
+            success: function (data) {
+                container.html("");
+                container.html(data.view);
+                HideLoader($('#main-content'));
+            },
+            error: function (errData) {
+                container.html(errData);
+                HideLoader($('#main-content'));
+            }
+        });
+        return false;
+    }
+    function LoadStepTask(model, id) {
+        var container = $('#lv-tab-content');
+        ShowLoader($('#main-content'));
+        var url = '/Core/Cms/GetStepTaskContent';
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: JSON.stringify(model),
+            cache: false,
+            contentType: "application/json;charset=utf-8",
+            dataType: 'json',
+            success: function (data) {
+                container.html("");
+                container.html(data.view);
+                HideLoader($('#main-content'));
+
+            },
+            error: function (errData) {
+                container.html(errData);
+                HideLoader($('#main-content'));
+            }
+        });
+        return false;
+    }
+</script>
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="row no-gutters pl-3">
+            <div class="steps steps-" role="tablist">
+                <ul>
+                    @{
+                        if (Model.ComponentResultList.IsNotNull())
+                        {
+                            var total = Model.ComponentResultList.Count();
+                            for (int i = 0; i < total; i++)
+                            {
+                                var item = Model.ComponentResultList[i];
+                                @*<a href="#" class="list-group-item list-group-item-action border-@item.ItemStatus @(Model.InitialItemId==item.TaskId?"active":"")" data-id="@item.TaskId" data-type="@item.ComponentType" data-template-code="@item.TemplateMasterCode">
+                                    <div class="list-group-item-figure">
+                                    <div class="user-avatar user-avatar-lg">
+                                    <img src="@Url.Action("GetUserPhotoByUserId", "document", new { @area = "Cms", userId = item.AssigneeId })" alt="" onerror="OnPhotoError(this);">
+                                    </div>
+                                    </div>
+                                    <div class="list-group-item-body">
+                                    <h6 class="list-group-item-subtitle text-truncate" title="@item.TaskSubject">
+                                    @item.TaskSubject
+                                    </h6>
+                                    <p class="list-group-item-text text-truncate text-muted">@item.Assignee</p>
+                                    <p class="list-group-item-text text-truncate text-muted">@Html.Raw(item.StatusAndNo)</p>
+                                    <p class="list-group-item-text text-truncate text-muted">@item.ItemDateRange</p>
+                                    </div>
+                                    </a>*@
+                                var activeClass = "";
+                                if (item.TaskId == Model.InitialItemId)
+                                {
+                                    activeClass = "step-primary";
+                                }
+                                <li class="nts-step step @activeClass step-popover" data-photo-id="@item.AssigneeId" data-assignee="@item.Assignee" data-status="@item.ComponentStatusName" data-number="@item.TaskNo" data-date-start="@item.StartDate.ToDefaultDateTimeFormat()" data-date-end="@item.EndDate.ToDefaultDateTimeFormat()">
+                                    <a href="#" class="step-trigger" tabindex="-1" data-id="@item.TaskId" data-status-code="@item.ComponentStatusCode" data-type="@item.ComponentType" data-template-code="@item.TemplateMasterCode">
+                                        <span class="user-avatar user-avatar-sm">
+                                            <img src="@Url.Action("GetUserPhotoByUserId", "document", new { @area = "Cms", userId = item.AssigneeId })" alt="" onerror="OnPhotoError(this);">
+                                        </span>
+                                        <span class="d-none d-sm-inline text-truncate">@item.TaskSubject</span>
+                                    </a>
+
+
+                                </li>
+                            }
+                        }
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="row no-gutters">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                <div id="lv-tab-content">
+                </div>
+            </div><!-- /grid column -->
+        </div><!-- /grid row -->
+    </div>
+</div>
+
+
+
+@Html.HiddenFor(x => x.TemplateCode)
+@Html.HiddenFor(x => x.PopupCallbackMethod)
+@Html.HiddenFor(x => x.DataAction)
+@Html.HiddenFor(x => x.PortalId)
+@Html.HiddenFor(x => x.ServiceId)
+@Html.HiddenFor(x => x.RequestSource)
+@Html.HiddenFor(x => x.OwnerUserId)
+@Html.HiddenFor(x => x.RequestedByUserId)
+
+
+
+
+
+
+
+
+
+
+

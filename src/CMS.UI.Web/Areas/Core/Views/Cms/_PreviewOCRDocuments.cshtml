@@ -1,0 +1,714 @@
+﻿@using Kendo.Mvc.UI;
+@using Synergy.App.Business;
+@using Synergy.App.Common;
+
+
+@inject IFileBusiness _fileBusiness
+@inject IUserContext _userContext;
+@model Synergy.App.ViewModel.FileViewModel;
+@{
+    if (ViewBag.Layout == "dms")
+    {
+        Layout = null;
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_PopupLayout.cshtml";
+    }
+
+
+}
+<script src="~/js/pdf/pdf-annotate.min.js" asp-append-version="true"></script>
+<link href="~/css/toolbar.css" rel="stylesheet" asp-append-version="true" />
+<link href="~/css/pdf_viewer.css" rel="stylesheet" asp-append-version="true" />
+
+<div>
+
+
+    <script>
+        window.history.forward(1);
+        localStorage.clear();
+
+
+        $(document).ready(function () {
+
+        });
+
+    </script>
+
+    <style>
+        body {
+            background-color: #eee;
+            font-family: sans-serif;
+            margin: 0;
+        }
+
+        .pdfViewer .canvasWrapper {
+            box-shadow: 0 0 3px #bbb;
+        }
+
+        .pdfViewer .page {
+            margin-bottom: 10px;
+        }
+
+        .annotationLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        #content-wrapper {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 250px;
+            bottom: 0;
+            overflow: auto;
+        }
+
+        #comment-wrapper {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            bottom: 0;
+            overflow: auto;
+            width: 250px;
+            background: #fafafa;
+            border-left: 1px solid #d0d0d0;
+        }
+
+            #comment-wrapper h4 {
+                margin: 10px;
+            }
+
+            #comment-wrapper .comment-list {
+                font-size: 12px;
+                position: absolute;
+                top: 38px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+
+            #comment-wrapper .comment-list-item {
+                border-bottom: 1px solid #d0d0d0;
+                padding: 10px;
+            }
+
+            #comment-wrapper .comment-list-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 47px;
+                overflow: auto;
+            }
+
+            #comment-wrapper .comment-list-form {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                padding: 10px;
+            }
+
+                #comment-wrapper .comment-list-form input {
+                    padding: 5px;
+                    width: 100%;
+                }
+
+        .pdfViewer .page {
+            border-image: none;
+        }
+
+        .toolbar {
+            height: 50px !important;
+            background-color: #ccc;
+            vertical-align: middle;
+            border: 0 solid #e0e0e0;
+            border-radius: 0;
+            border-width: 1px 1px 1px 1px;
+            padding: 5px;
+        }
+
+            .toolbar button.comment {
+                font-size: unset;
+                color: #68686e;
+                text-shadow: 0 0 0 #000000;
+            }
+
+            .toolbar button {
+                background: transparent;
+            }
+
+            .toolbar a {
+                padding: 0 10px;
+            }
+
+            .toolbar button.rectangle:after {
+                top: 7px;
+            }
+
+            .toolbar button.highlight:after {
+                top: 7px;
+            }
+
+            .toolbar button.strikeout:after {
+                top: 15px;
+            }
+    </style>
+    <div id="pdf-viewer-div">
+        <div class="toolbar">
+            @*<button class="cursor" type="button" title="Cursor" data-tooltype="cursor">➚</button>*@
+            <button class="cursor" type="button" title="Cursor" data-tooltype="cursor"><i class="fal fa-mouse-pointer" style="color:#fb1e68"></i></button>
+
+            <div class="spacer"></div>
+
+            <button class="rectangle" type="button" title="Rectangle" data-tooltype="area"><i class="fal fa-rectangle-landscape"></i></button>&nbsp;&nbsp;
+            <button class="highlight" type="button" title="Highlight" data-tooltype="highlight"><i class="fal fa-highlighter"></i></button>&nbsp;&nbsp;
+            <button class="strikeout" type="button" title="Strikeout" data-tooltype="strikeout">&nbsp;</button>
+
+            <div class="spacer"></div>
+
+            <button class="text active" type="button" title="Text Tool" data-tooltype="text"><i class="fal fa-text"></i></button>&nbsp;&nbsp;
+            <select class="text-size" style="width:65px;padding:4px 0px;background:lightgray;border:1px solid #a9a9a9"><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="14">14</option><option value="18">18</option><option value="24">24</option><option value="30">30</option><option value="36">36</option><option value="48">48</option><option value="60">60</option><option value="72">72</option><option value="96">96</option></select>
+            &nbsp;&nbsp;&nbsp;<div class="text-color">@*<a class="color" href="javascript://" title="undefined" data-color="#000000" style="background: rgb(0, 0, 0);"></a>*@</div>
+
+            <div class="spacer"></div>
+
+            @*<button class="pen" type="button" title="Pen Tool" data-tooltype="draw">✎</button>&nbsp;&nbsp;*@
+            <button class="pen" type="button" title="Pen Tool" data-tooltype="draw"><i class="fal fa-pencil"></i></button>&nbsp;&nbsp;
+            <select class="pen-size" style="width:65px;padding:4px 0px;background:lightgray;border:1px solid #a9a9a9"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option></select>
+            &nbsp;&nbsp;&nbsp;<div class="pen-color">@*<a class="color" href="javascript://" title="undefined" data-color="#000000" style="background: rgb(0, 0, 0);"></a>*@</div>
+
+            <div class="spacer"></div>
+
+            @*<button class="comment" type="button" title="Comment" data-tooltype="point">🗨</button>*@
+            <button class="comment" type="button" title="Comment" data-tooltype="point"><span class="fal fa-comment"></span></button>
+
+            <div class="spacer"></div>
+
+            <select class="scale" style="width:65px;padding:3px 0px;background:lightgray;border:1px solid #a9a9a9">
+                <option value=".5">50 %</option>
+                <option value="1">100 %</option>
+                <option value="1.33">133 %</option>
+                <option value="1.5">150 %</option>
+                <option value="2">200 %</option>
+            </select>
+            <div class="spacer"></div>
+            @*<a href="javascript://" class="rotate-ccw" title="Rotate Counter Clockwise">⟲</a>
+            <a href="javascript://" class="rotate-cw" title="Rotate Clockwise">⟳</a>*@
+            <a href="javascript://" class="rotate-ccw" title="Rotate Counter Clockwise"><span class="fal fa-undo"></span></a>
+            <a href="javascript://" class="rotate-cw" title="Rotate Clockwise"><span class="fal fa-redo"></span></a>
+
+            <div class="spacer"></div>
+
+            @*<a href="javascript://" class="clear" title="Clear">×</a>*@
+            <a href="javascript://" class="clear" title="Clear"><span class="fal fa-times" @*style="font-size:16px"*@></span></a>
+            @*@if (ViewBag.OcrId != null && ViewBag.OcrId != "")
+            {
+                <input type="button" class="btn btn-primary pull-right" id="btnSave" value="Save" onclick="OnSave('@Model.Id')" />
+            }*@
+        </div>
+
+        <div id="content-wrapper" style="width:100%">
+            <div id="viewer" class="pdfViewer"></div>
+
+        </div>
+        <div id="comment-wrapper" style="display:none">
+            <h4>Comments</h4>
+            <div class="comment-list">
+                <div class="comment-list-container">
+                    <div class="comment-list-item">No comments</div>
+                </div>
+                <form class="comment-list-form" style="display:none;">
+                    <input type="text" placeholder="Add a Comment">
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="~/js/pdf/pdf_viewer.js"></script>
+    <script src="~/js/pdf/pdf.js"></script>
+    <script src="~/js/pdf/worker/pdf.worker.js"></script>
+
+
+
+
+
+    <script>
+        // var _initColorPicker2 = ""
+        var OcrCoord;
+        var _slicedToArray = function () { function sliceIterator(arr, i) {  var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+        //var  PDFJS  = pdfjsLib;
+        const { UI } = PDFAnnotate;
+        // var documentId = '/js/sample.pdf';
+        var documentId = '/cms/Document/GetFilePreviewMongoId?fileId=@Model.Id';
+        var PAGE_HEIGHT = void 0;
+        const VIEWER = document.getElementById('viewer');
+        var RENDER_OPTIONS = {
+            documentId: documentId,
+            pdfDocument: null,
+            scale: parseFloat(localStorage.getItem(documentId + '/scale'), 10) || 1.33,
+            rotate: parseInt(localStorage.getItem(documentId + '/rotate'), 10) || 0
+        };
+
+        //PDFJS.workerSrc = 'pdf.worker.js';
+        PDFJS.workerSrc = '/js/pdf/worker/pdf.worker.js';
+        PDFAnnotate.setStoreAdapter(new PDFAnnotate.LocalStoreAdapter());
+        //add loader
+        //ShowLoader($('#wrapper'));
+        PDFJS.getDocument(RENDER_OPTIONS.documentId).promise.then(function (pdf) {
+
+            RENDER_OPTIONS.pdfDocument = pdf;
+            var page = UI.createPage(1);
+            VIEWER.appendChild(page);
+            //UI.renderPage(1, RENDER_OPTIONS);
+            //var viewport = pdfPage.getViewport(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate);
+            //   PAGE_HEIGHT = viewport.height;  //Page height to manage scroll event
+            UI.renderPage(1, RENDER_OPTIONS).then(function (_ref) {
+
+                var _ref2 = _slicedToArray(_ref, 2);
+
+                var pdfPage = _ref2[0];
+                var annotations = _ref2[1];
+
+                var viewport = pdfPage.getViewport(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate);
+                PAGE_HEIGHT = viewport.height;
+            });
+
+        });
+
+        var NUM_PAGES = 0;
+
+        function render() {
+
+            PDFJS.getDocument(RENDER_OPTIONS.documentId).promise.then(function (pdf) {
+
+                pdf.getPage(1).then(function (page) {
+                    viewport = page.getViewport(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate);
+                });
+                RENDER_OPTIONS.pdfDocument = pdf;
+
+                var viewer = document.getElementById('viewer');
+                viewer.innerHTML = '';
+                //NUM_PAGES = pdf._pdfInfo.numPages;
+                NUM_PAGES = pdf.pdfInfo.numPages;
+                for (var i = 0; i < NUM_PAGES; i++) {
+
+                    var page = UI.createPage(i + 1);
+                    viewer.appendChild(page);
+                    UI.renderPage(i + 1, RENDER_OPTIONS).then(function (_ref) {
+                        var _ref2 = _slicedToArray(_ref, 2);
+
+                        var pdfPage = _ref2[0];
+                        var annotations = _ref2[1];
+
+                        var viewport = pdfPage.getViewport(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate);
+                        PAGE_HEIGHT = viewport.height;
+                    });
+                }
+                //var pagecanvas1 = document.getElementById("pageContainer1");
+                //var rect = pagecanvas1.getBoundingClientRect()
+                //pagecanvas1.addEventListener('mousedown', function (evt) {
+                //    
+                //    OcrCoord = viewport.convertToPdfPoint(evt.clientX - rect.left, evt.clientY - rect.top)
+                //    console.log(OcrCoord);
+                //}, false);
+
+            });
+
+        }
+        render();
+
+        //HideLoader($('#wrapper'));
+        //stop loader
+        // Text stuff
+        (function () {
+            var textSize = void 0;
+            var textColor = void 0;
+
+            function initText() {
+                var size = document.querySelector('.toolbar .text-size');
+                [8, 9, 10, 11, 12, 14, 18, 24, 30, 36, 48, 60, 72, 96].forEach(function (s) {
+                    size.appendChild(new Option(s, s));
+                });
+
+                setText(localStorage.getItem(RENDER_OPTIONS.documentId + '/text/size') || 10, localStorage.getItem(RENDER_OPTIONS.documentId + '/text/color') || '#000000');
+
+                //(0, _initColorPicker2.default)(document.querySelector('.text-color'), textColor, function (value) {
+                //    setText(textSize, value);
+                //});
+            }
+
+            function setText(size, color) {
+                var modified = false;
+
+                if (textSize !== size) {
+                    modified = true;
+                    textSize = size;
+                    localStorage.setItem(RENDER_OPTIONS.documentId + '/text/size', textSize);
+                    document.querySelector('.toolbar .text-size').value = textSize;
+                }
+
+                if (textColor !== color) {
+                    modified = true;
+                    textColor = color;
+                    localStorage.setItem(RENDER_OPTIONS.documentId + '/text/color', textColor);
+
+                    var selected = document.querySelector('.toolbar .text-color.color-selected');
+                    if (selected) {
+                        selected.classList.remove('color-selected');
+                        selected.removeAttribute('aria-selected');
+                    }
+
+                    selected = document.querySelector('.toolbar .text-color[data-color="' + color + '"]');
+                    if (selected) {
+                        selected.classList.add('color-selected');
+                        selected.setAttribute('aria-selected', true);
+                    }
+                }
+
+                if (modified) {
+                    UI.setText(textSize, textColor);
+                }
+            }
+
+            function handleTextSizeChange(e) {
+                setText(e.target.value, textColor);
+            }
+
+            document.querySelector('.toolbar .text-size').addEventListener('change', handleTextSizeChange);
+
+            initText();
+        })();
+
+
+        (function () {
+            var penSize = void 0;
+            var penColor = void 0;
+
+            function initPen() {
+                var size = document.querySelector('.toolbar .pen-size');
+                for (var i = 0; i < 20; i++) {
+                    size.appendChild(new Option(i + 1, i + 1));
+                }
+
+                setPen(localStorage.getItem(RENDER_OPTIONS.documentId + '/pen/size') || 1, localStorage.getItem(RENDER_OPTIONS.documentId + '/pen/color') || '#000000');
+
+                // (0, _initColorPicker2.default)(document.querySelector('.pen-color'), penColor, function (value) {
+                //     setPen(penSize, value);
+                // });
+            }
+
+            function setPen(size, color) {
+                var modified = false;
+
+                if (penSize !== size) {
+                    modified = true;
+                    penSize = size;
+                    localStorage.setItem(RENDER_OPTIONS.documentId + '/pen/size', penSize);
+                    document.querySelector('.toolbar .pen-size').value = penSize;
+                }
+
+                if (penColor !== color) {
+                    modified = true;
+                    penColor = color;
+                    localStorage.setItem(RENDER_OPTIONS.documentId + '/pen/color', penColor);
+
+                    var selected = document.querySelector('.toolbar .pen-color.color-selected');
+                    if (selected) {
+                        selected.classList.remove('color-selected');
+                        selected.removeAttribute('aria-selected');
+                    }
+
+                    selected = document.querySelector('.toolbar .pen-color[data-color="' + color + '"]');
+                    if (selected) {
+                        selected.classList.add('color-selected');
+                        selected.setAttribute('aria-selected', true);
+                    }
+                }
+
+                if (modified) {
+                    UI.setPen(penSize, penColor);
+                }
+            }
+
+            function handlePenSizeChange(e) {
+                setPen(e.target.value, penColor);
+            }
+
+            document.querySelector('.toolbar .pen-size').addEventListener('change', handlePenSizeChange);
+
+            initPen();
+        })();
+
+        // Toolbar buttons
+        (function () {
+            var tooltype = localStorage.getItem(RENDER_OPTIONS.documentId + '/tooltype') || 'cursor';
+            if (tooltype) {
+                setActiveToolbarItem(tooltype, document.querySelector('.toolbar button[data-tooltype=' + tooltype + ']'));
+            }
+
+            function setActiveToolbarItem(type, button) {
+                var active = document.querySelector('.toolbar button.active');
+                if (active) {
+                    active.classList.remove('active');
+
+                    switch (tooltype) {
+                        case 'cursor':
+                            UI.disableEdit();
+                            break;
+                        case 'draw':
+                            UI.disablePen();
+                            break;
+                        case 'text':
+                            UI.disableText();
+                            break;
+                        case 'point':
+                            UI.disablePoint();
+                            break;
+                        case 'area':
+                        case 'highlight':
+                        case 'strikeout':
+                            UI.disableRect();
+                            break;
+                    }
+                }
+
+                if (button) {
+                    button.classList.add('active');
+                }
+                if (tooltype !== type) {
+                    localStorage.setItem(RENDER_OPTIONS.documentId + '/tooltype', type);
+                }
+                tooltype = type;
+
+                switch (type) {
+                    case 'cursor':
+                        UI.enableEdit();
+                        break;
+                    case 'draw':
+                        UI.enablePen();
+                        break;
+                    case 'text':
+                        UI.enableText();
+                        break;
+                    case 'point':
+                        UI.enablePoint();
+                        break;
+                    case 'area':
+                    case 'highlight':
+                    case 'strikeout':
+                        UI.enableRect(type);
+                        break;
+                }
+            }
+
+            function handleToolbarClick(e) {
+                if (e.target.nodeName === 'BUTTON') {
+                    setActiveToolbarItem(e.target.getAttribute('data-tooltype'), e.target);
+                }
+            }
+
+            document.querySelector('.toolbar').addEventListener('click', handleToolbarClick);
+        })();
+
+
+
+
+        (function () {
+            function setScaleRotate(scale, rotate) {
+                scale = parseFloat(scale, 10);
+                rotate = parseInt(rotate, 10);
+
+                if (RENDER_OPTIONS.scale !== scale || RENDER_OPTIONS.rotate !== rotate) {
+                    RENDER_OPTIONS.scale = scale;
+                    RENDER_OPTIONS.rotate = rotate;
+
+                    localStorage.setItem(RENDER_OPTIONS.documentId + '/scale', RENDER_OPTIONS.scale);
+                    localStorage.setItem(RENDER_OPTIONS.documentId + '/rotate', RENDER_OPTIONS.rotate % 360);
+
+                    render();
+                }
+            }
+
+            function handleScaleChange(e) {
+                setScaleRotate(e.target.value, RENDER_OPTIONS.rotate);
+            }
+
+            function handleRotateCWClick() {
+                setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate + 90);
+            }
+
+            function handleRotateCCWClick() {
+                setScaleRotate(RENDER_OPTIONS.scale, RENDER_OPTIONS.rotate - 90);
+            }
+
+            document.querySelector('.toolbar select.scale').value = RENDER_OPTIONS.scale;
+            document.querySelector('.toolbar select.scale').addEventListener('change', handleScaleChange);
+            document.querySelector('.toolbar .rotate-ccw').addEventListener('click', handleRotateCCWClick);
+            document.querySelector('.toolbar .rotate-cw').addEventListener('click', handleRotateCWClick);
+
+        })();
+
+
+        (function () {
+            function handleClearClick(e) {
+                    for (var i = 0; i < NUM_PAGES; i++) {
+                        document.querySelector('div#pageContainer' + (i + 1) + ' svg.annotationLayer').innerHTML = '';
+                    }
+
+                    localStorage.removeItem(RENDER_OPTIONS.documentId + '/annotations');
+            }
+            document.querySelector('a.clear').addEventListener('click', handleClearClick);
+        })();
+        (function (window, document) {
+            var commentList = document.querySelector('#comment-wrapper .comment-list-container');
+            var commentForm = document.querySelector('#comment-wrapper .comment-list-form');
+            var commentText = commentForm.querySelector('input[type="text"]');
+
+            function supportsComments(target) {
+                var type = target.getAttribute('data-pdf-annotate-type');
+                return ['point', 'highlight', 'area'].indexOf(type) > -1;
+            }
+
+            function insertComment(comment) {
+                var child = document.createElement('div');
+                child.className = 'comment-list-item';
+                child.innerHTML =comment.content;
+
+                commentList.appendChild(child);
+            }
+
+            function handleAnnotationClick(target) {
+                if (supportsComments(target)) {
+                    (function () {
+                        var documentId = target.parentNode.getAttribute('data-pdf-annotate-document');
+                        var annotationId = target.getAttribute('data-pdf-annotate-id');
+
+                        PDFAnnotate.getStoreAdapter().getComments(documentId, annotationId).then(function (comments) {
+                            commentList.innerHTML = '';
+                            commentForm.style.display = '';
+                            commentText.focus();
+
+                            commentForm.onsubmit = function () {
+                                PDFAnnotate.getStoreAdapter().addComment(documentId, annotationId, commentText.value.trim()).then(insertComment).then(function () {
+                                    commentText.value = '';
+                                    commentText.focus();
+                                });
+
+                                return false;
+                            };
+
+                            comments.forEach(insertComment);
+                        });
+                    })();
+                }
+            }
+            function handleAnnotationBlur(target) {
+                if (supportsComments(target)) {
+                    commentList.innerHTML = '';
+                    commentForm.style.display = 'none';
+                    commentForm.onsubmit = null;
+
+                    insertComment({ content: 'No comments' });
+                }
+            }
+            function handleAnnotationAdd(target) {
+                ShowLoader($('#pdf-viewer-div'));
+                var numPages = RENDER_OPTIONS.pdfDocument.pdfInfo.numPages;                
+                for (var i = 1; i <= numPages;i++) {
+                    PDFAnnotate.getStoreAdapter().getAnnotations(target, i)
+                    .then((data) => {
+                        if (data.annotations.length > 0) {                            
+                            $.ajax({
+                                url: "/Cms/Document/GetExtractedData?fileId=@Model.Id&pagenum=" + data.pageNumber+"&x=" + data.annotations[0].x + "&y=" + data.annotations[0].y,
+                                //data: model,
+                                type: "GET",
+                                dataType: "JSON",
+                                success: function (response) {
+                                    HideLoader($('#pdf-viewer-div'));
+                                    if (confirm('Based on your selection "' + response + '" text is extracted. Please confirm text position ? ')) {
+                                        var model = {
+                                            Id: '@ViewBag.OcrId', TemplateId: '@ViewBag.TemplateId', FieldName: '@ViewBag.FieldName',
+                                            Cordinate1: data.annotations[0].x, Cordinate2: data.annotations[0].y, Cordinate3: data.pageNumber
+                                        };
+                                        $.ajax({
+                                            url: "/CMS/Template/OcrMappingManage",
+                                            data: model,
+                                            type: "POST",
+                                            dataType: "JSON",
+                                            success: function (response) {
+                                                if (response.IsSuccess) {
+                                                    var win = GetMainWindow();
+                                                    win.CloseWindow({ MethodName: 'getDataGridOcr' });
+                                                }
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        for (var i = 0; i < NUM_PAGES; i++) {
+                                            document.querySelector('div#pageContainer' + (i + 1) + ' svg.annotationLayer').innerHTML = '';
+                                        }
+                                        localStorage.removeItem(RENDER_OPTIONS.documentId + '/annotations');
+                                    }
+                                }
+                            });
+                        }
+
+                    }, (error) => {
+                        HideLoader($('#pdf-viewer-div'));
+                        console.log(error.message);
+                    });
+                }
+
+            }
+            UI.addEventListener('annotation:click', handleAnnotationClick);
+            UI.addEventListener('annotation:blur', handleAnnotationBlur);
+            UI.addEventListener('annotation:add', handleAnnotationAdd);
+
+
+        })(window, document);
+        function OnSave(docId) {
+            //url = '/cms/Document/GetFileMongo?fileId=' + docId;
+            //window.open(url, '_blank');
+            //return false;
+            @*var model = {
+                Id: '@ViewBag.OcrId', TemplateId: '@ViewBag.TemplateId', FieldName: '@ViewBag.FieldName',
+                Cordinate1: '1', Cordinate2: '2', Cordinate3: '3', Cordinate4: '4', Cordinate5: '6',
+            };*@
+            //$.ajax({
+            //    url: "/CMS/Template/OcrMappingManage",
+            //    data: model,
+            //    type: "POST",
+            //    dataType: "JSON",
+            //    success: function (response) {
+            //        if (response.IsSuccess) {
+            //            var win = GetMainWindow();
+            //            win.CloseWindow({ MethodName: 'getDataGridStack' });
+            //        }
+            //    }
+            //});
+
+
+        }
+        UI.enableRect("area")
+
+    </script>
+</div>
+
+
+
+
+
+
+
+
+
+
+

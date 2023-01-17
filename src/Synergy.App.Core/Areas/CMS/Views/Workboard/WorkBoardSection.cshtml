@@ -1,0 +1,97 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model WorkBoardSectionViewModel
+@{
+    ViewData["Title"] = "Work Board Section";
+    //Layout = ViewBag.Layout != null ? ViewBag.Layout : null;
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+
+<script>
+    $(document).ready(function () {
+
+    });
+
+    var onAjaxSuccess = function (res) {
+        var action = "addBoard";
+        if (res.success) {
+            
+            if ('@Model.DataAction'=='@DataActionEnum.Create') {
+                ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit') {
+                action = "changeBoard";
+                ShowNotification("@SharedResource["UpdatedSuccessfully"]", "success");
+            }
+
+            closeWorkBoardSection(res.data, action);
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+        }
+    };
+
+    function closeWorkBoardSection(note, action) {
+        
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: action, Prms: { note } });
+        return false;
+    }
+</script>
+
+<div class="pad-15">
+    <form asp-area="Cms" asp-controller="Workboard" asp-action="ManageWorkBoardSection" method="post" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div>
+            <div class="row pad-10">
+                <div class="col-3">Header Color</div>
+                <div class="col-9">
+                    @*@(Html.Kendo().ColorPickerFor(m => m.HeaderColor)
+                        .Palette(new string[] {
+                        "#f9eb71","#ee85c1","#a7d96d","#4bc1ec","#ac8fef","#a0adbd"
+                        }).TileSize(30).Value(Model.HeaderColor != null ? Model.HeaderColor.ToString() : "#f9eb71")
+                            .HtmlAttributes(new { @class = "form-control" })
+                            )*@
+                </div>
+            </div>
+            <div class="row pad-10">
+                <div class="col-3">Digit</div>
+                <div class="col-9"><input asp-for="SectionDigit" type="number" class="form-control" min="0" step="1" /></div>
+            </div>
+            <div class="row pad-10">
+                <div class="col-3">Title</div>
+                <div class="col-9">
+                    <input asp-for="SectionName" type="text" class="form-control" />
+                </div>
+            </div>
+            <div class="row pad-10">
+                <div class="col-3">Description</div>
+                <div class="col-9">
+                    <textarea asp-for="SectionDescription" class="form-control" rows="5"></textarea>
+                </div>
+            </div>
+            <div class="row pad-10">
+                <div class="col-12">
+                    <input type="submit" class="btn btn-primary " style="float: right; margin-right: 10px;" value="Save" />
+                </div>
+            </div>
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.WorkBoardId)
+        @Html.HiddenFor(x => x.WorkBoardSectionId)
+        @Html.HiddenFor(x => x.NtsNoteId)
+        @Html.HiddenFor(x => x.CompanyId)
+        @Html.HiddenFor(x => x.CreatedBy)
+        @Html.HiddenFor(x => x.CreatedDate)
+        @Html.HiddenFor(x => x.LastUpdatedBy)
+        @Html.HiddenFor(x => x.LastUpdatedDate)
+    </form>
+</div>

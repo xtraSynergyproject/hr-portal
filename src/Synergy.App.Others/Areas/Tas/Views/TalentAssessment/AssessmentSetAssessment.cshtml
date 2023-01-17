@@ -1,0 +1,281 @@
+﻿
+@using Synergy.App.ViewModel;
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.Extensions;*@
+@model AssessmentSetAssessmentViewModel
+@{
+    ViewData["Title"] = "Assessments Set";
+    Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    ///Layout = null;
+}
+<style>
+    .kgrdSalaryInfoStyle {
+        width: 100% !important;
+    }
+
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+</style>
+<script type="text/javascript">
+
+    function OnCreateAssessment() {
+        
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/TAS/TalentAssessment/MapAssessmentSetAssessment?AssessmentSetId=@Model.AssessmentSetId";
+        win.OpenWindow({ Title: 'Assessment Set Assessment', Width: 450, Height: 450 });
+        return false;
+    }
+
+    function OpenService(id, code, tempCode) {
+
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/TAS/TalentAssessment/MapAssessmentSetAssessment?AssessmentSetId=@Model.AssessmentSetId&Id=" + code;
+        win.OpenWindow({ Title: 'Assessment Set Assessment', Width: 450, Height: 450 });
+        return false;
+    }
+
+    function OnAfterServiceCreate() {
+        getAssessmentSetData();
+       // $("#kgrdAssessment").data("kendoGrid").dataSource.read();
+    }
+    function Delete(noteId) {
+
+        kendo.confirm("Are you sure that you want to delete the selected item?").then(function () {
+            $.ajax({
+                type: "POST",
+                url: "/TAS/TalentAssessment/DeleteAssessmentSetAssessment?Id=" + noteId,
+
+                success: function (data) {
+
+                    kendo.alert("Assessment Set Assessment  Deleted Successfully");
+                    getAssessmentSetData();
+                  //  $("#kgrdAssessment").data("kendoGrid").dataSource.read();
+                },
+                dataType: "json",
+            });
+        }, function () {
+
+        });
+    }
+
+    function OnCopyAssessment(assId) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/TAS/TalentAssessment/CopyAssessment?assessmentId=" + assId;
+        win.OpenWindow({ Title: 'Copy Assessment', Width: 450, Height: 450 });
+        return false;
+    }
+
+    function OnManageQuestions(assId) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/TAS/TalentAssessment/ManageQuestions?assessmentId=" + assId;
+        win.OpenWindow({ Title: 'Manage Questions', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function OnTryout(assId, assType) {
+        
+        var url = "/TAS/TalentAssessment/Tryout?Id=" + assId + "&LanguageCode=ENGLISH&type=" + assType;
+        LoadPartailView(url, $('#cms-content'));
+    }
+
+    //context menu--------
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                console.log($trigger);
+                var id = $trigger.data('idvalue');
+                //var serid = $trigger.data('sid');
+                var noteid = $trigger.data('noteid');
+                //var scode = $trigger.data('code');
+                //var tempCode = $trigger.data('temcode');
+                var type = $trigger.data('asstype');
+                return {
+                    callback: function (key, options) {
+                        switch (key) {
+
+                            case 'edit':
+                                OpenService(id, noteid, "");
+                                break;
+                            case 'copy':
+                                OnCopyAssessment(id);
+                                break;
+                            case 'delete':
+                                Delete(noteid);
+                                break;
+                            case 'manage':
+                                OnManageQuestions(id);
+                                break;
+                            case 'tryout':
+                                OnTryout(id, type);
+                                break;
+                            default:
+                        }
+                    },
+                    items: {
+                        "edit": { name: "Edit", icon: "fas fa-pencil" },
+                        "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                        @*"gradeRating": { name: "@Html.Raw(Resource["ManageGradeRating"])", icon: "fas fa-star-half-alt" },*@
+                    }
+                };
+            }
+        });
+
+    });
+
+    function onSearch() {
+
+        var srchtype = $("#type").data("kendoDropDownList").text();
+        var srchtxt = $("#srchText").val();
+        var search = {
+            type : srchtype, searchtext : srchtxt
+        };
+        //$("#kgrdAssessment").data("kendoGrid").dataSource.read(search);
+    }
+    function onReset() {
+        $("#type").data("kendoDropDownList").value("");
+        $("#srchText").val("");
+       // $("#kgrdAssessment").data("kendoGrid").dataSource.read();
+    }
+
+</script>
+@*<h3>@ViewBag.Title</h3>*@
+
+<script>
+    var columnDefs = [
+        {
+            headerName: "Action",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menu' data-idvalue='" + params.data.Id + "'  data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+        {
+            headerName: "Sequence No.",
+            field: "SequenceOrder",
+        },
+        {
+            field: "AssessmentType",
+            headerName: "Assessment Type",
+        },
+        {
+            field: "AssessmentName",
+            headerName: "Assessment Name",
+        },
+
+    ];
+
+    $(function () {
+
+        getAssessmentSetData();
+
+
+
+
+    });
+
+    function getAssessmentSetData() {
+        document.getElementById("kgrdAssessment").innerHTML = "";
+        gridConfig(
+            "kgrdAssessment",
+            "/Tas/TalentAssessment/ReadAssessmentSetAssessmentData?AssessmentSetId=@Model.AssessmentSetId",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <button class="btn btn-primary" onclick="OnCreateAssessment()" title="Create New Assessment Set Assessment">Create New Assessment Set Assessment</button>
+        <br />
+        <div id="kgrdAssessment" style="width:100%;height:550px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<AssessmentViewModel>
+        ().Name("kgrdAssessment")
+        .Columns(col =>
+        {
+            //col.Command(command =>
+            //{
+            //    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("onEditCalendar").HtmlAttributes(new { @class = "action-icon", @title = "Edit" });
+            //    // command.Custom("Manage Salary Elements").Text("<i class='fa fas fa-cog'></i>").Click("OnManageSalaryElements").HtmlAttributes(new { @class = "action-icon", @title = "Manage Salary Elements" });
+            //}).Title("Action").Width(150);
+            col.Bound(c => c.Id).ClientTemplate("<div class='btn-group grid-menu' id='tree-menu' data-idvalue=\"#:Id#\" data-noteid=\"#:NoteId#\"><i class='fas fa-ellipsis-v'></i></div>").Width(150).Title("Action"/*"" + SharedResource["Action"] + ""*/)/*.HeaderHtmlAttributes(new { title = "Actions" })*/;
+            col.Bound(c => c.SequenceOrder).Title("Sequence No.");
+            col.Bound(c => c.AssessmentType).Title("Assessment Type");
+            col.Bound(c => c.AssessmentName).Title("Assessment Name");
+
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Custom().Text("Create New Assessment Set Assessment").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateAssessment();" });
+        })
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+        .Resizable(resize => resize.Columns(true))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Read(read => read.Action("ReadAssessmentSetAssessmentData", "TalentAssessment", new { Area="TAS",@AssessmentSetId=Model.AssessmentSetId}))
+        .Model(model => model.Id("Id")))
+        )*@
+    </div>
+</div>
+

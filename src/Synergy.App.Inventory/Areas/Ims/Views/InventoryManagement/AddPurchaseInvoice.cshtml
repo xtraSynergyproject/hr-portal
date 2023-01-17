@@ -1,0 +1,337 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@*@using Kendo.Mvc.UI*@
+
+@{
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    ViewData["Title"] = "Add Purchase Invoice";
+
+}
+
+
+
+<div class="row  pad-10 no-gutters">
+    <div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+        <div class="text-danger"></div>
+        <div style="width: 100%;" class="p-3">
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Invoice Header</legend>
+
+
+
+                <div class="row" style="padding-top:10px;">
+
+                    @* Invoice No. *@
+                    <div class="col-2" style="padding-bottom:10px;padding-left:30px;">
+                        <label>Invoice No</label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        <input type="text" id="PIInvoiceNo" class="form-control" />
+                    </div>
+
+                    @* Invoice Date *@
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label>Invoice Date</label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;padding-right:30px;">
+                        <input type="text" id="PIInvoiceDate" class="form-control" />
+                    </div>
+
+                </div>
+
+            </fieldset>
+            <div class="row">
+                <div class="col-6">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">PO Items</legend>
+
+
+                        <div id="PIPoItemsList" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+                    </fieldset>
+                </div>
+                <div class="col-6">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Challan List</legend>
+                        <div id="PIChallanGrid" style="width: 100%;" class="ag-theme-alpine"></div>
+
+                    </fieldset>
+                    </div>
+                </div>
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Delivery Challan Documents</legend>
+                        @*<div class="card" style="height:200px;">
+
+                </div>*@
+                    </fieldset>
+
+                  
+                        <div class="row  pad-10 no-gutters">
+                            <button class="btn btn-primary" style="margin:5px;color:white;float:right" onclick="PISave(event);">Save</button>
+                        </div>
+                        <div>
+                            <button class="btn btn-danger" style="margin:5px;color:white;float:right" onclick="closePIwindow();">Close</button>
+                        </div>
+                  
+
+
+                </div>
+            </div>
+    </div>
+
+            <script>
+    $(function () {
+
+
+        $("#PIInvoiceDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd.MM.yyyy"
+        });
+
+        $("#PIChallanGrid").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/IMS/InventoryManagement/GetChallanDetailsByPoId?poId=@ViewBag.PoId",
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                updateItem: function (item) {
+                    /*debugger;*/
+                },
+                //deleteItem: function (item) {
+                //    onDeleteItem(item.NoteId);
+                //}
+            },
+            onItemEditing: function (e) {
+                /*debugger;*/
+                if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                    //
+                    e.grid.updateItem();
+                }
+            },
+            fields: [
+
+                {  name: "Select", type: "checkbox", width: 30, },
+                {
+                    name: "PONo",
+                    title: "PO No.",
+                    type: "text",
+                    editing: false
+                },
+
+                {
+                    name: "ChallonNo",
+                    title: "Challan No.",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "ChallanDate",
+                    title: "Challan Date",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "Action"
+                    //title: "Returned To Vendor Qty",
+                    //type: "text",
+                    //editing: false
+                },
+            ]
+        });
+
+        // getPoItems();
+
+        $("#PIPoItemsList").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/IMS/InventoryManagement/GetPOItemsByPOId?poId=@ViewBag.PoId",
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                onItemEditing: function (e) {
+                    /*debugger;*/
+                    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                        //
+                        e.grid.updateItem();
+                    }
+                },
+                updateItem: function (item) {
+                    /*debugger;*/
+                },
+                //deleteItem: function (item) {
+                //    onDeleteItem(item.NoteId);
+                //}
+            },
+            fields: [
+                {
+                    name: "ItemName",
+                    title: "Item Name",
+                    type: "text",
+                    editing: false
+                },
+
+                {
+                    name: "POQuantity",
+                    title: "PO Quantity",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "ReceivedQuantity",
+                    title: "Received Quantity",
+                    type: "text",
+                    editing: false
+                },
+            ]
+        });
+
+    });
+
+    @*var PIcolumnDefs = [
+        {
+            headerName: "ItemName",
+            field: "ItemName",
+
+        },
+        {
+            headerName: "PO Quantity",
+            field: "POQuantity",
+        },
+        {
+            headerName: "Received Quantity",
+            field: "ReceivedQuantity",
+        }
+    ];
+
+    function getPoItems() {
+        debugger;
+        gridConfig(
+            "PIPoItemsList",
+            "/IMS/InventoryManagement/GetPOItemsByPOId?poId=@ViewBag.PoId",
+            PIcolumnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10
+        );
+    }*@
+
+    function PISave(e) {
+        debugger;
+        var PIselectedRows = [];
+        var receiptIds = [];
+        var poIds = [];
+        var PIentityGrid = $("#PIChallanGrid").data("JSGrid");
+        if (PIentityGrid._editingRow != null) {
+            PIentityGrid.updateItem();
+        }
+        //pushPopinArray(entityGrid.data);
+        for (var i = 0; i < PIentityGrid.data.length; i++) {
+            if (PIentityGrid.data[i].Select == true) {
+                PIselectedRows.push(PIentityGrid.data[i]);
+                receiptIds.push(PIentityGrid.data[i].Id);
+                poIds.push(PIentityGrid.data[i].POId);
+            }
+
+        }
+        //console.log(PIselectedRows);
+        //console.log(receiptIds);
+        //console.log(poIds);
+        //console.log(PIselectedRows[0].WarehouseId);
+        //console.log(typeof(PIselectedRows));
+
+        if (PIselectedRows.length == 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("select at leaset one column");
+            e.preventDefault();
+            return false;
+        }
+
+        var piInvoiceNo = $("#PIInvoiceNo").val();
+        var piDate = $("#PIInvoiceDate").val();
+
+
+        //PIselectedRows = JSON.stringify(PIselectedRows);
+        //console.log(typeof (PIselectedRows));
+        debugger;
+        var postData = {
+            invoiceno: piInvoiceNo,
+            pidate: piDate,
+            receiptIds: receiptIds,
+            poId: "@ViewBag.PoId",
+            challanList: PIselectedRows
+        };
+
+        ShowLoader($("#cms-content"));
+        $.ajax({
+            url: "/ims/inventorymanagement/ManagePurchaseInvoiceData",
+            type: "POST",
+            data: postData,
+            success: function (response) {
+                debugger;
+                console.log(response);
+                HideLoader($("#cms-content"));
+                if (response.success) {
+                    ShowNotification("Invoice Generated Successfully", "success");
+                    PIClose();
+                }
+                else {
+                    ShowNotification(response.error, "error");
+                }
+            },
+            error: function (err) {
+                HideLoader($("#cms-content"));
+                console.log(err);
+                closePIwindow();
+            }
+        });
+
+
+    }
+
+    function PIClose() {
+        debugger;
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'refreshPOInvoiceGrid', Prms: '@ViewBag.PoId' });
+        return false;
+    }
+
+    function closePIwindow(){
+         var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+
+
+            </script>

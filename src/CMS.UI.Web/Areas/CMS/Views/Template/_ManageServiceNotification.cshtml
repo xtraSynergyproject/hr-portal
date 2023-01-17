@@ -1,0 +1,178 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model  NotificationTemplateViewModel
+@*<h3>Communication</h3>*@
+<script type="text/javascript">
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            //alert("Note Success");
+            @*if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }*@
+            ShowNotification("Saved Successfully", "success");
+           // window.parent.parent.$("#documentTypeTreeView").data("kendoTreeView").dataSource.read();
+            var TemplateId = res.templateId;
+            //alert(TemplateId);
+            LoadPartailView('@Url.Action("ManageServiceNotification", "Template", new { @area = "Cms"})?templateId=' + TemplateId, $('#notificationPage'));
+        }
+        else {
+            showError(res.error);
+        }
+    };
+    var showError = function (error) {
+
+        //#validation-summary-manageform
+        $("#validation-summary-servicenotif").html(error);
+        $("#validation-summary-servicenotif").css("display", "block");
+    }
+
+    function OnNotifiTempEdit(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+       
+             var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("EditServiceNotification", "NotificationTemplate", new { @area="Cms"})?id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Notification Template', Width: 550, Height: 950, Position:'Right' });
+        return false;
+    }
+    function OnNotifiTempDelete(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //alert(dataItem.id);
+        var flag = confirm('Do you really want to delete the Notification Template?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteServiceNotification", "NotificationTemplate", new { @area="Cms"})?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdNotificationTemp").data("kendoGrid").dataSource.read();
+                        kendo.alert("Notification Template Deleted Successfully.");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    $("#kgrdNotificationTemp").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+
+    }
+    function SaveData(e) {
+        
+        var ngrid = $("#kgrdNotificationTemp").data("kendoGrid");
+        var ccount = ngrid.dataSource.data().length;
+        if (ccount > 0) {
+            var detail = JSON.stringify(ngrid.dataSource.data());
+            $("#ServiceNotificationData").val(detail);
+        } else {
+            alert("No record.");
+            e.preventDefault();
+            return false;
+        }
+    }
+
+    function OnNotifiTempCreate(e) {
+
+        //e.preventDefault();
+        console.log(e);
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var serviceTemplateId = '@Model.TemplateId';
+        //alert(serviceTemplateId);
+       
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("CreateServiceNotification", "NotificationTemplate", new { @area="Cms"})?serviceTemplateId=' + serviceTemplateId;
+        win.OpenWindow({ Title: 'Manage Notification Template', Width: 550, Height: 950, Position:'Right' });
+        return false;
+    }
+
+</script>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <form asp-controller="Template" asp-action="ManageServiceNotification" class="form-horizontal"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary-servicenotif" class="text-danger" asp-validation-summary="All"></div>
+
+        <div class="row pad-10">
+            @*@(Html.Kendo().Grid<NotificationTemplateViewModel>()
+            .Name("kgrdNotificationTemp")
+            .Columns(col =>
+            {
+                col.Command(command =>
+                {
+                    command.Custom("Edit").Text(" ").Click("OnNotifiTempEdit").IconClass("fa fas fa-pencil").HtmlAttributes(new { @class = "action-icon" });
+                    command.Custom("Delete").Text(" ").Click("OnNotifiTempDelete").IconClass("fa fas fa-trash").HtmlAttributes(new { @class = "action-icon" });
+                }).Width(120);
+                col.Bound(c => c.Name);
+                col.Bound(c => c.Subject);
+                col.Bound(c => c.NotificationActionId);
+                col.Bound(c => c.NotificationTo);
+
+            })
+            .ToolBar(toolbar =>
+                {
+                    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnNotifiTempCreate();'><i class='fa fas fa-plus'></i>&nbsp;Create</button>");
+                })
+            //.Events(e => e.DataBound("OnDataBound"))
+            //.Scrollable(x => x.Enabled(false))
+            //.Sortable(srt => srt.Enabled(true))
+            .Selectable(select => select.Enabled(false))
+            .Pageable()
+            .Sortable()
+            .Scrollable()
+            //.Filterable(filter => filter.Mode(GridFilterMode.Row))
+            .HtmlAttributes(new { style = "height:550px;" })
+            //.Pageable(pageable => pageable
+            //.Refresh(true)
+            //.PageSizes(true)
+            //.ButtonCount(5))
+            .AutoBind(true)
+            .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(5)
+                .Events(events => events.Error("OnError"))
+                .Read(read => read.Action("ReadServiceNotificationTemplateData", "Template", new { @serviceTemplateId = Model.TemplateId }))
+                .Model(model => model.Id(p => p.Id))
+                )
+                .Editable(editable => editable.Mode(GridEditMode.PopUp)
+                          .DisplayDeleteConfirmation("Are you sure to Delete ?")
+                          )
+            )*@
+        </div>
+        <div class="cms-footer">
+            <div class="col-sm-12" style="text-align:right;">
+                <input type="submit" class="btn btn-success" onclick="SaveData(event)" value="Save" />
+
+            </div>
+            @*<input type="button" class="btn btn-link" value="Save and Preview" onclick="OnSave('Preview')" />
+                <input type="button" class="btn btn-success" value="Save and Publish" onclick="OnSave('Publish')" />
+                <input type="button" class="btn btn-primary" value="Save" onclick="OnSave()" />*@
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.TemplateId)
+    </form>
+</div>

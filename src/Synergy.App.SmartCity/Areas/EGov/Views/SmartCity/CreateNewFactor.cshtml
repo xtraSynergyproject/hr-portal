@@ -1,0 +1,199 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@*@using Kendo.Mvc.Extensions;*@
+
+@{
+    ViewData["Title"] = "Create New Factor";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model LOVViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 80px;
+        width: 80px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 65%;
+        float: left;
+    }
+</style>
+
+<div class="row" style="margin-left:15px;">
+
+    <form asp-area="Cms" asp-controller="LOV" asp-action="Manage" method="post" class="form-horizontal" id="myForm">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="List Of Value Type">List Of Value Type</label>
+                    </div>
+                    @*@(Html.Kendo().DropDownListFor(x=>x.LOVType)
+                        .DataTextField("Name")
+                                     .DataValueField("Code")
+                                     .Filter(FilterType.Contains)
+                                       .DataSource(source =>
+                                       {
+                                           source.Read(read =>
+                                           {
+                                               read.Action("GetListOfValueList", "LOV", new { Type = "LOV_TYPE" });
+                                           });
+                                       })
+                          // .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                          .HtmlAttributes(new { @class = "form-control", @style = "width:80%"})
+                         )*@
+
+                    <input asp-for="LOVType" id="LOVType" class="form-control" style="width:80%" />
+
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Enter Name" autocomplete="off" style="width:80%" required="required" />
+                    <label for="Name">Name<span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Code" type="text" class="form-control" placeholder="Enter Name" autocomplete="off" style="width:80%" required="required" />
+                    <label for="Code">Code<span class="required">*</span></label>
+                </div>
+            </div>
+           
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="SequenceOrder" type="number" class="form-control" placeholder="Enter Sequence Order" autocomplete="off" style="width:80%" />
+                    <label for="SequenceOrder">Sequence Order</label>
+                </div>
+            </div>
+            
+            <div class="col-12 pad-10">
+                <label for="Status">Status</label>
+                <div class="col-12 pad-15">
+                    <input asp-for="Status" id="Status" class="form-control" style="width:80%" />
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="cms-slidebar-footer">
+            <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">Close</button>
+            <input type="submit" class="btn btn-primary" style="margin-right:20px" value="Save" id="submitBtn" />
+        </div>
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.ImageId)
+    </form>
+</div>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+            closeNavMemberGroup();
+            
+        }
+        onchange();
+        $("#LOVType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Code",
+           // optionLabel:"--Select--",
+            value: '@Model.LOVType',
+            filter: "contains",
+            select:onchange,
+           // dataBound:onchange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=LOV_TYPE",
+                    }
+                }
+            }
+        });
+
+        $("#Status").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.Status.ToString()',
+            dataSource: {
+                severFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StatusEnum",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function onchange() {
+       var value = $("#LOVType").val();
+        $("#ParentId").kendoDropDownList({
+            dataTextField: "Code",
+            dataValueField: "Id",
+           optionLabel:"@ApplicationConstant.PlaceHolder_SelectOption",
+            @*value: '@Model.ParentId',*@
+
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetAllListOfValue?type="+value,
+                    }
+                }
+            }
+        });
+    }
+
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        /*win.CloseWindow({ MethodName: "testS"});*/
+        win.CloseWindow();
+        return false;
+    }
+
+    function onFileUploadSuccessLogo(e) {
+
+        if (e.response.success) {
+            $(".style-mylogoimage").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+            $("#ImageId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    function onLogoDel() {
+        $(".style-mylogoimage").attr("src", "/images/200.png");
+        $("#ImageId").val('');
+        var logoupload = $("#file").data("kendoUpload");
+        logoupload.clearFile(function (file) { return true; });
+    }
+</script>

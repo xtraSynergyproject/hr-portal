@@ -1,0 +1,466 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+
+<div class="tab-content" style="border: 1px solid silver;border-top:none;">
+    <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+        <div style="width: 100%;" class="p-3">
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Search Criteria</legend>
+                <div class="text-danger" asp-validation-summary="All"></div>
+                <div class="row">
+                    <div class="col-4 form-group">
+                        <div class="col-form-label required">
+                            <label>Item Type</label>
+                        </div>
+                        <input type="text" id="ItemHeadId" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            <label>Vendor</label>
+                        </div>
+                        <input type="text" id="Vendor" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            <label>From Date</label>
+                        </div>
+                        <input type="text" id="SrchFromDate" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            <label>To Date</label>
+                        </div>
+                        <input type="text" id="SrchToDate" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            &nbsp;
+                        </div>
+                        <input type="button" class="btn btn-primary btn-control" value="Get Purchase Orders" style="color:white" onclick="OnGetOrders()" />
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Select Purchase Order</legend>
+                <div class="row">
+                    <div class="col-8 form-group">
+                        <div class="col-form-label">
+                            &nbsp;
+                        </div>
+                        <input type="text" id="purchaseOrderId" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            &nbsp;
+                        </div>
+                        <input type="button" class="btn btn-primary btn-control" value="Receive Item" style="color:white;margin-top: 0px;" id="poRequest" onclick="ReceiveItem()" />
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Delivery Challan List</legend>
+                <div id="DeliveryChallanGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div id="detailPage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+    </div>
+
+</div>
+
+
+<script>
+    $(function () {
+        $("#ItemHeadId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=IMS_ITEM_TYPE",
+                    }
+                }
+            }
+        });
+        var d = new Date();
+        d.setDate(d.getDate() - 6);
+        $("#SrchFromDate").kendoDatePicker({
+            value: d,
+            format: "dd.MM.yyyy"
+        });
+        $("#SrchToDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd.MM.yyyy"
+        });
+        $("#Vendor").kendoDropDownList({
+            dataTextField: "VendorName",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetVendorsList",
+                    }
+                }
+            }
+        });
+
+        $("#purchaseOrderId").kendoDropDownList({
+            dataTextField: "ServiceNo",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            change:onChange1,
+            filter: "contains",
+            autoBind: false,
+            //enable:false,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/ReadPOData",
+                    }
+                }
+            }
+        });
+
+        //getPOData();
+        $.contextMenu({
+            selector: '#tree-menuReceiveItem',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var serno = $trigger.data('serviceno');
+                var status = $trigger.data('status');
+
+                switch (0) {
+                    case 0:
+
+                        var Items;
+
+                        Items = {
+                            "receiveItem": { name: "Receive Item", icon: "fas fa-edit" },
+                        };
+
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'receiveItem':
+                                        ReceiveItem(id, serno);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: Items
+                        };
+
+
+                }
+            }
+        });
+
+        //getDeliveryChallanData();
+        $.contextMenu({
+            selector: '#tree-menudeliveryChallanItem',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var id = $trigger.data('idvalue');
+                var serno = $trigger.data('serviceno');
+                var status = $trigger.data('status');
+               
+                switch (0) {
+                    case 0:
+                        var Items;
+
+                        if (status == "SERVICE_STATUS_DRAFT") {
+                            Items = {
+                                "add": { name: "Add/View Items", icon: "fas fa-edit" },
+                                "receive": { name: "Receive Note", icon: "fas fa-edit" },
+                                "serial": { name: "Serial No", icon: "fas fa-edit" },
+                                "submit": { name: "Submit", icon: "fas fa-edit" },
+                            };
+                        }
+                        else 
+                        {
+                            Items = {
+                                "add": { name: "Add/View Items", icon: "fas fa-edit" },
+                                "receive": { name: "Receive Note", icon: "fas fa-edit" },                               
+                                
+                            };
+                        }
+                        return {
+                            callback: function (key, options) {
+                                debugger
+                                switch (key) {
+                                    case 'add':
+                                        AddViewItem(id, serno);
+                                        break;
+                                    case 'receive':
+                                        //ReceiveNote(id, serno);
+                                        OnReceivedNoteReport(id);
+                                        break;
+                                    case 'serial':
+                                        OnSerialize(id);
+                                        break;
+                                    case 'submit':
+                                        OnSubmit(id);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: Items
+                        };
+
+
+                }
+            }
+        });
+    });
+    function onAfterCreate()
+    {
+        getDeliveryChallanData();
+    }
+    function AddViewItem(id, serno) {
+        console.log(id, serno);
+        var url = "/IMS/InventoryManagement/AddViewItems?id="+id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Delivery Challan Detail', Width: 1000, Height: 600 });
+        return false;
+    }
+    function OnSerialize(id) {
+
+        var url = "/IMS/InventoryManagement/SerializeItems?id=" + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Serialize Items', Width: 1000, Height: 600 });
+        return false;
+    }
+
+    function OnReceivedNoteReport(receivedNoteId) {
+        var portalId = $("#GlobalPortalId").val();
+        var url = '/Cms/FastReport?rptName=IMS_ReceivedNote&lo=@LayoutModeEnum.Popup&portalId=' + portalId + '&rptUrl=ims/query/GetReceivedNoteDetails?receivedNoteId=' + receivedNoteId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Receive Note Report', Width: 800, Height: 700 });
+    }
+
+    var columnDefs = [
+        {
+            field: "ServiceNo",
+            headerName: "PO No"
+        },
+        {
+            field: "VendorName",
+            headerName: "Vendor Name"
+        },
+        {
+            field: "PoDate",
+            headerName: "PO Date",
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + d.getMonth() + "." + d.getFullYear();
+            }
+        },
+
+        {
+            field: "POValue",
+            headerName: "PO Value"
+        },
+        {
+            field: "ServiceStatusName",
+            headerName: "PO Status",
+            //cellRenderer: params => {
+            //    return statusObj[params.value]; //only for enum
+            //}
+        },
+        {
+            field: "CreatedBy",
+            headerName: "Prepared By"
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+
+                return "<div class='btn-group grid-menu' id='tree-menuReceiveItem' data-idvalue='" + params.value + "' data-status=\"" + params.data.ServiceStatusCode + "\" data-serviceno=\"" + params.data.ServiceNo + "\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+    var columnDefs1 = [
+        {
+            field: "ServiceNo",
+            headerName: "PO No"
+        },
+        {
+            field: "ChallanDate",
+            headerName: "Challan Date",
+              cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + d.getMonth() + "." + d.getFullYear();
+            }
+        },
+        {
+            field: "ChallonNo",
+            headerName: "Challan NO",
+
+        },
+        {
+            field: "InvoiceDate",
+            headerName: "Invoice Date",
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + d.getMonth() + "." + d.getFullYear();
+            }
+        },
+        {
+            field: "InvoiceNo",
+            headerName: "Invoice NO",
+
+        },
+        {
+            field: "Remark",
+            headerName: "Remark"
+        },
+        {
+            field: "CreatedBy",
+            headerName: "Received By"
+        },
+        {
+            field: "CreatedDate",
+            headerName: "Received On",
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + d.getMonth() + "." + d.getFullYear();
+            }
+        },
+
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                console.log(params.value);
+                return "<div class='btn-group grid-menu' id='tree-menudeliveryChallanItem' data-idvalue='" + params.value + "' data-status=\"" + params.data.ServiceStatusCode + "\" data-serviceno=\"" + params.data.ServiceNo + "\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+    function getPOData()
+    {
+        document.getElementById("POGrid").innerHTML = "";
+        var sd1 = kendo.toString($("#SrchFromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        var ed1 = kendo.toString($("#SrchToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        gridConfig(
+            "POGrid",
+            "/IMS/InventoryManagement/ReadPOData?ItemHead=" + $("#ItemHeadId").data("kendoDropDownList").value() + "&Vendor=" + $("#Vendor").data("kendoDropDownList").value() + "&From=" + sd1 + "&To=" + ed1,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function getDeliveryChallanData() {
+        document.getElementById("DeliveryChallanGrid").innerHTML = "";
+        var sd1 = kendo.toString($("#SrchFromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        var ed1 = kendo.toString($("#SrchToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        gridConfig(
+            "DeliveryChallanGrid",
+            "/IMS/InventoryManagement/ReadDeliveryChallanData?ItemHead=" + $("#ItemHeadId").data("kendoDropDownList").value() + "&Vendor=" + $("#Vendor").data("kendoDropDownList").value() + "&From=" + sd1 + "&To=" + ed1 + "&poId=" + $("#purchaseOrderId").data("kendoDropDownList").value()+"&receiptType=PurchaseOrder",
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function OnGetOrders() {
+        var sd = kendo.toString($("#SrchFromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        var ed = kendo.toString($("#SrchToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        $("#purchaseOrderId").data("kendoDropDownList").dataSource.read({
+            ItemHead: $("#ItemHeadId").data("kendoDropDownList").value(),
+            Vendor: $("#Vendor").data("kendoDropDownList").value(),
+            From: sd,
+            To: ed
+        });
+       // getPOData();
+    }
+    function ReceiveItem(id)
+    {
+        id = $("#purchaseOrderId").data("kendoDropDownList").value();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryManagement/ManageReceiveItem?goodsReceiptReferenceId=' + id + '&itemHeadId=' + $("#ItemHeadId").data("kendoDropDownList").value() +'&receiptType=PurchaseOrder';
+        win.OpenWindow({ Title: 'Receive Item via Delivery Challan/Invoice', Width: 800, Height: 800 });
+        return false;
+    }
+    function onChange1(e)
+    {
+        getDeliveryChallanData();
+    }
+    function OnSubmit(id) {
+
+        $.ajax({
+            url: '/IMS/InventoryManagement/CheckSerialNoForRecepitItemsExist?id=' + id,
+            type: 'POST',
+            data: {},
+            dataType: 'json',
+            success: function (result) {
+
+                if (result.success) {
+                    var flag = confirm('Do you really want to Submit?');
+
+                    if (flag) {
+                        ShowLoader($("#cms-content"));
+                        $.ajax({
+                            url: '/IMS/InventoryManagement/SubmitService?UdfNoteTableId=' + id,
+                            type: 'POST',
+                            data: {},
+                            dataType: 'json',
+                            success: function (result) {
+                                HideLoader($("#cms-content"));
+                                if (result.success) {
+                                    getDeliveryChallanData();
+                                    kendo.alert("Submitted Successfully.");
+                                } else {
+                                    getDeliveryChallanData();
+                                    var err = result.errors.BinderCountError.errors[0];
+                                    kendo.alert(err);
+                                }
+                            },
+                            error: function (ert) {
+                                HideLoader($("#cms-content"));
+                                getDeliveryChallanData();
+                            }
+                        });
+                        //return false;
+                    }
+                } else {
+                    kendo.alert("Please Add Serial No for items first");
+                }
+            },
+            error: function (ert) {
+                getStockAdjustmentData();
+            }
+        });
+
+
+
+
+
+
+    }
+</script>

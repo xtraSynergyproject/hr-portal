@@ -1,0 +1,482 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+    Layout = null;
+}
+@using CMS.UI.ViewModel;
+@model List<SynergyTemplateCategoryViewModel>
+<style>
+   
+    /*.card {
+        display:inline-block;
+    }*/
+    .insidePanel {
+        margin: 20px;
+    }
+    .left {
+        min-width: 350px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+    /*Portal Start*/
+    .sidenav {
+        height: 100%; /* 100% Full-height */
+        width: 0; /* 0 width - change this with JavaScript */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Stay on top */
+        top: 0; /* Stay at the top */
+        right: 0;
+        background-color: #fff; /* Black*/
+        border-left: 1px solid silver;
+        overflow-x: hidden; /* Disable horizontal scroll */
+        padding-top: 30px; /* Place content 60px from the top */
+        transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    }
+
+
+
+        /* Position and style the close button (top right corner) */
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            font-size: 30px;
+            font-weight: bold;
+            margin-left: 20px;
+            color: gray;
+            border: none;
+            text-decoration: none;
+        }
+
+            .sidenav .closebtn:hover {
+                color: red;
+            }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Portal End*/
+</style>
+<script>
+    function OnTemplatechange(e) {       
+        var TempId = $("#TemplateMasterddl").data("kendoDropDownList").value();
+        var ddl = $("#accordionExample").find(".tempMaster");//.data("kendoListView");
+        for (var i = 0; i < ddl.length; i++) {
+            var id = ddl[i].id;           
+            var listview = $("#" + id).data("kendoListView");           
+            listview.dataSource.read({ TemplateId: TempId })
+        }
+    }
+</script>
+<div>
+    @*@(Html.Kendo().DropDownList()
+          .Name("TemplateMasterddl")
+          .DataTextField("Name")
+          .DataValueField("Id")
+          .OptionLabel("--select filter--")
+            .Events(e => e.Change("OnTemplatechange"))
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetTemplateMasterByType", "Template",new { type= ViewBag.type });
+                });
+            })
+    .HtmlAttributes(new { style = "width: 100%" })
+    )*@
+</div>
+<div class=" pad-l-t-10">
+    <div class="accordion md-accordion" id="accordionExample">
+        @for (var k = 0; k < Model.Count(); k++)
+        {
+            var name = Model[k].Name;
+            var categoryId = Model[k].Id;
+            var type = CMS.Common.NtsTypeEnum.Note.ToString() + "Category";
+            if (Model[k].NtsType == CMS.Common.NtsTypeEnum.Note)
+            {
+                type = CMS.Common.NtsTypeEnum.Note.ToString() + "Category";
+            }
+            else if (Model[k].NtsType == CMS.Common.NtsTypeEnum.Task)
+            {
+                type = CMS.Common.NtsTypeEnum.Task.ToString() + "Category";
+            }
+            if (Model[k].NtsType == CMS.Common.NtsTypeEnum.Service)
+            {
+                type = CMS.Common.NtsTypeEnum.Service.ToString()+"Category";
+            }
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordionExample" href="#collapseOne_@categoryId"
+                       aria-expanded="true" aria-controls="collapseOne_@categoryId">                       
+                        <h5 class="mb-0">
+                            <span data-id="@categoryId" data-type="@type" data-portal-name="@name" class="tree-menu1"><i class="fa fa-ellipsis-v" style="margin-right:20px;"></i></span>
+                            @name <i class="fas fa-angle-down rotate-icon" style="float:right;"></i>
+                        </h5>
+                    </a>
+                    @*<h2 class="mb-0">
+            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne_@categoryId" aria-expanded="true" aria-controls="collapseOne_@categoryId">
+                <span data-id="@categoryId" data-type="@type" data-portal-name="@name" class="tree-menu1"><i class="fa fa-ellipsis-h"></i></span> @name<i class="fas fa-angle-down rotate-icon"></i>
+            </button>
+        </h2>*@
+                </div>
+
+                <div id="collapseOne_@categoryId" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                    <div class="card-body" style="padding:0px;">
+                       
+                            @(Html.Kendo().ListView<SynergyTemplateViewModel>()
+                                                  .Name("templatelist_" + categoryId)
+                                                  .TagName("div")
+                                                  .ClientTemplateId("ct-tv-template1")
+                                                  .DataSource(dataSource => dataSource
+                                                    .Ajax()
+                                                    .Read(read => read.Action("GetTemplateMasterListByCategoryId", "Template",new { Id= categoryId }))
+                                                    .PageSize(21)
+                                                    )
+                     .Pageable(x => x.Enabled(false))
+                     .HtmlAttributes(new { @class="row col-12 tempMaster", @style="display:flex;margin:0px;"})
+                            )
+                                     
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+      
+
+    <script id="ct-tv-template1" type="text/kendo-ui-template">
+
+        <div class="col-6" style="display:flex;">
+        <div class="card" style="display:inline-block;border-bottom: 1px solid rgba(0,0,0,.125); margin-top: 10px;margin-bottom: 10px;margin-left: 10px;padding:0px;">
+         <img src="http://reparo.dk/wp-content/uploads/2013/09/test-thumbnail.jpg" class="card-img-left" alt="...">
+        </div>
+         <div class="card col-7" style="display:inline-block;border-bottom: 1px solid rgba(0,0,0,.125); margin-top: 10px;margin-bottom: 10px;margin-right: 10px;padding:0px;">
+
+          <div class="card-header" style="padding:7px">
+              <div class="card-title">#: Name #
+           <span data-id="#:Id#" data-type="NtsTemplate" data-portal-name="#:Name#" class="tree-menu1" ><i class="fa fa-ellipsis-v" style="float:right;margin-top:8px"></i></span>
+          </div>
+          </div>
+         <div class="card-body" style="padding:10px;">
+                       <div>Subject: #:Subject# </div>
+                        <div>Description: #:Description# </div>
+                       <div>Status: #:DocumentStatus# </div>
+                </div>
+        </div>
+        </div>
+
+    </script>
+    </div>
+
+    <div id="create-category-div">
+        <div id="mySidenavPageCategory" class="sidenav">
+            <h1 class="cms-panel-header-name" id="sidebarHeader">Create Category</h1>
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNavCategory()" title="Close">&times;</a>
+            <hr />
+            <div id="create-category" class="row pad-20 slidenav-flow">
+
+            </div>
+        </div>
+    </div>
+    <script>
+
+    function closeNavCategory() {
+        document.getElementById("mySidenavPageCategory").style.width = "0";
+        $("#overlay").removeClass("overlay");
+    }
+    function OnSelect(e) {
+        e.preventDefault();
+
+    }
+     function editNavStyle(sid, stype) {
+       // document.getElementById("mySidenavStyle").style.width = "650px";
+       
+          var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("TemplateProperties", "Template", new { @area="Cms"})?id=' + sid;
+         win.OpenWindow({ Title: 'Template Properties', Width: 650, Height: 950 });
+        return false;
+        //LoadPartailView(iframeOpenUrl, $('#page-style-content'));
+        //$("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+
+
+     function editNavStyle1(sid, stype) {
+       // document.getElementById("mySidenavStyle").style.width = "650px";
+         // alert(sid);
+        
+         var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("TemplateField", "Template", new { @area="Cms"})?templatefieldId=' + sid;
+        win.OpenWindow({ Title: 'Template Fields', Width: 650, Height: 950 });
+        return false;
+        //LoadPartailView(iframeOpenUrl, $('#page-style-content'));
+        //$("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+    function OpenIframeModal(url, title) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: title, Width: 450, Height: 1200 });
+        return false;
+       
+    }
+    //$(function () {
+    //    $.contextMenu({
+    //        selector: '.tree-menu',
+    //        trigger: 'left',
+
+    //        items: {
+    //            "edit": {
+    //                name: "Edit", icon: "cut", callback: function (itemKey, opt, e) {
+    //                    console.log($(this).data('id'));
+    //                }
+    //            },
+    //            "cut": { name: "Cut", icon: "cut" },
+    //            "copy": { name: "Copy", icon: "copy" },
+    //            "paste": { name: "Paste", icon: "paste" },
+    //            "delete": { name: "Delete", icon: "delete" },
+    //            "sep1": "---------",
+    //            "quit": { name: "Quit" }
+    //        }
+    //    });
+    //});
+
+
+    function OnDataBound(e)
+    {
+
+    }
+
+    $(function () {
+
+        $.contextMenu({
+            selector: '.tree-menu1',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var parentId = $trigger.data('id');
+                var parentType = $trigger.data('type');
+              //  var selectParentId = $trigger.data('parentId');
+
+                switch (parentType) {
+                    case 'NoteCategoryRoot':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateCategory?type=Note', 'Create Category');
+                                        $("#sidebarHeader").html("Create Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("CreateCategory", "Template", new { @area="Cms",@type="Note"})', $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-chart-area" },
+                            }
+                        };
+                    case 'NoteCategory':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                        $("#sidebarHeader").html("Create Note Template");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('/cms/Template/CreateTemplateMaster?type=Note&templateCategoryId=' + parentId, $('#create-category'));
+                                       // LoadPartailView('@Url.Action("CreateTemplateMaster", "Template", new { @area="Cms",@type="Note"})?&templateCategoryId=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                       // OpenIframeModal('/cms/Template/CreateTemplateMaster?type=Note', 'Create Note Template');
+
+                                        break;
+                                    case 'open':
+                                        $("#sidebarHeader").html("Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("EditCategory", "Template", new { @area="Cms"})?id=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                       // OpenIframeModal('/cms/Template/EditCategory?id=' + parentId, 'Category');
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Template", icon: "fas fa-chart-area" },
+                                "open": { name: "Open Category", icon: "fas fa-chart-area" },
+                            }
+                        };
+                    case 'NtsTemplate':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                       // OpenIframeModal('/cms/Template/EditTemplateMaster?id=' + parentId, 'Edit Template');
+                                        $("#sidebarHeader").html("Edit Template");
+                                           document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("EditTemplateMaster", "Template", new { @area="Cms"})?id=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    case 'open':
+                                        LoadPartailView('@Url.Action("Template", "Template", new { @area="Cms"})?templateId=' + parentId , $('#page-content'));
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit Template", icon: "fas fa-chart-area" },
+                                "open": { name: "Open Template", icon: "fas fa-chart-area" },
+                            }
+                        };
+
+                    case 'TaskCategoryRoot':
+                        return {
+
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateCategory?type=Task', 'Create Category');
+                                        $("#sidebarHeader").html("Create Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("CreateCategory", "Template", new { @area="Cms", @type = "Task" })' , $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-chart-area" },
+
+                            }
+                        };
+                     case 'TaskCategory':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateTemplateMaster?type=Task', 'Create Template');
+                                        $("#sidebarHeader").html("Create Template");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('/cms/Template/CreateTemplateMaster?type=Task&templateCategoryId=' + parentId, $('#create-category'));
+                                        //LoadPartailView('@Url.Action("CreateTemplateMaster", "Template", new { @area="Cms",@type= "Task"})?&templateCategoryId=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    case 'open':
+                                        //OpenIframeModal('/cms/Template/EditCategory?id=' + parentId, 'Category');
+                                         $("#sidebarHeader").html("Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("EditCategory", "Template", new { @area="Cms"})?id=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Template", icon: "fas fa-chart-area" },
+                                "open": { name: "Open Category", icon: "fas fa-chart-area" },
+                            }
+                        };
+                    case 'ServiceCategoryRoot':
+                        return {
+
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateTemplate?type=Service', 'Create Category');
+                                        $("#sidebarHeader").html("Create Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("CreateTemplate", "Template", new { @area="Cms",@type= "Service" })', $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-chart-area" },
+
+                            }
+                        };
+                     case 'ServiceCategory':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateTemplateMaster?type=Service', 'Create Template');
+                                        $("#sidebarHeader").html("Create Template");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('/cms/Template/CreateTemplateMaster?type=Service&templateCategoryId=' + parentId,  $('#create-category'));
+                                       // LoadPartailView('@Url.Action("CreateTemplateMaster", "Template", new { @area="Cms",@type= "Service" })?&templateCategoryId=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    case 'open':
+                                        $("#sidebarHeader").html("Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("EditCategory", "Template", new { @area="Cms"})?id=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                       // OpenIframeModal('/cms/Template/EditCategory?id=' + parentId, 'Category');
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Template", icon: "fas fa-chart-area" },
+                                "open": { name: "Open Category", icon: "fas fa-chart-area" },
+                            }
+                        };
+                    default:
+                        return {
+                            callback: function (key, options) {
+                                alert(parentId);
+                                alert(parentType);
+                            },
+                            items: {
+
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+
+    </script>
+

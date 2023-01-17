@@ -1,0 +1,234 @@
+﻿@*@using Kendo.Mvc.UI*@
+@using System.Text
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Copy/Move To...";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        /*min-height: 240px;*/
+    }
+
+    .k-listview-content {
+        /*overflow: hidden;*/
+        display: flex;
+        flex-flow: row;
+        margin: 10px 5px;
+    }
+
+        .k-listview-content::-webkit-scrollbar {
+            width: 10px;
+            height: 8px;
+        }
+
+        .k-listview-content::-webkit-scrollbar-track {
+            background-color: #e4e4e4;
+            border-radius: 100px;
+        }
+
+        .k-listview-content::-webkit-scrollbar-thumb {
+            /*box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);*/
+            background-color: #787878;
+            border-radius: 100px;
+        }
+
+    .product {
+        border: solid;
+        float: left;
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 5px 10px;
+        padding: 1%;
+        text-align: center;
+        border-color: #d3d3d333;
+        background-color: #d3d3d333;
+        border-radius: 5px;
+    }
+
+        .product img {
+            width: 130px;
+            height: 130px;
+        }
+
+    .k-listview:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .hrStyle {
+        margin-bottom: 0;
+    }
+
+    .k-listview {
+        border-top: 1px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .button-pane {
+        margin: 15px 15px;
+        color: #fff;
+    }
+</style>
+
+<div class="mainContent">
+
+    <div class="titlebar" style="margin-bottom: 15px;"></div>
+
+    <div class="search-workboard-section">
+        <span style="margin: 15px 15px;">Search for the Workboard you would like to copy or move your idea(s) to.</span>
+        <input type="search" id="search-term" class="form-control" placeholder="Search" aria-label="Search" style="width:90%; margin:15px 15px;" />
+    </div>
+
+    <div class="workboard-list-section">
+        <input id="wbSelected" type"text" value="" hidden />
+        <div class="row" id="listView" style="height: 100%; margin-bottom: 25px;"></div>
+        <script type="text/x-kendo-tmpl" id="listTemplate">
+            <div id="cardItem">
+                <div class="product" id="listItem" data-content="#:WorkBoardName#" data-id="#:data.WorkboardId#" onclick="testing('#:WorkBoardName#','#:data.WorkboardId#')">
+                    <div style="margin-top: 5px;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1200px-Image_created_with_a_mobile_phone.png" alt="#:WorkBoardName# image" />
+                    </div>
+                    <hr class="hrStyle" />
+                    <div style="text-align:start;margin-bottom:1%;height:10px">
+                        <div class="row">
+                            <div class="col-12">
+                                #:WorkBoardName#
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+    </div>
+
+    <div class="section-selection">
+        <span style="margin: 15px 15px;" id="sectionContent">Choose a workboard to select section.</span>
+        <input type="text" id="sections" class="form-control" style="width:90%; margin:15px 15px;" />
+    </div>
+
+    <div class="button-pane">
+        <a class="btn btn-primary" onclick="onCopyMove('Copy')">Copy</a>
+        <a class="btn btn-primary" onclick="onCopyMove('Move')">Move</a>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        getData('@WorkBoardstatusEnum.Open');
+    });
+
+    $('#search-term').on('keyup', function () {
+        var search = $.trim($(this).val());
+        console.log(search);
+        if (search != "")
+            dataSource.filter({ field: "WorkBoardName", operator: "contains", value: search });
+        else
+            dataSource.filter({});
+
+        return;
+    });
+
+    var dataSource;
+    function getData(status) {
+        dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/CMS/Workboard/GetOtherWorkboards?status=" + status +"&id=@ViewBag.wbId",
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listView").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#listTemplate").html()),
+            selectable: '@ListViewSelectionMode.Single',
+        });
+    }
+
+    function testing(wbName, id) {
+        
+      //  alert(wbName);
+        //alert(id);
+        $("#sectionContent").html("Select the workboard section to copy this idea to ... ");
+
+        sectionDataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/CMS/Workboard/GetSectionList?id="+ id,
+                    dataType: "json"
+                }
+            },
+        });
+
+        var dropdownlist = $("#sections").data("kendoDropDownList");
+        //dropdownlist.enable(true);
+        dropdownlist.setDataSource(sectionDataSource);
+        dropdownlist.dataSource.read();
+        $("#wbSelected").attr('value', id);
+    }
+
+    $("#sections").kendoDropDownList({
+        dataTextField: "SectionName",
+        dataValueField: "Id",
+        optionLabel: "--- Select ---",
+        value: "Id",
+        filter: "contains",
+        //enable: false
+    });
+
+    function onCopyMove(clickAction) {
+        
+        var WbId = $('#wbSelected').val();
+        var sectionId = $("#sections").data("kendoDropDownList");
+        var sectionIdval = sectionId.value();
+        var WbItemId = "@ViewBag.wbItemId";
+        /*var WbItemId = "dc58b785-6d0d-4bce-b59b-f0ad03d47b20";*/
+        //console.log(WbId, sectionIdval, WbItemId,clickAction);
+        ShowLoader($("#cms-content"));
+        $.ajax({
+            type: "POST",
+            url: "ManageItemSharing?workboardId=" + WbId + "&secId=" + sectionIdval + "&workboardItemId=" + WbItemId + "&postAction=" + clickAction,
+            //data: {
+            //    workboardId: WbId,
+            //    secId: sectionId,
+            //    workboardItemId: WbItemId,
+            //    postAction: clickAction
+            //},
+            success: function (data) {
+                // success mssg
+                HideLoader($("#cms-content"));
+                closeCopyWindow(clickAction);
+            },
+            error: function (err) {
+                // error mssg
+                HideLoader($("#cms-content"));
+                closeCopyWindow(clickAction);
+            }
+        });
+    }
+
+    function closeCopyWindow(clickAction) {
+        var win = GetMainWindow();
+
+        if (clickAction == 'Move') {
+            /*ShowNotification("Moved Successfully", "success");*/
+            win.CloseWindow({ MethodName: 'openWorkBoard', Prms: '@ViewBag.wbId' });
+            return false;
+        }
+        
+        win.CloseWindow({ MethodName: 'notify' });
+        
+        return false;
+    }
+</script>

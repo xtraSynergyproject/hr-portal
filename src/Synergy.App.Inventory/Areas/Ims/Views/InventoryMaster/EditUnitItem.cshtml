@@ -1,0 +1,196 @@
+﻿@{
+    ViewData["Title"] = "Edit Unit Item";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@model ItemStockViewModel
+
+<style>
+    .required {
+        color: red;
+    }
+</style>
+
+@*<script src="~/js/IMS/InventoryManagement/Vendor.js" asp-append-version="true"></script>*@
+<div class="row-12" style="margin-left:15px;">
+
+    <form asp-controller="InventoryMaster" asp-action="EditUnitItem" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+
+        <div style="width: 100%;" class="p-3">
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Add/Edit Unit Item Details</legend>
+
+
+                <div class="row col-12" style="padding:10px;">
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label> Item Name:</label>
+                    </div>
+                    <div class="col-9" style="padding-bottom:10px;">
+                        @Html.DisplayFor(x => x.ItemName)
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label> Warehouse:</label>
+                    </div>
+                    <div class="col-9" style="padding-bottom:10px;">
+                        <input id="WarehouseId" asp-for="WarehouseId" class="form-control" />
+                        @*                        @Html.DisplayFor(x=>x.WarehouseName)
+                        *@
+                    </div>
+
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label> Unit Rate<span class="required">*</span></label>
+                    </div>
+                    <div class="col-9" style="padding-bottom:10px;">
+                        <input type="text" asp-for="UnitRate" id="UnitRate" class="form-control">
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label> Minimum Quantity</label>
+                    </div>
+                    <div class="col-9" style="padding-bottom:10px;">
+                        <input type="text" asp-for="MinimumQuantity" class="form-control">
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label> Maximum Quantity</label>
+                    </div>
+                    <div class="col-9" style="padding-bottom:10px;">
+                        <input type="text" asp-for="MaximumQuantity" class="form-control">
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label> Opening Balance Quantity<span class="required">*</span></label>
+                    </div>
+                    <div class="col-9" style="padding-bottom:10px;">
+                        <input type="text" asp-for="OpeningQuantity" id="openingQty" class="form-control">
+                        <input type="text" asp-for="BalanceQuantity" id="balQty" class="form-control" hidden>
+                    </div>
+
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label> Transaction Date</label>
+                    </div>
+
+                    <div class="col-9" style="padding-bottom:10px;">
+                        <input type="text" asp-for="TransactionDate" class="form-control">
+                    </div>
+
+
+                </div>
+            </fieldset>
+            
+                <div class="row col-12" style="padding:5px;">
+
+                    <div class="col-12" style="text-align:right;">
+                        <input type="submit" class="btn btn-primary" value="Save" style="margin:5px;" onclick="OnSubmit()" />
+                        <input type="button" class="btn btn-danger" value="Close" style="margin:5px;" onclick="closeNav()" />
+                    </div>
+
+                </div>
+          
+        </div>
+            @Html.HiddenFor(x => x.DataAction)
+            @Html.HiddenFor(x => x.NoteId)
+            @Html.HiddenFor(x => x.ItemId)
+            @Html.HiddenFor(x => x.BalanceQuantity)
+            @Html.HiddenFor(x => x.CurrentQuantity)
+            @Html.HiddenFor(x => x.IssuedQuantity)
+            @Html.HiddenFor(x => x.ClosingQuantity)
+            @Html.HiddenFor(x => x.AdditionalInfo)
+            @Html.HiddenFor(x => x.Id)
+            @Html.HiddenFor(x => x.TransactionDate)
+            @Html.HiddenFor(x => x.OpeningQuantity)
+            @Html.HiddenFor(x => x.WarehouseId)
+
+
+
+    </form>
+</div>
+<script>
+
+    function OnSubmit() {
+        var OpeningQty = $("#openingQty").val();
+        $("#balQty").val(OpeningQty);
+    }
+
+        $("#WarehouseId").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "WarehouseName",
+            dataValueField: "Id",
+            filter: "contains",
+            value:"@Model.WarehouseId",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetWarehouseList",
+                    }
+                }
+            }
+        });
+
+    $(document).ready(function () {
+        debugger;
+        @*if ("@Model.ItemStatus" == "Active") {
+            $("#UnitRate").attr("disabled", "disabled");
+        }*@
+
+            $("#TransactionDate").kendoDatePicker();
+            if('@Model.DataAction' == '@DataActionEnum.Edit'){
+                $("#TransactionDate").attr('disabled','disabled');
+	            var datepicker = $("#TransactionDate").data("kendoDatePicker");
+	            datepicker.enable(false);
+            }
+            else{
+	            var todayDate = kendo.toString(kendo.parseDate(new Date()), 'dd.MM.yyyy');
+	            $("#TransactionDate").data("kendoDatePicker").value(todayDate);
+
+            }
+
+        });
+
+     $( document ).ready(function() {
+           var OpeningQuantity= $("#OpeningQuantity");
+          if('@Model.DataAction' == '@DataActionEnum.Edit'){
+              $("#openingQty").attr('disabled','disabled');
+          }
+
+     });
+
+      $( document ).ready(function() {
+          @*if('@Model.DataAction' == '@DataActionEnum.Edit'){*@
+	        var kendoDropDown = $("#WarehouseId").data("kendoDropDownList");
+	        kendoDropDown.enable(false);
+          //}
+      });
+
+        //var d = new Date();
+        //    $("#TransactionDate").kendoDatePicker({
+        //        value: d,
+        //        format:"dd.MM.yyyy"
+        //value:"@Model.WarehouseId"
+        //    });
+
+
+    var onAjaxSuccess = function (res) {
+        console.log(res);
+        if (res.success) {
+            closeNav()
+        }
+        else {
+
+            showError(res.error);
+        }
+    };
+
+          function closeNav() {
+
+            var win = GetMainWindow();
+              win.CloseWindow({ MethodName: 'OnAfterNoteCreate' });
+            return false;
+          }
+
+
+</script>

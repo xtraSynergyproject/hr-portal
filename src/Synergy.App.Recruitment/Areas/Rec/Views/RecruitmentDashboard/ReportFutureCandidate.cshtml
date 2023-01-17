@@ -1,0 +1,708 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@model RecTaskViewModel
+@{
+    ViewBag.Title = "Candidates shortlisted for future";
+    Layout = null;
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#expandall').click(function (e) {
+            //alert("expandall");
+            //debugger;
+            var grid = $("#kgrdPayrollBatch").data("kendoGrid");
+            $(".k-grouping-row").each(function (e) {
+                grid.expandGroup(this);
+            });
+        });
+
+        $('#collapseall').click(function (e) {
+            //alert("collapseall");
+            //debugger;
+            var grid = $("#kgrdPayrollBatch").data("kendoGrid");
+            $(".k-grouping-row").each(function (e) {
+                grid.collapseGroup(this);
+            });
+        });
+    });
+
+    function onDataBound(e) {
+        var grid = this;
+        $(".k-grouping-row").each(function (e) {
+            grid.collapseGroup(this);
+        });
+    }
+
+    function FilterGridPending() {
+        var search = {
+            TaskStatus: "IN_PROGRESS",//IN_PROGRESS
+            Mode: $("#Mode").val(),
+            ModuleName: "Dms",
+            Text: $("#Text").val(),
+        };
+        return search;
+    }
+
+    function FilterGridOverDue() {
+        var search = {
+            TaskStatus: "OVER_DUE",
+            Mode: $("#Mode").val(),
+            ModuleName: "Dms",
+            Text: $("#Text").val(),
+        };
+        return search;
+    }
+
+    function FilterGridShared() {
+        var search = {
+            TaskStatus: "",
+            Mode: 'SHARE_TO',
+            ModuleName: "Dms",
+            Text: $("#Text").val(),
+        };
+        return search;
+    }
+
+
+    function OnDataBoundPending(arg) {
+
+        document.getElementById('kgrdTask').style.border = 'none';
+        var data = $("#kgrdTask").data("kendoListView").dataSource.data();
+
+    }
+    function OnDataBoundPending1(arg) {
+
+        document.getElementById('kgrdTaskPending').style.border = 'none';
+        var data = $("#kgrdTaskPending").data("kendoListView").dataSource.data();
+        if (data.length == 0) {
+            $('#no-data-pending').show();
+        } else {
+            $('#no-data-pending').hide();
+        }
+    }
+
+    function OnDataBoundOverdue(arg) {
+        document.getElementById('kgrdTaskOverDue').style.border = 'none';
+        var data = $("#kgrdTaskOverDue").data("kendoListView").dataSource.data();
+        if (data.length == 0) {
+            $('#no-data-overdue').show();
+        } else {
+            $('#no-data-overdue').hide();
+        }
+    }
+    function OnDataBoundCompleted(arg) {
+        document.getElementById('kgrdTaskCompleted').style.border = 'none';
+        var data = $("#kgrdTaskCompleted").data("kendoListView").dataSource.data();
+        if (data.length == 0) {
+            $('#no-data-complete').show();
+        } else {
+            $('#no-data-complete').hide();
+        }
+    }
+    var isFiltered = false;
+    function OpenNote(id) {
+        //window.parent.iframeOpenUrl = '/nts/note/NoteCard?NoteId=' + id;
+        //window.parent.OpenIframePopup2(1200, 650, "Document");
+        //return false;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/nts/note/NoteCard?NoteId=' + id;
+        win.OpenWindow({ Title: 'Document', Width: 1200, Height: 650 });
+        return false;
+    }
+    function OpenTask(taskId) {
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Index", "Task", new { @area= "Cms" })?taskId=' + taskId +'&isPopUp=true';
+        win.OpenWindow({ Title: 'View Task', Width: 1200, Height: 1200 });
+        return false;
+    }
+
+    function IframePostbackScript() {
+        //$("#kgrdTask").data("kendoListView").dataSource.read();
+        //$("#kgrdTaskOverDue").data("kendoListView").dataSource.read();
+        //$("#kgrdTaskCompleted").data("kendoListView").dataSource.read();
+        $("#kgrdTaskPending").data("kendoListView").dataSource.read();
+
+    }
+
+    $("#mysearch").keyup(function () {
+        var val = $('#mysearch').val();
+
+        var listView = $("#kgrdTask").data("kendoListView");
+        listView.dataSource.filter({
+            logic: "or",
+            filters: [
+                {
+                    field: "Subject",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "AssigneeUserName",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "TaskNo",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "JobName",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "OrgUnitName",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "TaskStatusName",
+                    operator: "contains",
+                    value: val
+                },
+
+            ]
+        });
+
+
+    });
+    function CloseShare() {
+        //CloseIframePopup2();
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function sortbydate() {
+        var listView = $("#kgrdTask").data("kendoListView");
+        listView.dataSource.sort({ field: "DisplayDueDate", dir: "asc" });
+    }
+    function sortbyname() {
+        var listView = $("#kgrdTask").data("kendoListView");
+        listView.dataSource.sort({ field: "Subject", dir: "asc" });
+    }
+
+    function sortbyowner() {
+        var listView = $("#kgrdTask").data("kendoListView");
+        listView.dataSource.sort({ field: "OwnerUserName", dir: "asc" });
+    }
+
+    function sortbyassignee() {
+        var listView = $("#kgrdTask").data("kendoListView");
+        listView.dataSource.sort({ field: "AssigneeUserName", dir: "asc" });
+    }
+    function filterreset() {
+        //resetParam();
+        var listView = $("#kgrdTask").data("kendoListView");
+        //$("#todoheading").html("Task");
+        listView.dataSource.filter({});
+        listView.dataSource.sort({ field: "CreatedDate", dir: "desc" });
+    }
+     function OnApplication(Id) {
+       
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("PrintableView", "CandidateProfile", new { @area = "Recruitment" })?applicationId=' + Id;
+        win.OpenWindow({ Title: 'Application', Width: 1200, Height: 1200 });
+        return false;
+    }
+</script>
+
+
+
+<style>
+    .dropdown-toggle::after {
+        content: none;
+    }
+
+    .iconwothtext {
+        display: flex;
+        cursor: pointer;
+        align-items: center;
+    }
+
+    .leftmenustyle {
+        font-size: 14px;
+        color: #4b4f56;
+        margin-bottom: 6px;
+        font-weight: normal;
+        margin-top: 6px;
+        padding-left: 5px;
+        border-bottom: 1px medium rgba(255, 255, 255, .5);
+    }
+
+    .col-1 {
+        flex: none !important;
+    }
+    /* The hero image */
+    .head-image {
+        object-fit: fill;
+    }
+
+    /* Place text in the middle of the image */
+    .head-text {
+        text-align: left;
+        position: absolute;
+        top: 28%;
+        color: white;
+    }
+
+    .head-img {
+        max-width: 100%;
+        max-height: 149px;
+        width: 100%;
+        object-fit: none;
+    }
+
+    .main {
+        margin-top: 1%;
+        text-align: right;
+    }
+
+    /* Bootstrap 4 text input with search icon */
+
+    .has-search .form-control {
+        padding-left: 2.375rem;
+        /*width: 100%;*/
+    }
+
+    .form-group {
+        width: 40%;
+    }
+
+    .has-search .form-control-feedback {
+        position: absolute;
+        z-index: 2;
+        display: block;
+        width: 2.375rem;
+        height: 2.375rem;
+        line-height: 2.375rem;
+        text-align: center;
+        pointer-events: none;
+        color: #aaa;
+    }
+
+    .task-card {
+        margin-left: 15px;
+        margin-bottom: 30px;
+        margin-top: 1%;
+        border-radius: 6px;
+        color: #333;
+        background: #fff;
+        width: 98%;
+        box-shadow: 0 4px 20px 0 rgb(0 0 0 / 14%), 0 7px 10px -5px #fff;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid #eee;
+        min-height: 160px;
+    }
+
+    .sub-div {
+        overflow-y: scroll;
+        height: 550px;
+        overflow-x: hidden;
+    }
+
+    .card-heading {
+        margin-left: 1%;
+        font-weight: bold;
+        margin-top: 12px;
+    }
+
+    .item-hover:hover {
+        background-color: #d3d3d340;
+        cursor: pointer !important;
+    }
+
+    .no-data {
+        text-align: center;
+        margin-top: 5%;
+        font-size: 16px;
+        font-weight: 500;
+        display: none;
+    }
+
+    .no-data-icon {
+        color: #c8aa4d;
+        font-size: 40px;
+    }
+
+    .k-dropdown:hover {
+        transform: none !important;
+    }
+
+    .k-select:hover {
+        transform: none !important;
+    }
+
+    .k-input:hover {
+        transform: none !important;
+    }
+
+    .k-state-hover :hover {
+        transform: none !important;
+    }
+
+    span:hover {
+        transform: none !important;
+    }
+
+    .k-link:hover {
+        transform: none !important;
+    }
+
+    h6:hover {
+        transform: none !important;
+    }
+
+    .form-control:hover {
+        transform: none !important;
+    }
+
+    input:hover {
+        transform: none !important;
+    }
+
+    .task-title {
+        padding: 10px;
+        background-color: #1c4893;
+        font-weight: bold;
+        text-align: left;
+        color: #ffffff;
+        margin-left: 0px;
+        margin-right: 10px;
+    }
+</style>
+
+<script>
+     function OnAddComment(Id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("AddComments", "CandidateShortlist", new { @area = "Recruitment" })?applicationId=' + Id;
+        win.OpenWindow({ Title: 'Add Comments', Width: 450, Height: 450 });
+        return false;
+    }
+    function Refresh() {
+        $("#kgrdPayrollBatch").data("kendoGrid").dataSource.read();
+    }
+</script>
+
+
+<div class="row-12">
+    <h4>@ViewBag.Title</h4>
+
+    <hr />
+    <div class="col-12" style="padding-top:5px;">
+        @(Html.Kendo().Grid<ApplicationViewModel>()
+            .Name("kgrdPayrollBatch")
+            .Columns(columns =>
+            {
+               // columns.Bound(c => c.ApplicationId).ClientTemplate("<button class='btn btn-primary' onclick='OnAddComment(\"#=ApplicationId#\");'>Add Comment</button>").Title("Action").Width(180).Locked(true).Lockable(false).HeaderHtmlAttributes(new { id = "addcomments" });
+                columns.Bound(p => p.PositionName).HeaderHtmlAttributes(new { title = "Position Name" }).Width(130).Locked(true).Lockable(false);
+                columns.Bound(p => p.OrganizationName).HeaderHtmlAttributes(new { title = "Organization Name" }).Width(140).Locked(true).Lockable(false);
+                columns.Bound(p => p.BatchName).HeaderHtmlAttributes(new { title = "Batch Name" }).Width(120).Locked(true).Lockable(false);
+                columns.Bound(p => p.HiringManagerName).HeaderHtmlAttributes(new { title = "Comment" }).Width(130).Locked(true).Lockable(false);
+                //columns.Bound(p => p.ShortlistByHMComment).HeaderHtmlAttributes(new { title = "Comment" }).Width(150).Locked(true).Lockable(false);
+                //columns.Bound(p => p.ApplicationNo).HeaderHtmlAttributes(new { title = "Application No" }).Width(120).Locked(true).Lockable(false);
+                columns.Bound(p => p.ApplicationStateName).HeaderHtmlAttributes(new { title = "Application State" }).Title("Application State").Width(120).Locked(true).Lockable(false);
+                columns.Bound(p => p.ApplicationStatus).HeaderHtmlAttributes(new { title = "Application Status" }).HeaderHtmlAttributes(new { title = "Application Status" }).Title("Application Status").Width(150).Locked(true).Lockable(false);
+
+                columns.Bound(c => c.ApplicationId).ClientTemplate("<a href='javascript:OnApplication(\"#=ApplicationId#\");'><i class='far fa-address-card btn-link'></i>#=ApplicationNo#</a>").Title("Application No").Width(120).HeaderHtmlAttributes(new { title = "Application No", id = "viewprofile" });
+
+
+                columns.Bound(p => p.FirstName).HeaderHtmlAttributes(new { title = "First Name" }).Title("First Name").Width(150);
+                columns.Bound(p => p.MiddleName).HeaderHtmlAttributes(new { title = "Middle Name" }).Title("Middle Name").Width(150);
+                columns.Bound(p => p.LastName).HeaderHtmlAttributes(new { title = "Last Name" }).Title("Last Name").Width(150);
+                columns.Bound(p => p.Email).HeaderHtmlAttributes(new { title = "Email" }).Width(150);
+
+                columns.Bound(p => p.TotalWorkExperience).HeaderHtmlAttributes(new { title = "Total Work Experience" }).Width(150);
+                columns.Bound(p => p.ContactPhoneHome).HeaderHtmlAttributes(new { title = "Contact Phone Home" }).Title("Mobile").Width(150);
+                columns.Bound(p => p.Score).HeaderHtmlAttributes(new { title = "Score" }).Width(150);
+                columns.Bound(p => p.Gender).HeaderHtmlAttributes(new { title = "Gender" }).Width(150);
+                columns.Bound(p => p.BirthDate).HeaderHtmlAttributes(new { title = "Birth Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+                columns.Bound(p => p.Age).HeaderHtmlAttributes(new { title = "Age" }).Width(150);
+                columns.Bound(p => p.BirthPlace).HeaderHtmlAttributes(new { title = "Birth Place" }).Width(150);
+                columns.Bound(p => p.Nationality).HeaderHtmlAttributes(new { title = "Nationality" }).Width(150);
+                columns.Bound(p => p.BloodGroup).HeaderHtmlAttributes(new { title = "Blood Group" }).Width(150);
+                columns.Bound(p => p.MaritalStatusName).HeaderHtmlAttributes(new { title = "Marital Status" }).Width(150);
+                columns.Bound(p => p.PassportNumber).HeaderHtmlAttributes(new { title = "Passport Number" }).Width(150);
+                columns.Bound(p => p.PassportIssueCountry).HeaderHtmlAttributes(new { title = "Passport Issue Country" }).Width(150);
+                columns.Bound(p => p.PassportExpiryDate).HeaderHtmlAttributes(new { title = "Passport Expiry Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+                columns.Bound(p => p.QatarId).HeaderHtmlAttributes(new { title = "Qatar Id" }).Width(150);
+                columns.Bound(p => p.CurrentAddressHouse).HeaderHtmlAttributes(new { title = "Current Address House" }).Width(150);
+                columns.Bound(p => p.CurrentAddressStreet).HeaderHtmlAttributes(new { title = "Current Address Street" }).Width(150);
+                columns.Bound(p => p.CurrentAddressCity).HeaderHtmlAttributes(new { title = "Current Address City" }).Width(150);
+                columns.Bound(p => p.CurrentAddressState).HeaderHtmlAttributes(new { title = "Current Address State" }).Width(150);
+                columns.Bound(p => p.CurrentAddressCountryName).HeaderHtmlAttributes(new { title = "Current Address Country Name" }).Width(150);
+                columns.Bound(p => p.PermanentAddressHouse).HeaderHtmlAttributes(new { title = "Permanent Address House" }).Width(150);
+                columns.Bound(p => p.PermanentAddressStreet).HeaderHtmlAttributes(new { title = "Permanent Address Street" }).Width(150);
+                columns.Bound(p => p.PermanentAddressCity).HeaderHtmlAttributes(new { title = "Permanent Address City" }).Width(150);
+                columns.Bound(p => p.PermanentAddressState).HeaderHtmlAttributes(new { title = "Permanent Address State" }).Width(150);
+                columns.Bound(p => p.PermanentAddressCountryName).HeaderHtmlAttributes(new { title = "Permanent Address Country Name" }).Width(150);
+
+                columns.Bound(p => p.ContactPhoneLocal).HeaderHtmlAttributes(new { title = "Contact Phone Local" }).Width(150);
+                //columns.Bound(p => p.CurrentEmployer).Width(150);
+                //columns.Bound(p => p.CurrentEmploymentLocation).Width(250);
+                //columns.Bound(p => p.CurrentEmploymentPosition).Width(250);
+                //columns.Bound(p => p.CurrentEmploymentStartDate).Width(250).Format("{0:MM/dd/yyyy}");
+                //columns.Bound(p => p.CurrentEmploymentEndDate).Width(250);
+                //columns.Bound(p => p.CurrentEmploymentResponsibilities).Width(300);
+
+                columns.Bound(p => p.SalaryCurrencyName).HeaderHtmlAttributes(new { title = "Salary Currency Name" }).Title("Salary Currency").Width(150);
+                // columns.Bound(p => p.IndianSalary).Width(150);
+                //columns.Bound(p => p.OverseasSalary).Width(150);
+                columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary" }).Title("Net Salary After Income Tax").Width(150);
+                columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(150);
+            })
+            .ToolBar(tools => {
+                tools.Excel();
+
+            })
+            .Excel(excel => excel
+            .FileName("CandidateForFuture.xlsx")
+            .Filterable(true)
+            .AllPages(true)
+            )
+            .Height(680)
+            .Scrollable(x => x.Enabled(true))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable(srt => srt.Enabled(true))
+            .Selectable(select => select.Enabled(false))
+            .Filterable(f => f.Extra(false)
+            .Operators(o => o.ForString(s => s.Clear()
+            .Contains("Contains")
+            .IsEqualTo("Is equal to")
+            )))
+            .Events(e => e.DataBound("onDataBound"))
+            //.Pageable(pageable => pageable
+            //.Refresh(true)
+            //.PageSizes(true)
+            //.ButtonCount(5))
+            .AutoBind(true)
+            .DataSource(dataSource => dataSource
+            .Ajax()
+
+            //.PageSize(10)
+            .Read(read => read.Action("ReadFutureCandidate", "RecruitmentDashboard", new { Area = "Recruitment" }))
+            .Model(model => model.Id("Id"))
+            )
+        )
+    </div>
+
+
+
+
+</div>
+
+<!--<div class="task-card">
+    <div style="background-color:#efefef!important">
+        <div class="row" style="height: 50px;">
+            <div class="col-md-11">
+                <div style="float: left; margin-left: 30px; margin-top: 8px;">
+                    <i class="fad fa-calendar-alt" style="font-size: 17px; margin-top: 9px;"> </i>
+
+                </div>
+                <div style="margin-left:30px;">
+                    <h5 class="card-heading" style="color:black">In Progress Tasks &nbsp;<span class="label label-warning" id="inprogress-task"></span></h5>
+                </div>
+            </div>
+            <div class="col-md-1 pull-right">
+                <div class="btn-group" style="margin-top:15px">
+                    <a class="k-icon k-i-more-horizontal dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size:20px; color: gray">
+                    </a>
+                    <ul class="dropdown-menu" style="position:absolute;top:20px;right:0px;left:auto; min-width:180px; color:gray">
+                        <div class="iconwothtext" style="padding-left:10px" onclick="sortbydate()">
+                            <span class="k-icon k-i-calendar-date" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Sort by due date
+                            </div>
+                        </div>
+                        <div class="iconwothtext" style="padding-left:10px" onclick="sortbyname()">
+                            <span class="k-icon k-i-convert-lowercase" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Sort by subject
+                            </div>
+                        </div>
+                        <div class="iconwothtext" style="padding-left:10px" onclick="sortbyowner()">
+                            <span class="k-icon k-i-user" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Sort by owner
+                            </div>
+                        </div>
+                        <div class="iconwothtext" style="padding-left:10px" onclick="sortbyassignee()">
+                            <span class="k-icon k-i-user" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Sort by assignee
+                            </div>
+                        </div>
+                        <div class="iconwothtext" style="padding-left:10px" onclick="filterreset()">
+                            <span class="k-icon k-i-reset" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Reset
+                            </div>
+                        </div>
+
+                    </ul>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+    <hr style="margin-bottom: 1px !important;border-width: 0px;border-color: orange;">
+    <div class="row task-title text-left">
+        <div class="col-1" style="max-width:11%">Task Owner</div>
+        <div class="col-1" style="max-width:11%">Assigned To</div>
+        <div class="col-2" style="max-width:12%">Subject</div>
+        <div class="col-2" style="max-width:11%">Candidate Name</div>
+        <div class="col-2" style="max-width:11%">Job Name</div>
+        <div class="col-1" style="max-width:10%">Org Unit</div>
+        <div class="col-1" style="max-width:8%">GAEC NO</div>
+        <div class="col-1" style="max-width:13%">Task No</div>
+        <div class="col-1" style="max-width:13%">Due Date</div>
+    </div>
+    <div class="sub-div">-->
+        @*@(Html.Kendo().ListView<TaskViewModel>
+                ().Name("kgrdTask")
+                .TagName("div")
+                .ClientTemplateId("templateTask")
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .PageSize(20)
+                .Events(events => events.Error("OnError"))
+                .Read(read => read.Action("ReadTaskData", "Task", new { Area = "nts" }).Data("FilterGridPending"))
+                .Model(model => model.Id(p => p.Id))
+                ).Events(events => events
+                .DataBound("OnDataBoundPending"))
+            )*@
+
+        <!--@(Html.Kendo().ListView<RecTaskViewModel>()
+            .Name("kgrdTask")
+            .TagName("div")
+            .ClientTemplateId("templateTask")
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+            .Read(read => read.Action("ReadTaskDataInProgress", "Task", new { Area = "cms" }))
+                )
+               .Events(events => events
+            .DataBound("OnDataBoundPending"))
+               .HtmlAttributes(new { @style = "min-width:1000px;overflow-x:scroll" })
+        )
+
+        @Html.HiddenFor(x => x.Id)
+        <div id="no-data-pending" class="no-data"><i class="fad fa-file-exclamation no-data-icon"></i><br /><br /><span>No Task</span></div>
+
+    </div>
+</div>
+
+<div class="task-card">
+    <div style="background-color:#efefef!important">
+        <div class="row" style="height: 50px;">
+            <div style="float: left; margin-left: 30px; margin-top: 8px;">
+                <i class="fad fa-calendar-alt" style="font-size: 17px; margin-top: 9px;"> </i>
+
+            </div>
+            <div style="margin-left:30px;">
+                <h5 class="card-heading" style="color:black;">Overdue Tasks &nbsp; <span class="label label-danger" id="overdue-task"></span></h5>
+
+            </div>
+
+
+        </div>
+    </div>
+    <hr style="margin-bottom: 1px !important;border-width: 0px;border-color: red;">
+    <div class="row task-title text-left">
+        <div class="col-1" style="max-width:11%">Task Owner</div>
+        <div class="col-1" style="max-width:11%">Assigned To</div>
+        <div class="col-2" style="max-width:12%">Subject</div>
+        <div class="col-2" style="max-width:11%">Candidate Name</div>
+        <div class="col-2" style="max-width:11%">Job Name</div>
+        <div class="col-1" style="max-width:10%">Org Unit</div>
+        <div class="col-1" style="max-width:8%">GAEC NO</div>
+        <div class="col-1" style="max-width:13%">Task No</div>
+        <div class="col-1" style="max-width:13%">Due Date</div>
+    </div>
+    <div class="sub-div">-->
+        @*@(Html.Kendo().ListView<TaskViewModel>
+              ().Name("kgrdTaskOverDue")
+              .TagName("div")
+              .ClientTemplateId("templateTaskOverdue")
+              .AutoBind(true)
+              .DataSource(
+              dataSource => dataSource
+              .PageSize(20)
+              .Events(events => events.Error("OnError"))
+              .Read(read => read.Action("ReadTaskData", "Task", new { Area = "nts" }).Data("FilterGridOverDue"))
+              .Model(model => model.Id(p => p.Id))
+              ).Events(events => events
+              .DataBound("OnDataBoundOverdue"))
+            )*@
+
+        <!--@(Html.Kendo().ListView<RecTaskViewModel>()
+            .Name("kgrdTaskOverDue")
+            .TagName("div")
+            .ClientTemplateId("templateTaskOverdue")
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+            .Read(read => read.Action("ReadTaskDataOverdue", "Task", new { Area = "cms" }))
+                )
+               .Events(events => events
+            .DataBound("OnDataBoundOverdue"))
+        )
+
+        @Html.HiddenFor(x => x.Id)
+        <div id="no-data-overdue" class="no-data"><i class="fad fa-file-exclamation no-data-icon"></i><br /><br /><span>No Task</span></div>
+
+    </div>
+</div>
+<div class="task-card">
+    <div style="background-color:#efefef!important">
+        <div class="row" style="height: 50px;">
+            <div style="float: left; margin-left: 30px; margin-top: 8px;">
+                <i class="fad fa-calendar-alt" style="font-size: 17px; margin-top: 9px;"> </i>
+
+            </div>
+            <div style="margin-left:30px;">
+                <h5 class="card-heading" style="color:black;">Completed Tasks &nbsp; <span class="label label-danger" id="complete-task"></span></h5>
+
+            </div>
+
+
+        </div>
+    </div>
+    <hr style="margin-bottom: 1px !important;border-width: 0px;border-color: red;">
+    <div class="row task-title text-left">
+        <div class="col-1" style="max-width:11%">Task Owner</div>
+        <div class="col-1" style="max-width:11%">Assigned To</div>
+        <div class="col-2" style="max-width:12%">Subject</div>
+        <div class="col-2" style="max-width:11%">Candidate Name</div>
+        <div class="col-2" style="max-width:11%">Job Name</div>
+        <div class="col-1" style="max-width:10%">Org Unit</div>
+        <div class="col-1" style="max-width:8%">GAEC NO</div>
+        <div class="col-1" style="max-width:13%">Task No</div>
+        <div class="col-1" style="max-width:13%">Due Date</div>
+    </div>
+    <div class="sub-div">
+
+        @(Html.Kendo().ListView<RecTaskViewModel>()
+            .Name("kgrdTaskCompleted")
+            .TagName("div")
+            .ClientTemplateId("templateTaskCompleted")
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+            .Read(read => read.Action("ReadTaskDataCompleted", "Task", new { Area = "cms" }))
+                )
+               .Events(events => events
+            .DataBound("OnDataBoundCompleted"))
+        )
+
+        @Html.HiddenFor(x => x.Id)
+        <div id="no-data-complete" class="no-data"><i class="fad fa-file-exclamation no-data-icon"></i><br /><br /><span>No Task</span></div>
+
+    </div>
+</div>-->
+
+
+

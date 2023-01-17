@@ -1,0 +1,141 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "User";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+<script>
+    function OnSelect(e) {
+        e.preventDefault();
+    }
+
+    function handlePermission(e) {
+        
+        var ids = e.id.split("_");
+        var permissionId = ids[1];
+        var pageId = ids[2];
+
+        $.ajax({
+            type: "POST",
+            url: "/cms/user/ManageUserPermission?userId=" + '@ViewBag.UserId' + "&pageId=" + pageId + "&permissionId=" + permissionId + "&isChecked=" + e.checked,
+            dataType: "json",
+            success: function (result) {
+                if (result.success) {
+                    ShowNotification("Saved Successfully", "success");
+                }
+            },
+            error: function (xhr, httpStatusMessage, customErrorMessage) {
+               // ShowNotification("Saved Successfully", "success");
+            }
+        });
+
+
+
+
+        //alert("Clicked, new value = " + e.checked);
+    }
+
+
+    function ShowNotification(msg, type) {
+        var popupNotification = $("#popupNotification").kendoNotification({
+            position: {
+                pinned: true,
+                top: 100,
+                right: 30
+            }
+        }).data("kendoNotification");
+        popupNotification.show(msg, type);
+    }
+</script>
+<br />
+
+<span style="margin:10px;">Set Permission For User: @ViewBag.UserName</span>
+
+<br />
+
+<div style="margin:10px;">
+    @*@(Html.Kendo().TreeView()
+            .Name("contentTreeView").HtmlAttributes( new {@class="treeview"})
+            .Events(e=>e.Select("OnSelect"))
+            .DataTextField("Name")
+            .TemplateId("ct-tv-template")
+            .DataSource(dataSource => dataSource
+                .Read(read => read
+                    .Action("GetPortalTreeList", "User",new { @area="Cms", userId = ViewBag.UserId})
+                )
+            )
+        )*@
+    <div id="contentTreeView" class="demo treeview"></div>
+</div>
+
+<script id="ct-tv-template" type="text/kendo-ui-template">
+    <span style="width:100%;margin-right: 10%;">  #: item.Name # </span>
+       #if(item.Type=='Permission'){#<input type="checkbox" id="chk_#:item.id#_#:item.ParentId#"
+    #= item.Checked ? checked="checked" : "" #
+    onclick='handlePermission(this);'>#}#
+    @*<span data-id="#:item.id#" data-type="#:item.Type#" data-portal-name="#:item.Name#" data-parent-id="#:item.ParentId#" data-portal-id="#:item.PortalId#" class="tree-menu" data-level="#:item.ItemLevel#"></span>*@
+</script>
+<script>
+    $('#contentTreeView')
+        .jstree({
+            'core': {
+                'data': function (node, cb) {
+                    if (node.id === "#") {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/cms/user/GetPortalTreeList?userId = @ViewBag.UserId",
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                        //cb([{ "text": "Root", "id": "1", "children": true }]);
+                    }
+                    else {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/cms/user/GetPortalTreeList?id=" + node.id+"&userId = @ViewBag.UserId",
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+</script>
+
+<style>
+    .employee-photo {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-size: 40px 44px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 41px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+    }
+
+    .employee-name {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 41px;
+        padding-left: 10px;
+    }
+</style>

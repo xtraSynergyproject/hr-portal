@@ -1,0 +1,245 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@model UserDataPermissionViewModel
+<br />
+
+<script>
+
+    function onSaveUserDataPermission() {
+
+        var data;
+        var isValid = true;
+        if ($("#UserIds").data("kendoMultiSelect").value() == "") {
+            alert("User is mandatory");
+            isValid = false;
+        } else if ($("#ColumnMetadataId2").data("kendoDropDownList").value() != "") {
+            if ($("#LogicalOperationType").data("kendoDropDownList").value() == "") {
+                alert("Logical Operator field is mandatory");
+                isValid = false;
+            }
+        }
+        if (isValid) {
+            if ('@Model.Id' == null || '@Model.Id' == "") {
+                data = {
+                    Id: $("#Id").val(),
+                    PortalId: $("#PortalId").val(),
+                    PageId: $("#PageId").val(),
+                    UserIds: $("#UserIds").data("kendoMultiSelect").value(),
+                    ColumnMetadataId: $("#ColumnMetadataId").data("kendoDropDownList").value(),
+                    LogicalOperationType: $("#LogicalOperationType").data("kendoDropDownList").value(),
+                    ColumnMetadataId2: $("#ColumnMetadataId2").data("kendoDropDownList").value()
+                };
+            } else {
+                data = {
+                    Id: $("#Id").val(),
+                    PortalId: $("#PortalId").val(),
+                    PageId: $("#PageId").val(),
+                    UserId: $("#UserId").val(),
+                    ColumnMetadataId: $("#ColumnMetadataId").data("kendoDropDownList").value(),
+                    LogicalOperationType: $("#LogicalOperationType").data("kendoDropDownList").value(),
+                    ColumnMetadataId2: $("#ColumnMetadataId2").data("kendoDropDownList").value()
+                };
+            }
+            $.ajax({
+                type: "POST",
+                url: "/cms/content/ManageUserDataPermission",
+                data: data,
+                dataType: "json",
+                success: function (result) {
+                    kendo.alert("Data Saved Successfully");
+                   // window.parent.ClosePopup();
+                    var win = GetMainWindow();
+                    win.CloseWindow();
+                    return false;
+                },
+                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                    alert(customErrorMessage);
+
+                }
+            });
+        }
+    }
+
+      $(document).ready(function () {
+       var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/cms/user/GetUserIdNameList?portalId=@Model.PortalId",
+                    dataType: "json"
+                }
+            },
+        });
+        $("#UserIds").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: dataSource,
+            autoClose: true,
+            valuePrimitive: true,
+
+        });
+
+          $("#ColumnMetadataId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+          //  optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.ColumnMetadataId',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Content/GetColunmMetadataListByPage?pageId=@Model.PageId",
+                    }
+                }
+            }
+        });
+
+          $("#LogicalOperationType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "Select Logical Operation",
+            value:'@Model.LogicalOperationType',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=LogicalOperationTypeEnum",
+                    }
+                }
+            }
+          });
+
+          $("#ColumnMetadataId2").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+           optionLabel: "Select ColumnMetadata2",
+            value:'@Model.ColumnMetadataId2',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Content/GetColunmMetadataListByPage?pageId=@Model.PageId",
+                    }
+                }
+            }
+        });
+
+
+    });
+
+</script>
+
+
+@(Html.HiddenFor(x=>x.Id))
+@(Html.HiddenFor(x=>x.PageId))
+@(Html.HiddenFor(x=>x.PortalId))
+@if (Model.Id.IsNullOrEmpty())
+{
+<div style="padding: 20px;">
+    Select User
+    @*@(Html.Kendo().MultiSelectFor(x => x.UserIds)
+            .AutoClose(false)
+            .Placeholder("Select Users...")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetUserIdNameList", "User", new { @area = "Cms",portalId=Model.PortalId });
+                });
+
+            })
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .AutoBind(true)
+            .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%" })
+            .ValuePrimitive(true)
+            .Height(300)
+        )*@
+    <select asp-for="UserIds" id="UserIds" data-placeholder="Select Users..." style="width:80%"></select>
+</div>
+}
+else
+{
+    <div style="padding: 20px;">
+        <span>UserName :  @Model.UserName</span>
+    </div>
+    @(Html.HiddenFor(x=>x.UserIds))
+    @(Html.HiddenFor(x=>x.UserId))
+}
+
+<div style="padding: 20px;">
+    Select Colunm Metadata
+    @*@(Html.Kendo().DropDownListFor(x => x.ColumnMetadataId)
+        .DataSource(source =>
+        {
+        source.Read(read =>
+        {
+        read.Action("GetColunmMetadataListByPage", "Content",new { @area="Cms", pageId = Model.PageId});
+        });
+
+        })
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .AutoBind(true)
+        .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%" })
+        .ValuePrimitive(true)
+        .Height(300)
+        )*@
+
+    <input  id="ColumnMetadataId" class = "hr-xx-large" style = "width:80%;" />
+
+</div>
+
+
+<div style="padding: 20px;">
+    Select Logical Operation Type
+
+    @*@(Html.Kendo().DropDownListFor(x=>x.LogicalOperationType)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                .OptionLabel("Select Logical Operation")
+                                .DataSource(source =>
+                                {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "LogicalOperationTypeEnum" });
+                                });
+                                })
+                                .Value(Model.Status.ToString())
+                                .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+                    )*@
+    <input id="LogicalOperationType" class="hr-xx-large" style="width:80%" />
+</div>
+
+<div style="padding: 20px;">
+    Select Colunm Metadata
+    @*@(Html.Kendo().DropDownListFor(x => x.ColumnMetadataId2)
+                                .OptionLabel("Select ColumnMetadata2")
+        .DataSource(source =>
+        {
+        source.Read(read =>
+        {
+        read.Action("GetColunmMetadataListByPage", "Content",new { @area="Cms", pageId = Model.PageId});
+        });
+
+        })
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .AutoBind(true)
+        .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%" })
+        .ValuePrimitive(true)
+        .Height(300)
+        )*@
+
+    <input id="ColumnMetadataId2" class="hr-xx-large" style="width:80%" />
+
+</div>
+
+
+
+<div style="padding: 20px;">
+
+    <button class="btn btn-primary" onclick="onSaveUserDataPermission();">Save</button>
+
+</div>

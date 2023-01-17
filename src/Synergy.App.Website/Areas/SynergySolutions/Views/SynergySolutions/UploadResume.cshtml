@@ -1,0 +1,124 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using CMS.UI.Web.Areas.SynergySolutions.Controllers;
+
+@{
+    ViewData["Title"] = "Application Document";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model UploadResumeViewModel
+
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .row {
+        margin-right: 0px;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 80px;
+        width: 80px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-myheaderimage {
+        /*border-radius: 50%;*/
+        height: 80px;
+        width: 80px;
+    }
+
+    .style-myfooterimage {
+        /*border-radius: 50%;*/
+        height: 80px;
+        width: 80px;
+    }
+</style>
+
+<script>
+
+     var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            /*ShowNotification("Resume Uploded Successfully.", "success"); */           
+            closeUploadWindow();
+        }
+        else {
+
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+
+        }
+    };
+
+
+
+    function closeUploadWindow() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'uploadNotification'});
+        return false;
+    }
+
+    function closeUWindow() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+
+
+</script>
+
+<div class="row-12" style="margin-left:15px;">
+
+    <form asp-controller="SynergySolutions" asp-action="ManageUploadResume" method="post" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+
+        <div class="row" style="padding:10px;">
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="JobName" type="text" class="form-control" id="JobName" placeholder="Enter Job Type" required="required" autocomplete="off" style="width:100%" readonly />
+                    <label for="JobName">Job Type <span class="required">*</span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">Resume</div>
+        <div class="col-12 pad-15 no-gutters" style="min-height:130px; padding-left: 5px; padding-right: 20px;">
+            @{
+                await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.Resume), Value = Model.Resume });
+            }
+        </div>
+
+
+        <div class="col-12" style="text-align:right" ;>
+            <button type="button" class="btn btn-light" style="margin-right:5px" onclick="closeUWindow();">Close</button>
+            <input type="submit" class="btn btn-primary" style="margin-right:5px" value="Send" id="submitBtn" />
+        </div>
+
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.Resume)
+    </form>
+</div>

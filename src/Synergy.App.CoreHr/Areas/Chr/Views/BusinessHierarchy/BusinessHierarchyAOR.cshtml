@@ -1,0 +1,120 @@
+﻿@using Synergy.App.Common;
+@using Synergy.App.ViewModel;
+@model BusinessHierarchyAORViewModel
+@{
+    //Layout = null;
+    Layout = ViewBag.Layout != null ? ViewBag.Layout : null;
+}
+
+
+<script>
+    var columnDefs = [
+        {
+            field: "NtsNoteId",
+            headerName: "Action",
+            maxWidth: 140,
+            cellRenderer: params => {
+                return "<i class='fa fas fa-pencil' style='cursor:pointer' onclick='OnEdit(\"" + params.data.Id + "\",\"" + params.data.NtsNoteId + "\")'></i>&nbsp;&nbsp;<i class='fa fas fa-trash' style='cursor:pointer' onclick='OnDelete(\"" + params.data.Id + "\",\"" + params.data.NtsNoteId + "\")'></i>";
+            }
+        },
+        {
+            headerName: "Reference Type",
+            field: "ReferenceType"
+        },
+        {
+            field: "UserName",
+        },
+        {
+            field: "ReferenceName",
+            headerName: "Business Hierarchy Name",
+        },
+        //{
+        //    field: "ParentName",
+        //    headerName: "Parent Hierarchy Name",
+        //},
+    ];
+    $(function () {
+        getData();
+    });
+    
+     function getData() {
+         document.getElementById("businessHierarchyAOR").innerHTML = "";
+        gridConfig(
+            "businessHierarchyAOR",
+            "/CHR/BusinessHierarchy/GetAllAORBusinessHierarchyList?businessHierarchyId=@ViewBag.BusinessHierarchyId",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function AddBAOR() {
+        
+        var url = '';
+        var portalId = $('#GlobalPortalId').val();
+        if ('@ViewBag.BusinessHierarchyId' != null && '@ViewBag.BusinessHierarchyId' != "") {
+            var udfs = encodeURIComponent('BusinessHierarchyId=@ViewBag.BusinessHierarchyId');
+            var roudfs = encodeURIComponent('BusinessHierarchyId=true');
+            url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=Create&dataAction=Create&templateCodes=BUSINESS_HIERARCHY_AOR&portalId=' + portalId + "&udfs=" + udfs + "&roudfs=" + roudfs;
+        } else {
+            url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=Create&dataAction=Create&templateCodes=BUSINESS_HIERARCHY_AOR&portalId=' + portalId;
+        }
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Add Business Hierarchy AOR', Width: 1200, Height: 600 });
+    }
+
+    function OnAfterNoteCreate() {
+        getData();
+    }
+
+    function OnEdit(id, noteId) {
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=View&dataAction=View&templateCodes=BUSINESS_HIERARCHY_AOR&portalId=' + portalId + "&recordId=" + noteId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Edit Business Hierarchy AOR', Width: 1200, Height: 600 });
+    }
+
+    function OnDelete(id, noteId) {
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(id, noteId);
+        }, function () {
+
+        });
+    }
+
+    function confirmDelete(id, noteId) {
+          $.ajax({
+              url: '@Url.Action("DeleteBusinessHierarchyAOR", "BusinessHierarchy", new { @area="CHR"})?id=' + id + "&ntsNoteId=" + noteId,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                getData();
+                ShowNotification("Deleted Successfully", "success");
+            }
+        });
+    }
+
+    function dataDownload() {
+        url = '/CHR/BusinessHierarchy/DownloadAORData?businessHierarchyId=@ViewBag.BusinessHierarchyId';
+        window.open(url, '_blank');
+    }
+
+</script>
+
+<br />
+<div>
+    <div>
+        <button class="btn btn-primary" onclick="AddBAOR()">Add Business Hierarchy AOR</button>
+        <button class="btn btn-primary" style="margin-left: 10px;" onclick="dataDownload()">Export Excel</button>
+    </div>
+    
+    <br />
+    <div id="businessHierarchyAOR" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+</div>

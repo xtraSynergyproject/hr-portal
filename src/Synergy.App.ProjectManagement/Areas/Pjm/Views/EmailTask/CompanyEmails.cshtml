@@ -1,0 +1,577 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.EmailTaskController> Resource
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.WebUtility
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext
+@{
+    ViewBag.Title = @Resource["EmailTaskList"];
+    Layout = null;
+}
+
+<script id="select-email" type="text/x-kendo-template">
+
+@*@(Html.Kendo().RadioButton().Name("select-task").Checked(false).Label(Resource["Link"])
+.HtmlAttributes(new { onchange = "OnCheckBox(\"#=TaskId#\")" })
+)*@
+<section class="section-preview">
+    <div class="custom-control custom-radio custom-control-inline">
+         <input type="radio" class="custom-control-input" id="select-task" name="select-task" onchange="OnCheckBox('#=TaskId#');">
+         <label class="custom-control-label" for="select-task">Resource["Link"]</label>
+    </div>
+</section>
+</script>
+<script>
+
+    function OnRequestStart_TopLinePriceGrid(e) {
+        if (e.type === "update") {
+            showLoader();
+        }
+    }
+    function OnRequestEnd_TopLinePriceGrid(e) {
+        if (e.type === "update") {
+            hideLoader();
+            var grid = $('#treelist').data('kendoTreeList');
+            grid.dataSource.read();
+        }
+    }
+
+    function dragEndEmail(e) {
+        var sid = e.source.Id;
+        var did = e.destination.Id;
+        $.ajax({
+            type: "POST",
+            url: "/pmt/pmthome/ChangeEmailTaskParent?sourceId=" + sid + "&destinationId=" + did,
+            success: function (data) {
+                ShowNotification("@Resource["EmailParentChangedSuccessfully"]");
+                $("#treelist1").data("kendoTreeList").dataSource.read();
+            },
+            dataType: "json",
+        });
+    }
+
+    var selectedEmail = "";
+    function OnCheckBox(id) {
+        selectedEmail = id;
+        if ('@ViewBag.Module' == "PJM") {
+
+            var url = "/pjm/EmailTask/ViewProjectWithWBSItem?id=" + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+       win.OpenWindow({ Title: '@Html.Raw(Resource["WBSItem"])', Width: 1400, Height: 1200 });
+        return false;
+        }
+    }
+
+      function linktask(id) {
+          selectedEmail = id;
+           var url = "/cms/NtsTask/TaskHome?rs=EmailTask&lo=@LayoutModeEnum.Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+       win.OpenWindow({ Title: '@Html.Raw(Resource["WBSItem"])', Width: 1400, Height: 1200 });
+        return false;
+
+    }
+
+    function linkservice(id) {
+        selectedEmail = id;
+        var url = "/cms/NtsService/ServiceHome?rs=EmailTask&lo=@LayoutModeEnum.Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["WBSItem"])', Width: 1400, Height: 1200 });
+        return false;
+    }
+
+    function linknote(id) {
+            selectedEmail = id;
+            var url = "/cms/NtsNote/NoteHome?rs=EmailTask&lo=@LayoutModeEnum.Popup";
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["WBSItem"])', Width: 1400, Height: 1200 });
+            return false;
+    }
+
+    function CloseWBSSelect(sid, parentId, type) {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        var tid = selectedEmail;//$("#select-task").data("kendoRadioButton").value();
+        $.ajax({
+            type: "POST",
+            url: "/pjm/emailTask/ManageEmailTask?id=" + tid + "&taskId=" + sid + "&parentId=" + parentId + "&type=" + type,
+            success: function (data) {
+                if (data.success) {
+                    ShowNotification("@SharedResource["Email"] " + type + " @Resource["LinkedSuccessfully"]");
+                   // $("#treelist1").data("kendoTreeList").dataSource.read();
+                }
+                else {
+                    ShowNotification("@SharedResource["Email"] " + type + " @Resource["LinkedFailed"]!");
+                }
+            },
+            dataType: "json",
+        });
+    }
+
+    function CloseGeneralSelect(sid, type) {
+
+       var win = GetMainWindow();
+       win.CloseWindow();
+       return false;
+        var tid = selectedEmail;//$("#select-task").data("kendoRadioButton").value();
+        $.ajax({
+            type: "POST",
+            url: "/pjm/emailTask/ManageGeneralEmailTask?id=" + tid + "&refId=" + sid + "&type=" + type,
+            success: function (data) {
+                if (data.success) {
+                    ShowNotification("@SharedResource["Email"] " + type + " @Resource["LinkedSuccessfully"]");
+                  //  $("#treelist1").data("kendoTreeList").dataSource.read();
+                }
+                else {
+                    ShowNotification("@SharedResource["Email"] " + type + " @Resource["LinkedFailed"]!");
+                }
+            },
+            dataType: "json",
+        });
+    }
+
+   function AddTask(messageid, subject, fromid, description) {
+        // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+       // var id = $("#" + subject);
+       // var bd=id.attr("data-Body");
+       // alert(subject);
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('subject=' + subject  + '&ownerUserId=' + fromid + '&assignedToUserId=' + '@_userContext.UserId');
+       // var prms = encodeURIComponent('subject=' + dataItem.Subject + '&description=' + dataItem.Body + '&assignedToUserId=' + '@_userContext.UserId');
+        var udfs = encodeURIComponent('MessageId=' + messageid);
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=EMAIL_TASK&portalId=' + portalId + '&prms=' + prms + '&udfs=' + udfs;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateTask"])', Width: 1200, Height: 600 });
+        return false;
+    }
+    function OnAfterTaskCreate(service) {
+        //$("#kgdCompanyGridView").data('kendoGrid').dataSource.read({ id: "INBOX" });
+        var url = "/PJM/EmailTask/ReadCompanyEmail?id=INBOX";
+        GetCompanyEmail(url);
+
+    }
+    function ViewTask(taskId) {
+
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=EMAIL_TASK&portalId=' + portalId + '&recordId=' + taskId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["ViewTask"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function onEmail(taskId)
+    {
+        url = '@Url.Action("NtsEmail", "Cms", new { @area = "" })?refId=' + dataItem.TaskId + '&refType=@ReferenceTypeEnum.NTS_Task';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["Email"])', Width: 1200, Height: 600 });
+    }
+
+    $(function () {
+        $.contextMenu({
+            selector: '#link-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                    console.log($trigger);
+                    var id = $trigger.data('idvalue');
+                    var status = 0;
+
+                    switch (status) {
+                        case 0:
+                            return {
+                                callback: function (key, options) {
+                                    switch (key) {
+                                        case 'LinkTask':
+                                            linktask(id);
+                                            break;
+                                        case 'LinkService':
+                                            linkservice(id);
+                                            break;
+                                        case 'LinkNote':
+                                            linknote(id);
+                                            break;
+                                        default:
+                                    }
+                                },
+                                items: {
+                                    "LinkTask": { name: "Link to Task", icon: "fas fa-link" },
+                                    "LinkService": { name: "Link to Service", icon: "fas fa-link" },
+                                    "LinkNote": { name: "Link to Note", icon: "fas fa-link" },
+
+
+                                }
+                            };
+                    }
+            }
+        });
+
+        //grid context menu
+        $.contextMenu({
+            selector: '#grid-menu-item',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                
+                console.log($trigger);
+                var emailType = $trigger.data('typevalue');
+                var taskId = $trigger.data('taskvalue');
+                var status = (emailType == 'INBOX' && taskId != '') ? 0 : 1;
+
+                switch (status) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'viewTask':
+                                        ViewTask(taskId);
+                                        break;
+                                    case 'viewMail':
+                                        onEmail(taskId);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "viewTask": { name: "View Task", icon: "fas fa-eye" },
+                                "viewMail": { name: "View Mail", icon: "far fa-envelope-open-text" },
+                            }
+                        };
+                    case 1:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'addTask':
+                                        AddTask(taskId);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "addTask": { name: "Add Task", icon: "fa-plus" },
+                            }
+                        };
+                }
+            }
+        });
+    });
+
+    $(function () {
+        GetCompanyEmail();
+    });
+
+    function GetCompanyEmail(url) {
+        var newUrl = "";
+        var newUrl = "";
+        if (url != "" && url != undefined) {
+            newUrl = url;
+        }
+        else {
+            newUrl = "/PJM/EmailTask/ReadCompanyEmail?id="+'@ViewBag.Id';
+        }
+        document.getElementById("kgdCompanyGridView").innerHTML = "";
+        gridConfig(
+            "kgdCompanyGridView",
+            newUrl,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    var columnDefs = [
+                            {
+                                field: "MessageId",
+                                headerName: "@Resource["Action"]",
+                                cellRenderer: params => {
+                                    if ('@ViewBag.Module' == "PJM") {
+                                        if (params.data.EmailType == 'INBOX' && params.data.TaskId != '') {
+                                            return "<section class='section-preview'>"+
+                                                "<div class='custom-control custom-radio custom-control-inline'>"+
+                                                " <input type='radio' class='custom-control-input' id='select-task' name='select-task' onchange='OnCheckBox(\"" + params.data.TaskId + "\");'>" +
+                                                "<label class='custom-control-label' for='select-task'>Link</label>" +
+                                                "</div>" +
+                                                "</section>"
+                                        }
+                                    }                                   
+                                    else {
+                                        return "if('" + params.data.EmailType + "' == 'INBOX' && '" + params.data.TaskId +"'!='' ){<div class='btn-group grid-menu' id='link-menu' data-idvalue=\"" + params.data.TaskId + "\" ><i class='fas fa-ellipsis-v'></i></div>}"
+
+                                    }
+                               }
+                            },
+                            {
+                                field: "To",
+                                headerName: "@SharedResource["To"]",
+                            },
+                            {
+                                field: "From",
+                                headerName:"@SharedResource["From"]",width:200
+                            },
+                            {
+                                field: "Subject",
+                                headerName: "@SharedResource["Subject"]", width: 100,
+                            },                            
+                            {
+                                field: "Bcc",
+                                headerName: "@Resource["Bcc"]", width: 200,
+                            },
+                            {
+                                field: "Cc",
+                                headerName: "@Resource["Cc"]", width: 200,
+                            },
+                            {
+                                field: "MessageId",
+                                headerName: "@Resource["Action"]",
+                                cellRenderer: params => {
+                                    return "<div class='btn-group grid-menu' id='grid-menu-item' data-typevalue=\"" + params.data.EmailType + "\" data-taskvalue=\"" + params.data.TaskId + "\"><i class='fas fa-ellipsis-v'></i></div>"
+                               }
+                            },
+                        ];
+
+</script>
+<style>
+    .employee-photo {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-size: 32px 35px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 32px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+        margin-left: 5px;
+    }
+
+    .employee-name {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 32px;
+        padding-left: 3px;
+    }
+
+    #mailfolders {
+        border-right: solid;
+        background-color: lightblue;
+    }
+</style>
+
+<br />
+<div class="row">
+
+    <div class="col-md-12">
+
+        <!--<div class="row" style="padding-left:15px">
+        <div style="background-color:lightblue" class="col-md-1">Inbox</div>-->
+        @*<div class="col-md-1" style="width: 15px;"></div>*@
+        <!--&nbsp;&nbsp;&nbsp;&nbsp;
+            <div style="background-color:lightgreen" class="col-md-1">Sent</div>
+        </div>-->
+        <br />
+        @*@(Html.Kendo().TreeList<MailViewModel>()
+                     .Name("treelist1")
+                     .Columns(columns =>
+                     {
+                         columns.Add().Field(e => e.Id).TemplateId("select-email").Title("Action").Width(100);
+                         columns.Add().Field(e => e.Subject).Width(220);
+                         columns.Add().Field(p => p.MailboxType).Title("").Width(50).Template("#if(MailboxType=='inbox'){#<i class='fad fa-arrow-alt-from-right' style='color:lightBlue'></i>#} else{#<i class='fad fa-arrow-alt-from-left' style='color:lightgreen'></i>#}#");
+                         columns.Add().Field(e => e.From).Width(220);
+                         columns.Add().Field(e => e.CC).Width(220);
+                         //columns.Add().Field(e => e.WBSItem).Width(100);
+                         columns.Add().Field(e => e.Project).Width(100);
+                         columns.Add().Field(e => e.StartDate).Format("{0:dd MMM yyyy}").Width(220).Title("Start/Recieved Date");
+                     })
+                     //.Editable(editable => editable.Move(true))
+                     .Filterable()
+                     .Sortable()
+                     //.Events(x => x.DragEnd("dragEndEmail"))
+                     .DataSource(dataSource => dataSource
+                         .Read(read => read.Action("ReadEmailTasks", "EmailTask"))
+                         .ServerOperation(false)
+                         .Model(m =>
+                         {
+                             m.Expanded(true);
+                             m.Id(f => f.Id);
+                             m.ParentId(f => f.ParentId);
+                         })
+                     )
+                     .Height(480)
+            )*@
+    <script>
+            $(document).ready(function () {
+
+                //  $("#kgdCompanyGridView").data('kendoGridView').dataSource.read({ id: "INBOX" });
+            });
+            function OnSelect(/*e*/id) {
+                //expandedObjlist = [];
+
+                //var data = this.dataItem(e.node);
+
+                //$("#kgdCompanyGridView").data('kendoGrid').dataSource.read({ id: data.id });
+                var url = "/PJM/EmailTask/ReadCompanyEmail?id=" + id;
+                GetCompanyEmail(url);
+
+            }
+    </script>
+        <div class="row" style="padding-left:15px">
+            <div class="col-3" id="mailfolders">
+                <div id="inboxTreeView1" class="demo treeview"></div>
+                <script>
+                    $('#inboxTreeView1')
+                        .on('changed.jstree', function (e, data) {
+                            var i, j, r = [];
+                            for (i = 0, j = data.selected.length; i < j; i++) {
+                                
+                                nodetext = data.instance.get_node(data.selected[i]).text;
+                              //  Type = data.instance.get_node(data.selected[i]).original.Type;
+                                Id = data.instance.get_node(data.selected[i]).original.id;
+                                // ParentId = data.instance.get_node(data.selected[i]).original.ParentId;
+                                OnSelect(Id);
+                            }
+
+                        })
+                        .jstree({
+                            'core': {
+                                'data': function (node, cb) {
+                                    
+                                    if (node.id === "#") {
+                                        $.ajax({
+                                            async: true,
+                                            type: "GET",
+                                            url: "/PJM/EmailTask/GetInboxTreeviewList?config=company",
+                                            dataType: "json",
+                                            success: function (json) {
+                                                cb(json);
+                                            },
+
+                                            error: function (xhr, ajaxOptions, thrownError) {
+                                                alert(xhr.status);
+                                                alert(thrownError);
+                                            }
+                                        });
+                                        //cb([{ "text": "Root", "id": "1", "children": true }]);
+                                    }
+                                    else {
+                                        $.ajax({
+                                            async: true,
+                                            type: "GET",
+                                            url: "/PJM/EmailTask/GetInboxTreeviewList?id=" + node.id + "&config=company" ,
+                                            dataType: "json",
+                                            success: function (json) {
+                                                cb(json);
+                                            },
+
+                                            error: function (xhr, ajaxOptions, thrownError) {
+                                                alert(xhr.status);
+                                                alert(thrownError);
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        });
+                </script>
+                @*@(Html.Kendo().TreeView()
+            .Name("inboxTreeView1").HtmlAttributes( new {@class="treeview1"})
+          .Events(e=>e.Select("OnSelect"))
+            .DataTextField("Name")
+            .TemplateId("ct-tv-template")
+            .DataSource(dataSource => dataSource
+                .Read(read => read
+                    .Action("GetInboxTreeviewList", "EmailTask",new { @area="PJM",config = "company" })//.Data("AddData")
+                )
+            )
+        )*@
+            </div>
+            <div class="col-9">
+                <div id="kgdCompanyGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                @*@(Html.Kendo().Grid<MessageEmailViewModel>()
+    .Name("kgdCompanyGridView")
+    .Columns(columns =>
+    {
+        //        columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+
+        if (ViewBag.Module == "PJM")
+        {
+            columns.Bound(p => p.MessageId).Title(@Resource["Action"]).ClientTemplateId("select-email").Width(100);
+
+        }
+        else
+        {
+            columns.Bound(c => c.MessageId).ClientTemplate("#if(EmailType=='INBOX' && TaskId!='' ){#<div class='btn-group grid-menu' id='link-menu' data-idvalue=\"#:TaskId#\"  ><i class='fas fa-ellipsis-v'></i></div>#}#").Width(150).Title("" + SharedResource["Action"] + "");
+
+        }
+        columns.Bound(p => p.To).Title(@SharedResource["To"]).Width(300);
+        columns.Bound(p => p.From).Title(@SharedResource["From"]).Width(250);
+        columns.Bound(p => p.Subject).Title(@SharedResource["Subject"]).Width(250);
+        columns.Bound(p => p.Body).Title(@SharedResource["Body"]).ClientTemplate("#if(Body!=null&&Body.length>30){# # var myContent =Body; #  # var dcontent = myContent.substring(0,30); # <span>#=kendo.toString(dcontent)#</span> #}else{# <span>#=Body#</span> #}#").Width(200);
+        columns.Bound(p => p.Bcc).Title(@Resource["BCC"]).Width(200);
+        columns.Bound(p => p.Cc).Title(@Resource["CC"]).Width(200);
+        columns.Bound(p => p.MessageId).Title(@Resource["MessageId"]).Visible(false).Width(200);
+        // columns.Bound(p => p.MessageId).ClientTemplate("#if(EmailType=='INBOX' && TaskId=='' && IsTaskCreated==false){#<i class='fa fa-plus' title='AddTask' data-Body='#:Body#' id='#:Subject#' onclick='AddTask(\"#:MessageId#\",\"#:Subject#\",\"#:FromUserId#\");'></i> #} else if(EmailType=='INBOX' && TaskId!='' ){#<i class='fa fas fa-eye' title='ViewTask' onclick='ViewTask(\"#:TaskId#\")'></i>&nbsp;&nbsp;  <i class='far fa-envelope-open-text' onclick='onEmail(\"#:TaskId#\")'></i> #}#").Title(" ").Width(100).Sortable(false);
+        columns.Command(command =>
+        {
+            command.Custom("AddTask").Text("<i class='fa fa-plus' title='AddTask'></i>").Click("AddTask").HtmlAttributes(new { @class = "action-icon" });
+            command.Custom("ViewTask").Text("<i class='fa fas fa-eye' title='ViewTask'></i>").Click("ViewTask").HtmlAttributes(new { @class = "action-icon", title = "View Task" });
+            command.Custom("ViewMail").Text("<i class='far fa-envelope-open-text' title='ViewMail'></i>").Click("onEmail").HtmlAttributes(new { @class = "action-icon", title = "View Mail" });
+
+        }).Width(150).Exportable(false).Title(" ");
+    })
+    .ToolBar(toolbar =>
+    {
+
+        toolbar.Search().Text(@SharedResource["Search"]);
+    }).Selectable(s => s.Mode(GridSelectionMode.Single)).PersistSelection(true)
+    .ColumnMenu(col=>col.Filterable(false))
+    .Height(700)
+    .Editable()
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+    //.Events(events => events.DataBound("onDataBound1")/*.Change("OnChange1")*/)
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .AutoSync(true)
+        .ServerOperation(false)
+        //.Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.To);
+
+        })
+        .Read(read=>
+        read.Action("ReadCompanyEmail", "EmailTask", new { @area = "PJM", id = ViewBag.Id })
+        )
+
+
+    )
+)*@
+            </div>
+        </div>
+
+
+
+    </div>
+
+</div>

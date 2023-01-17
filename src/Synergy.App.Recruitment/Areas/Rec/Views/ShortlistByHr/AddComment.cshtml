@@ -1,0 +1,192 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+
+@model ApplicationStateCommentViewModel;
+
+@{
+    ViewBag.Title = "";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    .required {
+        display: contents;
+    }
+
+    .k-grid {
+        border-color: #2d9fca;
+    }
+
+    .k-grid-header .k-header {
+        color: #2d9fca;
+        font-weight: 700;
+    }
+
+    .k-pager-wrap .k-link.k-state-disabled {
+        border-radius: 40px;
+        margin-left: 5px;
+    }
+
+    .k-pager-numbers .k-state-selected {
+        border-radius: 40px;
+        margin-left: 5px;
+    }
+
+    .k-pager-wrap .k-pager-refresh {
+        border-color: transparent;
+        background-color: #f8f9fa;
+        color: black;
+    }
+
+    .k-grid td {
+        /*border-color: #2d9fca;*/
+        border-color: transparent;
+    }
+
+    .k-grid-pager {
+        border-color: #2d9fca;
+    }
+
+    .k-grid thead {
+        background-color: transparent;
+    }
+
+    /*.k-grid td:first-child {
+        text-align: center;
+    }*/
+    span {
+        padding: 0px !important;
+    }
+</style>
+
+<div class="container" id="divAddComment">
+    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+    <div class="row">
+        @if (ViewBag.type != "view" || ViewBag.type == null)
+        {
+            <div class="col-10 pad-10">
+                <div class="row">
+                    <label for="Comment">Comment<span class="required">*</span></label>
+                    <textarea asp-for="Comment" class="form-control" required="required" autocomplete="off" style="width:80%"></textarea>
+                </div>
+
+            </div>
+            <div class="col-1 pad-10">
+                <button onclick="AddApplicationStateComment();" class="btn-success">Add Comment</button>
+            </div>
+        }
+    </div>
+    <div>
+        <div id="kgrdStateComment" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<ApplicationStateCommentViewModel>
+        ().Name("kgrdStateComment")
+        .Columns(columns =>
+        {
+            columns.Bound(p => p.Comment).Title("Comment").Width(150);
+            columns.Bound(p => p.CommentedBy).Title("Commented By").Width(150);
+            columns.Bound(p => p.CreatedDate).Title("Commented Date").Width(150).Format("{0:MM/dd/yyyy}");
+        })
+        .Sortable()
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Read(read => read.Action("ReadApplicationStateComment", "CandidateShortlist",new { appId=Model.ApplicationId,appStateId=Model.ApplicationStateId}))
+        .Model(model => model.Id(p => p.Id))
+        )
+        )*@
+    </div>
+    @Html.HiddenFor(x => x.ApplicationId)
+    @Html.HiddenFor(x => x.ApplicationStateId)
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        GetCommentList();
+    });
+
+    var colDefs = [
+        {
+            headerName: "Comment",
+            field: "Comment",
+            minWidth: 150,
+        },
+        {
+            headerName: "Commented By",
+            field: "CommentedBy",
+            minWidth: 150,
+        },
+        {
+            headerName: "Created Date",
+            field: "CreatedDate",
+            minWidth: 100,
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
+            }
+        }
+    ];
+
+    function GetCommentList() {
+        document.getElementById("kgrdStateComment").innerHTML = "";
+        gridConfig(
+            "kgrdStateComment",
+            "/Rec/ShortListByHr/ReadApplicationStateComment?appId=@Model.ApplicationId&appStateId=@Model.ApplicationStateId",
+            colDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+
+    function AddApplicationStateComment()
+    {
+        ShowLoader($("#divAddComment"));
+        if ($("#Comment").val() != "") {
+            $.ajax({
+                url: '@Url.Action("ManageApplicationStateComment", "ShortListByHr", new { @area= "Rec" })?Comment=' + $("#Comment").val() + "&appId=" + $("#ApplicationId").val() + "&appStateId=" + $("#ApplicationStateId").val(),
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    HideLoader($("#divAddComment"));
+                    if (result.success) {
+                        GetCommentList();
+                        /*$("#kgrdStateComment").data("kendoGrid").dataSource.read();*/
+                    }
+                    $("#Comment").val('');
+                },
+                error: function (ert) {
+                    HideLoader($("#divAddComment"));
+                    GetCommentList();
+                    /*$("#kgrdStateComment").data("kendoGrid").dataSource.read();*/
+                }
+            });
+        }
+        else
+        {
+            HideLoader($("#divAddComment"));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Comment is required");
+            return false;
+        }
+    }
+</script>

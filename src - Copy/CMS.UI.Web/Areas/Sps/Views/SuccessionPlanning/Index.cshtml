@@ -1,0 +1,832 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@model SuccessionPlaningViewModel
+@{
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+    ViewBag.Title = "Succession Planing";
+}
+<style>
+    /*.normal1 {
+        background-color: #e6f2ff;
+        border-color: #e6f2ff;
+    }*/
+
+    .leave {
+        background-color: lightpink;
+        border-color: #c6ecd9;
+        border-bottom: solid 1px rgb(222,222,224) !important;
+    }
+
+    .normal {
+        background-color: #c6ecd9;
+        border-color: #ffd9b3;
+        border-bottom: solid 1px rgb(222,222,224) !important;
+    }
+
+    .dayoff {
+        background-color: lightgrey;
+        border-color: #e6f2ff;
+        border-bottom: solid 1px rgb(222,222,224) !important;
+    }
+    .Weekend {
+        background-color: lightgreen;
+        border-color: #e6f2ff;
+        border-bottom: solid 1px rgb(222,222,224) !important;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#Module").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Sps/SuccessionPlanning/GetModule",
+                    }
+                }
+            }
+        });
+
+        $("#Department").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Taa/Attendance/GetIdNameListWithLegalEntityAsAllOption",
+                    }
+                }
+            }
+        });
+
+        $("#Employee").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetPersonList",
+                    }
+                }
+            }
+        });
+
+        $("#Month").kendoDropDownList({
+            dataTextField: "Text",
+            dataValueField: "Value",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: [
+                { Text : "Jan", Value : "1" },
+                { Text : "Feb", Value : "2" },
+                { Text : "Mar", Value : "3" },
+                { Text : "Apr", Value : "4" },
+                { Text : "May", Value : "5" },
+                { Text : "Jun", Value : "6" },
+                { Text : "Jul", Value : "7" },
+                { Text : "Aug", Value : "8" },
+                { Text : "Sep", Value : "9" },
+                { Text : "Oct", Value : "10" },
+                { Text : "Nov", Value : "11" },
+                { Text : "Dec", Value : "12" }
+            ],
+        });
+
+
+        $("#btnSearch").click(function () {
+            //var search = FilterGrid();
+           // $("#kgrdAttendance").data("kendoGrid").dataSource.read(search);
+            OnChange();
+        })
+
+        if (localStorage["Org-options"] != null) {
+            $("#OrganizationId").data("kendoDropDownList").value(localStorage["Org-options"]);
+            $("#OrganizationId").val(localStorage["Org-options"]);
+        }
+        //var url = window.location.href;
+        //if (url.indexOf("isRepeat=1")==-1) {
+        //    OnChange();
+        //}
+
+
+        //var gridData = $("#kgrdAttendance").data("kendoGrid");
+
+        //var search = FilterGrid();
+        //gridData.dataSource.read(search);
+
+    });
+    $(".checkboxAll").bind("change", function (e) {
+        if ($(this).attr('checked')) {
+            $('.checkboxAll').removeAttr('checked');
+            $('.checkbox').prop('checked', false);
+            $(".checkbox").closest("td").removeClass("k-state-selected");
+        } else {
+            $('input.checkbox[type=checkbox]').each(function (e) {
+                if (!this.disabled) {
+                    $('.checkboxAll').attr('checked', 'checked');
+                    $(this).prop('checked', true);
+                    $(this).closest("td").addClass("k-state-selected");
+                }
+            });
+            //$('.checkboxAll').attr('checked', 'checked');
+            //$('.checkbox').prop('checked', true);
+            //$(".checkbox").closest("td").addClass("k-state-selected");
+        }
+        });
+        function FilterGrid() {
+            return {
+                Module: $("#Module").val(),
+                Employee: $("#Employee").val(),
+                 Month: $("#Month").val(),
+                Department: $("#Department").val(),
+                year: $("#Year").val(),
+            };
+    }
+
+    function OnChange() {
+        var Module = $("#Module").val();
+        var Department = $("#Department").val();
+        var date = $("#Month").val();
+       var Employee= $("#Employee").val();
+        var year = $("#Year").val();
+        var url = "/Sps/SuccessionPlanning/Index?&Module=" + Module + "&Employee=" + Employee + "&Year=" + year + "&Department=" + Department + "&Month=" + date;
+        //window.location.href = url;
+        LoadPartailView(url, $('#cms-content'));
+    }
+    function OnOrgChange() {
+
+        var orgId = $("#OrganizationId").val();
+        localStorage["Org-options"] = orgId;
+    }
+
+    function OnDateChange(e) {
+
+        var orgId = $("#OrganizationId").val();
+        var date = $("#SearchDate").val();
+
+        if (orgId == '') {
+            orgId = 0;
+        }
+        var url = "/taa/attendance/AttendancePostToPayroll?orgId=" + orgId + "&date=" + date;
+        window.location.href = url;
+
+    }
+
+     function OnRowSelection(element) {
+
+            $('input.checkbox[type=checkbox]').each(function (e) {
+                if (this.checked) {
+                    $(this).closest("td").addClass("k-state-selected");
+                }
+            });
+            var isChecked = $(element).prop('checked');
+            if (isChecked) {
+                $(element).prop('checked', true);
+                $(element).closest("td").addClass("k-state-selected");
+            }
+            else {
+                $(element).prop('checked', false);
+                $(element).closest("td").removeClass("k-state-selected");
+            }
+         var numChkBoxes = $('#kgrdAttendance input[type=checkbox][class=checkbox]').length;
+         var numChkBoxesChecked = $('#kgrdAttendance tbody input:checkbox:checked').length;
+            if (numChkBoxes == numChkBoxesChecked && numChkBoxes > 0) {
+                $('.checkboxAll').prop('checked', true);
+            }
+            else {
+
+                $('.checkboxAll').prop('checked', false);
+            }
+
+
+
+    }
+
+    function OnDataBound2(arg) {
+
+        var grid = $("#kgrdAttendance").data("kendoTreeList");
+        var data = grid.dataSource.data();
+        $.each(data, function (i, row) {
+            if (row.Employee == "Assessment" || row.Employee == "AssessmentSet") {
+                GetColor(row.Day1, row.Employee, row.Employee, row.Sa1, row.uid, 1);
+                GetColor(row.Day2, row.Employee, row.Employee, row.Sa2, row.uid, 2);
+                GetColor(row.Day3, row.Employee, row.Employee, row.Sa3, row.uid, 3);
+                GetColor(row.Day4, row.Employee, row.Employee, row.Sa4, row.uid, 4);
+                GetColor(row.Day5, row.Employee, row.Employee, row.Sa5, row.uid, 5);
+                GetColor(row.Day6, row.Employee, row.Employee, row.Sa6, row.uid, 6);
+                GetColor(row.Day7, row.Employee, row.Employee, row.Sa7, row.uid, 7);
+                GetColor(row.Day8, row.Employee, row.Employee, row.Sa8, row.uid, 8);
+                GetColor(row.Day9, row.Employee, row.Employee, row.Sa9, row.uid, 9);
+                GetColor(row.Day10, row.Employee, row.Employee, row.Sa10, row.uid, 10);
+                GetColor(row.Day11, row.Employee, row.Employee, row.Sa11, row.uid, 11);
+                GetColor(row.Day12, row.Employee, row.Employee, row.Sa12, row.uid, 12);
+                GetColor(row.Day13, row.Employee, row.Employee, row.Sa13, row.uid, 13);
+                GetColor(row.Day14, row.Employee, row.Employee, row.Sa14, row.uid, 14);
+                GetColor(row.Day15, row.Employee, row.Employee, row.Sa15, row.uid, 15);
+                GetColor(row.Day16, row.Employee, row.Employee, row.Sa16, row.uid, 16);
+                GetColor(row.Day17, row.Employee, row.Employee, row.Sa17, row.uid, 17);
+                GetColor(row.Day18, row.Employee, row.Employee, row.Sa18, row.uid, 18);
+                GetColor(row.Day19, row.Employee, row.Employee, row.Sa19, row.uid, 19);
+                GetColor(row.Day20, row.Employee, row.Employee, row.Sa20, row.uid, 20);
+                GetColor(row.Day21, row.Employee, row.Employee, row.Sa21, row.uid, 21);
+                GetColor(row.Day22, row.Employee, row.Employee, row.Sa22, row.uid, 22);
+                GetColor(row.Day23, row.Employee, row.Employee, row.Sa23, row.uid, 23);
+                GetColor(row.Day24, row.Employee, row.Employee, row.Sa24, row.uid, 24);
+                GetColor(row.Day25, row.Employee, row.Employee, row.Sa25, row.uid, 25);
+                GetColor(row.Day26, row.Employee, row.Employee, row.Sa26, row.uid, 26);
+                GetColor(row.Day27, row.Employee, row.Employee, row.Sa27, row.uid, 27);
+                GetColor(row.Day28, row.Employee, row.Employee, row.Sa28, row.uid, 28);
+                GetColor(row.Day29, row.Employee, row.Employee, row.Sa29, row.uid, 29);
+                GetColor(row.Day30, row.Employee, row.Employee, row.Sa30, row.uid, 30);
+                GetColor(row.Day31, row.Employee, row.Employee, row.Sa31, row.uid, 31);
+            }
+
+        });
+
+
+        function GetColor(days, Emp, Emp2, Sa, rowid, No) {
+
+            No = No + 3;
+            if (days != null && Emp == "Assessment" || Emp2 == "AssessmentSet") {
+                if (Sa == "Inprogress") {
+
+                    $('tr[data-uid="' + rowid + '"] td:nth-child(' + No + ')').css("background-color", "lightgrey");
+                }
+                else if (Sa == "Draft") {
+                    $('tr[data-uid="' + rowid + '"] td:nth-child(' + No + ')').css("background-color", "lightblue");
+                }
+                else if (Sa == "Complete") {
+                    $('tr[data-uid="' + rowid + '"] td:nth-child(' + No + ')').css("background-color", "lightgreen");
+                }
+            }
+
+        }
+       // var grid = $("#kgrdAttendance").data("kendoTreeList");
+       // //var index = grid.wrapper.find(".k-grid-header [data-field=Total]").index();
+       //
+       // var rows = grid.tbody.children();
+       // alert(rows.length);
+       // for (var j = 0; j < rows.length; j++) {
+       //     var row = $(rows[j]);
+       //     var data = grid.dataItem(row);
+       //     $('tr[data-uid="' + row.uid + '"] td:nth-child(5)').css("background-color", "red");
+       //
+       //
+       //
+       //
+       // }
+
+        //$('td').each(function () { if ($(this).val()) { $(this).addClass('normal') } });
+        //$('td').each(function () { if ($(this).index() == 1 || $(this).index() == index) { $(this).removeClass() } });
+
+        //$("#kgrdAttendance tbody tr").each(function () {
+        //    var currentDataItem = $("#kgrdAttendance").data("kendoGrid").dataItem($(this));
+        //    var update = $(this).find(".k-grid-Edit");
+
+        //    if (currentDataItem.Id == 0 || currentDataItem.IsOverridden) {
+        //        update.remove();
+        //    }
+
+
+        //});
+
+
+        $(".checkbox").bind("change", function (e) {
+            OnRowSelection(e.target);
+        });
+
+        $(".canEdit").bind("click", function (e) {
+
+
+            OnEditSelection(e.target);
+        });
+
+        //     var grid = $("#kgrdAttendance").data("kendoGrid");
+        //localStorage["kendo-grid-options"] = kendo.stringify(grid.getOptions());
+    }
+   // function OnEditSelection(element) {
+        //var grid = $("#kgrdAttendance").data("kendoGrid");
+
+       // alert($(element).val());
+        //var isChecked = $(element).prop('checked');
+
+       // dataItem = grid.dataItem($(element).closest("tr"));
+       // dataItem.set("OverrideAttendanceText", $(element).val());
+
+
+//   }
+    function OnSuccess(response) {
+        if (response.success) {
+            kendo.alert("Posted Successfully");
+            var search = FilterGrid();
+            $("#kgrdAttendance").data("kendoGrid").dataSource.read(search);
+        }
+        else {
+            //var msg = ExtractError(response.errors);
+            //alert(response.errors);
+            kendo.alert(response.errors);
+            //ShowErrors(response.errors);
+        }
+    }
+    function OnCancel(e) {
+        window.location.href = "/hrs/userhierarchy";
+        return true;
+    }
+    function OnChart(e) {
+        //var posId = $("#PositionId").data("kendoDropDownList").value();
+        var posId = $("#PositionId").val();
+        if (posId == null || posId == 0) {
+            posId = $("#ParentPositionId").val();
+        }
+        var param = this.element.attr("param");
+        url = decodeURI(param) + "&posId=" + posId;
+        window.location.href = url;
+        return true;
+    }
+    function OnUpdate() {
+
+        var users = '';
+
+        var startDate = $("#SearchStart").val();
+        var endDate = $("#SearchEnd").val();
+
+        var grid = $("#kgrdAttendance").data("kendoGrid");
+        grid.tbody.find("input:checked").closest("tr").each(function (index) {
+            users = users + grid.dataItem(this).UserId + ',';
+        });
+
+        if (users == '' || users == ',') {
+            alert("Please Select atleast one user from the grid");
+        }
+        else {
+
+            $.ajax({
+                type: "POST",
+                url: "/taa/attendance/PostAttendanceToPayroll",
+                data: { 'personIds': users, 'startDate': startDate, 'endDate': endDate },
+                success: function (data) {
+                    OnSuccess(data);
+                },
+                dataType: "json",
+            });
+
+
+        }
+
+    }
+
+    function OnEdit(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+       
+        var url = "/taa/attendance/OverrideAttendance?id=" + dataItem.Id + "&userId=" + dataItem.UserId + "&empName=" + dataItem.EmployeeName;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Override Attendance', Width: 1000, Height: 450 });
+        return false;
+
+    }
+
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+        }
+    function Close(dorefresh, mode) {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        if (dorefresh) {
+
+            $("#kgrdAttendance").data("kendoGrid").dataSource.read();
+            ShowNotification('UpdateSuccess');
+
+        }
+    }
+    function OnEditSelection(element) {
+        var grid = $("#kgrdAttendance").data("kendoTreeList");
+
+        var dataItem = grid.dataItem($(element).closest("tr"));
+        var userId = dataItem.UserId;
+        var Emp = dataItem.Employee;
+        var month = $("#Month").val();
+        var year = $("#Year").val();
+        var Day = null;
+
+
+        var colDayx = $(element).closest("td").index();
+        colDayx = colDayx + 1;
+        if (colDayx == 3) {
+
+            Day = dataItem.Day1;
+        }
+        if (colDayx == 4) {
+
+            Day = dataItem.Day1;
+        }
+        if (colDayx == 5) {
+
+            Day = dataItem.Day2;
+        }
+        if (colDayx == 6) {
+
+            Day = dataItem.Day3;
+        }
+        if (colDayx == 7) {
+
+            Day = dataItem.Day4;
+        }
+        if (colDayx == 8) {
+
+            Day = dataItem.Day5;
+        }
+        if (colDayx == 9) {
+
+            Day = dataItem.Day6;
+        }
+        if (colDayx == 10) {
+
+            Day = dataItem.Day7;
+        }
+        if (colDayx == 11) {
+
+            Day = dataItem.Day8;
+        }
+        if (colDayx == 12) {
+
+            Day = dataItem.Day9;
+        }
+        if (colDayx == 13) {
+
+            Day = dataItem.Day10;
+        }
+        if (colDayx == 14) {
+
+            Day = dataItem.Day11;
+        }
+        if (colDayx == 15) {
+
+            Day = dataItem.Day12;
+        }
+        if (colDayx == 16) {
+
+            Day = dataItem.Day13;
+        }
+        if (colDayx == 17) {
+
+            Day = dataItem.Day14;
+        }
+        if (colDayx == 18) {
+
+            Day = dataItem.Day15;
+        }
+        if (colDayx == 19) {
+
+            Day = dataItem.Day16;
+        }
+        if (colDayx == 20) {
+
+        Day = dataItem.Day17;
+        }
+        if (colDayx == 21) {
+
+            Day = dataItem.Day18;
+        }
+        if (colDayx == 22) {
+
+            Day = dataItem.Day19;
+        }
+        if (colDayx == 23) {
+
+            Day = dataItem.Day20;
+        }
+        if (colDayx == 24) {
+
+            Day = dataItem.Day21;
+        }
+        if (colDayx == 25) {
+
+            Day = dataItem.Day22;
+        }
+        if (colDayx == 26) {
+
+            Day = dataItem.Day23;
+        }
+        if (colDayx == 27) {
+
+            Day = dataItem.Day24;
+        }
+        if (colDayx == 28) {
+
+            Day = dataItem.Day25;
+        }
+        if (colDayx == 29) {
+
+            Day = dataItem.Day26;
+        }
+        if (colDayx == 30) {
+
+            Day = dataItem.Day27;
+        }
+        if (colDayx == 31) {
+
+            Day = dataItem.Day28;
+        }
+        if (colDayx == 32) {
+
+            Day = dataItem.Day29;
+        }
+        if (colDayx == 33) {
+
+            Day = dataItem.Day30;
+        }
+        if (colDayx == 34) {
+
+            Day = dataItem.Day31;
+        }
+
+        if (Day != null) {
+
+            Id = "";
+        @*var date = kendo.toString(kendo.parseDate(startDate), '@Constant.Annotation.DefaultDateFormatOnly');*@
+            //var date = kendo.toString(kendo.parseDate(startDate), 'dd MMM yyyy');
+
+            //onEdit Dev
+           
+
+            var Url = "";
+            if (Emp == "Assessment") {
+                Url = "/Sps/SuccessionPlanning/ViewAssessment?UserId=" + userId + "&day=" + colDayx + "&Month=" + month + "&Year=" + year;
+            } else {
+                Url = "/Sps/SuccessionPlanning/ViewAssessmentSet?UserId=" + userId + "&day=" + colDayx + "&Month=" + month + "&Year=" + year;
+            }
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = Url;
+            win.OpenWindow({ Title: Emp, Width: 500, Height: 600 });
+        }
+        return false;
+    }
+    function OnCloseUpdateAttendance() {
+        var search = FilterGrid();
+        $("#kgrdAttendance").data("kendoGrid").dataSource.read(search);
+    }
+    function RefreshGrid() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+
+        $("#kgrdAttendance").data("kendoGrid").dataSource.read();
+    }
+    function OnError(e) {
+        //alert(e.toString());
+    }
+</script>
+
+<div id="appWrapper">
+    <div class="formHeader">
+        @*<h4>
+                @ViewBag.Title
+            </h4>*@
+    </div>
+    <div class="row no-gutter hr-pad-top-bot-5">
+        <div class="form-group col-xs-12 col-sm-3">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Html.LabelFor(m => m.Module, new { @class = "control-label" })
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(x => x.Module)
+                .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                //.SelectedIndex(2)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetModule", "SuccessionPlanning", new { area = "Sps" });
+                    });
+                })
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .Filter(FilterType.Contains)
+                .AutoBind(true)
+                //.Events(e => e.Change("OnOrgChange"))
+                .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input asp-for="Module" id="Module" class="hr-xx-large" />
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-sm-3">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Html.Label("Department", "Deparment", new { @class = "control-label" })
+
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(x => x.Department)
+                                                .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("GetIdNameListWithLegalEntityAsAllOption", "Attendance", new { area = "Taa" });
+                                                    });
+                                                })
+                                                .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                                .DataTextField("Name")
+                                                .DataValueField("Id")
+                                                .Filter(FilterType.Contains)
+                                                .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input asp-for="Department" id="Department" class="hr-xx-large" />
+            </div>
+        </div>
+
+
+        <div class="form-group col-xs-12 col-sm-3">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Html.Label("Employee", "Employee", new { @class = "control-label" })
+
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(x => x.Employee)
+                                                .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                    {
+                                                        read.Action("GetPersonList", "HRDirect", new { area = "CHR" });
+                                                    });
+                                                })
+                                                .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                                                .DataTextField("Name")
+                                                .DataValueField("Id")
+                                                .Filter(FilterType.Contains)
+                                                .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input asp-for="Employee" id="Employee" class="hr-xx-large" />
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-sm-2">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Html.LabelFor(x => x.Month, new { @class = "control-label" })
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(x => x.Month)
+                                                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                                        //.Events(e => e.Change("OnChange"))
+                                                        .DataTextField("Text")
+                                                        .DataValueField("Value")
+                                                        .HtmlAttributes(new { @class = "hr-large" })
+                                                        .BindTo(new List<SelectListItem>() {
+                                                            new SelectListItem() { Text = "Jan", Value = "1"},
+                                                            new SelectListItem() { Text = "Feb", Value = "2"},
+                                                            new SelectListItem() { Text = "Mar", Value = "3"},
+                                                            new SelectListItem() { Text = "Apr", Value = "4"},
+                                                            new SelectListItem() { Text = "May", Value = "5"},
+                                                            new SelectListItem() { Text = "Jun", Value = "6"},
+                                                            new SelectListItem() { Text = "Jul", Value = "7"},
+                                                            new SelectListItem() { Text = "Aug", Value = "8"},
+                                                            new SelectListItem() { Text = "Sep", Value = "9"},
+                                                            new SelectListItem() { Text = "Oct", Value = "10"},
+                                                            new SelectListItem() { Text = "Nov", Value = "11"},
+                                                            new SelectListItem() { Text = "Dec", Value = "12"}
+                                                        }))*@
+
+                <input asp-for="Month" id="Month" class="hr-large" />
+            </div>
+        </div>
+        <div class="form-group col-xs-6 col-sm-2">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Html.LabelFor(x => x.Year, new { @class = "control-label" })
+            </div>
+            <div class="col-lg-12">
+                @Html.Kendo().NumericTextBoxFor(m => m.Year).Format("yyyy").HtmlAttributes(new { @class = "form-control hr-large" })
+            </div>
+        </div>
+        <div class="form-group col-xs-6 col-sm-1">
+            <div class="col-lg-12 label-div">
+                &nbsp;
+            </div>
+            <div class="col-lg-12">
+                @*@Html.Kendo().Button().Name("btnSearch").Content("Search").HtmlAttributes(new { @class = "k-primary" })*@
+                <button type="button" id="btnSearch" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+        @*<div class="form-group col-xs-12 col-sm-6">
+            <div class="col-lg-3 label-div">
+                <span class="required">*</span>
+                @Html.LabelFor(x => x.SearchEnd, new { @class = "control-label" })
+            </div>
+            <div class="col-lg-9">
+                @Html.Kendo().DatePickerFor(x => x.SearchEnd).Events(e => e.Change("OnDateChange")).HtmlAttributes(new { @class = "form-control hr-small" })
+            </div>
+        </div>*@
+    </div>
+    </div>
+    <hr />
+    <div class="row" style="margin-bottom:10px;margin-top:15px;text-align:right">
+        <div class="col-md-12">
+            <span style="font-size:14px;border-radius:5px;padding:3px;background-color:#c6ecd9">&nbsp;Succssion Planing&nbsp;</span>&nbsp;
+        </div>
+    </div>
+    <div>
+        @(Html.Kendo().TreeList<SuccessionPlaningViewModel>()
+                                                        .Name("kgrdAttendance")
+                                                        .Columns(columns =>
+                                                        {
+                                                            //   columns.Add().Field(x => x.ID).Width(50).Template(@"<input class='checkbox' type='checkbox' #=CheckFlag==false?disabled='disabled' : ''# />").Filterable(false);
+                                                            // columns.Bound(c => c.Id).Width(50);
+                                                            columns.Add().Field(c => c.Year).Width(100);
+                                                            columns.Add().Field(c => c.Month).Title("Month").Width(150);
+                                                            columns.Add().Field(c => c.Employee).Title("").Width(250);
+                                                            //columns.Bound(c => c.JobName).Locked(true).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));
+                                                            //columns.Bound(c => c.Sponsor).Locked(true).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));
+                                                            //columns.Bound(c => c.SectionName).Locked(true).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));//.ClientTemplate("#=SectionName#");
+                                                            //columns.Bound(c => c.Nationality).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));
+                                                            //columns.Bound(c => c.ContractEndDate).Width(150).HeaderTemplate("Contract" + "<br/>End Date").Format(ERP.Utility.Constant.Annotation.DefaultDateFormat).Filterable(ftb => ftb.Multi(true).Search(true));
+                                                            //columns.Bound(c => c.ContractRenewable).Width(110).HeaderTemplate("Contract" + "<br/>Renewable").Filterable(ftb => ftb.Multi(true).Search(true));
+
+                                                            //for (var i=1;i <= Model.Different;i++)
+                                                            //  {
+                                                            //     columns.Bound("Day" + i).Width(50).Filterable(false);
+                                                            // }
+
+                                                            var i = 1;
+                                                            if (Model.Columns != null)
+                                                            {
+                                                                foreach (var j in Model.Columns)
+                                                                {
+                                                                    string[] spl = j.Split(',');
+                                                                    if (spl[1] == "Weekend")
+                                                                    {
+                                                                    
+                                                                        columns.Add().Field("Day" + i).Title("" + spl[0]).Filterable(false).Width(80).HtmlAttributes(new { @class = "canEdit" }).HeaderAttributes(new { @class = "Weekend" });
+                                                                    }
+                                                                    else if (spl[1] == "Holiday")
+                                                                    {
+                                                                        columns.Add().Field("Day" + i).Title("" + spl[0]).Filterable(false).Width(80).HtmlAttributes(new { @class = "canEdit"}).HeaderAttributes(new { @class = "leave" });
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        columns.Add().Field("Day" + i).Title("" + spl[0]).Filterable(false).Width(80).HtmlAttributes(new { @class ="canEdit"});
+                                                                    }
+                                                                    i++;
+                                                                }
+                                                            }
+
+                                                        })
+
+                                                       //.Events(e => e.DataBound("OnDataBound2"))
+
+                                                        // .Filterable(filter => filter.Mode(GridFilterMode.Row))
+                                                        .Filterable()
+                                                        // .Events(e => e.DataBound("grid_dataBound"))
+                                                        //.Excel(e => e.FileName("Attendance.xlsx").AllPages(true))
+                                                        .Pageable(pageable => pageable
+                                                        //  .Refresh(true)
+
+                                                       .ButtonCount(10)
+                                                        )
+                                                            .DataSource(dataSource => dataSource
+
+        .Read(read => read.Action("GetDetails", "SuccessionPlanning").Data("FilterGrid"))
+        .ServerOperation(false)
+        .Model(m =>
+        {
+            m.Id(f => f.ID);
+            m.ParentId(f => f.ParentId);
+            m.Expanded(true);
+            m.Field(f => f.Employee);
+            m.Field(f => f.Month);
+            m.Field(f => f.Year);
+
+
+
+        })
+                                                        )
+        // .Editable(editable => editable.Mode(GridEditMode.InCell))
+        )
+    </div>
+
+    
+    @Html.HiddenFor(x => x.ID)
+    
+</div>
+
+
+

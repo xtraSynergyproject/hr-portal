@@ -1,0 +1,241 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+
+@{
+    //ViewData["Title"] = ViewBag.PageName;
+    Layout = null;
+}
+
+<script>
+    $(document).ready(function () {
+        $("#ItemType").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=IMS_ITEM_TYPE",
+                    }
+                }
+            }
+        });
+
+        $("#ItemCategory").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetItemCategoryList",
+                    }
+                }
+            }
+        });
+
+        $("#ItemSubCategory").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetItemSubCategoryList",
+                    }
+                }
+            }
+        });
+
+        $("#ItemStatus").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=LOV_NOTE_STATUS",
+                    }
+                }
+            }
+        });
+
+        getItemsListData();
+        $.contextMenu({
+            selector: '#tree-menuItems',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var status = $trigger.data('status');
+
+                switch (0) {
+                    case 0:
+                        debugger;
+                        var Items;
+                        if (status == "NOTE_STATUS_DRAFT") {
+                            Items = {
+                                "openItem": { name: "Open Item", icon: "fas fa-edit" },
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                            };
+                        }
+                        //else {
+                        //    Items = {
+                        //        /*"salesOrder": { name: "Sales Order", icon: "fas fa-edit" },*/
+                        //    }
+                        //}
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'openItem':
+                                        OpenItem(id,true);
+                                        break;
+
+                                    case 'edit':
+                                        EditItem(id);
+                                        break;
+                                    case 'salesOrder':
+                                        onSalesOrder(id, proposalValue);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: Items
+                        };
+
+
+                }
+            }
+        });
+    });
+
+    function OnSearch(e) {
+        getItemsListData();
+    }
+
+    function AddItem(e) {
+        //var portalId = $('#GlobalPortalId').val();
+        //var win = GetMainWindow();
+        //win.iframeOpenUrl = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=Create&dataAction=Create&templateCodes=IMS_ITEMS&portalId=' + portalId;
+        //win.OpenWindow({ Title: 'Manage Note', Width: 1000, Height: 700 });
+        //return false;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("CreateItem", "InventoryMaster", new { @area= "IMS" })';
+        win.OpenWindow({ Title: 'Create Item', Width: 800, Height: 650 });
+    }
+    function EditItem(itemId) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryMaster/CreateItem?id=' + itemId;
+        win.OpenWindow({ Title: 'Edit Item', Width: 800, Height: 650 });
+    }
+    function OpenItem(itemId,flag) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryMaster/CreateItem?id=' + itemId +'&isOpenItem='+flag;
+        win.OpenWindow({ Title: 'Open Item', Width: 800, Height: 800 });
+    }
+    function OnAfterNoteCreate(note) {
+        getItemsListData();
+    }
+    var columnDefs = [
+        {
+            field: "ItemName",
+            headerName: "Item Name"
+        },
+        {
+            field: "ItemTypeName",
+            headerName: "Item Type"
+        },
+        {
+            field: "ItemCategoryName",
+            headerName: "Item Category"
+        },
+        {
+            field: "ItemSubCategoryName",
+            headerName: "Item Sub Category"
+        },
+        {
+            field: "ItemStatus",
+            headerName: "Status",
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                debugger;
+                if (params.data.NoteStatusCode == "NOTE_STATUS_DRAFT") {
+                    return "<div class='btn-group grid-menu' id='tree-menuItems' data-idvalue='" + params.value + "' data-status=\"" + params.data.NoteStatusCode + "\" ><i class='fas fa-ellipsis-v'></i></div>"
+                } else {
+                    return ""
+                }
+                
+            }
+        }
+    ];
+
+    function getItemsListData() {
+        document.getElementById("ItemGrid").innerHTML = "";
+        /*?Customer = " + $("#Customer").data("kendoDropDownList").value() + " & ProposalSource=" + $("#ProposalSource").data("kendoDropDownList").value() + " & WorkFlowStatus=$('input[WorkFlowStatus]:checked').val()" + " & FromDate=" + $("#FromDate").val() + " & ToDate=" + $("#ToDate").val(),*/
+        gridConfig(
+            "ItemGrid",
+            "/IMS/InventoryMaster/ReadItemsData?itemTypeId=" + $("#ItemType").data("kendoDropDownList").value() + "&itemCategory=" + $("#ItemCategory").data("kendoDropDownList").value() + "&itemSubCategory=" + $("#ItemSubCategory").data("kendoDropDownList").value() + "&itemStatus=" + $("#ItemStatus").data("kendoDropDownList").value(),
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+</script>
+
+<div>
+
+    <h4>Item Search Criteria</h4>
+    <div class="card ">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row col-12" style="padding:5px;">
+            <div class="col-3" style="padding-bottom:10px;">
+                <label>Item Type</label>
+                <input id="ItemType" class="form-control" />
+            </div>
+            <div class="col-3" style="padding-bottom:10px;">
+                <label>Item Category</label>
+                <input id="ItemCategory" class="form-control" />
+            </div>
+            <div class="col-3" style="padding-bottom:10px;">
+                <label>Item Sub Category</label>
+                <input id="ItemSubCategory" class="form-control" />
+            </div>
+            <div class="col-3" style="padding-bottom:10px;">
+                <label>Status</label>
+                <input id="ItemStatus" class="form-control" />
+            </div>
+        </div>
+        <div class="row col-12" style="padding:5px;">
+
+            <div class="col-12" style="text-align:right;">
+                <input type="button" class="btn btn-primary" value="Search" style="margin:5px;" onclick="OnSearch()" />
+                <input type="button" class="btn btn-warning" value="Add Item" style="margin:5px;color:white" onclick="AddItem()" />
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <h4 style="padding:15px;">Items List</h4>
+        <div class="col-12">
+            @*<input type="button" class="btn btn-warning" value="Add Item" style="margin:5px;color:white" onclick="AddItem()" />*@
+            <div id="ItemGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+
+</div>

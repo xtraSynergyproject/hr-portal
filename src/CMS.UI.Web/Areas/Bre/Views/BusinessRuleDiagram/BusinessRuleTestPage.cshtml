@@ -1,0 +1,225 @@
+﻿@using Syncfusion.EJ2.Navigations;
+@using Kendo.Mvc.UI;
+
+@{
+    ViewData["Title"] = "Create Business Area";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<div class="left" style="padding-left:10px;padding-top:10px;">
+
+
+    @*@(Html.Kendo().TreeView()
+        .Name("Testtreeview").HtmlAttributes( new {@class="treeview"})
+          // .Events(e=>e.Select("OnSelect"))
+          .Events(e => e.Expand("onExpand")/*.Select("OnSelect")*/)
+        .DataTextField("Name")
+        .TemplateId("treeview-template")
+        .DataSource(dataSource => dataSource
+            .Read(read => read
+                .Action("BreInputData", "Bre",new {ruleId=ViewBag.ruleId }).Data("AddData")
+            )
+        )
+    )*@
+    <script id="treeview-template" type="text/kendo-ui-template">
+        @*#: item.DataType #*@
+
+        @*<span data-id="#:item.id#" data-type="#:item.ItemType#" class="tree-menu"><i class="fa fa-ellipsis-h"></i></span>*@
+        #if (item.DataType == "String")
+        {#
+        <div class="treeviewdiv">
+            <div class="nodetext">
+                <input type="text" class="form-control" placeholder="#:item.Name#" autofocus="" id="#:item.id#">
+
+            </div>
+        </div>
+        #}
+        if (item.DataType == "DateTime")
+        {#
+        <div class="treeviewdiv">
+            <div class="nodetext">
+                <input type="date" class="form-control" placeholder="#:item.Name#" autofocus="" id="#:item.id#">
+
+            </div>
+        </div>
+        #}
+        if (item.DataType == "Long" || item.DataType == "Double")
+        {#
+        <div class="treeviewdiv">
+            <div class="nodetext">
+                <input type="number" class="form-control" placeholder="#:item.Name#" autofocus="" id="#:item.id#">
+            </div>
+        </div>
+        # }
+        if (item.DataType == "Bool")
+        {#
+        <div class="treeviewdiv">
+            <div class="nodetext">
+                <input type="checkbox" class="" autofocus="" id="#:item.id#">
+                <label for="inputName">#:item.Name#</label>
+            </div>
+        </div>
+        #}
+        else
+        {#
+        <div class="treeviewdiv">
+            <div class="nodetext">
+                <label for="inputName">#:item.Name#</label>
+            </div>
+        </div>
+        #}#
+    </script>
+    <div id="dynamicArea" style="display:none;">
+
+    </div>
+    <button type="button" class="btn btn-success" id="btnRenderJson" style="float:right">Test</button>
+</div>
+<script>
+    var expandedItem = null;
+        function onExpand(e) {
+            expandedItem = this.dataItem(e.node);
+        }
+        function AddData() {
+           //
+            if (expandedItem == null) {
+                return { templateId:'@ViewBag.templateId' };
+            }
+            else {
+                console.log(expandedItem);
+                var i = expandedItem.Id;
+                return { templateId: '@ViewBag.templateId', id: i  };
+            }
+        }
+    $("#btnRenderJson").click(function (e)
+    {
+        var jsonData = [];
+        var actualData = [];
+        var treedata = $("#Testtreeview").data("kendoTreeView").dataSource.data();
+        getData(treedata, jsonData);
+        for (var i = 0; i < jsonData.length; i++)
+        {
+            if (jsonData[i].ParentId == null) {
+                if (jsonData[i].DataType == "Object") {
+                    var obj = {};
+                    obj.ParentId = jsonData[i].ParentId;
+                    obj.Id = jsonData[i].id;
+                    obj.Name = jsonData[i].Name;
+                    obj.DataType = "Object";
+                    obj.Value = [];
+                    actualData.push(obj);
+                }
+                else {
+                    var obj = {};
+                    obj.ParentId = jsonData[i].ParentId;
+                    obj.Id = jsonData[i].id;
+                    obj.Name = jsonData[i].Name;
+                    if (jsonData[i].DataType == "Bool") {
+                        if ($("#" + jsonData[i].id).is(":checked"))
+                        {
+                            obj.Value = "true";
+                        }
+                        else
+                        {
+                            obj.Value = "false";
+                        }
+                    }
+                    else
+                    {
+                        obj.Value = $("#" + jsonData[i].id).val();
+                    }
+                    obj.DataType = "Property";
+                    actualData.push(obj);
+                }
+            }
+            else
+            {
+                var tst = [];
+                for (var k = 0; k < jsonData.length; k++)
+                {
+                    if (jsonData[i].ParentId == jsonData[k].id)
+                    {
+                        if (jsonData[i].DataType == "Object") {
+                            var obj = {};
+                            obj.ParentId = jsonData[i].ParentId;
+                            obj.Id = jsonData[i].id;
+                            obj.Name = jsonData[i].Name;
+                            obj.Value = [];
+                            obj.DataType = "Object";
+                            tst.push(obj);
+                        }
+                        else {
+                            var obj = {};
+                            obj.ParentId = jsonData[i].ParentId;
+                            obj.Id = jsonData[i].id;
+                            obj.Name = jsonData[i].Name;
+                           // obj.Value = $("#" + jsonData[i].id).val();
+                            if (jsonData[i].DataType == "Bool") {
+                                if ($("#" + jsonData[i].id).is(":checked")) {
+                                    obj.Value = "true";
+                                }
+                                else {
+                                    obj.Value = "false";
+                                }
+                            }
+                            else {
+                                obj.Value = $("#" + jsonData[i].id).val();
+                            }
+                            obj.DataType = "Property";
+                            tst.push(obj);
+                        }
+                    }
+                }
+                insertData(actualData, tst, jsonData[i].ParentId);
+                console.log(actualData);
+            }
+        }
+         $.ajax({
+
+                                                type: 'GET',
+             url: '/BusinessRuleDiagram/GetInputJsonData?data=' + JSON.stringify(actualData),
+                                                contentType: 'application/json; charset=utf-8',
+                                                dataType: 'json',
+                                                success: function (response)
+                                                {
+                                                    $("#dynamicArea").show();
+                                                    $("#dynamicArea").html(response);
+                                                },
+                                                error: function (error) {
+                                                    alert("error")
+                                                }
+                                            });
+    })
+
+    function getData(treedata,json)
+    {
+        for (var i = 0; i < treedata.length; i++)
+        {
+            if (treedata[i].items != undefined)
+            {
+                if (treedata[i].items.length > 0) {
+                    json.push(treedata[i]);
+                    getData(treedata[i].items, json);
+                }
+            }
+            else
+            {
+                json.push(treedata[i]);
+            }
+        }
+    }
+    function insertData(treedata, json, parentId) {
+        if (treedata != undefined)
+        {
+            for (var i = 0; i < treedata.length; i++) {
+                if (treedata[i].Id == parentId) {
+                    treedata[i].Value.push(json[0]);
+                }
+                else {
+                    if (treedata[i].DataType == "Object") {
+                        insertData(treedata[i].Value, json, parentId);
+                    }
+                }
+            }
+        }
+    }
+</script>

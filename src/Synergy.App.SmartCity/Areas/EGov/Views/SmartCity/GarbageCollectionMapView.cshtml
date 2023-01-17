@@ -1,0 +1,245 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+@{
+    ViewData["Title"] = "Asset Map View";
+    Layout = null;
+}
+
+<style>
+    #map {
+        height: inherit;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+
+
+
+
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Portal End*/
+</style>
+
+<div class="splitter-container">
+    <div class="left">
+        <h5>Garbage Collection Map View</h5>
+        <div class="row pad-20">
+            <div class="col-lg-12 col-md-12 col-sm-12 p-1">
+                <label for="autoNo" class="form-label">
+                    Auto Number
+                </label>
+                <div id="autoNo" style="width:100%;"></div>
+            </div>
+        </div>
+        <div class="row pad-20">
+            <div class="col-lg-12 col-md-12 col-sm-12 p-1">
+                <label for="WardId" class="form-label">
+                    Ward
+                </label>
+                <div id="WardId" style="width:100%;"></div>
+            </div>
+        </div>
+        <div class="row pad-20">
+            <div class="col-lg-12 col-md-12 col-sm-12 p-1">
+                @*<input id="CollectionDate" style="width:100%" required />*@
+                <label for="AppointmentDate" class="form-label">
+                    Date
+                </label>
+                <div>
+                    <input id="CollectionDate" style="width:100%" required />
+                </div>
+            </div>
+            <div class="col-lg-12 col-md-12 col-sm-12 p-1">
+                <button class="btn btn-primary mx-1" onclick="FilterResults()"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
+            </div>            
+        </div>
+    </div>
+
+    <div class="right pad-l-t-15" id="page-content">
+        <div id="map"></div>
+
+    </div>
+
+</div>
+<div id="overlay" class=""></div>
+
+<script>
+    var nodeid;
+
+
+    $(function () {
+
+        $("#WardId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: 'Select Ward No',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetWardList",
+                 }
+                }
+            }
+        });
+
+
+        $("#autoNo").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: 'Select Auto No',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetJSCAutoList",
+                    }
+                }
+            }
+        });
+
+        $("#CollectionDate").kendoDatePicker({
+            format: "yyyy/MM/dd",
+            value: "YYYY-MM-DD",
+        });
+
+        var url = "/EGov/SmartCity/GetAllGarbageCollectionData";
+        loadAllAssetMap(url);
+    });
+
+
+    function FilterResults() {
+        var newUrl = "";
+            debugger;
+            //var autoNo = $("#autoNo").val();
+            //var wardNo = $("#WardId").val();
+            //var collectorName = $("#CollectorName").val();
+            var dateVal2 = kendo.toString($("#CollectionDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+            /*var dateVal = $("#CollectionDate").data("kendoDatePicker").value();*/
+            newUrl = "/EGov/SmartCity/GetAllGarbageCollectionData?&collectionDate=" + dateVal2;
+        
+        loadAllAssetMap(newUrl);
+    }
+
+
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+    function loadAllAssetMap(url) {
+
+        var container = L.DomUtil.get('map');
+        if (container['_leaflet_id'] != null) {
+            container['_leaflet_id'] = null;
+            document.getElementById("map").innerHTML = "";
+        }
+        debugger;
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            success: function (response) {
+                if (response != "" && response != null) {
+                    //
+                    var locations = response;
+                    var markers = L.markerClusterGroup({ showCoverageOnHover: false });
+                    for (var i = 0; i < locations.length; i++) {
+                        if (locations[i]["Latitude"] != null && locations[i]["Latitude"] != "" && locations[i]["Longitude"] != null && locations[i]["Longitude"] != "") {
+                            marker = new L.marker([locations[i]["Latitude"], locations[i]["Longitude"]]).bindPopup(locations[i]["ParcelId"])
+                                .openPopup();
+
+                            markers.addLayer(marker);
+                        }
+                    }
+                    var map = L.map("map", {
+                        //center: [locations[0]["Latitude"], locations[0]["Longitude"]],
+                        zoom: 1,
+                        maxZoom: 20,
+                        layers: [markers]
+                    });
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                        attribution: "© OpenStreetMap contributors"
+                    }).addTo(map);
+                    markers.getBounds().isValid();
+                    map.fitBounds(markers.getBounds());
+                }
+            },
+            error: function (response) {
+
+            },
+        });
+
+    }
+
+    function loadMap(lat,long,name) {
+        var container = L.DomUtil.get('map');
+        if (container['_leaflet_id'] != null) {
+            container['_leaflet_id'] = null;
+            document.getElementById("map").innerHTML = "";
+        }
+        var map = L.map('map').setView([lat, long], 13);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        var marker = L.marker([lat, long]).addTo(map)
+            .bindPopup(name)
+            .openPopup();
+    }
+</script>

@@ -1,0 +1,201 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Job Advertisement";
+}
+
+<style>
+    .circle-icon {
+        background: #d1cbcb;
+        padding: 7px; 
+        border-radius: 50%;
+    }
+    .ag-header-group-cell-label {
+        justify-content: center;
+        color: #fff;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+
+        //var d = new Date();
+        //d.setDate(d.getDate() - 6);
+        //$("#FromDate").kendoDatePicker({
+        //    value: d,
+        //    format: "dd.MM.yyyy"
+        //});
+
+        //$("#ToDate").kendoDatePicker({
+        //    value: new Date(),
+        //    format: "dd.MM.yyyy"
+        //});
+
+    });
+
+    var columnDefs = [
+        { children: [{ field: "ManpowerType", headerName: "Job Type", minWidth: 140,}]},
+        { children: [{ field: "JobName", headerName: "Position", minWidth: 150,}] },
+
+        {
+            headerName: "Job Advertisement",
+            cellStyle: { textAlign: 'center' },
+            children: [
+                {
+                    field: "Active", headerName: "Active/Draft", minWidth: 150,
+                    cellRenderer: params => {
+                        return "<div class='btn-group grid-menu' onclick='OnActive(\"" + params.data.JobId + "\");'>" + params.value + "</div>"
+                    }
+                },
+                {
+                    field: "InActive", headerName: "InActive", minWidth: 150,
+                    cellRenderer: params => {
+                        return "<div class='btn-group grid-menu' onclick='OnInActive(\"" + params.data.JobId + "\");'>" + params.value + "</div>"
+                    }
+                },
+                {
+                    field: "Active", headerName: "Add/Edit", minWidth: 150,
+                    cellRenderer: params => {
+                        if ("@ViewBag.Permissions" == "AddManpowerRecruitment")
+                        {
+                            if (params.value == 0)
+                            {
+                                return "<div ><i class='fa fa-plus k-primary circle-icon' style='cursor:pointer;color:blue' title='Add Job Advertisement' onclick='OnCreateJobAdv(\"" + params.data.Id + "\",\"" + params.data.JobId + "\")'></i></div>"
+                            }
+                            else
+                            {
+                                return "<div><i class='fa fas fa-pencil circle-icon' style='cursor:pointer;color:blue' title='View/Edit Job Advertisement' onclick='OnView(\"" + params.data.Id + "\",\"" + params.data.JobId + "\",\"" + params.data.JobAdvNoteId + "\",\"" + params.data.ServiceId + "\",\"" + params.data.ServiceStatusCode + "\")'></i></div>"
+                            }
+                        }
+
+                    }
+                },
+            ]
+        },
+        {
+            field: "Id", headerName: "Job Description", minWidth: 150,
+            cellRenderer: params => {
+                return "<div><i class='fa fa-plus circle-icon' style='cursor:pointer;' title='Request Job Description' onclick='OnAddJobDesc(\"" + params.data.JobId + "\");'></i><i class='fa fas fa-pencil circle-icon' style='cursor:pointer;' title='Add/Edit Job Description' onclick='OnEditJobDesc(\"" +params.data.JobId+"\");'></i></div>"
+            }
+        },
+        {
+            field: "Count", headerName: "Task Count", minWidth: 150,
+            cellRenderer: params => {
+                return "<a style='cursor:pointer;color:blue' onclick='OnViewJobDesc(\"" + params.data.JobId + "\")'>" + params.value +"</a>"
+            }
+        },        
+        { field: "ShortlistedByHr", headerName: "Shortlisted By HR", minWidth: 150 },
+        { field: "ShortlistedForInterview", headerName: "Shortlisted By HM", minWidth: 150 },
+        { field: "DirectHiring", headerName: "Direct Hiring", minWidth: 150 },
+        { field: "IntentToOfferSent", headerName: "Intent To Offer", minWidth: 150 },
+        { field: "WorkerPool", headerName: "Worker Appointment", minWidth: 150 },
+        { field: "FinalOfferSent", headerName: "Final Offer", minWidth: 150 },
+        { field: "BusinessVisa", headerName: "Overseas Business Visa", minWidth: 150 },
+        { field: "WorkVisa", headerName: "Overseas Work Visa", minWidth: 150 },
+        { field: "VisaTransfer", headerName: "Local Visa Transfer", minWidth: 150},
+        { field: "WorkPermit", headerName: "Local Work Permit", minWidth: 150 },
+        { field: "CandidateJoined", headerName: "Staff Joining", minWidth: 150},
+        { field: "WorkerJoined", headerName: "Worker Joining", minWidth: 150 },
+        { field: "Joined", headerName: "Joined", minWidth: 150 },
+        { field: "PostStaffJoined", headerName: "Post Staff Joined", minWidth: 150 },
+        { field: "PostWorkerJoined", headerName: "Post Worker Joined", minWidth: 150},
+        {
+            field: "CreateDate",
+            headerName: "Create Date", minWidth: 150,
+            cellRenderer: (data) => {
+                debugger;
+                if (data.value != null && data.value != "") {
+                    var d = new Date(data.value);
+                    return d.getDate() + "." + (d.getMonth()+1) + "." + d.getFullYear();
+                }
+            }
+        },
+    ];
+
+    function GetJobAdvertismentList() {
+        document.getElementById("JobAdvertisementGrid").innerHTML = "";
+
+        gridConfig(
+            "JobAdvertisementGrid",
+            "/Rec/RecruitmentTransaction/ReadManpowerUniqueJobData",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    $(function () {
+        GetJobAdvertismentList();
+
+    });
+
+    function OnAddJobDesc(jobId) {
+        var win = GetMainWindow();
+        var udfs = encodeURIComponent('JobId=' + jobId + '&ReferenceTypeCode=' + '@ReferenceTypeEnum.REC_Job' );
+        var roudfs = encodeURIComponent('JobId=true&ReferenceTypeCode=true');
+        var url = '/Cms/Page?lo=Popup&pageType=Task&cbm=OnAfterUpdate&source=Create&dataAction=Create&templateCodes=REC_JOB_DESCRIPTION_TASK&portalId=' + '@ViewBag.PortalId' + '&udfs=' + udfs + '&roudfs=' + roudfs;
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Job Description Request', Width: 1000, Height: 750 });
+        return false;
+        
+        @*win.iframeOpenUrl = '@Url.Action("Index", "Task", new { @area = "Cms" })?templateCode1=JOBDESCRIPTION_HM&referenceId=' + dataItem.JobId + '&referenceTypeCode=' + '@ReferenceTypeEnum.REC_Job' + '&isPopUp=true&udf1=' + dataItem.JobId + "&udfValue1=" + dataItem.JobName;*@
+                
+    }
+
+    function OnEditJobDesc(jobId) {        
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Rec/RecruitmentTransaction/JobDescription?jobId=" + jobId;
+        win.OpenWindow({ Title: 'Manage Job Description', Width: 1200, Height: 750 });
+        return false;
+    }
+    function OnViewJobDesc(id) {
+         var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("Task", "ManpowerRequirementSummary", new { @area = "Recruitment" })?manpowerId=' + id;
+         win.OpenWindow({ Title: 'View Job Description Request', Width: 1200, Height: 750 });
+         return false;
+    }
+
+    function OnActive(jobid) {
+        var url = "/Rec/RecruitmentTransaction/JobAdvertisementActive?jobId=" + jobid;
+        LoadPartailView(url, $('#cms-content'));
+    }
+    function OnInActive(jobid) {
+        var url = "/Rec/RecruitmentTransaction/JobAdvertisementInActive?jobId=" + jobid + "&permission=@ViewBag.Permissions";
+        LoadPartailView(url, $('#cms-content'));
+    }
+
+    function OnCreateJobAdv(id,jobid) {
+        var url = "/Rec/RecruitmentTransaction/JobAdvertisement?jobId=" + jobid + "&permission=@ViewBag.Permissions";
+        LoadPartailView(url, $('#cms-content'));
+    }
+
+    function OnView(id, jobid,noteId,serId,statusCode) {
+        debugger;
+        var url = "/Rec/RecruitmentTransaction/JobAdvertisement?jobId=" + jobid + "&id=" + id + "&noteId=" + noteId + "&serviceId=" + serId + "&statusCode=" + statusCode+ "&permission=@ViewBag.Permissions";
+        LoadPartailView(url, $('#cms-content'));
+    }
+
+    function OnAfterUpdate() {
+        GetJobAdvertismentList();
+    }
+
+    function OnSearch() {
+        GetJobAdvertismentList();
+    }
+
+</script>
+
+<div class="tab-content">
+    <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+         <div style="width: 100%;" class="p-3">                    
+              <legend class="fs-legend">Job Advertisement</legend>
+              <div id="JobAdvertisementGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>                    
+         </div>
+    </div> 
+</div>

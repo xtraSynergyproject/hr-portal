@@ -1,0 +1,1808 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@model ApplicationSearchViewModel;
+
+@{
+    ViewBag.Title = "";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = ViewBag.Layout;
+}
+<style>
+    /*.k-loading-color {
+        position:fixed;
+    }*/
+    .k-dropdown {
+        width: 90%;
+    }
+
+    .caret {
+        display: none;
+    }
+
+    .btn-group, .btn-group-vertical {
+        position: inherit !important;
+    }
+
+    .k-dropdown {
+        width: 95%;
+    }
+
+    .k-grid {
+        border-color: #2d9fca;
+    }
+
+    .k-grid-header .k-header {
+        color: #2d9fca;
+        font-weight: 700;
+    }
+
+    .k-pager-wrap .k-link.k-state-disabled {
+        border-radius: 40px;
+        margin-left: 5px;
+    }
+
+    .k-pager-numbers .k-state-selected {
+        border-radius: 40px;
+        margin-left: 5px;
+    }
+
+    .k-pager-wrap .k-pager-refresh {
+        border-color: transparent;
+        background-color: #fff;
+        color: black;
+    }
+
+    .k-grid td {
+        /*border-color: #2d9fca;*/
+        border-color: transparent;
+    }
+
+    .k-grid-pager {
+        border-color: #2d9fca;
+    }
+
+    .k-grid thead {
+        background-color: transparent;
+    }
+
+    .k-grid td:first-child {
+        text-align: center;
+    }
+</style>
+<script>
+    function FilterStatus(e)
+    {
+        var state1 = $("#StageId").data("kendoDropDownList").text();
+        return {
+            state: state1
+       }
+    }
+    function OnStageChange(e)
+    {
+
+        var dataItem = e.sender.dataItem();
+        if (dataItem.Id == null || dataItem.Id == "") {
+            document.getElementById('CandidateProfileSearch').checked = true;
+        }
+        else
+        {
+            document.getElementById('CandidateProfileSearch').checked = false;
+        }
+       // var search = FilterStatus();
+        $("#ApplicationStatusId").data("kendoDropDownList").dataSource.read({ state: dataItem.Code });
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+    }
+    function OnApplicationStatusChange(e) {
+
+        var dataItem = e.sender.dataItem();
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+    }
+       function onView(id, count) {
+        if (count == 0) {
+            alert("There is no Candidates for this Batch");
+        }
+        else {
+            @*iframeOpenUrl = '@Url.Action("ViewBatchCandidate", "CandidateShortlist", new { @area="Recruitment"})?batchid=' + id+"&type=ShortlistByHr" ;
+            OpenIframePopup(1500, 1200, 'View Candidate');*@
+             var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("ViewBatchCandidate", "CandidateShortlist", new { @area = "Recruitment" })?batchid=' + id + "&type=ShortlistByHr";
+            win.OpenWindow({ Title: 'View Candidate', Width: 1500, Height: 900 });
+        return false;
+        }
+    }
+    function FilterOrg() {
+        return {
+            jobAddId: $("#JobTitleForHiring").data("kendoDropDownList").value()
+        };
+    }
+    function UpdateStatus(type, status, appId, candId)
+    {
+
+        if (status== 'SHORTLISTED' && ($("#BatchId").data("kendoDropDownList").value() == '' || $("#BatchId").data("kendoDropDownList").value() == null)) {
+            alert("Please Select atleast one Batch");
+        }
+        else
+        {
+
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("UpdateApplicationStatus", "CandidateShortlist", new { @area="Recruitment"})?type=' + type + "&status=" + status + "&applicationId=" + appId + "&CandidateProfileId=" + candId + "&state=ShortListByHr" + "&BatchId=" + $("#BatchId").data("kendoDropDownList").value() + "&JobAddId=" + $("#JobTitleForHiring").data("kendoDropDownList").value() + "&JobId=" + $("#JobTitleForHiring").data("kendoDropDownList").value()/* $("#JobId").val()*/ + "&OrgId=" /*+ $("#OrganizationId").data("kendoDropDownList").value()*/,
+                //data: {
+                //    'type': type,
+                //    'status': status,
+                //    'applicationId': appId,
+                //    'CandidateProfileId': candId,
+                //    'state': 'ShortListByHr',
+                //},
+                success: function (data) {
+
+                    if (data.success)
+                    {
+                        //debugger;
+                        if (status == 'SHORTLISTED') {
+                            ShowNotification("Candidate added to batch successfully", "success");
+                        }
+                        else
+                        {
+                            ShowNotification("Candidate status changed successfully", "success");
+                        }
+                    }
+                    else
+                    {
+                        ShowNotification("Error adding candidate to batch. Please try again", "error");
+                    }
+                    refreshInbox1();
+                    //var search = { type: null, parentId: null, userRoleId: null };
+                    //$("#inboxTreeView").data('kendoTreeView').dataSource.read(search);
+
+                    var search = FilterGrid();
+                    $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+                    var search1 = FilterBatch();
+                    $("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+                    getApplicantcunt($("#BatchId").data("kendoDropDownList").value());
+                 //refreshInbox();
+
+                },
+                error: function () { }
+                //dataType: "json",
+            });
+        }
+    }
+    function getApplicantcunt(id)
+    {
+        $.ajax({
+            type: "Get",
+            url: "/Recruitment/Batch/GetApplicantCount?Id=" + id,
+            //data: { 'applicants': users, 'type': type },
+            success: function (data) {
+                $("#batchCount").html(data.count + " Applicant in selected batch");
+            },
+            dataType: "json",
+        });
+    }
+    function onAddComment(appId, appStateId)
+    {
+        @*iframeOpenUrl = '@Url.Action("AddComment", "CandidateShortlist", new { @area="Recruitment"})?appId=' + appId + "&appStateId=" + appStateId;
+        OpenIframePopup(1000, 1200, 'Comments');*@
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("AddComment", "CandidateShortlist", new { @area = "Recruitment" })?appId=' + appId + "&appStateId=" + appStateId;
+        win.OpenWindow({ Title: 'Comments', Width: 1000, Height: 900 });
+        return false;
+    }
+    function OnCheckboxChange(e) {
+        if (document.getElementById('JobApplicationSearch').checked == false && document.getElementById('CandidateProfileSearch').checked ==true)
+        {
+            //$("#ApplicationStatusId").data("kendoDropDownList").value('');
+            var stagedata = $("#StageId").data("kendoDropDownList").dataSource.data();
+            for (var i = 0; i < stagedata.length; i++)
+            {
+                if (stagedata[i].Code =="UnReviewed")
+                {
+                    $("#StageId").data("kendoDropDownList").value(stagedata[i].Id);
+
+                }
+
+            }
+            $("#StageId").data("kendoDropDownList").readonly();
+            $("#StatusCheck").hide();
+        }
+        if (document.getElementById('JobApplicationSearch').checked == true && document.getElementById('CandidateProfileSearch').checked == false) {
+            $("#StatusCheck").show();
+            var state1 = $("#StageId").data("kendoDropDownList").dataItem();
+            $("#ApplicationStatusId").data("kendoDropDownList").dataSource.read({ state: state1.Code})
+        }
+        if (document.getElementById('JobApplicationSearch').checked == true && document.getElementById('CandidateProfileSearch').checked == true) {
+            $("#StageId").data("kendoDropDownList").readonly(false);
+            $("#StatusCheck").show();
+            var state1 = $("#StageId").data("kendoDropDownList").dataItem();
+            $("#ApplicationStatusId").data("kendoDropDownList").dataSource.read({ state: state1.Code })
+
+            //var stagedata = $("#StageId").data("kendoDropDownList").text();
+            //if (stagedata == "ShortListed By HR" || stagedata == "--All--") {
+
+            //}
+            //else {
+            //    $("#StatusCheck").hide();
+            //}
+            //for (var i = 0; i < stagedata.length; i++) {
+            //    if (stagedata[i].Code == "ShortlistByHr") {
+            //        $("#StatusCheck").show();
+            //    }
+            //    else
+            //    {
+            //        $("#StatusCheck").hide();
+            //    }
+            //}
+
+        }
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+    }
+    function OnBatchChange(e)
+    {
+        console.log(e);
+        var dataItem = e.sender.dataItem();
+        getApplicantcunt(dataItem.Id);
+    }
+    function OnBatchDataBound(e)
+    {
+        var grid = this;
+        var trs = this.tbody.find('tr').each(function () {
+            debugger
+            var item = grid.dataItem($(this));
+            if (item.BatchStatusName != "Draft") {
+                $(this).find('.k-grid-Edit').hide();
+            }
+        });
+
+        var batchData = $("#Batchgrid").data("kendoGrid").dataSource.data();
+        ////console.log(batchData);
+        //for (var i = 0; i < batchData.length;i++)
+        //{
+        //    totalApplicant += batchData[i].NoOfApplication;
+        //}
+        //$("#batchCount").html("Total Applicant: " + totalApplicant);
+        $("#TotalbatchCount").html("Total Batch Count- " + batchData.length);
+    }
+    function OnDataBound(e)
+    {
+       // var grid = $Model"#kgrdCandInBatchTypeEnumerShortlistByHrview").data("kendoGrid");
+
+        var dataItem = e.sender.dataItem();
+        $("#headCount").html(dataItem.NoOfPosition);
+        $("#ManpowerCount").html(dataItem.ManpowerTypeName)
+        if (dataItem.ManpowerTypeName != "Staff" ) {
+            $("#Extrafilters").hide();
+            $("#SecondFilter").show();
+
+        }
+        else {
+            $("#Extrafilters").show();
+            $("#SecondFilter").hide();
+        }
+
+        //var search1 = FilterBatch();
+        //$("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+        //var search = FilterGrid();
+        //$("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+        //var search2 = Filterddl();
+        //$("#BatchId").data("kendoDropDownList").dataSource.read(search2);
+
+        //introJs().setOptions({
+        //    steps: [
+        //        {
+        //        title: 'Shortlist by HR',
+        //            intro: 'Welcome to Shortlist by HR! 👋'
+        //    },
+        //    {
+        //        title: 'Position Dropdownlist',
+        //        element: "#positiondrp",
+        //        intro: 'Choose the hiring position from the dropdown'
+        //    },
+        //        {
+        //        title:'Organization Dropdownlist',
+        //        element: "#organizationdrp",
+        //            intro: 'Select the organization of the candidate from the dropdown'
+        //    },
+        //    {
+        //        title: 'Batch Dropdownlist',
+        //        element: "#batchdrp",
+        //        intro: 'Select the batch corresponding to the worker from the dropdown'
+        //    },
+        //    {
+        //        title: 'Create a New Batch',
+        //        element: "#createbatch",
+        //        intro: 'You can create a custom new batch'
+        //        },
+        //        {
+        //            title: 'Job Applicant Search',
+        //            element: "#appsearch",
+        //            intro: 'To search for the job application.'
+        //        },
+        //        {
+        //            title: 'Migrate Applicant Search',
+        //            element: "#candsearch",
+        //            intro: 'To search for the migrated candidate'
+        //        },
+        //        {
+        //            title: 'Stage',
+        //            element: "#stagedrp",
+        //            intro: 'Choose the stage of the application from the dropdown'
+        //        },
+        //        {
+        //            title: 'Status',
+        //            element: "#statusdrp",
+        //            intro: 'Choose the status from the dropdown'
+        //        },
+        //        {
+        //            title: 'Batch Summary',
+        //            element: ".fa-caret-down",
+        //            intro: 'An expandable view, providing you with the details of the batch selected above'
+        //        },
+        //        {
+        //            title: 'Apply Filter',
+        //            element: "#applyfiltericon",
+        //            intro: 'Sort/ Apply filter based on which you want to search the candidate'
+        //        },
+        //        {
+        //            title: 'Clear Filter',
+        //            element: "#clearfiltericon",
+        //            intro: 'This is to clear all the filters'
+        //        }]
+        //}).start();
+
+    }
+    function OnGridDataBound(e) {
+        var grid = $("#kgrdCandInterview").data("kendoGrid");
+        if ($("#ManpowerCount").html() != "Staff") {
+            $("#Extrafilters").hide();
+            $("#SecondFilter").show();
+
+            //grid.hideColumn(2);
+
+            grid.hideColumn("Email");
+           grid.hideColumn("TotalOtherExperience");
+            grid.hideColumn("ContactPhoneHome");
+            grid.hideColumn("ContactPhoneLocal");
+            grid.hideColumn("TotalIndianExperience");
+            grid.hideColumn("Score");
+            //grid.hideColumn("Gender");
+            grid.hideColumn("MaritalStatus");
+            grid.hideColumn("BloodGroup");
+            //grid.hideColumn("Nationality");
+            grid.hideColumn("QatarId");
+            grid.hideColumn("CurrentAddressHouse");
+            grid.hideColumn("CurrentAddressStreet");
+            grid.hideColumn("CurrentAddressCity");
+            grid.hideColumn("CurrentAddressState");
+            grid.hideColumn("CurrentAddressCountryName");
+            grid.hideColumn("PermanentAddressHouse");
+            grid.hideColumn("PermanentAddressStreet");
+            grid.hideColumn("PermanentAddressCity");
+            grid.hideColumn("PermanentAddressState");
+            grid.hideColumn("PermanentAddressCountryName");
+            grid.hideColumn("CurrentEmployer");
+            grid.hideColumn("CurrentEmploymentLocation");
+            grid.hideColumn("CurrentEmploymentPosition");
+            grid.hideColumn("CurrentEmploymentStartDate");
+            grid.hideColumn("CurrentEmploymentEndDate");
+            grid.hideColumn("CurrentEmploymentResponsibilities");
+            grid.hideColumn("CurrentSalary");
+            grid.hideColumn("SalaryAfterIncomeTax");
+
+            grid.hideColumn("OtherAllowance");
+        }
+        else {
+            $("#Extrafilters").show();
+            $("#SecondFilter").hide();
+           // grid.showColumn("CandidateProfileId");
+             // grid.showColumn(2);
+          // grid.showColumn(2);
+            grid.showColumn("Email");
+            grid.showColumn("ContactPhoneHome");
+            grid.showColumn("ContactPhoneLocal");
+            grid.hideColumn("TotalIndianExperience");
+            grid.showColumn("TotalOtherExperience");
+            grid.showColumn("Score");
+            //grid.showColumn("Gender");
+            grid.showColumn("MaritalStatus");
+            grid.showColumn("BloodGroup");
+            //grid.showColumn("Nationality");
+            grid.showColumn("QatarId");
+            grid.showColumn("CurrentAddressHouse");
+            grid.showColumn("CurrentAddressStreet");
+            grid.showColumn("CurrentAddressCity");
+            grid.showColumn("CurrentAddressState");
+            grid.showColumn("CurrentAddressCountryName");
+            grid.showColumn("PermanentAddressHouse");
+            grid.showColumn("PermanentAddressStreet");
+            grid.showColumn("PermanentAddressCity");
+            grid.showColumn("PermanentAddressState");
+            grid.showColumn("PermanentAddressCountryName");
+            grid.showColumn("CurrentEmployer");
+            grid.showColumn("CurrentEmploymentLocation");
+            grid.showColumn("CurrentEmploymentPosition");
+            grid.showColumn("CurrentEmploymentStartDate");
+            grid.showColumn("CurrentEmploymentEndDate");
+            grid.showColumn("CurrentEmploymentResponsibilities");
+            grid.showColumn("CurrentSalary");
+            grid.showColumn("OverseasSalary");
+            grid.showColumn("SalaryAfterIncomeTax");
+            grid.showColumn("OtherAllowance");
+        }
+
+        //introJs().setOptions({
+        //    steps: [
+        //    {
+        //        title: 'Action',
+        //        element: "#actiondrpbutton",
+        //        intro: 'Choose the action from the dropdown for each candidate'
+        //    },
+        //    {
+        //        title: 'Profile view',
+        //        element: "#viewprofile",
+        //        intro: 'This link will provide you with a quick view of the candidate’s profile'
+        //    },
+        //    {
+        //        title: 'Candidate Document',
+        //        element: "#viewdocument",
+        //        intro: 'This link will give a quick view of all the attachments and documents'
+        //    },
+        //                ]
+        //}).start();
+
+
+    }
+    function OnJobTitleChange(e)
+    {
+
+        var dataItem = e.sender.dataItem();
+        console.log(dataItem);
+        $("#headCount").html(dataItem.NoOfPosition);
+        $("#JobId").val(dataItem.JobId);
+        if (dataItem.ManpowerTypeName == undefined || dataItem.ManpowerTypeName == '' || dataItem.ManpowerTypeName == null) {
+            $("#ManpowerCount").html('')
+        }
+        else
+        {
+            $("#ManpowerCount").html(dataItem.ManpowerTypeName)
+        }
+
+        if (dataItem.ManpowerTypeName != "Staff") {
+            $("#Extrafilters").hide();
+            ClearFilter();
+            $("#SecondFilter").show();
+        }
+        else
+        {
+            $("#Extrafilters").show();
+            ClearSecondFilter();
+            $("#SecondFilter").hide();
+        }
+
+        //var search1 = FilterBatch();
+        //$("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+        //var search = FilterOrg();
+        //$("#OrganizationId").data("kendoDropDownList").dataSource.read(search);
+        var search2 = Filterddl();
+        $("#BatchId").data("kendoDropDownList").dataSource.read(search2);
+        var search1 = FilterBatch();
+        $("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+        $("#batchCount").html("");
+    }
+    function OnOrgChange(e)
+    {
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+        var search2 = Filterddl();
+        $("#BatchId").data("kendoDropDownList").dataSource.read(search2);
+        var search1 = FilterBatch();
+        $("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+        $("#batchCount").html("");
+    }
+    function Filterddl() {
+        var dropdownlist = $("#JobTitleForHiring").data("kendoDropDownList");
+        return {
+            JobAddId: dropdownlist.value(),
+            batchType: '@BatchTypeEnum.ShortlistByHr',
+            //orgId: $("#OrganizationId").data("kendoDropDownList").value(),
+
+        };
+    }
+    function FilterGrid()
+    {
+        var dropdownlist = $("#JobTitleForHiring").data("kendoDropDownList");
+        var appStatusId = "";
+        var canProfileSearch = "";
+        var stageSearch = "";
+       // var orgddl = $("#OrganizationId").data("kendoDropDownList");
+        if ('@Model.ApplicationStatusId' != null) {
+            appStatusId = '@Model.ApplicationStatusId';
+        }
+        else {
+            appStatusId = $("#ApplicationStatusId").data("kendoDropDownList").value();
+            canProfileSearch = document.getElementById('CandidateProfileSearch').checked;
+            stageSearch = $("#StageId").data("kendoDropDownList").value();
+        }
+
+        if (dropdownlist.value() != null && dropdownlist.value() != '' && dropdownlist.value() != undefined
+            /*&& orgddl.value() != null && orgddl.value() != '' && orgddl.value() != undefined*/)
+        {
+            return {
+                JobTitleForHiring: dropdownlist.value(),
+                TotalExperience: $("#TotalExperience").val(),
+                TotalGulfExperience: $("#TotalGulfExperience").val(),
+                JobTitle: $("#JobTitle").val(),
+                YearOfJobExperience: $("#YearOfJobExperience").val(),
+                OtherExperience: $("#OtherExperience").data("kendoDropDownList").value(),
+                YearOfOtherCountryExperience: $("#YearOfOtherCountryExperience").val(),
+                Industry: $("#Industry").data("kendoDropDownList").value(),
+                Category: $("#Category").data("kendoDropDownList").value(),
+                YearOfIndustryExperience: $("#YearOfIndustryExperience").val(),
+                CategoryExperience: $("#CategoryExperience").val(),
+                //IsEnglishProficiency: $("input[name='IsEnglishProficiency']:checked").val(),
+                IsEnglishProficiency: $('#IsEnglishProficiency').is(":checked"),
+                EnglishProficiency: $("input[name='EnglishProficiency']:checked").val(),//document.getElementById('EnglishProficiency').value,
+                //IsArabicProficiency: $("input[name='IsArabicProficiency']:checked").val(),
+                IsArabicProficiency: $('#IsArabicProficiency').is(":checked"),
+                ArabicProficiency: $("input[name='ArabicProficiency']:checked").val(),//document.getElementById('ArabicProficiency').value,
+                //IsComputerLiteratureProficiency: $("input[name='IsComputerLiteratureProficiency']:checked").val(),
+                IsComputerLiteratureProficiency: $('#IsComputerLiteratureProficiency').is(":checked"),
+                ComputerLiteratureProficiency: $("input[name='ComputerLiteratureProficiency']:checked").val(),//document.getElementById('ComputerLiteratureProficiency').value,
+                Qualification: $("#Qualification").data("kendoDropDownList").value(),
+                Specialization: $("#Specialization").data("kendoDropDownList").value(),
+                Duration: $("#Duration").val(),
+                PassingYear: $("#PassingYear").val(),
+                Nationality: $("#Nationality").val(),
+                Age: $("#Age").val(),
+                Gender: $("#Gender").val(),
+                Marks: $("#Marks").val(),
+                Country: $("#Country").data("kendoDropDownList").value(),
+                Type: $("#Type").data("kendoDropDownList").value(),
+                //DL: document.getElementById('DL').value,
+                DL: $("input[name='DL']:checked").val(),
+                IssueDate: $("#IssueDate").data("kendoDatePicker").value(),
+                ExpiryDate: $("#ExpiryDate").data("kendoDatePicker").value(),
+                BirthDate: $("#BirthDate").data("kendoDatePicker").value(),
+                PassportNumber: $("#PassportNumber").val(),
+                NetSalary: $("#NetSalary").val(),
+                JobApplicationSearch: document.getElementById('JobApplicationSearch').checked,
+                CandidateProfileSearch: document.getElementById('CandidateProfileSearch').checked,
+                ApplicationStatusId: appStatusId,
+                StageId: stageSearch,
+                //AllCandidateApplication: document.getElementById('AllCandidateApplication').checked,
+                //ShortlistedCandidateApplication: document.getElementById('ShortlistedCandidateApplication').checked,
+                // RejectedCandidateSearch: document.getElementById('RejectedCandidateSearch').checked,
+                //WaitlistedCandidateSearch: document.getElementById('WaitlistedCandidateSearch').checked,
+                //ManpowerType: dataItem.ManpowerTypeName,
+                Comment: $("#Comment").val(),
+                Pool: '@ViewBag.Pool'
+               // OrganizationId: $("#OrganizationId").data("kendoDropDownList").value()
+            };
+        }
+
+    }
+    function FilterBatch()
+    {
+        return {
+            jobIdAdvertismentId: $("#JobTitleForHiring").data("kendoDropDownList").value(),
+            batchtype: '@BatchTypeEnum.ShortlistByHr',
+            //orgId: $("#OrganizationId").data("kendoDropDownList").value(),
+            batchId: '@Model.BatchId'
+        }
+    }
+
+    function Update(type) {
+        var users = '';
+        var grid = $("#kgrdCandInterview").data("kendoGrid");
+        grid.tbody.find("input:checked").closest("tr").each(function (index) {
+            users = users + grid.dataItem(this).Id + ',';
+            //alert(grid.dataItem(this).Id);
+        });
+        if (users == '' || users == ',') {
+            alert("Please Select atleast one candidate from the grid");
+        }
+        else {
+            $.ajax({
+                type: "POST",
+                url: "/rec/RecruitmentProcess/UpdateApplicantState",
+                data: { 'applicants': users, 'type': type },
+                success: function (data) {
+                    $("#kgrdCandInterview").data("kendoGrid").dataSource.read();
+                    $("#kgrdCandJobOffer").data("kendoGrid").dataSource.read();
+                },
+                dataType: "json",
+            });
+        }
+    }
+
+    function Update1(type) {
+        var users = '';
+        var grid = $("#kgrdCandJobOffer").data("kendoGrid");
+        grid.tbody.find("input:checked").closest("tr").each(function (index) {
+            users = users + grid.dataItem(this).Id + ',';
+        });
+        if (users == '' || users == ',') {
+            alert("Please Select atleast one candidate from the grid");
+        }
+        else {
+            $.ajax({
+                type: "POST",
+                url: "/rec/RecruitmentProcess/UpdateApplicantState",
+                data: { 'applicants': users, 'type': type },
+                success: function (data) {
+                    $("#kgrdCandInterview").data("kendoGrid").dataSource.read();
+                    $("#kgrdCandJobOffer").data("kendoGrid").dataSource.read();
+                    //window.parent.refreshInbox();
+                    refreshInbox1();
+                },
+                dataType: "json",
+            });
+        }
+    }
+    function ApplyFilter()
+    {
+        var dropdownlist = $("#JobTitleForHiring").data("kendoDropDownList");
+        var dataItem = dropdownlist.dataItem();
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+    }
+    function ClearFilter()
+    {
+        $("#TotalExperience").val('');
+        $("#JobTitle").val('');
+        $("#YearOfJobExperience").val('');
+        $("#OtherExperience").data("kendoDropDownList").value('');
+        $("#YearOfOtherCountryExperience").val('');
+        $("#Industry").data("kendoDropDownList").value('');
+        $("#Category").data("kendoDropDownList").value('');
+        $("#YearOfIndustryExperience").val('');
+        $("#CategoryExperience").val('');
+        $("#TotalGulfExperience").val('');
+        $("#Comment").val('');
+        $("#Nationality").val('');
+        $("#Age").val('');
+        $("#Gender").val('');
+        document.getElementById('IsEnglishProficiency').value = false;
+        document.getElementById('IsArabicProficiency').value = false;
+        document.getElementById('IsComputerLiteratureProficiency').value = false;
+        document.getElementById('DL').value ="NO"
+        $("#Qualification").data("kendoDropDownList").value('');
+        $("#Specialization").data("kendoDropDownList").value('');
+        $("#Duration").val('');
+        $("#PassingYear").val('');
+        $("#Marks").val('');
+        $("#Country").data("kendoDropDownList").value('');
+        $("#Type").data("kendoDropDownList").value('');
+        $("#IssueDate").data("kendoDatePicker").value('');
+        $("#ExpiryDate").data("kendoDatePicker").value('');
+        $("#PassportNumber").val('');
+        $("#NetSalary").val('');
+
+        $("#BirthDate").data("kendoDatePicker").value('');
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+    }
+    function ClearSecondFilter() {
+        $("#TotalExperience").val('');
+        $("#PassportNumber").val('');
+        $("#NetSalary").val('');
+
+        $("#BirthDate").data("kendoDatePicker").value('');
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+    }
+        function OnDeleteBatch(e) {
+        var flag = confirm('Do you really want to delete the Batch?');
+        //alert("..Delete");
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "Batch", new { @area="Recruitment"})?Id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    if (result.success) {
+                        $("#Batchgrid").data("kendoGrid").dataSource.read();
+                        kendo.alert("Batch Deleted Successfully.");
+                    } else {
+                        $("#Batchgrid").data("kendoGrid").dataSource.read();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                    //window.parent.refreshInbox();
+                    refreshInbox1();
+                },
+                error: function (ert) {
+                    $("#Batchgrid").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+    function OnCreateBatch() {
+        debugger;
+        if ($("#JobTitleForHiring").val() == "") {
+            kendo.alert("Select job title for hiring");
+        }
+        else if ($("#JobTitleForHiring").val() != ""){
+             $.ajax({
+                 url: '@Url.Action("CheckManpowerRequirement", "ManpowerRequirementSummary", new { @area="Recruitment"})?jobId=' + $("#JobTitleForHiring").val(),
+                type: 'GET',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    if (result.success) {
+                        var win = GetMainWindow();
+         iframeOpenUrl = '@Url.Action("Create", "Batch", new { @area="Recruitment"})?jobAdvertisementId=' + $("#JobTitleForHiring").data("kendoDropDownList").value() + "&batchType=@BatchTypeEnum.ShortlistByHr&orgId="/* + $("#OrganizationId").data("kendoDropDownList").value()*/;
+        win.OpenWindow({ Title: 'Manage Batch', Width: 450, Height: 800 });
+        return false;
+                    } else {
+
+                        kendo.alert("Please Create Manpower Requirement for this Position");
+                    }
+                    //window.parent.refreshInbox();
+                    refreshInbox1();
+                },
+                error: function (ert) {
+                    $("#Batchgrid").data("kendoGrid").dataSource.read();
+                }
+            });
+        }
+        //else if ($("#OrganizationId").val() == "") {
+        //    kendo.alert("Select organization");
+        //}
+        else {
+            @*iframeOpenUrl = '@Url.Action("Create", "Batch", new { @area="Recruitment"})?jobAdvertisementId=' + $("#JobTitleForHiring").data("kendoDropDownList").value() + "&batchType=@BatchTypeEnum.ShortlistByHr&orgId="/* + $("#OrganizationId").data("kendoDropDownList").value()*/;
+            OpenIframePopup(450, 1200, 'Manage Batch');*@
+              var win = GetMainWindow();
+         iframeOpenUrl = '@Url.Action("Create", "Batch", new { @area="Recruitment"})?jobAdvertisementId=' + $("#JobTitleForHiring").data("kendoDropDownList").value() + "&batchType=@BatchTypeEnum.ShortlistByHr&orgId="/* + $("#OrganizationId").data("kendoDropDownList").value()*/;
+        win.OpenWindow({ Title: 'Manage Batch', Width: 450, Height: 800 });
+        return false;
+
+
+        }
+
+    }
+    function OnEditBatch(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        @*iframeOpenUrl = '@Url.Action("Edit", "Batch", new { @area="Recruitment"})?Id=' + dataItem.Id;
+        OpenIframePopup(450, 1200, 'Manage Batch');*@
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Edit", "Batch", new { @area = "Recruitment" })?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Batch', Width: 450, Height: 800 });
+        return false;
+    }
+    function OnApplication(Id, ApplicationId) {
+
+        @*iframeOpenUrl = '@Url.Action("PrintableView", "CandidateProfile", new { @area="Recruitment"})?candidateProfileId=' + Id + '&applicationId=' + ApplicationId;
+        OpenIframePopup(1000, 1200, 'Candidate');*@
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("PrintableView", "CandidateProfile", new { @area = "Recruitment" })?candidateProfileId=' + Id + '&applicationId=' + ApplicationId;
+        win.OpenWindow({ Title: 'Candidate', Width: 1000, Height: 900 });
+        return false;
+
+    }
+     function OnDocument(Id,ApplicationId) {
+
+         @*iframeOpenUrl = '@Url.Action("GetDocuments", "CandidateProfile", new { @area="Recruitment"})?candidateProfileId=' + Id + '&applicationId=' + ApplicationId;
+         OpenIframePopup(750, 1200, 'Document');*@
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("GetDocuments", "CandidateProfile", new { @area = "Recruitment" })?candidateProfileId=' + Id + '&applicationId=' + ApplicationId;
+         win.OpenWindow({ Title: 'Document', Width: 750, Height: 900 });
+        return false;
+
+    }
+    function UpdateBatch(Id, applicantNo) {
+        if (applicantNo == '' || applicantNo == "0") {
+            alert("Please Select atleast one applicant");
+        }
+        else {
+
+            $.ajax({
+                type: "Post",
+                url: '@Url.Action("UpdateStatus", "Batch", new { @area="Recruitment"})?batchId=' + Id,
+
+                success: function (data) {
+                    debugger;
+                    var search1 = FilterBatch();
+                    $("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+                    //window.parent.refreshInbox();
+                    refreshInbox1();
+                },
+                //dataType: "json",
+            });
+            //No need to Send task for Hiring Manager
+            @*$.ajax({
+                type: "GET",
+                url: '@Url.Action("TaskBatchSendHm", "Task", new { @area="Cms"})?batchId=' + Id,
+                success: function (data) {
+                    window.parent.refreshInbox();
+
+                },
+                error: function ()
+                {
+
+                }
+                //dataType: "json",
+            });*@
+        }
+    }
+    function OnDataBoundBatch(e) {
+        if ('@Model.JobTitleForHiring' != '' && '@Model.JobTitleForHiring' != null) {
+            var search = FilterGrid();
+            $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+        }
+    }
+    $(document).ready(function () {
+        if ('@Model.BatchId' != '' && '@Model.BatchId' != null && '@Model.BatchId' != 'null')
+        {
+
+            document.getElementById('CandidateProfileSearch').checked = false;
+            //var search = FilterGrid();
+           // $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+        }
+    });
+    function UpdateBatchClose(id) {
+        kendo.confirm("Are you sure, you want to close the batch? After closing the batch, you will not be able to shortlist.").then(function () {
+            alert("inside");
+            $.ajax({
+                type: "Post",
+               url: '@Url.Action("UpdateBatchClose", "Batch", new { @area= "Recruitment" })?batchId=' + id +'&code=Close',
+                success: function (data) {
+                    var search1 = FilterBatch();
+                    $("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+                    //window.parent.refreshInbox();
+                    refreshInbox1();
+
+                },
+                //dataType: "json",
+            });
+        }, function () {
+
+        })
+
+    }
+    function refreshInbox1() {
+        //var win = GetMainWindow().GetParentWindow();
+        //win.refreshInbox();
+        var search = { type: null, parentId: null, userRoleId: null };
+        $("#inboxTreeView").data('kendoTreeView').dataSource.read(search);
+    }
+     function onReturnCandidatePool(appId, appStateCode, tempCode)
+    {
+        
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ReturnCandidatePool", "CandidateShortlist", new { @area = "Recruitment" })?appId=' + appId + "&appStateCode=" + appStateCode + "&tempCode=" + tempCode;
+        win.OpenWindow({ Title: 'Return to Candidate Pool', Width: 1000, Height: 1000 });
+        return false;
+    }
+</script>
+@if (Model.BatchId != "null")
+{
+    <div style="margin-left:15px"><img style="width:99%;" src="~/images/ShortlistByHRDraft.png" /></div>}
+else
+{<div style="margin-left:15px"><img style="width:99%;" src="~/images/Shortlist by HM Candidate Pool.png" /></div>}
+@*<div style="margin-left:15px"><img style="width:99%;" src="~/images/Shortlist by HM Candidate Pool.png" /></div>*@
+<div class="no-gutters pad-t-30" id="shortlistcontent">
+    <div class="row no-gutters pad-15">
+        <div class="col-md-4 col-lg-3 text-body" style="background: #daedff;">
+            <div class="row no-gutters">
+                <div class="col header-bar">
+                    <div class="pl-3 mt-2 mb-2">
+                        <p style="color: blue;font-weight: bold;">Search</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-2">
+                <div class="p-2">
+                    <div class="pl-3 mt-2"><a href="#" id="clearfiltericon" onclick="ClearFilter();"><i class="far fa-trash-alt"></i>&nbsp; Clear All</a><a class="float-right" id="applyfiltericon" href="#" onclick="ApplyFilter();"><i class="fas fa-filter"></i>&nbsp;Apply Filter</a></div>
+                    <hr class="ml-2">
+                    <div class="ml-3">
+                        <div>
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Minimum Experience Required</p>
+                        </div>
+                        <input type="number" class="mt-1 text-box-property" asp-for="TotalExperience" style="width: 25%;">Year(s)
+                        @*@Html.Kendo().NumericTextBoxFor(m => m.TotalExperience).HtmlAttributes(new { @class = "mt-1 number-box-property",@Style= "width: 25%;" })*@
+
+                        <div></div>
+                    </div>
+                    <hr class="ml-2">
+                    <div class="ml-3">
+                        <div>
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Age: </p>
+                            <input type="number" class="mt-1 text-box-property" asp-for="Age">
+                            <div></div>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <div>
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Nationality: </p>
+                            @(Html.Kendo().DropDownListFor(x=>x.Nationality)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                           .DataSource(source =>
+                           {
+                               source.Read(read =>
+                               {
+                                   read.Action("GetIdNameList", "Master", new {@area="Recruitment",Type = "Nationality" });
+                               });
+                           })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property",width= "67%!important" })
+                        )
+                        </div>
+
+
+
+                        <div></div>
+                    </div>
+
+                    <div class="ml-3">
+                        <div>
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Gender: </p>
+
+                            @(Html.Kendo().DropDownListFor(x=>x.Gender)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                           .DataSource(source =>
+                           {
+                               source.Read(read =>
+                               {
+                                   read.Action("GetListOfValue", "CandidateShortlist", new {Type = "LOV_GENDER" });
+                               });
+                           })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property", width = "70%!important" })
+                        )
+                        </div>
+                    </div>
+
+
+
+                    <div></div>
+                </div>
+                <hr class="ml-2">
+                <div id="Extrafilters">
+                    <div class="ml-3">
+                        <div>
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Minimum Gulf Experience</p>
+                        </div>
+                        <input type="number" class="mt-1 text-box-property" asp-for="TotalGulfExperience" style="width: 25%;">Year(s)
+
+
+                        <div></div>
+                    </div>
+                    <hr class="ml-2">
+                    <div class="row pl-3">
+                        <div class="col-6 col-md-6 col-lg-6">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Position</p>
+                            <input class="d-block text-box-property" asp-for="JobTitle" type="text">
+                            @*@Html.Kendo().TextBoxFor(m => m.JobTitle).HtmlAttributes(new { @class = "d-block text-box-property" })*@
+                        </div>
+                        <div class="col">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Minimum Years of Experience</p>
+                            <input type="number" asp-for="YearOfJobExperience" class="mt-1 number-box-property"> Year(s)
+                            @*@Html.Kendo().NumericTextBoxFor(m => m.YearOfJobExperience).HtmlAttributes(new { @class = "mt-1 number-box-property" })*@
+
+                        </div>
+                    </div>
+                    <hr class="ml-2">
+                    <div class="row pt-3 pl-3">
+                        <div class="col-6 col-md-6 col-lg-6">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Experience in other Countries</p>
+
+                            @(Html.Kendo().DropDownListFor(x=>x.OtherExperience)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetCountryIdNameList", "CandidateProfile");
+                                          });
+                                      })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                           .HtmlAttributes(new { @class="text-box-property"})
+                        )
+                        </div>
+                        <div class="col">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Minimum Years of Experience</p>
+                            <input type="number" asp-for="YearOfOtherCountryExperience" class="mt-1 number-box-property"> Year(s)
+                            @*@Html.Kendo().NumericTextBoxFor(m => m.YearOfGulfExperience).HtmlAttributes(new { @class = "mt-1 number-box-property" })*@
+
+                        </div>
+                    </div>
+                    <hr class="ml-2">
+                    <div class="row pt-3 pl-3">
+                        <div class="col-6 col-md-6 col-lg-6">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Select Industry</p>
+
+                            @(Html.Kendo().DropDownListFor(x=>x.Industry)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetListOfValue", "CandidateShortlist", new {Type = "LOV_INDUSTRY" });
+                                          });
+                                      })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property" })
+                        )
+                        </div>
+                        <div class="col">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Minimum Years of Experience</p>
+                            <input type="number" asp-for="YearOfIndustryExperience" class="mt-1 number-box-property">Year(s)
+
+                        </div>
+                    </div>
+                    <hr class="ml-2">
+                    <div class="row mt-3 pl-3">
+                        <div class="col-6 col-md-6 col-lg-6">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Select Sub-Category</p>
+
+                            @(Html.Kendo().DropDownListFor(x=>x.Category)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                           .DataSource(source =>
+                           {
+                               source.Read(read =>
+                               {
+                                   read.Action("GetListOfValue", "CandidateShortlist", new {Type = "JOB_CATEGORY" });
+                               });
+                           })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property" })
+                        )
+                        </div>
+                        <div class="col">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Minimum Years of Experience</p>
+                            <input type="number" asp-for="CategoryExperience" class="mt-1 number-box-property">Year(s)
+                            @*@Html.Kendo().NumericTextBoxFor(m => m.CategoryExperience).HtmlAttributes(new { @class = "mt-1 number-box-property" })*@
+
+                        </div>
+                    </div>
+                    <hr class="ml-2">
+                    <div class="pl-3">
+                        <p class="d-inline-block mt-3 paragraph-bold">Proficiency</p>
+                        <div class="row mt-3">
+                            <div class="col">
+                                <p><input class="form-check-input" type="checkbox" asp-for="IsEnglishProficiency">English</p>
+                            </div>
+                            <div class="col">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" asp-for="EnglishProficiency" value="Low" checked>
+                                    <label for="EnglishProficiency">Basic</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" asp-for="EnglishProficiency" value="Medium">
+                                    <label for="EnglishProficiency">Medium</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" asp-for="EnglishProficiency" value="High">
+                                    <label for="EnglishProficiency">High</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col">
+                                <p><input class="form-check-input" type="checkbox" asp-for="IsArabicProficiency">Arabic</p>
+                            </div>
+                            <div class="col">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" value="Low" asp-for="ArabicProficiency" checked>
+                                    <label for="ArabicProficiency"> Basic</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" value="Medium" asp-for="ArabicProficiency">
+                                    <label for="ArabicProficiency"> Medium</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" value="High" asp-for="ArabicProficiency">
+                                    <label for="ArabicProficiency"> High</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col">
+                                <p><input class="form-check-input" type="checkbox" asp-for="IsComputerLiteratureProficiency">Computer Literacy</p>
+                            </div>
+                            <div class="col">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" value="Low" asp-for="ComputerLiteratureProficiency" checked>
+                                    <label for="ComputerLiteratureProficiency"> Basic</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" value="Medium" asp-for="ComputerLiteratureProficiency">
+                                    <label for="ComputerLiteratureProficiency"> Medium</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" value="High" asp-for="ComputerLiteratureProficiency">
+                                    <label for="ComputerLiteratureProficiency"> High</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="ml-2">
+                    <div class="row mt-3">
+                        <div class="col">
+                            <div class="row mt-2 pl-3">
+                                <div class="col-4">
+                                    <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Qualification</p>
+                                </div>
+                                <div class="col">
+
+                                    @(Html.Kendo().DropDownListFor(x=>x.Qualification)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                           .DataSource(source =>
+                           {
+                               source.Read(read =>
+                               {
+                                   read.Action("GetListOfValue", "CandidateShortlist", new { Type = "LOV_QUALIFICATION" });
+                               });
+                           })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property" })
+                        )
+                                </div>
+                            </div>
+                            <div class="row mt-2 pl-3">
+                                <div class="col-4">
+                                    <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Specialization</p>
+                                </div>
+                                <div class="col">
+
+                                    @(Html.Kendo().DropDownListFor(x=>x.Specialization)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                           .DataSource(source =>
+                           {
+                               source.Read(read =>
+                               {
+                                   read.Action("GetListOfValue", "CandidateShortlist", new { Type = "LOV_SPECIALIZATION" });
+                               });
+                           })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property" })
+                        )
+                                </div>
+                            </div>
+                            <div class="row mt-2 pl-3">
+                                <div class="col-4">
+                                    <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Duration</p>
+                                </div>
+                                <div class="col ml -2">
+                                    <input type="text" asp-for="Duration" class="text-area-property">
+                                    @*@Html.Kendo().TextBoxFor(m => m.Duration).HtmlAttributes(new { @class = "text-area-property" })*@
+                                </div>
+                            </div>
+                            <div class="row mt-2 pl-3">
+                                <div class="col-4">
+                                    <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Passing Year</p>
+                                </div>
+                                <div class="col ml -2">
+                                    <input type="text" asp-for="PassingYear" class="text-area-property">
+                                </div>
+                            </div>
+                            <div class="row mt-2 pl-3">
+                                <div class="col-4">
+                                    <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Marks (in %)</p>
+                                </div>
+                                <div class="col ml -2">
+                                    <input type="text" asp-for="Marks" class="text-area-property">
+                                    @*@Html.Kendo().TextBoxFor(m => m.Marks).HtmlAttributes(new { @class = "text-area-property" })*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="ml-2">
+                    <div>
+                        <div class="row mt-3 pl-3">
+                            <div class="col">
+                                <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Driving License</p>
+                            </div>
+                            <div class="col">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" asp-for="DL" value="YES">
+                                    <label for="DL"> Yes</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" asp-for="DL" value="NO">
+                                    <label for="DL"> No</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2 pl-3">
+                        <div class="col-4">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Country</p>
+                        </div>
+                        <div class="col ml -2">
+                            @(Html.Kendo().DropDownListFor(x=>x.Country)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetCountryIdNameList", "CandidateProfile");
+                                          });
+                                      })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                           .HtmlAttributes(new { @class="text-box-property"})
+                        )
+                        </div>
+                    </div>
+                    <div class="row mt-2 pl-3">
+                        <div class="col-4">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Type</p>
+                        </div>
+                        <div class="col ml -2">
+                            @(Html.Kendo().DropDownListFor(x=>x.Type)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetListOfValue", "CandidateShortlist", new {Type = "LOV_LICENSETYPE" });
+                                          });
+                                      })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property" })
+                        )
+                        </div>
+                    </div>
+                    <div class="row mt-2 pl-3">
+                        <div class="col-4">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Issue Date</p>
+                        </div>
+                        <div class="col ml -2">
+                            @*<input class="text-box-property" asp-for="IssueDate" type="date">*@
+                            @Html.Kendo().DatePickerFor(m => m.IssueDate).HtmlAttributes(new { @class = "text-box-property" }).Format(CMS.Common.ApplicationConstant.DateAndTime.DefaultDateFormat)
+                        </div>
+                    </div>
+                    <div class="row mt-2 pl-3">
+                        <div class="col-4">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Expiry Date</p>
+                        </div>
+                        <div class="col ml -2">
+                            @*<input class="text-box-property" asp-for="ExpiryDate" type="date">*@
+                            @Html.Kendo().DatePickerFor(m => m.ExpiryDate).HtmlAttributes(new { @class = "text-box-property" }).Format(CMS.Common.ApplicationConstant.DateAndTime.DefaultDateFormat)
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:none;" id="SecondFilter">
+                    <div class="row mt-2 pl-3">
+                        <div class="col-4">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Birth Date</p>
+                        </div>
+                        <div class="col ml -2">
+                            @*<input class="text-box-property" asp-for="ExpiryDate" type="date">*@
+                            @Html.Kendo().DatePickerFor(m => m.BirthDate).HtmlAttributes(new { @class = "text-box-property" })
+                        </div>
+                    </div>
+                    <div class="row mt-2 pl-3">
+                        <div class="col-4">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Passport Number</p>
+                        </div>
+                        <div class="col ml -2">
+                            @Html.Kendo().TextBoxFor(m => m.PassportNumber).HtmlAttributes(new { @class = "text-box-property" })
+                        </div>
+                    </div>
+                    <div class="row mt-2 pl-3">
+                        <div class="col-4">
+                            <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Salary</p>
+                        </div>
+                        <div class="col ml -2">
+                            @Html.Kendo().TextBoxFor(m => m.NetSalary).HtmlAttributes(new { @class = "text-box-property" })
+                        </div>
+                    </div>
+
+                </div>
+                <hr class="ml-2">
+                <div class="ml-3">
+                    <div>
+                        <p class="d-inline-block paragraph-bold" style="font-size: 14px;">Comment</p>
+                    </div>
+                    <textarea class="mt-1 text-box-property" asp-for="Comment" rows="3"></textarea>
+
+
+                    <div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 col-lg-9 pl-2">
+            <div class="">
+                <div class="text-white shadow p-2 header-bar round-6 pl-5 pb-1" style="background-color: #17a2b8">
+
+                    <div class="row">
+                        <div class="col-12 col-md-12 col-lg-6 ">
+                            <div class="row mt-1">
+                                <div class="col-4 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Position for Hiring</label></div>
+                                <div class="col-8">
+                                    <div class="dropdown" id="positiondrp">
+                                        @(Html.Kendo().DropDownListFor(x=>x.JobTitleForHiring)
+                                    .DataTextField("JobName")
+                                    .DataValueField("Id")
+                                    .Events(x=>x.Change("OnJobTitleChange")
+                                    .DataBound("OnDataBound")
+                                    )
+                                     .AutoBind(true)
+                                       .Filter(FilterType.Contains)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+
+                                              read.Action("GetJobIdNameListForSelection", "CandidateShortlist", new { @area = "Recruitment" });
+                                              //.Data("FilterJob");
+                                          });//.ServerFiltering(true);
+                                      })
+                           //.Value(Model.JobTitleForHiring)
+                           // .CascadeFrom("OrganizationId")
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property" })
+                        )
+                                        <input type="hidden" asp-for="JobId" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row mt-1">
+                                <div class="col-6 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Required HC</label></div>
+                                <div class="col-6 d-flex align-items-center align-items-xl-center" style="margin-left:-15px;">
+                                    <span>: </span><p class="ml-1" id="headCount"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="row">
+                            <div class="col-12 col-md-12 col-lg-6 ">
+                                <div class="row mt-1">
+                                    <div class="col-12 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Organization :</label></div>
+                                    <div class="col">
+                                        <div class="dropdown" id="organizationdrp">
+                                            @(Html.Kendo().DropDownListFor(model => model.OrganizationId)
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+                                                            read.Action("GetOrganizationIdNameByRecruitmentList", "Master", new {/* @type= "Organization",*/ @area = "Recruitment" }).Data("FilterOrg");
+                                                        });
+                                                    })
+                                                    .OptionLabel("Select")
+                                                    .DataTextField("Name")
+                                                    .DataValueField("Id")
+                                                    .Events(x=>x.Change("OnOrgChange"))
+                                                    //.Filter(FilterType.Contains)
+                                                    .HtmlAttributes(new { @class = "text-box-property" }))
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+
+                            </div>
+                        </div>*@
+                    <div class="row">
+                        <div class="col-12 col-md-12 col-lg-6 ">
+                            <div class="row mt-1">
+                                <div class="col-4 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Batch</label></div>
+                                <div class="col-8">
+                                    <div class="dropdown" id="batchdrp">
+                                        @(Html.Kendo().DropDownListFor(x=>x.BatchId)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                      .Events(x=>x.Change("OnBatchChange").DataBound("OnDataBoundBatch"))
+                                       .Filter(FilterType.Contains)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetBatchIdNameList", "CandidateShortlist").Data("Filterddl");
+                                          });
+                                      })
+                           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .HtmlAttributes(new { @class = "text-box-property" ,@style="width:90%"})
+                        )
+                                        <i class="fas fa-plus" id="createbatch" onclick="OnCreateBatch();"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row mt-1">
+                                <div class="col-6 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Manpower Type</label></div>
+                                <div class="col-6 d-flex align-items-center align-items-xl-center" style="margin-left:-15px;">
+                                    <span>: </span><p class="ml-1" id="ManpowerCount"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-12 col-lg-6">
+                            <div class="row mt-1">
+                                <div class="col-12 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Data Source</label></div>
+                                <div class="col">
+                                    <div class="form-check" id="appsearch"><input class="form-check-input" type="checkbox" asp-for="JobApplicationSearch" onchange="OnCheckboxChange(event)" checked><label class="form-check-label" for="formCheck-6">Job Application<br></label></div>
+                                    @if (Model.ApplicationStatusId == null)
+                                    {
+                                        <div class="form-check" id="candsearch"><input class="form-check-input" type="checkbox" asp-for="CandidateProfileSearch" onchange="OnCheckboxChange(event)" checked><label class="form-check-label" data-toggle="tooltip" data-bs-tooltip="" for="formCheck-6" title="Candidate with job application will not be included here">Candidates Without Job Application(Migrated Data) <br></label></div>
+                                    }
+                                </div>
+                            </div>
+
+                            @*<div class="row mt-1">
+
+            </div>*@
+                        </div>
+                        @if (Model.ApplicationStatusId == null)
+                        {
+                            <div class="col-md-12 col-lg-12">
+                                <div class="row mt-1">
+                                    <div class="row col-sm-6">
+                                        <div class="col-sm-4"><label class="col-form-label d-inline-block paragraph-bold">Stage</label></div>
+                                        <div class="col-sm-8" id="stagedrp">
+                                            @(Html.Kendo().DropDownList()
+                         .Name("StageId")
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                          .Events(x=>x.Change("OnStageChange"))
+                           .Filter(FilterType.Contains)
+                          .DataSource(source =>
+                          {
+                              source.Read(read =>
+                              {
+                                  read.Action("GetStageIdNameList", "CandidateShortlist");
+                              });
+                          })
+               .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                .HtmlAttributes(new { @class = "text-box-property", @style = "margin-left:10px" })
+            )
+
+
+                                        </div>
+                                    </div>
+
+                                    <div id="StatusCheck" class="row col-sm-6" style="margin-left:15px;">
+                                        <div class="col-sm-4"><label class="col-form-label d-inline-block paragraph-bold">Status</label></div>
+                                        <div class="col-sm-8" id="statusdrp">
+                                            @(Html.Kendo().DropDownList()
+                         .Name("ApplicationStatusId")
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .AutoBind(false)
+                          .Events(x=>x.Change("OnApplicationStatusChange"))
+                           .Filter(FilterType.Contains)
+                          .DataSource(source =>
+                          {
+                              source.Read(read =>
+                              {
+                                  read.Action("GetApplicationStatusIdNameList", "CandidateShortlist").Data("FilterStatus");
+                              });
+                          })
+               .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                .HtmlAttributes(new { @class = "text-box-property" /*,@style="width:90%"*/})
+            )
+
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+
+                        <div class="col">
+                            <div class="row mt-1" style="display:none">
+                                @*<div class="col-12 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Show Candidate List :</label></div>
+                <div class="col">
+                    <div class="form-check"><input class="form-check-input" type="checkbox" asp-for="AllCandidateApplication" onchange="OnCheckboxChange(event)"><label class="form-check-label" for="formCheck-8">Show All&nbsp;unreviewed candidate application<br></label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" asp-for="ShortlistedCandidateApplication" onchange="OnCheckboxChange(event)"><label class="form-check-label" for="formCheck-24">Show Shortlisted&nbsp;candidate application<br></label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" asp-for="RejectedCandidateSearch" onchange="OnCheckboxChange(event)"><label class="form-check-label" for="formCheck-23">Show Rejected candidate application<br></label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" asp-for="WaitlistedCandidateSearch" onchange="OnCheckboxChange(event)"><label class="form-check-label" for="formCheck-25">Show Waitlisted candidate application<br></label></div>
+                </div>*@
+                            </div>
+                        </div>
+                    </div>
+
+                    @*<div class="col-md-12 col-lg-12">
+                            <div class="row mt-1">
+                                <div class="row col-sm-6">
+                                    <div class="col-sm-3"><label class="col-form-label d-inline-block paragraph-bold">Stage</label></div>
+                                    <div class="col-sm-9">
+                                        @(Html.Kendo().DropDownList()
+                                         .Name("StageId")
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                          .Events(x=>x.Change("OnStageChange"))
+                                           .Filter(FilterType.Contains)
+                                          .DataSource(source =>
+                                          {
+                                              source.Read(read =>
+                                              {
+                                                  read.Action("GetStageIdNameList", "CandidateShortlist");
+                                              });
+                                          })
+                               .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                                .HtmlAttributes(new { @class = "text-box-property" /*,@style="width:90%"*/})
+                            )
+
+
+                                    </div>
+                                </div>
+
+                                <div id="StatusCheck" class="row col-sm-6">
+                                    <div class="col-sm-3"><label class="col-form-label d-inline-block paragraph-bold">Status</label></div>
+                                    <div class="col-sm-9">
+                                        @(Html.Kendo().DropDownList()
+                                         .Name("ApplicationStatusId")
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        .AutoBind(false)
+                                          .Events(x=>x.Change("OnApplicationStatusChange"))
+                                           .Filter(FilterType.Contains)
+                                          .DataSource(source =>
+                                          {
+                                              source.Read(read =>
+                                              {
+                                                  read.Action("GetApplicationStatusIdNameList", "CandidateShortlist").Data("FilterStatus");
+                                              });
+                                          })
+                               .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                                .HtmlAttributes(new { @class = "text-box-property" /*,@style="width:90%"*/})
+                            )
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>*@
+
+                </div>
+                <div class="text-body mt-4 mb-4">
+                    <div role="tablist" id="accordion-2">
+                        <div class="card" style="border: none;">
+                            <div class="card-header accordion-item-heading" role="tab">
+                                <h5 class="mb-0" style="font-size: 14px;">
+                                    <span class="custom-margin-left-10px" style="color:black;display:initial;">Batch Summary</span>
+                                    <span class="custom-margin-left-10px" style="color:black;position:absolute;margin-left:25px;display:initial;" id="TotalbatchCount"></span>
+                                    <span class="custom-margin-left-10px" style="color:black;float:right;margin-right:12px;display:initial;" id="batchCount"></span>
+                                    <a data-toggle="collapse" aria-expanded="false" aria-controls="accordion-2 .item-1" href="#accordion-2 .item-1" style="font-size: 14px;"><i class="fas fa-caret-down custom-margin-left-10px"></i></a>
+                                </h5>
+
+                            </div>
+                            <div class="collapse item-1" role="tabpanel" data-parent="#accordion-2" style="border: 1px solid #d7d6d6;border-radius: 6px;">
+                                <div class="card-body">
+
+
+                                    @(Html.Kendo().Grid<BatchViewModel>
+    ()
+    .Name("Batchgrid")
+    .ToolBar(toolbar =>
+    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateBatch();'><i class='fa fas fa-plus'></i>&nbsp;Create Batch</button>"))
+
+    .Columns(columns =>
+
+    {
+        columns.Command(command =>
+        {
+            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditBatch").HtmlAttributes(new { @class = "action-icon" });
+            //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteBatch").HtmlAttributes(new { @class = "action-icon" });
+        }).Title("Action").HeaderHtmlAttributes(new { title = "Action" }).Width(100);
+
+        //columns.Bound(c => c.JobId);
+        columns.Bound(c => c.NoOfApplication).HeaderHtmlAttributes(new { title = "No Of Application" }).ClientTemplate("<a style='cursor:pointer;color:blue' onclick='onView(\"#:Id#\",\"#:NoOfApplication#\")'>#:NoOfApplication#</a>").Width(100);
+        columns.Bound(c => c.Name).HeaderHtmlAttributes(new { title = "Name" }).Width(100);
+        columns.Bound(c => c.Organization).HeaderHtmlAttributes(new { title = "Organization" }).Width(100);
+        columns.Bound(c => c.HiringManagerName).HeaderHtmlAttributes(new { title = "Hiring Manager" }).Width(100);
+        columns.Bound(c => c.HeadOfDepartmentName).HeaderHtmlAttributes(new { title = "Head Of Department" }).Width(100);
+        columns.Bound(c => c.BatchStatusName).HeaderHtmlAttributes(new { title = "Batch Status Name" }).Width(100);
+        columns.Bound(c => c.TargetHiringDate).HeaderHtmlAttributes(new { title = "Target Hiring Date" }).Format("{0:dd MMM yyyy}").Width(120);
+        columns.Bound(c => c.TargetBatchCount).HeaderHtmlAttributes(new { title = "Target Batch Count" }).Width(120);
+        columns.Bound(c => c.Id).HeaderHtmlAttributes(new { title = "Send Batch" }).Title("Send Batch").Width(120).ClientTemplate("#if(BatchStatusName=='Draft'){#<button class='btn btn-info' onclick='UpdateBatch(\"#:Id#\",\"#:NoOfApplication#\")'>Send To Hiring Manager</button>#}#");
+        columns.Bound(c => c.Id).Title("Close Batch").HeaderHtmlAttributes(new { title = "Close Batch", id = "closebatchbtn" }).ClientTemplate("#if(BatchStatusName=='Pending with HM'){#<button class='btn btn-info' onclick='UpdateBatchClose(\"#:Id#\")'>Close Batch</button>#}#").Width(280);
+    })
+    .Scrollable(x => x.Enabled(true))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .Resizable(resize => resize.Columns(true))
+                 .Events(e => e.DataBound("OnBatchDataBound"))
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                .Read(read => read.Action("ReadData", "Batch").Data("FilterBatch"))
+                .Model(model => model.Id(p => p.Id))
+                )
+          )
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="batch-1" class="mt-2">
+
+                    <div class="shadow-sm p-1 mt-3 heading-bar-secondary pl-3 pr-3"><span>Candidate List</span></div>
+                    <div class="table-responsive d-block mt-2">
+                        @(Html.Kendo().Grid<ApplicationViewModel>
+    ().Name("kgrdCandInterview")
+    .Columns(columns =>
+    {
+
+
+        //columns.Bound(c => c.CandidateProfileId).ClientTemplate("<div class='btn-group'><button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>#:ApplicationStateName#</button><ul class='dropdown-menu' role='menu'><li><button class='btn btn-info' onclick='UpdateStatus(\"#:CandidateType#\",\"SHORTLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Shortlist</button></li><li'><button class='btn btn-primary' onclick='UpdateStatus(\"#:CandidateType#\",\"WAITLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Waiting</button></li><li onclick='UploadDocs(#=Id#,this)' data-type='Id'><button class='btn btn-danger' onclick='UpdateStatus(\"#:CandidateType#\",\"REJECTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Reject</button></li> #if(CandidateType=='JobApplication'){#<li><button class='btn btn-info' onclick='onAddComment(\"#:ApplicationId#\",\"#:ApplicationState#\")'>Add Comment</button></li>#}# </ul></div>").Width(150).HtmlAttributes(new { style = "text-align:center" }).Locked(true).Lockable(false);
+        if(ViewBag.Pool== "RejectedPool")
+        {
+            columns.Bound(c => c.CandidateProfileId).HeaderHtmlAttributes(new { title = "Actions", id = "actiondrpbutton" }).ClientTemplate("<div class='btn-group'><button type='button'  class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Action</button><ul class='dropdown-menu' role='menu'>" +
+           "<li><button class='btn btn-info' onclick='onReturnCandidatePool(\"#:ApplicationId#\",\"Rereviewed\")'>Return to Candidate Pool</button></li></ul></div>").Width(150).Title("Actions").Locked(true).Lockable(false);
+            //
+        }
+        else
+        {
+            columns.Bound(c => c.CandidateProfileId).HeaderHtmlAttributes(new { title = "Actions", id = "actiondrpbutton" }).ClientTemplate("<div class='btn-group'><button type='button'  class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Action</button><ul class='dropdown-menu' role='menu'>" +
+          "#if(ApplicationStateCode=='UnReviewed' && ApplicationStatusCode=='UnReviewed'){#<li><button class='btn btn-info' onclick='UpdateStatus(\"#:CandidateType#\",\"SHORTLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Shortlist</button></li><li><button class='btn btn-primary' onclick='UpdateStatus(\"#:CandidateType#\",\"WAITLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Waiting</button></li><li onclick='UploadDocs(#=Id#,this)' data-type='Id'><button class='btn btn-danger' onclick='UpdateStatus(\"#:CandidateType#\",\"REJECTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Reject</button></li>#}" +
+          " if(ApplicationStateCode=='ShortListByHr' && ApplicationStatusCode=='SHORTLISTED' && BatchStatusCode=='Draft' ){#<li><button class='btn btn-primary' onclick='UpdateStatus(\"#:CandidateType#\",\"WAITLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Waiting</button></li><li onclick='UploadDocs(#=Id#,this)' data-type='Id'><button class='btn btn-danger' onclick='UpdateStatus(\"#:CandidateType#\",\"REJECTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Reject</button></li>#}if(ApplicationId==''){#<li><button class='btn btn-info' onclick='UpdateStatus(\"#:CandidateType#\",\"SHORTLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Shortlist</button></li><li><button class='btn btn-primary' onclick='UpdateStatus(\"#:CandidateType#\",\"WAITLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Waiting</button></li><li onclick='UploadDocs(#=Id#,this)' data-type='Id'><button class='btn btn-danger' onclick='UpdateStatus(\"#:CandidateType#\",\"REJECTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Reject</button></li>#}if(CandidateType=='JobApplication'){if(ApplicationStateCode=='ShortListByHr'  && ApplicationStatusCode=='WAITLISTED'){#<li><button class='btn btn-info' onclick='UpdateStatus(\"#:CandidateType#\",\"SHORTLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Shortlist</button></li><li onclick='UploadDocs(#=Id#,this)' data-type='Id'><button class='btn btn-danger' onclick='UpdateStatus(\"#:CandidateType#\",\"REJECTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Reject</button></li>#}" +
+          "if(ApplicationStateCode=='InterviewsCompleted'  && ApplicationStatusCode=='WAITLISTED'){#<li><button class='btn btn-info' onclick='UpdateStatus(\"#:CandidateType#\",\"SHORTLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Shortlist</button></li>#}" +
+          "if(ApplicationStatusCode=='' || ApplicationStatusCode==null){#<li><button class='btn btn-info' onclick='UpdateStatus(\"#:CandidateType#\",\"SHORTLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Shortlist</button></li><li><button class='btn btn-primary' onclick='UpdateStatus(\"#:CandidateType#\",\"WAITLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Waiting</button></li><li onclick='UploadDocs(#=Id#,this)' data-type='Id'><button class='btn btn-danger' onclick='UpdateStatus(\"#:CandidateType#\",\"REJECTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Reject</button></li>#}" +
+          "if(ApplicationStateCode=='Rereviewed'){#<li><button class='btn btn-info' onclick='UpdateStatus(\"#:CandidateType#\",\"SHORTLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Shortlist</button></li><li><button class='btn btn-primary' onclick='UpdateStatus(\"#:CandidateType#\",\"WAITLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Waiting</button></li><li onclick='UploadDocs(#=Id#,this)' data-type='Id'><button class='btn btn-danger' onclick='UpdateStatus(\"#:CandidateType#\",\"REJECTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\")'>Reject</button></li>#}#<li><button class='btn btn-info' onclick='onAddComment(\"#:ApplicationId#\",\"#:ApplicationState#\")'>Add Comment</button></li>#}#</ul>" +
+          "</div>").Width(150).Title("Actions").Locked(true).Lockable(false);
+        }
+        columns.Bound(c => c.ApplicationStatusCode).Title("Application Status").HeaderHtmlAttributes(new { title = "Application Status" }).ClientTemplate("#if(ApplicationStatusCode!=null && ApplicationStatusCode!=''){# #:ApplicationStatusCode# #}else{# UN REVIEWED #}#").Width(120).Locked(true).Lockable(false);
+        columns.Bound(c => c.ApplicationStateName).Title("Application State").HeaderHtmlAttributes(new { title = "Application State" }).Width(120).Locked(true).Lockable(false);
+        columns.Bound(c => c.CandidateProfileId).HeaderHtmlAttributes(new { title = "View", id="viewprofile" }).ClientTemplate("<a href='javascript:OnApplication(\"#=CandidateProfileId#\",\"#=ApplicationId#\");'><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("View").Width(100).Locked(true).Lockable(false);
+        columns.Bound(c => c.CandidateProfileId).HeaderHtmlAttributes(new { title = "Document", id = "viewdocument" }).ClientTemplate("<a href='javascript:OnDocument(\"#=CandidateProfileId#\",\"#=ApplicationId#\");'><i class='far fa-address-card btn-link'></i>&nbsp;Document</a>").Title("Document").Width(100).Locked(true).Lockable(false);
+
+
+        columns.Bound(p => p.FirstName).Title("First Name").HeaderHtmlAttributes(new { title = "First Name" }).Width(150).Locked(true).Lockable(false);
+        columns.Bound(p => p.MiddleName).Title("Middle Name").HeaderHtmlAttributes(new { title = "Middle Name" }).Width(150);
+        columns.Bound(p => p.BatchName).Title("BatchStatusCode").HeaderHtmlAttributes(new { title = "Batch Status Code" }).Width(150);
+        columns.Bound(p => p.LastName).Title("Last Name").HeaderHtmlAttributes(new { title = "Last Name" }).Width(150);
+        columns.Bound(p => p.Email).HeaderHtmlAttributes(new { title = "Email" }).Width(150);
+        columns.Bound(p => p.TotalWorkExperience).HeaderHtmlAttributes(new { title = "Total Work Experience" }).Width(200);
+        columns.Bound(p => p.SourceFrom).HeaderHtmlAttributes(new { title = "Source From" }).Width(200);
+        //columns.Bound(p => p.TotalOtherExperience).Width(200);
+        //columns.Bound(p => p.TotalIndianExperience).Width(200);
+        columns.Bound(p => p.ContactPhoneHome).Title("Mobile").HeaderHtmlAttributes(new { title = "Mobile" }).Width(150);
+        columns.Bound(p => p.ContactPhoneLocal).HeaderHtmlAttributes(new { title = "Contact Phone Local" }).Width(200);
+        columns.Bound(p => p.Score).HeaderHtmlAttributes(new { title = "Score" }).Width(150);
+        columns.Bound(p => p.Gender).HeaderHtmlAttributes(new { title = "Gender" }).Width(150);
+        columns.Bound(p => p.BirthDate).HeaderHtmlAttributes(new { title = "Birth Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+        columns.Bound(p => p.Age).HeaderHtmlAttributes(new { title = "Age" }).Width(150);
+        columns.Bound(p => p.BirthPlace).HeaderHtmlAttributes(new { title = "Birth Place" }).Width(150);
+        columns.Bound(p => p.Nationality).HeaderHtmlAttributes(new { title = "Nationality" }).Width(200);
+        columns.Bound(p => p.BloodGroup).HeaderHtmlAttributes(new { title = "Blood Group" }).Width(200);
+        columns.Bound(p => p.MaritalStatus).HeaderHtmlAttributes(new { title = "Marital Status" }).Width(180);
+        columns.Bound(p => p.PassportNumber).HeaderHtmlAttributes(new { title = "Passport Number" }).Width(180);
+        columns.Bound(p => p.PassportIssueCountry).HeaderHtmlAttributes(new { title = "Passport Issue Country" }).Width(250);
+        columns.Bound(p => p.PassportExpiryDate).HeaderHtmlAttributes(new { title = "Passport Expiry Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+        columns.Bound(p => p.QatarId).HeaderHtmlAttributes(new { title = "Qatar Id" }).Width(150);
+        columns.Bound(p => p.CurrentAddressHouse).HeaderHtmlAttributes(new { title = "Current Address House" }).Width(250);
+        columns.Bound(p => p.CurrentAddressStreet).HeaderHtmlAttributes(new { title = "Current Address Street" }).Width(250);
+        columns.Bound(p => p.CurrentAddressCity).HeaderHtmlAttributes(new { title = "Current Address City" }).Width(250);
+        columns.Bound(p => p.CurrentAddressState).HeaderHtmlAttributes(new { title = "Current Address State" }).Width(250);
+        columns.Bound(p => p.CurrentAddressCountryName).HeaderHtmlAttributes(new { title = "Current Address Country Name" }).Width(200);
+        columns.Bound(p => p.PermanentAddressHouse).HeaderHtmlAttributes(new { title = "Permanent Address House" }).Width(200);
+        columns.Bound(p => p.PermanentAddressStreet).HeaderHtmlAttributes(new { title = "Permanent Address Street" }).Width(200);
+        columns.Bound(p => p.PermanentAddressCity).HeaderHtmlAttributes(new { title = "Permanent Address City" }).Width(200);
+        columns.Bound(p => p.PermanentAddressState).HeaderHtmlAttributes(new { title = "Permanent Address State" }).Width(200);
+        columns.Bound(p => p.PermanentAddressCountryName).HeaderHtmlAttributes(new { title = "Permanent Address Country Name" }).Width(200);
+        //columns.Bound(p => p.CurrentEmployer).Width(200);
+        //columns.Bound(p => p.CurrentEmploymentLocation).Width(200);
+        //columns.Bound(p => p.CurrentEmploymentPosition).Width(200);
+        //columns.Bound(p => p.CurrentEmploymentStartDate).Width(200);
+        //columns.Bound(p => p.CurrentEmploymentEndDate).Width(200);
+        //columns.Bound(p => p.CurrentEmploymentResponsibilities).Width(200);
+        columns.Bound(p => p.NetSalaryCurrency).HeaderHtmlAttributes(new { title = "Net Salary Currency" }).Width(150);
+        columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary" }).Width(150);
+        //columns.Bound(p => p.CurrentSalary).Width(150);
+        //columns.Bound(p => p.SalaryAfterIncomeTax).Width(150);
+        columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(150);
+        //columns.Bound(p => p.ExperienceByCountryName).Width(150);
+        //columns.Bound(p => p.YearsOfCountryExperience).Width(150);
+        //columns.Bound(p => p.ExperienceByJobName).Width(150);
+        //columns.Bound(p => p.YearsOfJobExperience).Width(150);
+        //columns.Bound(p => p.NatureOfWork).Width(150);
+        //columns.Bound(p => p.WorkExperience).Width(150);
+        //columns.Bound(p => p.Sector).Width(150);
+        //columns.Bound(p => p.Industry).Width(150);
+        // columns.Bound(p => p.Category).Width(150);
+        // columns.Bound(p => p.ExperienceBySectorOrCategory).Width(150);
+        //columns.Bound(p => p.YearsOfExperienceBySectorOrCategory).Width(150);
+        //columns.Bound(p => p.ComputerProficiencyProgram).Width(150);
+        //columns.Bound(p => p.ComputerProficiencyLevel).Width(150);
+        //columns.Bound(p => p.EductaionQualification).Width(150);
+        //columns.Bound(p => p.EductaionSpecialization).Width(150);
+        //columns.Bound(p => p.EductaionType).Width(150);
+        //columns.Bound(p => p.EductaionInstiute).Width(150);
+        //columns.Bound(p => p.EducationCountry).Width(150);
+        //columns.Bound(p => p.EductaionDuartion).Width(150);
+        //columns.Bound(p => p.EductaionPassingYears).Width(150);
+        //columns.Bound(p => p.EductaionMarks).Width(150);
+        //columns.Bound(p => p.DLCountry).Width(150);
+        //columns.Bound(p => p.DLType).Width(150);
+        //columns.Bound(p => p.DLIssueDate).Width(150);
+        //columns.Bound(p => p.DLValidUpto).Width(150);
+        //columns.Bound(p => p.ReferenceName).Width(150);
+        //columns.Bound(p => p.ReferencePosition).Width(150);
+        //columns.Bound(p => p.ReferenceCompany).Width(150);
+        //columns.Bound(p => p.ReferencePhone).Width(150);
+        //columns.Bound(p => p.ReferenceEmail).Width(150);
+    })
+    //.ToolBar(toolbar =>
+    //{
+    //    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateMenuGroup();'><i class='fa fas fa-plus'></i>&nbsp;Create Menu Group</button>");
+    //})
+    .Events(e => e.DataBound("OnGridDataBound"))
+
+    .Scrollable().Height(700)
+    .Sortable()
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+     .Resizable(resize => resize.Columns(true))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(false)
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("ReadShortlistCandidatesData", "CandidateShortlist").Data("FilterGrid"))
+    .Model(model => model.Id(p => p.Id))
+    )
+    )
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+

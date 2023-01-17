@@ -1,0 +1,1354 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model DirectoryContent
+@{
+    ViewData["Title"] = "File Manager";
+    Layout = null;
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms1.cshtml";
+}
+
+
+<style>
+    /*root icon*/
+    .e-fe-root {
+        background-image: url('../../images/profile.jpg');
+        background-repeat: no-repeat;
+        background-size: 20px 20px;
+    }
+
+    .e-fe-document {
+        /*set your background image*/
+        background-image: url('../../images/document1.jpg');
+        background-repeat: no-repeat;
+        background-size: 20px 20px;
+    }
+
+    .e-fe-workspace {
+        /*set your background image*/
+        background-image: url('../../images/folder-blue.png');
+        background-repeat: no-repeat;
+        background-size: 20px 20px;
+    }
+
+    .e-fe-folder-yellow {
+        /*set your background image*/
+        background-image: url('../../images/folder-yellow.png');
+        background-repeat: no-repeat;
+        /*background-size: 20px 20px;*/
+        background-size: cover;
+    }
+    /*preview icon*/
+    .e-filemanager .e-fe-preview::before,
+    .e-fe-popup .e-fe-preview::before {
+        content: '\e345' !important;
+    }
+    /*archive icon*/
+    .e-filemanager .e-fe-archive::before,
+    .e-fe-popup .e-fe-archive::before {
+        content: '\ec1c' !important;
+    }
+    /*workspace icon*/
+    .e-filemanager .e-fe-workspaceicon::before,
+    .e-fe-popup .e-fe-workspaceicon::before {
+        content: '\e60b' !important;
+        color: #4fabf5;
+    }
+    /*edit workspace icon*/
+    .e-filemanager .e-fe-editworkspaceicon::before,
+    .e-fe-popup .e-fe-editworkspaceicon::before {
+        content: '\e65f' !important;
+        color: #4fabf5;
+    }
+    /*workspace icon Toolbar*/
+    .e-filemanager .e-fe-workspaceicontoolbar::before,
+    .e-fe-popup .e-fe-workspaceicontoolbar::before {
+        content: '\e60b' !important;
+        color: #4fabf5;
+        font-size: 20px;
+    }
+    /*workspace list icon*/
+    .e-filemanager .e-fe-workspacelisticon::before,
+    .e-fe-popup .e-fe-workspacelisticon::before {
+        content: '\e60b' !important;
+        color: #4fabf5;
+        font-size: 18px;
+    }
+    /*workspace large list icon*/
+    .e-filemanager .e-fe-large-workspacelisticon::before,
+    .e-fe-popup .e-fe-large-workspacelisticon::before {
+        content: '\e60b' !important;
+        color: #4fabf5;
+        font-size: 40px;
+    }
+    /*folder icon*/
+    .e-filemanager .e-fe-foldericon::before,
+    .e-fe-popup .e-fe-foldericon::before {
+        content: '\e60b' !important;
+        /*color: #ffd800;*/
+    }
+    /*Upload folder icon*/
+    .e-filemanager .e-fe-uploadfoldericon::before,
+    .e-fe-popup .e-fe-uploadfoldericon::before {
+        content: '\e60f' !important;
+        /*color: #ffd800;*/
+    }
+    /*Upload files icon*/
+    .e-filemanager .e-fe-uploadfilesicon::before,
+    .e-fe-popup .e-fe-uploadfilesicon::before {
+        content: '\e667' !important;
+        /*color: #ffd800;*/
+    }
+    /*edit folder icon*/
+    .e-filemanager .e-fe-editfoldericon::before,
+    .e-fe-popup .e-fe-editfoldericon::before {
+        content: '\e65f' !important;
+        /*color: #ffd800;*/
+    }
+
+    /*view permission*/
+    .e-filemanager .e-fe-viewpermission::before,
+    .e-fe-popup .e-fe-viewpermission::before {
+        content: '\e714' !important;
+        /*color: #ffd800;*/
+    }
+    /*folder icon Toolbar*/
+    .e-filemanager .e-fe-foldertoolbar::before,
+    .e-fe-popup .e-fe-foldertoolbar::before {
+        content: '\e60b' !important;
+        color: #ffd800;
+        font-size: 20px;
+    }
+    /*folder list icon*/
+    .e-filemanager .e-fe-folderlisticon::before,
+    .e-fe-popup .e-fe-folderlisticon::before {
+        content: '\e60b' !important;
+        color: #ffd800;
+        font-size: 18px;
+    }
+    /*folder large list icon*/
+    .e-filemanager .e-fe-large-folderlisticon::before,
+    .e-fe-popup .e-fe-large-folderlisticon::before {
+        content: '\e60b' !important;
+        color: #ffd800;
+        font-size: 40px;
+    }
+    /*create document icon*/
+    .e-filemanager .e-fe-createdocument::before,
+    .e-fe-popup .e-fe-createdocument::before {
+        content: '\e712';
+    }
+    /*permission icon*/
+    .e-filemanager .e-fe-permission::before,
+    .e-fe-popup .e-fe-permission::before {
+        content: '\e197';
+    }
+    /*docuemnt large icon*/
+    .e-filemanager .e-fe-largedoc1::before,
+    .e-fe-popup .e-fe-largedoc1::before {
+        content: '\e30d' !important;
+        color: #106fe4;
+        font-size: 40px;
+        background: white;
+    }
+   
+    /*docuemnt icon*/
+    .e-filemanager .e-fe-doc1::before,
+    .e-fe-popup .e-fe-doc1::before {
+        content: '\e30d' !important;
+        color: #106fe4;
+        font-size: 18px;
+    }
+    /*document icon Toolbar*/
+    .e-filemanager .e-fe-doctoolbar::before,
+    .e-fe-popup .e-fe-doctoolbar::before {
+        content: '\e30d' !important;
+        color: #106fe4;
+        font-size: 20px;
+    }
+
+   /* #filemanager_ddl_details {
+        display: none;
+    }*/
+
+    .nav-count {
+        background: #ffa828;
+        border-radius: 30%;
+        padding: 1px 5px;
+        color: white;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-top: 8px;
+    }
+
+    #filemanager {
+        height: 65vh !important;
+    }
+
+    .e-empty-inner-content {
+        display: none;
+    }
+    #filemanager .e-headertext{
+        font-size:11px !important;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        var div = document.getElementById('filemanager_contextmenu');
+        if (div != null || div != undefined) {
+            div.remove();
+        }
+        new ejs.filemanager.FileManager({
+            "ajaxSettings": {
+                "url": "/Dms/Document/FileOperations"
+            },
+            "path":"@Model.path",
+            "allowDragAndDrop": true,
+            "contextMenuSettings": {
+                "folder": [
+                    "CreateWorkspace",
+                    "|",
+                    "EditWorkspace",
+                    "|",
+                    "CreateFolder",
+                    "|",
+                    "UploadFolder",
+                    "|",
+                    "UploadFiles",
+                    "|",
+                    "EditFolder",
+                    "|",
+                    "CreateDocument",
+                    "|",
+                    "EditDocument",
+                    "|",
+                    "ViewWorkflow",
+                    "|",
+                    "RaiseApprovalRequest",
+                    "|",
+                    "ViewApprovalRequest",
+                    "|",
+                    "ManagePermission",
+                    "|",
+                    "ViewPermission",
+                    "|",
+                    "Copy",
+                    "|",
+                    "Paste",
+                    "|",
+                    "Cut",
+                    "|",
+                    "Delete",
+                    "|",
+                    "Archive",
+                    "|",
+                    "ViewDetails",
+                    "|",
+                    "Preview",
+                    "|",
+                    "DownloadFile",
+                    "|",
+                    "Re-RaiseApprovalRequest"
+                ],
+                "layout": [
+                    "Refresh",
+                    "|",
+                    "CreateDocument"
+                ]
+            },
+            "detailsViewSettings": {
+                "columns": [
+                    {
+                        "field": "name",
+                        "headerText": "Name",
+                        "headerTextAlign": "Left",
+                        "Title": "name",
+                        "minWidth": "70",
+                        "width": "80"
+                    },
+                    {
+                        "field": "NoteNo",
+                        "headerText": "Note No",
+                        "headerTextAlign": "Left",
+                        "Title": "NoteNo",
+                        "minWidth": "60",
+                        "width": "60"
+                    },
+                    {
+                        "field": "CreatedBy",
+                        "headerText": "Created By",
+                        "headerTextAlign": "Left",
+                        "Title": "CreatedBy",
+                        "minWidth": "50",
+                        "width": "50"
+                    },
+                    {
+                        "field": "dateCreated",
+                        "headerText": "Created Date",
+                        "headerTextAlign": "Left",
+                        "minWidth": "50",
+                        "width": "60"
+                    },
+                    {
+                       "field": "dateModified",
+                        "headerText": "Last Modified Date",
+                        "headerTextAlign": "Left",
+                        "minWidth": "50",
+                        "width": "60"
+                    },
+                    {
+                        "field": "WorkflowServiceStatusName",
+                        "headerText": "Workflow Status",
+                        "headerTextAlign": "Left",
+                        "minWidth": "50",
+                        "width": "50"
+                    }
+                ]
+            },
+            "toolbarSettings": {
+                "items": [
+                    //"CreateFolder",
+                    //"CreateWorkspace",
+                    //"CreateDocument",
+                    "Copy",
+                    "Paste",
+                    "Cut",
+                    "Delete",
+                    "Archive",
+                    "Refresh",
+                    "View",
+                    "Details"
+                ]
+            },
+            "view": "Details",
+            "beforeSend": beforeSend,
+            "failure": onFailure,
+            "fileLoad": fileLoad,
+            "fileOpen": onFileOpen,
+            "fileSelect": onFileSelect,
+            "fileSelection": onFileSelection,
+            "menuClick": menuClick,
+            "menuOpen": menuOpen,
+            "success": onSuccess,
+            "toolbarClick": toolbarClick,
+            "toolbarCreate": toolbarCreate
+        }).appendTo("#filemanager"); 
+ 
+
+    });
+</script>
+@*@{
+    
+    string[] folder = new string[] { "CreateWorkspace", "|", "EditWorkspace", "|", "CreateFolder", "|", "UploadFolder", "|", "UploadFiles", "|", "EditFolder", "|", "CreateDocument", "|", "EditDocument", "|", "ViewWorkflow", "|", "RaiseApprovalRequest", "|", "ViewApprovalRequest", "|", "ManagePermission", "|", "ViewPermission", "|", "Copy", "|", "Paste", "|", "Cut", "|", "Delete", "|", "Archive", "|", "ViewDetails", "|", "Preview", "|", "DownloadFile", "|", "Re-RaiseApprovalRequest" };    
+    string[] layout = new string[] { "Refresh" };
+    string[] items = new string[] { "CreateFolder", "CreateWorkspace", "CreateDocument", "Copy", "Paste", "Cut", "Delete", "Archive", "Refresh", "View", "Details" };
+}*@
+<div class="control-section">
+    <div class="sample-container">
+        <!-- Declare filemanager element -->
+        <div id="filemanager"></div>
+        @*@Html.EJS().FileManager("filemanager").AjaxSettings(new Syncfusion.EJ2.FileManager.FileManagerAjaxSettings
+   {
+       Url = "/Dms/Document/FileOperations",
+       //GetImageUrl = "/Dms/Document/GetImage",
+       //UploadUrl = "/Dms/Document/Upload",
+       //DownloadUrl = "/Dms/Document/Download"
+   }).Path(Model.path).ContextMenuSettings(new Syncfusion.EJ2.FileManager.FileManagerContextMenuSettings()
+   {
+       //File = files,
+       Folder = folder,
+       Layout = layout
+
+   }).ToolbarSettings(new Syncfusion.EJ2.FileManager.FileManagerToolbarSettings()
+   {
+       Items = items
+   }).View(Syncfusion.EJ2.FileManager.ViewType.Details).DetailsViewSettings(new Syncfusion.EJ2.FileManager.FileManagerDetailsViewSettings
+   {
+       Columns = new List<Syncfusion.EJ2.FileManager.FileManagerColumn>
+                {
+                new Syncfusion.EJ2.FileManager.FileManagerColumn()
+                {
+                Field="name", HeaderText = "File Name", MinWidth = "120", Width = "300"
+                },
+                new Syncfusion.EJ2.FileManager.FileManagerColumn()
+                {
+                Field="dateCreated", HeaderText = "Date Created", MinWidth = "50", Width = "150"
+                },
+                new Syncfusion.EJ2.FileManager.FileManagerColumn()
+                {
+                Field="size", HeaderText = "Size", MinWidth = "50", Width = "50"
+                }
+                }
+   }).Success("onSuccess").AllowDragAndDrop().Failure("onFailure").FileOpen("onFileOpen").FileSelection("onFileSelection").FileSelect("onFileSelect").BeforeSend("beforeSend").FileLoad("fileLoad").ToolbarClick("toolbarClick").ToolbarCreate("toolbarCreate").MenuClick("menuClick").MenuOpen("menuOpen").Render()*@
+        <!-- end of filemanager element -->
+        
+    </div>
+
+</div>
+<script>
+    function RefreshFileManager() {
+        var filemanager = document.getElementById("filemanager").ej2_instances[0];
+        filemanager.refresh();
+    }
+    function beforeSend(args) {
+        
+        if (args.action == "create" || args.action == "rename") {
+            //ShowLoader($('#main-content'));
+            ShowLoader($('#filemanager_dialog'));
+        }
+        var filemanager = document.getElementById("filemanager").ej2_instances[0];
+        var data = args.ajaxSettings.data;
+        var json = $.parseJSON(data);
+        if (args.action == "move") {
+            if (json.targetData.TemplateCode == "WORKSPACE_GENERAL" && json.data[0].TemplateCode != "GENERAL_FOLDER") {
+                args.cancel = true;
+                var message = "Can not move document to workspace!!";
+                kendo.alert(message);
+            }
+            if (json.targetData.TemplateCode == "GENERAL_FOLDER" && json.data[0].TemplateCode == "WORKSPACE_GENERAL") {
+                args.cancel = true;
+                var message = "Can not move workspace to folder!!";
+                kendo.alert(message);
+            }
+        }
+        if (json.data.length == 0 || json.data[0].parentId==null) {
+            filemanager.disableToolbarItems(["details"]);
+            //filemanager.disableToolbarItems(["CreateFolder"]);
+            //filemanager.disableToolbarItems(["CreateWorkspace"]);
+            //filemanager.disableToolbarItems(["CreateDocument"]);
+            filemanager.disableToolbarItems(["Archive"]);
+            return true;
+        }
+        //filemanager.enableToolbarItems(["CreateFolder"]);
+        //filemanager.enableToolbarItems(["CreateWorkspace"]);
+        //filemanager.enableToolbarItems(["details"]);
+        //filemanager.enableToolbarItems(["CreateDocument"]);
+        //filemanager.enableToolbarItems(["Archive"]);
+        ////filemanager.enableToolbarItems(["Copy"]);
+        ////filemanager.enableToolbarItems(["Cut"]);
+        ////filemanager.enableToolbarItems(["Delete"]);
+        ////filemanager.enableToolbarItems(["Paste"]);
+        //if (json.data[0].FolderType == 1) {
+        //    filemanager.disableToolbarItems(["Archive"]);
+        //    filemanager.disableToolbarItems(["Copy"]);
+        //    filemanager.disableToolbarItems(["Cut"]);
+        //    filemanager.disableToolbarItems(["Delete"]);
+        //    filemanager.disableToolbarItems(["CreateDocument"]);
+        //    if (json.data[0].CanCreateSubFolder == false) {
+        //        filemanager.disableToolbarItems(["Paste"]);
+        //        filemanager.disableToolbarItems(["CreateFolder"]);
+        //    }
+        //    if (json.data[0].CanCreateWorkspace == false) {
+        //        filemanager.disableToolbarItems(["CreateWorkspace"]);
+        //    }
+
+        //}
+        //if ((json.data[0].FolderType == 1 && json.data[0].CanCreateSubFolder == false) || (json.data[0].FolderType == 2 && json.data[0].CanCreateSubFolder == false)) {
+        //    filemanager.disableToolbarItems(["CreateFolder"]);
+
+        //}
+        //if (json.data[0].FolderType == 3 || json.data[0].FolderType == 4) {
+        //    filemanager.disableToolbarItems(["CreateFolder"]);
+        //    filemanager.disableToolbarItems(["CreateWorkspace"]);
+        //}
+        //if (json.data[0].FolderType == 2) {
+        //    filemanager.disableToolbarItems(["CreateWorkspace"]);
+        //}
+
+
+
+        //// Get the value of Dropdownlist.
+        //var value = "3f6b53c2-92e8-40ae-8ce9-c6fad396c172";
+        //var data = JSON.parse(args.ajaxSettings.data);
+        //// Add custom parameter column
+        //data["FilterId"] = value;
+        //// Add custom parameter in ajax settings
+        //args.ajaxSettings.data = JSON.stringify(data);
+    }
+    function fileLoad(args) {
+        if (args.fileDetails.FolderType == 0) {
+            if (args.element.childElementCount > 0  && args.element.children.length > 1) {
+                args.element.children[1].children[1].className = "e-list-icon e-fe-root";
+            }
+        }
+        else if (args.fileDetails.FolderType == 1) {
+            if (args.element.childElementCount > 0 && args.element.lastElementChild.childElementCount > 0 && args.element.children.length > 1) {
+                args.element.children[1].children[1].className = "e-list-icon e-fe-workspace";
+                var elm = args.element.children[1].lastElementChild;
+                $("<span class='nav-count pull-right'>" + args.fileDetails.Count+"</span>").insertAfter(elm);
+            }
+            if (args.element.childElementCount > 0 && args.element.children.length == 1) {
+                args.element.children[0].children[1].className = "e-list-icon e-icons e-fe-large-workspacelisticon e-fe-folder";
+            }
+            if (args.element.childElementCount > 0 && args.element.childElementCount == 8) {
+                args.element.children[1].children[0].className = "e-fe-icon e-icons e-fe-workspacelisticon";
+            }
+        }
+        else if (args.fileDetails.FolderType == 2) {
+            if (args.element.childElementCount > 0 && args.element.lastElementChild.childElementCount > 0 && args.element.children.length > 1) {
+                args.element.children[1].children[1].className = "e-list-icon e-fe-folder-yellow";
+                var elm = args.element.children[1].lastElementChild;
+                $("<span class='nav-count pull-right'>" + args.fileDetails.Count + "</span>").insertAfter(elm);
+
+            }
+            if (args.element.childElementCount > 0 && args.element.children.length == 1) {
+                args.element.children[0].children[1].className = "e-list-icon e-icons e-fe-large-folderlisticon e-fe-folder";
+            }
+            if (args.element.childElementCount > 0 && args.element.childElementCount == 8) {
+                args.element.children[1].children[0].className = "e-fe-icon e-icons e-fe-folderlisticon";
+            }
+        }
+        else if (args.fileDetails.FolderType == 3) {
+            if (args.element.childElementCount > 0 && args.element.lastElementChild.childElementCount > 0 && args.element.children.length > 1) {
+                if (args.fileDetails.name.search('.pdf') != -1 || args.fileDetails.name.search('.Pdf') != -1 || args.fileDetails.name.search('.PDF') != -1) {
+                    args.element.children[1].children[1].className = "e-list-icon e-fe-pdf";
+                }
+                else if (args.fileDetails.name.search('.doc') != -1 || args.fileDetails.name.search('.Doc') != -1 || args.fileDetails.name.search('.DOC') != -1) {
+                    args.element.children[1].children[1].className = "e-list-icon e-fe-doc";
+                }
+                else if (args.fileDetails.name.search('.xls') != -1 || args.fileDetails.name.search('.Xls') != -1 || args.fileDetails.name.search('.XLS') != -1 || args.fileDetails.name.search('.xlsx') != -1 || args.fileDetails.name.search('.Xlsx') != -1 || args.fileDetails.name.search('.XLSX') != -1) {
+                    args.element.children[1].children[1].className = "e-list-icon e-fe-xlsx";
+                }
+                else if (args.fileDetails.name.search('.pptx') != -1 || args.fileDetails.name.search('.Pptx') != -1 || args.fileDetails.name.search('.PPTX') != -1 || args.fileDetails.name.search('.ppt') != -1 || args.fileDetails.name.search('.Ppt') != -1 || args.fileDetails.name.search('.PPT') != -1) {
+                    args.element.children[1].children[1].className = "e-list-icon e-fe-pptx";
+                }
+                else {
+                    args.element.children[1].children[1].className = "e-list-icon e-fe-image";
+                }
+                //var elm = args.element.children[1].lastElementChild;
+                //$("<span class='nav-count pull-right'>" + args.fileDetails.Count + "</span>").insertAfter(elm);
+            }
+            if (args.element.childElementCount > 0 && args.element.children.length == 1) {
+                if (args.fileDetails.name.search('.pdf') != -1 || args.fileDetails.name.search('.Pdf') != -1 || args.fileDetails.name.search('.PDF') != -1) {
+                    args.element.children[0].children[1].className = "e-list-icon e-fe-pdf";
+                }
+                else if (args.fileDetails.name.search('.doc') != -1 || args.fileDetails.name.search('.Doc') != -1 || args.fileDetails.name.search('.DOC') != -1) {
+                    args.element.children[0].children[1].className = "e-list-icon e-fe-doc";
+                }
+                else if (args.fileDetails.name.search('.xls') != -1 || args.fileDetails.name.search('.Xls') != -1 || args.fileDetails.name.search('.XLS') != -1 || args.fileDetails.name.search('.xlsx') != -1 || args.fileDetails.name.search('.Xlsx') != -1 || args.fileDetails.name.search('.XLSX') != -1) {
+                    args.element.children[0].children[1].className = "e-list-icon e-fe-xlsx";
+                }
+                else if (args.fileDetails.name.search('.pptx') != -1 || args.fileDetails.name.search('.Pptx') != -1 || args.fileDetails.name.search('.PPTX') != -1 || args.fileDetails.name.search('.ppt') != -1 || args.fileDetails.name.search('.Ppt') != -1 || args.fileDetails.name.search('.PPT') != -1) {
+                    args.element.children[0].children[1].className = "e-list-icon e-fe-pptx";
+                }
+                else {
+                    args.element.children[0].children[1].className = "e-list-icon e-fe-image";
+                }
+
+
+            }
+            if (args.element.childElementCount > 0 && args.element.childElementCount == 8) {
+                if (args.fileDetails.name.search('.pdf') != -1 || args.fileDetails.name.search('.Pdf') != -1 || args.fileDetails.name.search('.PDF') != -1) {
+                    args.element.children[1].children[0].className = "e-fe-icon e-fe-pdf";
+                }
+                else if (args.fileDetails.name.search('.doc') != -1 || args.fileDetails.name.search('.Doc') != -1 || args.fileDetails.name.search('.DOC') != -1) {
+                    args.element.children[1].children[0].className = "e-fe-icon e-fe-doc";
+                }
+                else if (args.fileDetails.name.search('.xls') != -1 || args.fileDetails.name.search('.Xls') != -1 || args.fileDetails.name.search('.XLS') != -1 || args.fileDetails.name.search('.xlsx') != -1 || args.fileDetails.name.search('.Xlsx') != -1 || args.fileDetails.name.search('.XLSX') != -1) {
+                    args.element.children[1].children[0].className = "e-fe-icon e-fe-xlsx";
+                }
+                else if (args.fileDetails.name.search('.pptx') != -1 || args.fileDetails.name.search('.Pptx') != -1 || args.fileDetails.name.search('.PPTX') != -1 || args.fileDetails.name.search('.ppt') != -1 || args.fileDetails.name.search('.Ppt') != -1 || args.fileDetails.name.search('.PPT') != -1) {
+                    args.element.children[1].children[0].className = "e-fe-icon e-fe-pptx";
+                }
+                else {
+                    args.element.children[1].children[0].className = "e-fe-icon e-fe-image";
+                }
+
+            }
+        }
+        else if (args.fileDetails.FolderType == 4) {
+            if (args.element.childElementCount > 0 && args.element.lastElementChild.childElementCount > 0 && args.element.children.length > 1) {
+
+                //args.element.children[1].children[0].remove();
+                args.element.children[1].children[1].className = "e-list-icon e-fe-document";
+                //var elm = args.element.children[1].lastElementChild;
+                //$("<span class='nav-count pull-right'>" + args.fileDetails.Count + "</span>").insertAfter(elm);
+            }
+            if (args.element.childElementCount > 0 && args.element.children.length == 1) {
+                args.element.children[0].children[1].className = "e-list-icon e-icons e-fe-largedoc1 e-fe-folder";
+            }
+            if (args.element.childElementCount > 0 && args.element.childElementCount == 8) {
+                args.element.children[1].children[0].className = "e-fe-icon e-icons e-fe-doc1";
+            }
+        }
+
+    }
+    // File Manager's file onSuccess function
+    function onSuccess(args) {
+        if (args.action == "create" || args.action == "rename") {
+            //HideLoader($('#main-content'));
+            HideLoader($('#filemanager_dialog'));
+        }
+        else if (args.action == "delete") {
+            
+            if (args.result.errorsList != null && args.result.errorsList != "" && args.result.errorsList != undefined) {
+
+                kendo.alert(args.result.errorsList);
+            } else {
+                var message = "Deleted Successfully."
+                kendo.alert(message);
+                RefreshFileManager();
+            }
+        }
+        else if (args.action == "move") {
+            if (args.result.errorsList != null && args.result.errorsList != "" && args.result.errorsList != undefined) {
+
+                kendo.alert(args.result.errorsList);
+            } else {
+                kendo.alert("Move Successfully");
+                RefreshFileManager();
+            }
+
+        }
+        else if (args.action == "copy") {
+            if (args.result.errorsList != null && args.result.errorsList != "" && args.result.errorsList != undefined) {
+                kendo.alert(args.result.errorsList);
+            } else
+            {
+                kendo.alert("Copy Successfully");
+                RefreshFileManager();
+            }
+        }
+    }
+
+    // File Manager's file onError function
+    function onFailure(args) {
+        if (args.action == "create" || args.action == "rename") {
+            //HideLoader($('#main-content'));
+            HideLoader($('#filemanager_dialog'));
+        }
+        return true;
+    }
+
+    // Icon added to custom menu item
+    function menuOpen(args) {  
+                
+        //Custom menu icons
+        var filemanager = document.getElementById("filemanager").ej2_instances[0];       
+        for (var i = 0; i < args.items.length; i++) {
+            if (args.items[i].id === this.element.id + '_cm_custom') {
+                args.items[i].iconCss = 'e-icons e-fe-tick';
+            }
+            if (args.items[i].id === this.element.id + '_cm_viewdetails') {
+                args.items[i].iconCss = 'e-icons e-fe-large';
+            }
+            if (args.items[i].id === this.element.id + '_cm_createworkspace') {
+
+                args.items[i].iconCss = 'e-icons e-fe-workspaceicon';
+            }
+            if (args.items[i].id === this.element.id + '_cm_editworkspace') {
+
+                args.items[i].iconCss = 'e-icons e-fe-editworkspaceicon';
+            }
+
+            if (args.items[i].id === this.element.id + '_cm_createfolder') {
+                args.items[i].iconCss = 'e-icons e-fe-foldericon';
+            }
+            if (args.items[i].id === this.element.id + '_cm_uploadfolder') {
+                args.items[i].iconCss = 'e-icons e-fe-uploadfoldericon';
+            }
+            if (args.items[i].id === this.element.id + '_cm_uploadfiles') {
+                args.items[i].iconCss = 'e-icons e-fe-uploadfilesicon';
+            }
+            if (args.items[i].id === this.element.id + '_cm_editfolder') {
+                args.items[i].iconCss = 'e-icons e-fe-editfoldericon';
+            }
+            if (args.items[i].id === this.element.id + '_cm_managepermission') {
+                args.items[i].iconCss = 'e-icons e-fe-permission';
+            }
+            if (args.items[i].id === this.element.id + '_cm_viewpermission') {
+                args.items[i].iconCss = 'e-icons e-fe-viewpermission';
+            }
+            if (args.items[i].id === this.element.id + '_cm_createdocument') {
+                args.items[i].iconCss = 'e-icons e-fe-createdocument';
+            }
+            if (args.items[i].id === this.element.id + '_cm_move') {
+                args.items[i].iconCss = 'e-icons e-fe-cut';
+            }
+            if (args.items[i].id === this.element.id + '_cm_downloadfile') {
+                args.items[i].iconCss = 'e-icons e-fe-download';
+            }
+            if (args.items[i].id === this.element.id + '_cm_preview') {
+                args.items[i].iconCss = 'e-icons e-fe-preview';
+            }
+            if (args.items[i].id === this.element.id + '_cm_archive') {
+                args.items[i].iconCss = 'e-icons e-fe-archive';
+            }
+        }
+        
+        //Custom Menu based on the type
+        if (args.fileDetails[0].FolderType == 0 && args.menuType=="folder") {
+            //args.items.splice(1, 42);
+            args.items.splice(1, 43);
+            if (!args.fileDetails[0].CanCreateWorkspace) {
+                filemanager.disableMenuItems("CreateWorkspace");
+            }
+        }
+        else if (args.fileDetails[0].FolderType == 0 && args.menuType == "layout") {           
+            args.items.splice(1, 2);            
+        }
+        else if (args.fileDetails[0].FolderType == 1 && args.menuType== "folder") {
+
+            args.items.splice(8, 14);
+            args.items.splice(12, 10);
+            args.items.splice(14, 4);
+
+            args.items.splice(14, 1);
+            //args.items.splice(14, 4);
+
+            filemanager.enableToolbarItems(["CreateFolder"]);
+            filemanager.enableToolbarItems(["CreateWorkspace"]);
+            if (!args.fileDetails[0].CanCreateSubFolder) {
+                filemanager.disableMenuItems("CreateFolder");
+                filemanager.disableMenuItems("UploadFolder");
+                //filemanager.disableToolbarItems(["CreateFolder"]);
+            }
+
+            if (!args.fileDetails[0].CanManagePermission) {
+                filemanager.disableMenuItems("ManagePermission");
+            }
+            if (!args.fileDetails[0].CanSeeDetail) {
+                filemanager.disableMenuItems("ViewDetails");
+            }
+            if (!args.fileDetails[0].CanCreateWorkspace) {
+                filemanager.disableMenuItems("CreateWorkspace");
+                filemanager.disableMenuItems("EditWorkspace");
+                //filemanager.disableToolbarItems(["CreateWorkspace"]);
+                filemanager.disableMenuItems("ManagePermission");
+                //filemanager.disableMenuItems("ViewPermission");
+            }
+        }
+        else if (args.fileDetails[0].FolderType == 1 && args.menuType == "layout") {            
+            args.items.splice(1, 2);
+        }
+        else if (args.fileDetails[0].FolderType == 2 && args.menuType== "folder") {
+
+            args.items.splice(0, 4);
+            args.items.splice(10, 8);
+            args.items.splice(26, 4);
+
+            args.items.splice(26, 1);
+            //filemanager.disableToolbarItems(["CreateFolder"]);
+            //filemanager.disableToolbarItems(["CreateWorkspace"]);
+            if (!args.fileDetails[0].CanCreateSubFolder) {
+                filemanager.disableMenuItems("CreateFolder");
+                filemanager.disableMenuItems("UploadFolder");
+            }
+            if (!args.fileDetails[0].CanManagePermission) {
+                filemanager.disableMenuItems("ManagePermission");
+            }
+            if (!args.fileDetails[0].CanDelete) {
+                filemanager.disableMenuItems("Delete");
+            }
+            if (!args.fileDetails[0].CanArchive) {
+                filemanager.disableMenuItems("Archive");
+            }
+            if (!args.fileDetails[0].CanRename) {
+                filemanager.disableMenuItems("EditFolder");
+            }
+            if (!args.fileDetails[0].CanCopy) {
+                filemanager.disableMenuItems("Copy");
+                filemanager.disableMenuItems("Cut");
+            }
+            if (!args.fileDetails[0].CanShare) {
+                filemanager.disableMenuItems("Share");
+            }
+            if (!args.fileDetails[0].CanSeeDetail) {
+                filemanager.disableMenuItems("ViewDetails");
+            }
+            if (!args.fileDetails[0].CanCreateDocument) {
+                filemanager.disableMenuItems("CreateDocument");
+            }
+            if (!(args.fileDetails[0].CanCreateSubFolder && args.fileDetails[0].CanOpen)) {
+                filemanager.disableMenuItems("UploadFiles");
+            }
+        }
+        else if (args.fileDetails[0].FolderType == 2 && args.menuType == "layout") {            
+            if (!args.fileDetails[0].CanCreateDocument) {
+                filemanager.disableMenuItems("CreateDocument");
+            }
+        }
+        else if (args.fileDetails[0].FolderType == 3 && args.menuType== "folder") {
+            args.items.splice(0, 38);
+            args.items.splice(4, 1);
+            //filemanager.disableToolbarItems(["CreateFolder"]);
+            //filemanager.disableToolbarItems(["CreateWorkspace"]);
+            //filemanager.disableToolbarItems(["CreateDocument"]);
+        }
+        else if (args.fileDetails[0].FolderType == 3 && args.menuType == "layout") {
+            args.items.splice(1, 2);
+        }
+        else if (args.fileDetails[0].FolderType == 4 && args.menuType== "folder") {
+            args.items.splice(0, 14);
+            args.items.splice(24, 4);
+            //filemanager.disableToolbarItems(["CreateFolder"]);
+            if (!args.fileDetails[0].CanManagePermission) {
+                filemanager.disableMenuItems("ManagePermission");
+            }
+            //if (!args.fileDetails[0].CanEditDocument) {
+            //    filemanager.disableMenuItems("EditDocument");
+            //}
+            if (args.fileDetails[0].WorkflowServiceId != null || args.fileDetails[0].CanEditDocument==false ) {
+                filemanager.disableMenuItems("EditDocument");
+            }
+
+            if (!args.fileDetails[0].CanDelete) {
+                filemanager.disableMenuItems("Delete");
+            }
+            if (!args.fileDetails[0].CanArchive) {
+                filemanager.disableMenuItems("Archive");
+            }
+            if (!args.fileDetails[0].CanCopy) {
+                filemanager.disableMenuItems("Copy");
+                filemanager.disableMenuItems("Cut");
+            }
+            if (!args.fileDetails[0].CanShare) {
+                filemanager.disableMenuItems("Share");
+            }
+            if (!args.fileDetails[0].CanSeeDetail) {
+                filemanager.disableMenuItems("ViewDetails");
+            }
+            //if (args.fileDetails[0].DocumentApprovalStatusType != "Approve Through DMS") {
+
+                //if (args.fileDetails[0].WorkflowTemplateCode == null) {
+                   // filemanager.disableMenuItems("RaiseApprovalRequest");
+                //}
+            if (args.fileDetails[0].WorkflowServiceStatus != "SERVICE_STATUS_COMPLETE" && args.fileDetails[0].WorkflowServiceStatus != "SERVICE_STATUS_CANCEL" /*&& args.fileDetails[0].WorkflowServiceId != null*/) {
+
+                filemanager.disableMenuItems("Re-RaiseApprovalRequest");
+            }
+            if (args.fileDetails[0].WorkflowServiceStatus == "SERVICE_STATUS_INPROGRESS" || args.fileDetails[0].WorkflowServiceStatus == "SERVICE_STATUS_OVERDUE" ) {
+
+                filemanager.disableMenuItems("Delete");
+                filemanager.disableMenuItems("Archive");
+            }
+            if (args.fileDetails[0].WorkflowTemplateCode != null && args.fileDetails[0].CanEditDocument == true && args.fileDetails[0].StatusName != "NOTE_STATUS_DRAFT" && args.fileDetails[0].DocumentApprovalStatusType == "Approve Through DMS" && args.fileDetails[0].WorkflowServiceId == null) {
+
+
+            }
+            else
+            {
+                filemanager.disableMenuItems("RaiseApprovalRequest");
+            }
+           // }
+
+            if (args.fileDetails[0].WorkflowServiceId == null) {
+                filemanager.disableMenuItems("ViewApprovalRequest");
+
+            }
+            if (args.fileDetails[0].WorkflowTemplateCode == null && args.fileDetails[0].CanEditDocument == false && args.fileDetails[0].DocumentApprovalStatusType != "Approve Through DMS")
+            {
+                filemanager.disableMenuItems("ViewWorkflow");
+            }
+        }
+        else if (args.fileDetails[0].FolderType == 4 && args.menuType == "layout") {
+            args.items.splice(1, 2);
+        }
+
+    }
+
+    // event for custom menu item
+    function menuClick(args) {           
+        var parentId = args.fileDetails.length > 0 ? args.fileDetails[0].id : $(".e-active")[0].dataset.id;
+        var templateCode = args.fileDetails.length > 0 ? args.fileDetails[0].TemplateCode :"";
+        if (args.item.text === 'CreateWorkspace' && args.fileDetails[0].FolderType==0) {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Create", "Workspace", new { @area="Dms"})?dataAction=Create';
+            win.OpenWindow({ Title: '@Html.Raw(Resource["ManageWorkspace"])', Width: 450, Height: 950, Position: 'Right'});
+            return false;
+        }
+        else if (args.item.text === 'CreateWorkspace' && args.fileDetails[0].FolderType==1) {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Create", "Workspace", new { @area="Dms"})?parentId='+parentId+'&dataAction=Create';
+            win.OpenWindow({ Title: '@Html.Raw(Resource["ManageWorkspace"])', Width: 450, Height: 950, Position: 'Right'});
+            return false;
+        }
+        else if (args.item.text === 'EditWorkspace') {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Create", "Workspace", new { @area="Dms"})?workspaceId='+parentId+'&dataAction=Edit';
+            win.OpenWindow({ Title: '@Html.Raw(Resource["ManageWorkspace"])', Width: 450, Height: 950, Position: 'Right'});
+            return false;
+        }
+        else if (args.item.text === 'ViewDetails') {
+            var portalId = $('#GlobalPortalId').val();
+            //var url = '/Cms/Page?lo=Popup&pageType=Note&source=Edit&dataAction=Edit&pageName=GENERAL_NOTE&recordId=' + parentId + '&portalId=' + portalId;
+            var url = '/Cms/Page?lo=Popup&pageType=Note&source=View&dataAction=View&disabledEdit=true&templateCodes=' + templateCode+'&recordId=' + parentId + '&portalId=' + portalId;
+            //var url = '/Cms/Page?lo=Popup&pageType=Note&cbm=OnAfterTaskCreate&source=' + source + '&dataAction=' + action + '&templateCodes=' + code + '&portalId=' + portalId + '&recordId=' + id;
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["Details"])', Width: 1200, Height: 650 });
+            return false;
+        }
+        else if (args.item.text === 'EditDocument') {
+            var portalId = $('#GlobalPortalId').val();
+            //var url = '/Cms/Page?lo=Popup&pageType=Note&source=Versioning&dataAction=Edit&templateCodes=' + templateCode + '&recordId=' + parentId + '&portalId=' + portalId ;
+            var url = '/Cms/Page?lo=Popup&cbm=refreshFileManager&pageType=Note&source=View&dataAction=View&templateCodes=' + templateCode + '&recordId=' + parentId + '&portalId=' + portalId ;
+
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(SharedResource["Edit"])', Width: 1200, Height: 650 });
+            return false;
+        }
+        else if (args.item.text === 'ManagePermission') {
+
+            var url = '/Dms/DocumentPermission/Index?noteId=' + parentId + '&workspaceId=' + args.fileDetails[0].WorkspaceId + '&parentId=' + args.fileDetails[0].parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["ManagePermission"])', Width: 1100, Height: 600 });
+            return false;
+        }
+        else if (args.item.text === 'ViewPermission') {
+
+            var url = '/Dms/DocumentPermission/ViewPermission?noteId=' + parentId + '&workspaceId=' + args.fileDetails[0].WorkspaceId + '&parentId=' + args.fileDetails[0].parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["ViewPermission"])', Width: 1100, Height: 600 });
+            return false;
+        }
+        else if (args.item.text === 'CreateDocument') {            
+            var url = '/Dms/DocumentPermission/DMSTemplate?parentId=' + parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateDocument"])', Width: 1200, Height: 650 });
+            return false;
+        }
+        else if (args.item.text === 'Preview') {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=' + parentId + '&canEdit=' + args.fileDetails[0].CanEditDocument;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["PreviewAttachment"])', Width: 1000, Height: 700 });
+            return false;
+        }
+        else if (args.item.text === 'Archive') {
+            var flag = confirm('@Resource["DoyoureallywanttoArchive?"]');
+            if (flag) {
+                var id = "";
+                for (var i = 0; i < args.fileDetails.length; i++) {
+                    id += args.fileDetails[i].id +",";
+                    if (i == args.fileDetails.length - 1)
+                    {
+                        $.ajax({
+                         url: '@Url.Action("ArchiveMultipleNote", "Document", new { @area="DMS"})?ids=' + id,
+                        type: 'POST',
+                        data: {},
+                        dataType: 'json',
+                         success: function (result) {
+                            if (result.success) {
+                                kendo.alert("@Resource["ArchivedSuccessfully"]");
+                                RefreshFileManager();
+                            }
+                            else {
+                                kendo.alert(result.errors);
+                            }
+                    },
+                    error: function (ert) {
+
+                    }
+                });
+                    }
+
+                }
+
+                return false;
+            }
+        }
+        else if (args.item.text === 'DownloadFile') {
+            url = '/cms/Document/GetFileMongo?fileId=' + parentId;
+            window.open(url, '_blank');
+            return false;
+        }
+        else if (args.item.text === 'UploadFolder') {
+            var url = '/dms/Document/UploadFolder?parentId=' + parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["UploadFolder"])', Width: 500, Height: 500 });
+            return false;
+        }
+        else if (args.item.text === 'UploadFiles') {
+
+            var url = '/dms/Document/UploadFile?parentId=' + parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["UploadFiles"])', Width: 500, Height: 500 });
+            return false;
+        }
+        else if (args.item.text === 'ViewWorkflow') {
+
+            var ServiceId = args.fileDetails[0].WorkflowServiceId;
+            workflowTemplateCode = null;
+            isTemplate = false;
+            if (ServiceId == null) {
+                ServiceId = null;
+                workflowTemplateCode = args.fileDetails[0].WorkflowTemplateCode;
+                isTemplate = true;
+            }
+            if (ServiceId == null && workflowTemplateCode == null) {
+                kendo.alert("Work flow not found");
+                return false;
+            } else {
+                var url = '/Cms/NtsService/ServiceDiagram?id=' + ServiceId + "&templateCode=" + workflowTemplateCode + "&isTemplate=" + isTemplate;
+                var win = GetMainWindow();
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Title: '@Html.Raw(Resource["ViewWorkflow"])', Width: 1200, Height: 600 });
+                return false;
+            }
+        }
+        else if (args.item.text === 'RaiseApprovalRequest') {
+             var portalId = "";
+          if (window.parent == "" || window.parent == undefined) {
+              portalId = $("#GlobalPortalId").val();
+          }
+          else {
+              portalId = window.parent.$("#GlobalPortalId").val();
+            }
+            var templateCode = args.fileDetails[0].WorkflowTemplateCode;
+            var noteId = args.fileDetails[0].id;
+       var udfs = encodeURIComponent( 'documentId='+noteId);
+            var prms = encodeURIComponent( 'referenceId='+noteId);
+
+            var url = '/Cms/Page?lo=Popup&cbm=refreshFileManager&source=Create&dataAction=Create&templateCodes=' + templateCode + '&portalId=' + portalId + '&udfs=' + udfs + '&prms=' + prms;
+            LoadCmsPartialView(url, 'Service', true, 1000, 600, '@Html.Raw(Resource["ApprovalRequest"])');
+            return false;
+        }
+        else if (args.item.text === 'ViewApprovalRequest') {
+             var portalId = $('#GlobalPortalId').val();
+            var serviceId = args.fileDetails[0].WorkflowServiceId;
+            var templateCode = args.fileDetails[0].WorkflowTemplateCode;
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=refreshFileManager&source=View&dataAction=View&templateCodes=' + templateCode +'&portalId=' + portalId + '&recordId=' + serviceId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["ViewApprovalRequest"])', Width: 1200, Height: 600 });
+            return false;
+        }
+        else if (args.item.text === 'Re-RaiseApprovalRequest') {
+             var portalId = $('#GlobalPortalId').val();
+            var url = '/Cms/Page?lo=Popup&pageType=Service&source=Versioning&dataAction=Edit&templateCodes=' + args.fileDetails[0].WorkflowTemplateCode + '&recordId=' + args.fileDetails[0].WorkflowServiceId + '&portalId=' + portalId ;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(SharedResource["Edit"])', Width: 1200, Height: 650 });
+            return false;
+        }
+        else if (args.item.text === 'ViewPermission') {
+
+            return false;
+        }
+        else if (args.item.text === 'Share') {
+
+            return false;
+        }
+          else if (args.item.text === 'CreateFolder') {
+            //alert("abc");
+            var url = '/Dms/Document/ManageFolder?parentId='+ parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateFolder"])', Width: 600, Height: 600 });
+            return false;
+        }
+
+           else if (args.item.text === 'EditFolder') {
+            //alert("abc");
+            var url = '/Dms/Document/ManageFolder?id='+ parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["EditFolder"])', Width: 600, Height: 600 });
+            return false;
+        }
+
+    }
+    // event for custom toolbar item
+    function toolbarClick(args) {
+        var parentId = args.fileDetails.length>0 ? args.fileDetails[0].id :"";
+        if (args.item.text === 'CreateWorkspace') {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Create", "Workspace", new { @area="Dms"})?parentId=' + parentId + '&dataAction=Create';
+            win.OpenWindow({ Title: '@Html.Raw(Resource["ManageWorkspace"])', Width: 450, Height: 950, Position: 'Right' });
+            return false;
+        }
+        else if (args.item.text === 'CreateDocument') {
+            var url = '/Dms/DocumentPermission/DMSTemplate?parentId=' + parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateDocument"])', Width: 1200, Height: 650 });
+            return false;
+        }
+        else if (args.item.text === 'CreateFolder') {
+            //alert("abc");
+            var url = '/Dms/Document/ManageFolder?parentId='+ parentId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateFolder"])', Width: 600, Height: 600 });
+            return false;
+        }
+        else if (args.item.text === 'Details') {
+            if (args.fileDetails.length == 0) {
+                kendo.alert("No Deatils Found !");
+                return false;
+            }
+            else {
+                var parentId = args.fileDetails[0].id;
+                var portalId = $('#GlobalPortalId').val();
+                var url = '/Cms/Page?lo=Popup&source=Edit&dataAction=Edit&pageName=GENERAL_NOTE&recordId=' + parentId + '&portalId=' + portalId;
+                var win = GetMainWindow();
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Title: '@Html.Raw(Resource["Details"])', Width: 1200, Height: 650 });
+                return false;
+            }
+        }
+        else if (args.item.text === 'Archive') {
+            var flag = confirm('Do you really want to Archive ?');
+            if (flag) {
+                var id = "";
+                for (var i = 0; i < args.fileDetails.length; i++) {
+                    id += args.fileDetails[i].id +",";
+                    if (i == args.fileDetails.length - 1)
+                    {
+                        $.ajax({
+                         url: '@Url.Action("ArchiveMultipleNote", "Document", new { @area="DMS"})?ids=' + id,
+                        type: 'POST',
+                        data: {},
+                        dataType: 'json',
+                            success: function (result) {
+                            if (result.success) {
+                                kendo.alert("Archived Successfully.");
+                                RefreshFileManager();
+                            }
+                            else {
+                                kendo.alert("Archived Failed !");
+                            }
+                    },
+                    error: function (ert) {
+
+                    }
+                });
+                    }
+
+                }
+
+                return false;
+            }
+        }
+
+    }
+    // Icon added to custom toolbar item
+    function toolbarCreate(args) {
+        for (var i = 0; i < args.items.length; i++) {
+            if (args.items[i].id === this.element.id + '_tb_createfolder') {
+                args.items[i].prefixIcon = 'e-icons e-fe-foldertoolbar';
+            }
+            if (args.items[i].id === this.element.id + '_tb_createworkspace') {
+                args.items[i].prefixIcon = 'e-icons e-fe-workspaceicontoolbar';
+            }
+            if (args.items[i].id === this.element.id + '_tb_createdocument') {
+                args.items[i].prefixIcon = 'e-icons e-fe-doctoolbar';
+            }
+            if (args.items[i].id === this.element.id + '_tb_archive') {
+                args.items[i].prefixIcon = 'e-icons e-fe-archive';
+            }            
+        }
+    }
+
+    // File Manager’s fileSelect event function
+    function onFileSelect(args) {
+        
+        var filemanager = document.getElementById("filemanager").ej2_instances[0];
+        filemanager.enableToolbarItems(["Archive"]);
+        filemanager.enableToolbarItems(["Copy"]);
+        filemanager.enableToolbarItems(["Cut"]);
+        filemanager.enableToolbarItems(["Delete"]);
+        filemanager.enableToolbarItems(["CreateFolder"]);
+        filemanager.enableToolbarItems(["CreateWorkspace"]);
+        filemanager.enableToolbarItems(["CreateDocument"]);
+        filemanager.enableToolbarItems(["Details"]);
+        if (args.fileDetails.FolderType == 1) {
+            filemanager.disableToolbarItems(["Archive"]);
+            filemanager.disableToolbarItems(["Copy"]);
+            filemanager.disableToolbarItems(["Cut"]);
+            filemanager.disableToolbarItems(["Delete"]);
+            //filemanager.disableToolbarItems(["CreateDocument"]);
+            if (args.fileDetails.CanCreateSubFolder==false) {
+                filemanager.disableToolbarItems(["Paste"]);
+            }
+
+        }
+        else if (args.fileDetails.FolderType == 2) {
+            if (args.fileDetails.CanArchive ==false) {
+                filemanager.disableToolbarItems(["Archive"]);
+            }
+            if (args.fileDetails.CanCopy ==false) {
+                filemanager.disableToolbarItems(["Copy"]);
+                filemanager.disableToolbarItems(["Cut"]);
+            }
+            if (args.fileDetails.CanDelete ==false) {
+                filemanager.disableToolbarItems(["Delete"]);
+            }
+            if (args.fileDetails.CanCreateSubFolder == false) {
+                filemanager.disableToolbarItems(["Paste"]);
+            }
+
+        }
+        else if (args.fileDetails.FolderType == 3) {
+            filemanager.disableToolbarItems(["Archive"]);
+            filemanager.disableToolbarItems(["Copy"]);
+            filemanager.disableToolbarItems(["Cut"]);
+            filemanager.disableToolbarItems(["Delete"]);
+            filemanager.disableToolbarItems(["Paste"]);
+
+        }
+        else if (args.fileDetails.FolderType == 4) {
+            if (args.fileDetails.CanCopy == false) {
+                filemanager.disableToolbarItems(["Copy"]);
+                filemanager.disableToolbarItems(["Cut"]);
+            }
+            if (args.fileDetails.CanDelete == false) {
+                filemanager.disableToolbarItems(["Delete"]);
+            }
+            if (args.fileDetails.CanArchive == false) {
+                filemanager.disableToolbarItems(["Archive"]);
+            }
+        }
+
+        if (args.action === "select") {
+            //filemanager.disableToolbarItems(["CreateFolder"]);
+            //filemanager.disableToolbarItems(["CreateWorkspace"]);
+            //filemanager.disableToolbarItems(["CreateDocument"]);
+            filemanager.disableToolbarItems(["Details"]);
+        }
+        else if (args.action === "unselect") {
+            //filemanager.disableToolbarItems(["CreateFolder"]);
+            //filemanager.disableToolbarItems(["CreateWorkspace"]);
+            //filemanager.disableToolbarItems(["CreateDocument"]);
+            filemanager.disableToolbarItems(["Details"]);
+            filemanager.disableToolbarItems(["Archive"]);
+        }
+        return false;
+    }
+    function onFileSelection(args) {
+       
+        var filemanager = document.getElementById("filemanager").ej2_instances[0];
+        //filemanager.openFile(args.fileDetails.name);
+
+    }
+    function onFileOpen(args) {
+       
+        var filemanager = document.getElementById("filemanager").ej2_instances[0];
+        filemanager.enableToolbarItems(["Archive"]);
+        filemanager.enableToolbarItems(["Copy"]);
+        filemanager.enableToolbarItems(["Cut"]);
+        filemanager.enableToolbarItems(["Delete"]);
+        filemanager.enableToolbarItems(["CreateFolder"]);
+        filemanager.enableToolbarItems(["CreateWorkspace"]);
+        filemanager.enableToolbarItems(["CreateDocument"]);
+        filemanager.enableToolbarItems(["Details"]);
+        if (args.module != "NavigationPane") {
+            //filemanager.disableToolbarItems(["CreateFolder"]);
+            //filemanager.disableToolbarItems(["CreateWorkspace"]);
+            //filemanager.disableToolbarItems(["CreateDocument"]);
+            if (args.fileDetails.FolderType == 3) {
+                args.cancel = true;
+                var id = args.fileDetails.id;
+                var win = GetMainWindow();
+                win.iframeOpenUrl = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=' + id;
+                win.OpenWindow({ Title: '@Html.Raw(Resource["PreviewAttachment"])', Width: 1000, Height: 700 });
+                return false;
+            }
+            if (args.fileDetails.FolderType == 4) {
+                args.cancel = true;
+                var id = args.fileDetails.id;
+                var templateCode = args.fileDetails.TemplateCode;
+                var portalId = $('#GlobalPortalId').val();
+                var url = '/Cms/Page?lo=Popup&pageType=Note&source=View&dataAction=View&templateCodes=' + templateCode + '&recordId=' + id + '&portalId=' + portalId;
+
+                var win = GetMainWindow();
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Title: '@Html.Raw(Resource["Details"])', Width: 1200, Height: 650 });
+                return false;
+            }
+        }
+        else {
+            filemanager.disableToolbarItems(["Archive"]);
+            if (args.fileDetails.FolderType == 1) {
+                filemanager.disableToolbarItems(["Archive"]);
+                filemanager.disableToolbarItems(["Copy"]);
+                filemanager.disableToolbarItems(["Cut"]);
+                filemanager.disableToolbarItems(["Delete"]);
+               // filemanager.disableToolbarItems(["CreateDocument"]);
+                if (args.fileDetails.CanCreateSubFolder == false) {
+                    filemanager.disableToolbarItems(["Paste"]);
+                    //filemanager.disableToolbarItems(["CreateFolder"]);
+                }
+                if (args.fileDetails.CanCreateWorkspace == false) {
+                    //filemanager.disableToolbarItems(["CreateWorkspace"]);
+                }
+
+            }
+            else if (args.fileDetails.FolderType == 2) {
+                if (args.fileDetails.CanArchive == false) {
+                    filemanager.disableToolbarItems(["Archive"]);
+                }
+                if (args.fileDetails.CanCopy == false) {
+                    filemanager.disableToolbarItems(["Copy"]);
+                }
+                if (args.fileDetails.CanCopy == false) {
+                    filemanager.disableToolbarItems(["Copy"]);
+                    filemanager.disableToolbarItems(["Cut"]);
+                }
+                if (args.fileDetails.CanDelete == false) {
+                    filemanager.disableToolbarItems(["Delete"]);
+                }
+                if (args.fileDetails.CanCreateSubFolder == false) {
+                    //filemanager.disableToolbarItems(["CreateFolder"]);
+                    filemanager.disableToolbarItems(["Paste"]);
+                    //filemanager.disableToolbarItems(["CreateDocument"]);
+                }
+                //filemanager.disableToolbarItems(["CreateWorkspace"]);
+            }
+            else if (args.fileDetails.FolderType == 3) {
+                filemanager.disableToolbarItems(["Archive"]);
+                filemanager.disableToolbarItems(["Copy"]);
+                filemanager.disableToolbarItems(["Cut"]);
+                filemanager.disableToolbarItems(["Delete"]);
+                filemanager.disableToolbarItems(["Paste"]);
+                //filemanager.disableToolbarItems(["CreateDocument"]);
+                //filemanager.disableToolbarItems(["CreateFolder"]);
+                //filemanager.disableToolbarItems(["CreateWorkspace"]);
+                args.cancel = true;
+                var id = args.fileDetails.id;
+                var win = GetMainWindow();
+                win.iframeOpenUrl = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=' + id;
+                win.OpenWindow({ Title: '@Html.Raw(Resource["PreviewAttachment"])', Width: 1000, Height: 700 });
+                return false;
+            }
+            else {
+                filemanager.disableToolbarItems(["Archive"]);
+                filemanager.disableToolbarItems(["Copy"]);
+                filemanager.disableToolbarItems(["Cut"]);
+                filemanager.disableToolbarItems(["Delete"]);
+                filemanager.disableToolbarItems(["Paste"]);
+                //filemanager.disableToolbarItems(["CreateDocument"]);
+                //filemanager.disableToolbarItems(["CreateFolder"]);
+                //filemanager.disableToolbarItems(["CreateWorkspace"]);
+            }
+        }
+
+    }
+
+    function refreshFileManager()
+    {
+        var filemanager = document.getElementById("filemanager").ej2_instances[0];
+        filemanager.refresh();
+    }
+</script>
+@*@Html.EJS().ScriptManager()*@
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,120 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@{
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml"; 
+}
+@model CollectorWardAssignmentViewModel
+@inject IUserContext _userContext;
+
+<script>
+    $(function () {
+
+        $("#WardId").kendoDropDownList({
+            optionLabel: "--Select--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/EGovernment/GetCollectorUnAssignedWardListForJammu"
+                    }
+                }
+            }
+        });
+
+        $("#CollectorId").kendoDropDownList({
+            optionLabel: "--Select--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/EGovernment/GetCollectorListForJammu"
+                    }
+                }
+            }
+        });
+
+    });
+
+    function onFormSave() {
+        ShowLoader($("#cms-content"));
+    }
+
+    var onAjaxSuccess = function (res) {
+        debugger;
+        if (res.success) {
+            HideLoader($('#cms-content'));
+            ShowNotification('Collector Assigned Successfully', 'success');
+            closeCopyWindow();
+
+        }
+        else {
+            HideLoader($('#cms-content'));
+            showError(res.error);
+        }
+    };
+
+    var showError = function (error) {
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+
+    function closeCopyWindow() {
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'onAfterAction' });
+        return false;
+    }
+
+</script>
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            @*<div class="jumbotron" style="max-width:400px;margin:auto;">*@
+                
+
+                <form asp-controller="EGovernment" asp-action="ManageCollectorAssignmentToWard" class="form-horizontal"
+                      data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+                      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+                      data-ajax="true" data-ajax-method="POST">
+
+                    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+
+                    <div class="form-group mx-3">
+                        <label for="WardId" class="form-label required">
+                            Ward
+                        </label>
+                        <div>
+                            <input asp-for="WardId" class="form-control" style="width:100%" required />
+                        </div>
+                    </div>
+                    <div class="form-group mx-3">
+                        <label for="CollectorId" class="form-label required">
+                            Collector
+                        </label>
+                        <div>
+                            <input asp-for="CollectorId" class="form-control" style="width:100%" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary" style="float: right; margin-right: 15px;" onclick="onFormSave()">Assign Collector</button>
+                        </div>
+                    </div>
+
+                    @Html.HiddenFor(x => x.Id)
+                    @Html.HiddenFor(x => x.DataAction)
+
+                </form>
+
+            @*</div>*@
+        </div>
+    </div>
+</div>

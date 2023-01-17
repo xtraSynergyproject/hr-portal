@@ -1,0 +1,152 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using CMS.UI.ViewModel;
+@model BusinessHierarchyPermissionViewModel
+
+@{
+    ViewData["Title"] = "Business Hierarchy Permission";
+    Layout = ViewBag.Layout != null ? ViewBag.Layout : null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<script>
+
+    var columnDefs = [
+        {
+            headerName: "Actions",
+            field: "Id",
+            maxWidth: 140,
+
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBHP' data-idvalue='" + params.value + "' data-noteid='" + params.data.NtsNoteId +"' ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+        {
+            headerName: "Permission Name",
+            field: "PermissionName",
+        },
+        {
+            headerName: "Users",
+            field: "UserName",
+        }
+    ];
+
+    $(function () {
+        getBHPermission();
+        $.contextMenu({
+            selector: '#tree-menuBHP',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var id = $trigger.data('idvalue');
+                var noteid = $trigger.data('noteid');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEdit(noteid);
+                                        break;
+                                    case 'view':
+                                        OnView(noteid);
+                                        break;
+                                    case 'delete':
+                                        OnDelete(id,noteid);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "view": { name: "View", icon: "fas fa-eye" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+    });
+
+    function getBHPermission() {
+        document.getElementById("myGridBHPermission").innerHTML = "";
+        gridConfig(
+            "myGridBHPermission",
+            "@Url.Action("GetBHPermissionGridData", "BusinessHierarchy", new { @area = "CHR",@groupCode = Model.GroupCode })",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function OnCreate() {
+        var portalId = $('#GlobalPortalId').val();
+        var udfs = encodeURIComponent('GroupCode=@Model.GroupCode');
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&pageType=Note&source=Create&dataAction=Create&templateCodes=BH_PERMISSION&portalId=' + portalId + '&udfs=' + udfs;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Business Hierarchy Permission', Width: 800, Height: 650 });
+        return false;
+    }
+
+    function OnEdit(noteId) {
+        //alert(noteId);
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&pageType=Note&source=Edit&dataAction=Edit&templateCodes=BH_PERMISSION&portalId=' + portalId + '&recordId=' + noteId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Business Hierarchy Permission', Width: 800, Height: 650 });
+        return false;
+    }
+
+    function OnView(noteId) {
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&pageType=Note&source=View&dataAction=View&templateCodes=BH_PERMISSION&portalId=' + portalId + '&recordId=' + noteId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Business Hierarchy Permission', Width: 800, Height: 650 });
+        return false;
+    }
+    function OnDelete(id,noteId) {
+        kendo.confirm("Are you sure that you want to delete?").then(function () {
+            confirmDelete(id, noteId);
+        }, function () {
+
+        });
+    }
+    function confirmDelete(id, noteId) {
+        $.ajax({
+              url: '@Url.Action("DeleteBHPermission", "BusinessHierarchy", new { @area="CHR"})?id=' + id + "&ntsNoteId=" + noteId,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                getBHPermission();
+                ShowNotification("Deleted Successfully", "success");
+            }
+        });
+    }
+    function OnAfterNoteCreate(note) {
+        getBHPermission();
+    }
+</script>
+
+<div>
+    <h4>@ViewBag.Title</h4>
+    <hr />
+    <div class="row">
+        <div class="col-12">
+            <button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Permission</button>
+            <br /><br />
+            <div id="myGridBHPermission" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,1067 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using System.Web;
+@using Kendo.Mvc.Extensions;
+@model AssessmentResultViewModel
+@{
+    ViewData["Title"] = "Questions";
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    Layout = Model.LayoutMode == LayoutModeEnum.Main ? null : "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    .que-sec {
+        margin-top: 1%;
+        margin-left: 2%;
+        margin-right: 2%;
+        background-color: white;
+        border-radius: 3px;
+        height: 40px;
+        font-size: 15px;
+        padding: 5px;
+    }
+
+    .que-sec2 {
+        margin-left: 2%;
+        margin-right: 2%;
+        background-color: whitesmoke;
+        height: 100%;
+    }
+
+    .seq {
+        /*border-style: solid;*/
+        height: 34px;
+        margin-top: 10px;
+        background-color: #006699;
+        color:#ffffff;
+        padding-left: 10px;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 19px;
+    }
+
+    .que {
+        margin-top: 15px;
+        background-color: white;
+        /* padding-left: 10px; */
+        font-size: 17px;
+        /* padding-right: 10px; */
+        /* padding-top: 10px; */
+        padding: 20px;
+    }
+
+    .comment {
+        margin-top: 10px;
+        background-color: white;
+        /* padding-left: 10px; */
+        border: solid 1px gray;
+        font-size: 16px;
+        /* padding-right: 10px; */
+        /* padding-top: 10px; */
+        padding: 10px;
+    }
+
+    .opt {
+        margin-top: 15px;
+        background-color: white;
+        /* padding-left: 10px; */
+        font-size: 15px;
+        /* padding-right: 10px; */
+        /* padding-top: 10px; */
+        padding: 11px;
+    }
+
+    .lbl-text {
+        margin-left: 16px;
+        font-size: 16px;
+        color: #848484;
+    }
+
+    .pagination1 li {
+        color: black;
+        /*float: left;*/
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color .3s;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        background-color: #006699;
+        cursor: pointer;
+    }
+
+        .pagination1 li:hover {
+            background-color: #ddd;
+        }
+
+    .pagination1 {
+        display: inline-flex !important;
+    }
+    .btn_li{
+        color:#fff;
+    }
+    
+</style>
+<div id="main-que">
+    <div class="que-sec">
+        <span class="" style="margin-left: 10px;font-size: 20px;font-weight: bold;">
+            @if (Model.AssessmentType == "Technical")
+            {
+                if (Model.PreferredLanguageCode == "ARABIC")
+                {
+                    <span style="text-decoration:underline">التقييم التقني</span>
+                }
+                else
+                {
+                    <span style="text-decoration:underline">Technical Assessment</span>
+                }
+            }
+            else if (Model.AssessmentType == "Case Study")
+            {
+
+                if (Model.PreferredLanguageCode == "ARABIC")
+                {
+                    <span>تقييم دراسة الحالة</span>
+                }
+                else
+                {
+                    <span>Case Study Assessment</span>
+                }
+            }
+            else
+            {
+                if (Model.PreferredLanguageCode == "ARABIC")
+                {
+                    <span>مسح التقييم</span>
+                }
+                else
+                {
+                    <span>Assessment Survey</span>
+                }
+            }
+
+            @if (Model.PreferredLanguageCode == "ARABIC" && Model.LayoutMode != LayoutModeEnum.Popup)
+            {
+                <a style="float:right;padding-right:10px;font-size:16px;" href="javascript:void(0);" onclick="LoadEnglish();">عرض الترجمة الإنجليزية لهذا السؤال</a>
+            }
+
+            @if (Model.PreferredLanguageCode == "ENGLISH" && Model.LayoutMode != LayoutModeEnum.Popup)
+            {
+                <a style="float:right;padding-right:10px;font-size:16px;" href="javascript:void(0);" onclick="LoadArabic();">
+                    View the Arabic translation for this question
+                </a>
+            }
+
+
+        </span>
+    </div>
+    <div id="testTimer" style="text-align:right;font-weight:bold;padding-right:50px;display:@(Model.LayoutMode != LayoutModeEnum.Popup?"":"none")"> </div>
+    <div class="que-sec2">
+        <div class="container">
+            <div class="row-12">
+                <div class="" style="padding-top:5px;">
+
+                    <div class="que" id="description" style="display:none;">
+                    </div>
+
+                    <img class="img" id="queImage" style="display:none;" />
+
+                    <div class="seq">
+
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>سؤال رقم -</span>
+                        }
+                        else
+                        {
+                            <span>Question No -</span>
+                        }   <span id="queNo"></span>
+
+
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>من</span>
+                        }
+                        else
+                        {
+                            <span>out of</span>
+                        }
+
+                        <span id="outOff"></span>
+                    </div>
+
+                    <div class="que" id="quesubject">
+                        <span id="question"></span>
+                    </div>
+
+
+                    <div id="optionList"></div>
+                    <div style="display:@(Model.LayoutMode != LayoutModeEnum.Popup?"":"none")">
+                        <div id="optional-comment-label" class="seq">
+                            @*@if (Model.PreferredLanguage == Language.Arabic)
+                                {
+                                    <span class="seq">اختر خيارًا صحيحًا واحدًا من البدائل الأربعة أدناه</span>
+                                }
+                                else
+                                {
+                                    <span class="seq">Choose one correct option from the below four alternatives</span>
+                                }*@
+
+                            @if (Model.PreferredLanguageCode == "ARABIC")
+                            {
+                                <span class="seq">يرجى تقديم مبرر لاختيار الإجابة في ما لا يقل عن 20 كلمة.</span>
+                            }
+                            else
+                            {
+                                <span class="seq">Please provide justification why you chose the answer in not less than 20 words.</span>
+                            }
+
+
+                        </div>
+                        <div id="optional-comment-div">
+                            <textarea class="comment col-sm-12" id="optional-comment" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12" style="display:@(Model.LayoutMode != LayoutModeEnum.Popup?"":"none");padding:20px;">
+                    <div class="row-12" style="text-align:center">
+                        <ul class="pagination1" style="font-size: 20px;">
+                            <li id="firstId" style="display:none" onclick="firstClicked(this)" value="">
+                                <a href="#" class="btn_li">
+                                    @if (Model.PreferredLanguageCode == "ARABIC")
+                                    {
+                                        <span>أول</span>
+                                    }
+                                    else
+                                    {
+                                        <span>First</span>
+                                    }
+
+
+
+                                </a>
+                            </li>
+                            <li id="previousId" style="display:none" onclick="previousClicked(this)" value="">
+                                <a href="#" class="btn_li">
+                                    @if (Model.PreferredLanguageCode == "ARABIC")
+                                    {
+                                        <span>السابق</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Previous</span>
+                                    }
+                                </a>
+                            </li>
+                            <li id="lastId" style="display:none" onclick="lastClicked(this)">
+                                <a href="#" class="btn_li">
+                                    @if (Model.PreferredLanguageCode == "ARABIC")
+                                    {
+                                        <span>الاخير</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Last</span>
+                                    }
+                                </a>
+                            </li>
+                            <li id="savelast" style="display:none" onclick="saveLastQueClicked(this)">
+                                <a href="#" class="btn_li">
+                                    @if (Model.PreferredLanguageCode == "ARABIC")
+                                    {
+                                    <span>يغلق</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Close</span>
+                                    }
+                                </a>
+                            </li>
+
+                            <li id="nextId" style="display:none" onclick="nextClicked(this)">
+                                <a href="#" class="btn_li">
+                                    @if (Model.PreferredLanguageCode == "ARABIC")
+                                    {
+                                        <span>احفظ وانتقل إلى التالي</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Save & Next</span>
+                                    }
+                                </a>
+                            </li>
+                            @*<li id="submit" style="display:none" onclick="submitClicked(this)">
+                                <a href="#" class="btn_li">
+                                    @if (Model.PreferredLanguageCode == "ARABIC")
+                                    {
+                                        <span>إرسال واستكمال</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Submit & Complete</span>
+                                    }
+                                </a>
+                            </li>*@
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content e-card">
+                <div class="modal-header" style="background-color:#268ef9;color:white">
+                    @*<button type="button" class="close" data-dismiss="modal">&times;</button>*@
+                    <h3 class="modal-title">
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>أنت على وشك إنهاء التقييم</span>
+                        }
+                        else
+                        {
+                            <span>YOU ARE ABOUT TO END THE ASSESSMENT</span>
+                        }
+
+                    </h3>
+                </div>
+                <div class="modal-body">
+                    <div style="padding:10px;">
+                        <ul>
+                            <li>
+                                @if (Model.PreferredLanguageCode == "ARABIC")
+                                {
+                                    <span>بمجرد بدء التقييم ، لا يمكن إيقافه</span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        Once the assessment is ended, it cannot be restarted
+                                    </span>
+                                }
+                            </li>
+                            <li>
+                                @if (Model.PreferredLanguageCode == "ARABIC")
+                                {
+                                    <span>سيتم إرسال إجابتك إلى اللوحة عند النقر فوق الزر "موافق"</span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        Your answer will be sent to the panel on click of 'OK' button
+                                    </span>
+                                }
+
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn button btn-default " data-dismiss="modal" style="padding:10px 25px;background-color:#bbc1c7">
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>إلغاء</span>
+                        }
+                        else
+                        {
+                            <span>
+                                Cancel
+                            </span>
+                        }
+                    </button>
+                    <button type="button" class="btn button" onclick="endAssessment()" style="padding:10px 25px">
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>حسنا</span>
+                        }
+                        else
+                        {
+                            <span>
+                                OK
+                            </span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="nextSubmit" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>تؤكد</span>
+                        }
+                        else
+                        {
+                            <span>
+                                Confirm
+                            </span>
+                        }
+                    </h5>
+                    @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>*@
+                </div>
+                <div class="modal-body">
+                    @if (Model.PreferredLanguageCode == "ARABIC")
+                    {
+                        <span>هل أنت متأكد أنك تريد الحفظ والانتقال إلى السؤال التالي؟</span>
+                    }
+                    else
+                    {
+                        <span>
+                            Are you sure you want to save and move to next question?
+                        </span>
+                    }
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>أغلق</span> }
+                        else
+                        {
+                            <span>
+                                Close
+                            </span>
+                        }
+                    </button>
+                    <button type="button" class="btn btn-primary" style="background-color:dodgerblue" onabort="" onclick="SaveChanges()">
+
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>حفظ التغييرات</span>
+                        }
+                        else
+                        {
+                            <span>
+                                Save Changes
+                            </span>
+                        }
+
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- skip model Modal -->
+    <div class="modal fade" id="skipNext" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>تؤكد</span>
+                        }
+                        else
+                        {
+                            <span>
+                                Confirm
+                            </span>
+                        }
+                    </h5>
+                    @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>*@
+                </div>
+                <div class="modal-body">
+
+                    @if (Model.PreferredLanguageCode == "ARABIC")
+                    {
+                        <span>هل ترغب في تخطي هذا السؤال والانتقال إلى السؤال التالي؟</span>
+                    }
+                    else
+                    {
+                        <span>
+                            Would you like to skip this question and go to next question?
+                        </span>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>قريب</span> }
+                        else
+                        {
+                            <span>
+                                Close
+                            </span>
+                        }
+                    </button>
+                    <button type="button" class="btn btn-primary" style="background-color:dodgerblue" onabort="" onclick="skipNext()">
+                        @if (Model.PreferredLanguageCode == "ARABIC")
+                        {
+                            <span>السؤال التالي</span>
+
+                        }
+                        else
+                        {
+                            <span>
+                                Next Question
+                            </span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Final submit model Modal -->
+    <div class="modal fade" id="finalSubmit" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            @if (Model.PreferredLanguageCode == "ARABIC")
+            {
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">التقييم الكامل</h5>
+                    </div>
+                    <div class="modal-body" style="font-size:16px">
+                        هل ترغب في إرسال واستكمال هذا التقييم؟ بمجرد التقديم ، لن تتمكن من العودة إلى التقييم.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">قريب</button>
+                        <button type="button" class="btn btn-primary" style="background-color:dodgerblue" onabort="" onclick="complete()">اكتمال</button>
+                    </div>
+                </div>
+
+            }
+            else
+            {
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Complete Assessment</h5>
+                    </div>
+                    <div class="modal-body" style="font-size:16px">
+                        Would you like to submit and complete this assessment? Once Submitted you will not be able to come back to the assessment.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" style="background-color:dodgerblue" onabort="" onclick="complete()">Complete</button>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+
+
+    <!-- Assessment Stop  Modal -->
+    <div class="modal fade" id="assessmentStop" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            @if (Model.PreferredLanguageCode == "ARABIC")
+            {
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">إنذار</h5>
+                    </div>
+                    <div class="modal-body" style="font-size:16px">
+                        تم إيقاف تقييمك ، يرجى الاتصال بالمسؤول
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">قريب</button>
+                        <button type="button" class="btn btn-primary" style="background-color:dodgerblue" onabort="" onclick="retry()">أعد المحاولة</button>
+                    </div>
+                </div>
+
+            }
+            else
+            {
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Alert</h5>
+                    </div>
+                    <div class="modal-body" style="font-size:16px">
+                        Your assessment has been stopped, Please contact administrator.
+                    </div>
+                    <div class="modal-footer">
+                        @*<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>*@
+                        <button type="button" class="btn btn-primary" style="background-color:dodgerblue" onabort="" onclick="retry()">Retry</button>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+
+
+    <!-- Final Time over model Modal -->
+    <div class="modal fade" id="timeOver" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            @if (Model.PreferredLanguageCode == "ARABIC")
+            {
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">اكتمل التقييم</h5>
+
+                    </div>
+                    <div class="modal-body" style="font-size:16px">
+                        انتهى وقت جلسة التقييم الخاصة بك. تم تقديم إجاباتك بنجاح.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" style="background-color:dodgerblue" onabort="" onclick="complete()">حسنا</button>
+                    </div>
+                </div>
+
+            }
+            else
+            {
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Assessment Completed</h5>
+
+                    </div>
+                    <div class="modal-body" style="font-size:16px">
+                        Your assessment session time is over. Your answers have been submitted successfully.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" style="background-color:dodgerblue" onabort="" onclick="complete()">OK</button>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+
+@(Html.Kendo().Notification()
+              .Name("notification")
+              .Position(p => p.Pinned(true).Top(90))
+              .Stacking(NotificationStackingSettings.Default)
+              .AutoHideAfter(5000)
+              .Templates(t =>
+              {
+                  t.Add().Type("info").ClientTemplateID("infoTemplate");
+              }
+          )
+)
+
+
+<script id="infoTemplate" type="text/x-kendo-template">
+    <div style="width:300px;height:20px;padding:10px;">
+        @if (Model.PreferredLanguageCode == "ARABIC")
+        {
+            <p style="direction:rtl">#= message #</p>
+        }
+        else
+        {
+            <p>#= message #</p>
+        }
+
+    </div>
+</script>
+
+
+<script>
+    var layout = '@Model.LayoutMode';
+    function onSubmit() {
+        $("#myModal").show();
+    }
+
+    //window.addEventListener("unload", e => {
+    //    if (current_minutes > 0 && current_seconds > 0) {
+    //        updateAssessment(currentAssessmentId, current_minutes, current_seconds, currentQueId);
+    //    }
+    //});
+
+    $(document).ready(function () {
+
+        if ('@Model.ServiceStatusCode' == 'SERVICE_STATUS_COMPLETE') {
+
+             if ('@Model.PreferredLanguageCode' == 'ARABIC') {
+                 ShowNotification("اكتمل التقييم بالفعل", "success");
+                 } else {
+                     ShowNotification("Assessment already Completed", "success");
+             }
+            var url = "/TAS/TalentAssessment/AssessmentDashboard";
+            LoadPartailView(url, $('#cms-content'));
+        } else {
+            createView('@Model.AssessmentId', '@Model.CurrentQuestionId', '@Model.PreferredLanguageCode');
+        }
+
+        if ('@Model.PreferredLanguageCode' == 'ARABIC') {
+            document.getElementById('main-que').style.direction = "rtl";
+        }
+    });
+
+
+    function renderOptionList(element, index, arr) {
+        //debugger;
+        if (element.Option != "" && element.Option != null) {
+            var maindiv = document.getElementById("optionList");
+            var div = document.createElement('div');
+            div.className = "opt";
+            var input = document.createElement('input');
+            input.type = "radio";
+            input.id = element.Id;
+            input.name = "opt";
+            input.value = element.Id;
+
+            if (layout == "Popup") {
+                input.disabled = "disabled";
+            }
+
+            div.appendChild(input);
+            var span = document.createElement('span');
+            span.innerHTML = element.Option;
+            span.className = "lbl-text";
+            div.appendChild(span);
+            maindiv.appendChild(div);
+
+            //if (element.AnswerId != null && element.AnswerId == element.Id) {
+            //    document.getElementById(element.AnswerId).checked = true;
+            //    currentAnswerId = element.AnswerId;
+            //}
+        }
+    }
+
+    function firstClicked(e) {
+        var x = $("#firstId").attr("value");
+        createView(currentAssessmentId, x, '@Model.PreferredLanguageCode');
+    }
+
+    function previousClicked(e) {
+        //debugger;
+        var x = $("#previousId").attr("value");
+        createView(currentAssessmentId, x, '@Model.PreferredLanguageCode');
+    }
+
+    function nextClicked(e) {
+        //debugger;
+        createView(currentAssessmentId, currentNextId, '@Model.PreferredLanguageCode');
+    }
+    function saveLastQueClicked() {
+        //debugger;
+        var url = "/TAS/TalentAssessment/Assessments";
+        LoadPartailView(url, $('#cms-content'));
+    }
+
+    function savelast() {
+        SaveChanges();
+    }
+
+
+    function SaveChanges(disableLoad) {
+        debugger;
+        var nextQueId = $("#nextId").attr("value");
+        var multipleFieldValueId = $('input[name="opt"]:checked').val();
+        var assessmentId = currentAssessmentId;
+        var isSubmit = false;
+        var currentQuestionId = currentQueId;
+        var comment = document.getElementById("optional-comment").value;
+        if (multipleFieldValueId == null || multipleFieldValueId == '' || multipleFieldValueId == undefined) {
+            multipleFieldValueId = null;
+        }
+        //ShowLoader('#main-que');
+        //var url = "/assessment/assessment/SubmitAssessmentAnswer?serviceId=" + serviceId + "&isSubmit=" + isSubmit + "&currentQuestionId=" + currentQuestionId + "&multipleFieldValueId=" + multipleFieldValueId + "&comment=" + comment + "&timeElapsed=" + timeElapsed + "&nextQuestionId=" + nextQueId + "&currentAnswerId=" + currentAnswerId;
+        var url = "/TAS/TalentAssessment/SubmitAssessmentAnswer";
+        $.ajax({
+                url: url,
+            type: "POST",
+            data: { 'serviceId': assessmentId, 'isSubmit': isSubmit, 'currentQuestionId': currentQuestionId, 'multipleFieldValueId': multipleFieldValueId, 'comment': comment, 'timeElapsed': current_minutes, 'timeElapsedSec': current_seconds, 'nextQuestionId': nextQueId, 'currentAnswerId': currentAnswerId, 'assessmentType': assessmentType, 'assessmentId':'@Model.AssessmentId' },
+            success: function (data) {
+                debugger;
+                if ('@Model.PreferredLanguageCode' == 'ARABIC') {
+                    ShowNotification("حفظ بنجاح");
+                } else {
+                    ShowNotification("Saved Successfully","success");
+                }
+                    if (disableLoad == null || disableLoad==false) {
+                        createView(assessmentId, nextQueId, '@Model.PreferredLanguageCode');
+                    }
+                    else {
+                        HideLoader('#main-que');
+                    }
+                }
+            });
+    }
+
+    function lastClicked(e) {
+        var x = $("#lastId").attr("value");
+        createView(currentAssessmentId, x, '@Model.PreferredLanguageCode');
+    }
+
+    function skipNext() {
+        var nextQueId = $("#nextId").attr("value");
+        createView(currentAssessmentId, nextQueId, '@Model.PreferredLanguageCode');
+        $("#skipNext").modal('hide');
+    }
+
+    function submitClicked() {
+        var id = $('input[name="opt"]:checked').val();
+        var comment = document.getElementById("optional-comment").value;
+
+        if ('@Model.AssessmentType' == 'Case Study') {
+            if (id == null || id == undefined || id == '' || id == "") {
+             if ('@Model.PreferredLanguageCode' == 'ARABIC')
+                {
+                 kendo.alert('الرجاء تحديد إجابتك');
+                }
+                else
+                {
+                 kendo.alert('Please select your answer');
+                }
+                return false;
+            }
+            if (comment == null || comment == '') {
+                if ('@Model.PreferredLanguageCode' == 'ARABIC')
+                {
+                    kendo.alert('يرجى تقديم مبرر لإجابتك');
+                }
+                else
+                {
+                    kendo.alert('Please provide justification for your answer');
+                }
+                return false;
+            }
+            else if (comment != null && comment != '')
+            {
+                var words = comment.replace(/  +/g, ' ').split(" ");
+                if (words.length<20) {
+                   if ('@Model.PreferredLanguageCode' == 'ARABIC')
+                        {
+                       kendo.alert('يرجى تقديم تبرير بحد أدنى 20 كلمة r إجابتك');
+                        }
+                        else
+                        {
+                       kendo.alert('Please provide justification with minimum 20 words');
+                        }
+                    return false;
+                }
+            }
+
+            if (id) {
+                $("#finalSubmit").modal('show');
+            }
+
+        }
+        else {
+            if (id == null || id == undefined || id == '' || id == "") {
+                if ('@Model.PreferredLanguageCode' == 'ARABIC') {
+                    kendo.alert('الرجاء تحديد إجابتك');
+                }
+                else {
+                    kendo.alert('Please select your answer');
+                }
+                return false;
+            } else {
+                $("#finalSubmit").modal('show');
+            }
+
+        }
+    }
+
+    function complete() {
+        $("#finalSubmit").modal('hide');
+        var nextQueId = $("#nextId").attr("value");
+        var multipleFieldValueId = $('input[name="opt"]:checked').val();
+        var comment = document.getElementById("optional-comment").value;
+        var serviceId = currentServiceId;
+        var isSubmit = true;
+        //showLoader();
+        var currentQuestionId = currentQueId;
+
+        if (multipleFieldValueId == null || multipleFieldValueId == '' || multipleFieldValueId == undefined) {
+            multipleFieldValueId = 0;
+        }
+
+            var url = "/TAS/TalentAssessment/SubmitAssessmentAnswer";
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: { 'serviceId': serviceId, 'isSubmit': isSubmit, 'currentQuestionId': currentQuestionId, 'multipleFieldValueId': multipleFieldValueId, 'comment': comment, 'timeElapsed': current_minutes, 'timeElapsedSec': current_seconds, 'nextQuestionId': nextQueId, 'currentAnswerId': currentAnswerId,  'assessmentType': assessmentType, 'assessmentId': '@Model.AssessmentId'},
+                success: function (data) {
+                    debugger;
+                    if ('@Model.PreferredLanguageCode' == 'ARABIC') {
+                        ShowNotification("حفظ بنجاح", "success");
+                } else {
+                    ShowNotification("Assessment Completed Successfully", "success");
+                }
+                    var url = "/TAS/TalentAssessment/AssessmentDashboard";
+                    LoadPartailView(url, $('#cms-content'));
+                }
+            });
+
+    }
+
+
+    var currentQueId = 0;
+    var currentAssessmentId = null;
+    var currentNextId = 0;
+    var timeElapsed = 0;
+    var assessmentDuration = 0;
+    var assessmentType = '@Model.AssessmentType';
+    var currentAnswerId = null;
+    var lang = '@Model.PreferredLanguageCode';
+
+    function LoadEnglish() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Tas/TalentAssessment/Questions?LanguageCode=ENGLISH&layout=Popup&Id=" + currentAssessmentId + "&currentQueId=" + currentQueId + "&type=" + assessmentType;
+        win.OpenWindow({ Title: 'Question', Width: 1000, Height: 700 });
+        return false;
+
+    }
+
+    function LoadArabic() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Tas/TalentAssessment/Tryout?LanguageCode=ARABIC&layout=Popup&Id=" + currentAssessmentId + "&currentQueId=" + currentQueId + "&type=" + assessmentType;
+        win.OpenWindow({ Title: 'Question', Width: 1000, Height: 700 });
+        return false;
+
+    }
+
+    function createView(assId, currQueId, lang) {
+        currentAnswerId = null;
+        debugger;
+        var url = "/TAS/TalentAssessment/GetTryoutQuestion?assessmentId=" + assId + "&currentQueId=" + currQueId + "&lang=" + lang;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            success: function (data) {
+                if (data != null && data.OptionList != null && data.OptionList.length > 0) {
+                    debugger;
+                  if (data.IsAssessmentStopped == true) {
+                              clearTimeout(t);
+
+                            $("#assessmentStop").modal('show');
+                        } else {
+                        //document.getElementById("span_user").innerHTML = data.LoggedInUserName;
+                        currentQueId = data.NoteId;
+                        currentAssessmentId = '@Model.AssessmentId';
+                        currentNextId = data.NextId;
+
+                        if (data.Description != null && data.Description != "") {
+                            document.getElementById("description").innerHTML = data.Description;                            
+                            document.getElementById("description").style.display = "";
+                        } else {
+                            document.getElementById("description").style.display = "none";
+                        }
+                        if (data.FileId != null && data.FileId != "") {
+                            document.getElementById("queImage").style.display = "";
+                            //document.getElementById("queImage").src = "/file/GetFile?fileId=" + data.FileId;
+                            document.getElementById("queImage").src = "/cms/Document/GetFileMongo?fileId=" + data.FileId;
+                        } else {
+                            document.getElementById("queImage").style.display = "none";
+                        }
+                        document.getElementById("question").innerHTML = data.Subject;
+                        document.getElementById("optionList").innerHTML = "";
+
+                        if ('@Model.PreferredLanguageCode' == "ARABIC") {
+                            document.getElementById("description").style.textAlign = "right";
+                            document.getElementById("quesubject").style.textAlign = "right";
+                            document.getElementById("optionList").style.textAlign = "right";
+                        }
+
+                        data.OptionList.forEach(renderOptionList);
+
+                      if (data.FirstId != null && data.FirstId != "") {
+                            document.getElementById("firstId").style.display = "";
+                          //document.getElementById("firstId").value = data.FirstId;
+                          $("#firstId").attr("value", data.FirstId);
+                        } else {
+                            document.getElementById("firstId").style.display = "none";
+                        }
+
+                      if (data.PreviousId != null && data.PreviousId != "") {
+                            document.getElementById("previousId").style.display = "";
+                          //document.getElementById("previousId").value = data.PreviousId;
+                          $("#previousId").attr("value", data.PreviousId);
+                      } else {
+                            document.getElementById("previousId").style.display = "none";
+                      }
+
+                      if (data.NextId != null && data.NextId != "") {
+                            document.getElementById("nextId").style.display = "block";
+                            $("#nextId").attr("value", data.NextId);
+                            //document.getElementById("submit").style.display = "none";
+                      } else {
+                            document.getElementById("nextId").style.display = "none";
+                            //document.getElementById("submit").style.display = "";
+                      }
+
+                      if (data.LastId != null && data.LastId != "") {
+                            document.getElementById("lastId").style.display = "";
+                            $("#lastId").attr("value", data.LastId);
+                      } else {
+                            document.getElementById("lastId").style.display = "none";
+                      }
+
+                        if (currentQueId == data.LastId) {
+                            document.getElementById("lastId").style.display = "none";
+                            document.getElementById("savelast").style.display = "";
+                        } else {
+                            document.getElementById("savelast").style.display = "none";
+                            document.getElementById("lastId").style.display = "";
+                        }
+
+                      document.getElementById("optional-comment").value = "";
+
+                      if (assessmentType == 'Case Study' || assessmentType == 'Survey') {
+                            document.getElementById("optional-comment-label").style.display = "";
+                            document.getElementById("optional-comment-div").style.display = "";
+                            if (data.CandidateAnswerComment != null) {
+                                document.getElementById("optional-comment").value = data.CandidateAnswerComment;
+                            }
+                      }
+                        else {
+                            document.getElementById("optional-comment-label").style.display = "none";
+                            document.getElementById("optional-comment-div").style.display = "none";
+                      }
+
+                        document.getElementById("queNo").innerText = data.SequenceNo;
+                        document.getElementById("outOff").innerText = data.TotalCount;
+
+                        //assessmentDuration = data.AssessmentDuration;
+
+                        //if (data.TimeElapsed != null) {
+                        //    current_minutes = data.TimeElapsed;
+                        //} else {
+                        //    current_minutes = assessmentDuration - 1;
+                        //}
+                        //if (data.TimeElapsedSec != null && data.TimeElapsedSec != 0) {
+                        //    current_seconds = data.TimeElapsedSec;
+                        //} else {
+                        //    current_seconds = 60;
+                        //}
+                        //if (!isCounter) {
+                        //    countdown(current_minutes);
+                        //}
+                        //HideLoader();
+                    }
+                }
+            },
+            error: function (errData) {
+                //OnError(errData);
+            }
+        });
+    }
+    var isCounter = false;
+    var current_minutes = 0;
+    var current_seconds = 0;
+    var t;
+
+
+    function retry() {
+        $("#assessmentStop").modal('hide');
+        window.location.reload();
+    }
+
+    
+</script>
+

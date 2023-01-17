@@ -1,0 +1,395 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.EmailTaskController> Resource
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.WebUtility
+@inject Synergy.App.Common.IUserContext _userContext
+@{
+    ViewBag.Title = "Email Task List";
+    Layout = null;
+}
+
+<script id="select-email" type="text/x-kendo-template">
+
+@*@(Html.Kendo().RadioButton().Name("select-task").Checked(false).Label("Link")
+//.HtmlAttributes(new { onchange = "OnCheckBox(\"#=Id#\")" })
+)*@
+    <section class="section-preview">
+    <div class="custom-control custom-radio custom-control-inline">
+         <input type="radio" class="custom-control-input" id="select-task" name="select-task" >
+         <label class="custom-control-label" for="select-task">Link</label>
+    </div>
+    </section>
+</script>
+<script>
+    function OnRequestStart_TopLinePriceGrid(e) {
+        if (e.type === "update") {
+            showLoader();
+        }
+    }
+    function OnRequestEnd_TopLinePriceGrid(e) {
+        if (e.type === "update") {
+            hideLoader();
+            var grid = $('#treelist').data('kendoTreeList');
+            grid.dataSource.read();
+        }
+    }
+
+    function dragEndEmail(e) {
+        var sid = e.source.Id;
+        var did = e.destination.Id;
+        $.ajax({
+            type: "POST",
+            url: "/pmt/pmthome/ChangeEmailTaskParent?sourceId=" + sid + "&destinationId=" + did,
+            success: function (data) {
+                ShowNotification("@Resource["EmailParentChangedSuccessfully"]");
+                $("#treelist1").data("kendoTreeList").dataSource.read();
+            },
+            dataType: "json",
+        });
+    }
+
+    var selectedEmail = "";
+    function OnCheckBox(id) {
+        selectedEmail = id;
+        var url = "/pjm/EmailTask/ViewProjectWithWBSItem?id=" + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["WBSItem"])', Width: 1400, Height: 1200 });
+        return false;
+
+    }
+
+    function CloseWBSSelect(sid, parentId, type) {
+
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        var tid = selectedEmail;//$("#select-task").data("kendoRadioButton").value();
+        $.ajax({
+            type: "POST",
+            url: "/pjm/emailTask/ManageEmailTask?id=" + tid + "&taskId=" + sid + "&parentId=" + parentId + "&type=" + type,
+            success: function (data) {
+                if (data.success) {
+                    ShowNotification("@SharedResource["Email"] " + type + " @Resource["LinkedSuccessfully"]");
+                    $("#treelist1").data("kendoTreeList").dataSource.read();
+                }
+                else {
+                    ShowNotification("@SharedResource["Email"] " + type + " @Resource["LinkedFailed"]!");
+                }
+            },
+            dataType: "json",
+        });
+    }
+
+    function AddTask(messageid, subject, body) {
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));       
+        var portalId = $('#GlobalPortalId').val();
+        //var prms = encodeURIComponent('subject=' + subject + '&description=' + body + '&assignedToUserId=' + taskid);
+        var prms = encodeURIComponent('subject=' + subject + '&description=' + body + '&assignedToUserId=' + '@_userContext.UserId');
+        var udfs = encodeURIComponent('MessageId=' + messageid);
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&pageName=ProjectEmailTask&portalId=' + portalId + '&prms=' + prms + '&udfs=' + udfs;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateTask"])', Width: 1200, Height: 600 });
+        return false;
+    }
+    function ViewTask() {
+
+    }
+
+    $(document).ready(function () {
+        GetEmailTask();
+    });
+
+    function GetEmailTask(url) {
+
+        var newUrl = "";
+        if (url != "" && url != undefined) {
+            newUrl = url;
+        }
+        else {
+            newUrl = "/PJM/EmailTask/ReadEmailTasks1?id="+'@ViewBag.Id';
+        }
+        document.getElementById("kgdSelf2GridView").innerHTML = "";
+        gridConfig(
+            "kgdSelf2GridView",
+            newUrl,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    var columnDefs = [
+                            {
+                                field: "MessageId",
+                                headerName: "@Resource["Action"]",
+                                cellRenderer: params => {
+
+
+                                            return "<section class='section-preview'>"+
+                                                "<div class='custom-control custom-radio custom-control-inline'>"+
+                                                " <input type='radio' class='custom-control-input' id='select-task' name='select-task' onchange='OnCheckBox(\"" + params.data.TaskId + "\");'>" +
+                                                "<label class='custom-control-label' for='select-task'>Link</label>" +
+                                                "</div>" +
+                                                "</section>"
+
+
+                               }
+                            },
+                            {
+                                field: "To",
+                                headerName: "@SharedResource["To"]",
+                            },
+                            {
+                                field: "From",
+                                headerName:"@SharedResource["From"]",width:200
+                            },
+                            {
+                                field: "Subject",
+                                headerName: "@SharedResource["Subject"]", width: 100,
+                            },
+                            {
+                                field: "Bcc",
+                                headerName: "@Resource["Bcc"]", width: 200,
+                            },
+                            {
+                                field: "Cc",
+                                headerName: "@Resource["Cc"]", width: 200,
+                            },
+                            {
+                                field: "MessageId",
+                                headerName: "@Resource["Action"]",
+                                cellRenderer: params => {
+                                    return "<div class='btn-group grid-menu' id='grid-menu-item' data-msgvalue=\"" + params.data.MessageId + "\" data-taskvalue=\"" + params.data.TaskId + "\" data-sbjvalue=\"" + params.data.Subject + "\" data-bodyvalue=\"" + params.data.Body + "\"><i class='fas fa-ellipsis-v'></i></div>"
+                               }
+                            },
+    ];
+
+    $(function () {
+
+        //grid context menu
+        $.contextMenu({
+            selector: '#grid-menu-item',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                
+                console.log($trigger);               
+                var taskId = $trigger.data('taskvalue');
+                var msgId = $trigger.data('msgvalue');
+                var subj = $trigger.data('sbjvalue');
+                var bodyval = $trigger.data('bodyvalue');
+                var status = 0;
+
+                switch (status) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'addTask':
+                                        AddTask(msgId, subj, bodyval);
+                                        break;
+                                    case 'viewTask':
+                                        ViewTask(taskId);
+                                        break;                                    
+                                    default:
+                                }
+                            },
+                            items: {
+                                "addTask": { name: "Add Task", icon: "fa-plus" },
+                                "viewTask": { name: "View Task", icon: "fas fa-eye" },                                
+                            }
+                        };
+                    
+                }
+            }
+        });
+
+    });
+
+    @*function getcompanyinbox() {
+        $("#inboxTreeView").data('kendoTreeView').dataSource.read({ config: "company"});
+        $("#kgdProjectGridView").data('kendoGridView').dataSource.read({ config: "company",id:'@ViewBag.Id'});
+    }*@
+</script>
+<style>
+    .employee-photo {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-size: 32px 35px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 32px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+        margin-left: 5px;
+    }
+
+    .employee-name {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 32px;
+        padding-left: 3px;
+    }
+</style>
+
+<br />
+<div class="row">
+
+    <div class="col-md-12">
+
+
+
+        <div class="row">
+            <div class="col-4">
+                <script>
+                    $('#inboxTreeView')
+                        .on('changed.jstree', function (e, data) {
+                            var i, j, r = [];
+                            for (i = 0, j = data.selected.length; i < j; i++) {
+                                
+                                nodetext = data.instance.get_node(data.selected[i]).text;
+                                //  Type = data.instance.get_node(data.selected[i]).original.Type;
+                                Id = data.instance.get_node(data.selected[i]).original.id;
+                                // ParentId = data.instance.get_node(data.selected[i]).original.ParentId;
+                                OnSelect(Id);
+                            }
+
+                        })
+                        .jstree({
+                            'core': {
+                                'data': function (node, cb) {
+                                    
+                                    if (node.id === "#") {
+                                        $.ajax({
+                                            async: true,
+                                            type: "GET",
+                                            url: "/PJM/EmailTask/GetInboxTreeviewList",
+                                            dataType: "json",
+                                            success: function (json) {
+                                                cb(json);
+                                            },
+
+                                            error: function (xhr, ajaxOptions, thrownError) {
+                                                alert(xhr.status);
+                                                alert(thrownError);
+                                            }
+                                        });
+                                        //cb([{ "text": "Root", "id": "1", "children": true }]);
+                                    }
+                                    else {
+                                        $.ajax({
+                                            async: true,
+                                            type: "GET",
+                                            url: "/PJM/EmailTask/GetInboxTreeviewList?id=" + node.id ,
+                                            dataType: "json",
+                                            success: function (json) {
+                                                cb(json);
+                                            },
+
+                                            error: function (xhr, ajaxOptions, thrownError) {
+                                                alert(xhr.status);
+                                                alert(thrownError);
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        });
+                </script>
+                <div id="inboxTreeView" class="demo treeview"></div>
+                @*@(Html.Kendo().TreeView()
+        .Name("inboxTreeView").HtmlAttributes( new {@class="treeview"})
+      .Events(e=>e.Expand("onExpand").Select("OnSelect"))
+        .DataTextField("Name")
+        .TemplateId("ct-tv-template")
+        .DataSource(dataSource => dataSource
+            .Read(read => read
+                .Action("GetInboxTreeviewList", "EmailTask",new { @area="PJM"})//.Data("AddData")
+            )
+        )
+    )*@
+            </div>
+            <div class="col-8">
+                <div class="panel panel-primary">
+                    @*<div style="background-color:lightblue;cursor:pointer" class="col-md-4" onclick="getcompanyinbox();">Get Company Inbox</div>
+                        <div class="panel-heading">Inbox Details</div>*@
+                    <div class="panel-body">
+
+                        <div id="kgdSelf2GridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                        @*@(Html.Kendo().Grid<MessageEmailViewModel>()
+    .Name("kgdSelf2GridView")
+    .Columns(columns =>
+    {
+        //        columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+
+        columns.Bound(p => p.MessageId).ClientTemplateId("select-email").Title(@Resource["MessageId"]).Width(100);
+        columns.Bound(p => p.To).Title(@SharedResource["To"]).Width(300);
+        columns.Bound(p => p.From).Title(@SharedResource["From"]).Width(250);
+        columns.Bound(p => p.Subject).Title(@SharedResource["Subject"]).Width(250);
+        columns.Bound(p => p.Body).Title(@SharedResource["Body"]).ClientTemplate("#if(Body!=null&&Body.length>30){# # var myContent =Body; #  # var dcontent = myContent.substring(0,30); # <span>#=kendo.toString(dcontent)#</span> #}else{# <span>#=Body#</span> #}#").Width(200);
+        columns.Bound(p => p.Bcc).Title(@Resource["BCC"]).Width(200);
+        columns.Bound(p => p.Cc).Title(@Resource["CC"]).Width(200);
+        columns.Bound(p => p.MessageId).Title(@Resource["MessageId"]).Visible(false).Width(200);
+        // columns.Bound(p => p.To).ClientTemplate("<i class='fa fa-eye' title='ViewTask'></i><i class='fa fas fa-plus' title='AddTask' onclick='AddTask(\"#:TaskId#\",\"#:Body#\",\"#:Subject#\")></i>").Title("").Width(200);
+        columns.Command(command =>
+        {
+            command.Custom("AddTask").Text("<i class='fa fa-plus' title='AddTask'></i>").Click("AddTask").HtmlAttributes(new { @class = "action-icon" });
+            command.Custom("ViewTask").Text("<i class='fa fas fa-eye' title='ViewTask'></i>").Click("ViewTask").HtmlAttributes(new { @class = "action-icon", title = "Job Description" });
+
+        }).Width(150).Exportable(false).Title("Action");
+    })
+    .ToolBar(toolbar =>
+    {
+
+        toolbar.Search().Text(@SharedResource["Search"]);
+    })
+    .ColumnMenu(col=>col.Filterable(false))
+    .Height(700)
+    .Editable()
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+    //.Events(events => events.DataBound("onDataBound"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .AutoSync(true)
+        .ServerOperation(false)
+        //.Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.To);
+
+        })
+        .Read(read=>
+        read.Action("ReadEmailTasks", "EmailTask", new { @area = "PJM", id = ViewBag.Id })
+        )
+
+
+    )
+)*@
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+

@@ -1,0 +1,529 @@
+﻿@using CMS.Common;
+@using CMS.UI.ViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "Editor";
+    Layout = "/Views/Shared/_EditorLayout.cshtml";
+}
+<style>
+    .gjs-pn-commands, .gjs-pn-views, .gjs-pn-options {
+        height: 48px;
+    }      
+    .gjs-pn-devices-c .gjs-pn-buttons {
+        align-items: unset;        
+    }
+    .gjs-pn-views-container{
+        top:48px;
+    }
+    
+</style>
+@*<input id="template" class="form-control" style="width:30%"  />*@
+@*<button id="save" class="btn btn-primary" onclick="onSave()" style="display:none">Save</button>*@
+@*<button id="save-as-new" class="btn btn-primary" onclick="onManageTemplate()">Save As New</button>*@
+@*<button id="glink-as-btn" class="btn btn-primary" style="display:none">Generate Link</button>*@
+@*<button id="gallery-as-btn" class="btn btn-primary" onclick="onOpenGallery()" style="display:none">Gallery</button>*@
+<div id="gjs" style="height:0px; overflow:hidden;">
+    <div class="panel">
+
+        This is a demo content from index.html. For the development, you shouldnt edit this file, instead you can
+        copy and rename it to _index.html, on next server start the new file will be served, and it will be ignored by git.
+
+    </div>
+    @*<div chartId='GrapetestChart'></div>*@
+    <style>
+        .panel {
+            width: 90%;
+            max-width: 700px;
+            border-radius: 3px;
+            padding: 30px 20px;
+            margin: 150px auto 0px;
+            background-color: #d983a6;
+            box-shadow: 0px 3px 10px 0px rgba(0,0,0,0.25);
+            color: rgba(255,255,255,0.75);
+            font: caption;
+            font-weight: 100;
+        }
+
+        .welcome {
+            text-align: center;
+            font-weight: 100;
+            margin: 0px;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            vertical-align: middle;
+        }
+
+            .logo path {
+                pointer-events: none;
+                fill: none;
+                stroke-linecap: round;
+                stroke-width: 7;
+                stroke: #fff
+            }
+
+        .big-title {
+            text-align: center;
+            font-size: 3.5rem;
+            margin: 15px 0;
+        }
+
+        .description {
+            text-align: justify;
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+    </style>
+</div>
+
+<script type="text/javascript">
+    @{
+        string baseurl = ApplicationConstant.AppSettings.ApplicationBaseUrl(Configuration);
+
+    }
+    //const script = function () {
+    //    var chartId = this.id;
+
+    //}
+
+    var editor = grapesjs.init({
+        showOffsets: 1,
+        noticeOnUnload: 0,
+        container: '#gjs',
+        height: '100%',
+        fromElement: true,
+        storageManager: { autoload: false, autosave: false },
+        plugins: ['gjs-preset-webpage', 'grapesjs-component-code-editor', 'grapesjs-plugin-carousel'],
+        pluginsOpts: {
+            'gjs-preset-webpage': {
+                // options
+            },
+            'grapesjs-component-code-editor': {
+                // options
+            },
+            'grapesjs-plugin-carousel': {
+                interval: 5000,
+                autoplay: true,
+                gridsCategory: 'Extra',
+                prefixName:'bst-carousel'
+            }
+        }
+        //styleManager: {
+        //    sectors: [{
+        //        name: 'General',
+        //        open: false,
+        //        buildProps: ['float', 'display', 'position', 'top', 'right', 'left', 'bottom']
+        //    }, {
+        //        name: 'Flex',
+        //        open: false,
+        //        buildProps: ['flex-direction', 'flex-wrap', 'justify-content', 'align-items', 'align-content', 'order', 'flex-basis', 'flex-grow', 'flex-shrink', 'align-self']
+        //    }, {
+        //        name: 'Dimension',
+        //        open: false,
+        //        buildProps: ['width', 'height', 'max-width', 'min-height', 'margin', 'padding'],
+        //    }, {
+        //        name: 'Typography',
+        //        open: false,
+        //        buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color', 'line-height', 'text-shadow'],
+        //    }, {
+        //        name: 'Decorations',
+        //        open: false,
+        //        buildProps: ['border-radius-c', 'background-color', 'border-radius', 'border', 'box-shadow', 'background'],
+        //    }, {
+        //        name: 'Extra',
+        //        open: false,
+        //        buildProps: ['transition', 'perspective', 'transform'],
+        //    }
+        //    ],
+        //},
+    });
+    //editor.TraitManager.addType('chartId', {
+    //    onEvent({ elInput, component, event }) {
+    //        debugger;
+    //        const inputType = elInput.querySelector('.chartId__type');
+
+    //        component.addAttributes({ href })
+    //    },
+    //});
+    editor.Panels.getPanels().models[1].buttons.add({
+        id: 'open-code',
+        className: 'fa fa-file-code-o',
+        command: 'open-code',
+        attributes: { title: 'Open Code' },
+        //togglable: false,
+        active: false,
+    })
+    var elm = editor.Panels.getPanels().models[3].view.$el[0].children[0].children[2];
+    var input = document.createElement("input");
+    input.className = "";
+    input.id = "template";
+    input.style = "width:400px;margin-left:50px;margin-right:50px";
+    $(input).insertAfter(elm);
+    editor.Panels.getPanels().models[3].buttons.add([
+        {
+            id: 'save',
+            className: 'fa fa-save',
+            command: '',
+            attributes: {
+                title: 'Save', id: 'save', style: 'display:none', onclick: 'onSave()'
+            },
+            //togglable: false,
+            active: false,
+        },{
+            id: 'save-as-new',
+            className: 'fa fa-copy',
+            command: '',
+            attributes: {
+                title: 'Save As New', id: 'save-as-new', style: '', onclick:'onManageTemplate()'
+            },
+            //togglable: false,
+            active: false,
+        },
+        {
+        id: 'glink-as-btn',
+        className: 'fa fa-link',
+        command: '',
+        attributes: {
+            title: 'Copy Link', id: 'glink-as-btn', style: 'display:none' },
+        //togglable: false,
+        active: false,
+        },{
+            id: 'gallery-as-btn',
+            className: 'fa fa-image',
+            command: '',
+            attributes: { title: 'Image Gallery', id: 'gallery-as-btn', style: 'display:none', onclick:"onOpenGallery()" },
+            //togglable: false,
+            active: false,
+        }])
+    editor.BlockManager.add('testBlock', {
+        label: 'Block',
+        attributes: { class: 'gjs-fonts gjs-f-b1' },
+        content: `<div style="padding-top:50px; padding-bottom:50px; text-align:center">Test block</div>`
+    })
+    //editor.on('component:update:components', component => {
+    //    debugger;
+    //    const el = component.getEl();
+    //    const hasChildren = component.components().length;
+    //    el.classList[hasChildren ? 'remove' : 'add']('component--is-empty');
+    //})
+    //editor.on('sorter:drag:end', function (drag, drop) {
+    //    debugger;
+    //    if (drag.modelToDrop != undefined && drag.modelToDrop.attributes != undefined) {
+    //        var chartname = drag.modelToDrop.attributes.attributes.chartId;
+    //        if (chartname != undefined) {
+    //        getBoilerplateCode(chartname);
+    //        }
+    //    }
+    //});
+
+    //editor.on('component:drag:stop', function (model) {
+    //    debugger;
+    //    //editor.trigger('component:update:components')
+    //});
+    editor.on('component:update:chartId', model => {        
+        if (model.changed.attributes == undefined) {
+            var chartfullname = model.changed.chartId;
+            var chartName1 = chartfullname.split("-")[0];
+            var chartName2 = chartName1.replaceAll(" ", "");
+            model.setAttributes({ "chartId": chartName2 });
+            getBoilerplateCode(chartName1);
+        }
+        
+        //this.model.setAttributes("chartId", this.model.get("chartId"));
+    })
+    editor.DomComponents.addType('analytics-component', {
+        extend: 'div',
+        model: {
+
+            defaults: {
+                //script,
+                traits: [
+                    // Strings are automatically converted to text types
+                    {
+                        type: 'select',
+                        name: 'chartId',
+                        label: 'Chart Id',
+                        // label: false,
+                        options: @Html.Raw(ViewBag.Charts),                      
+                        changeProp:true,
+                    }
+
+                    ],
+                attributes: { class: 'analytics-charts' },
+
+                styles: `
+        .analytics-charts { background-color: green;width:500px }
+      `,
+
+                testprop: 1,
+
+            },
+            init() {                
+                //var url = '/Cms/Editor/AddAnalyticsChart?compId=' + this.cid;
+                //var win = GetMainWindow();
+                //win.iframeOpenUrl = url;
+                //win.OpenWindow({ Title: 'Select Chart', Width: 750, Height: 450 });                
+            },
+            updated(property, value, prevValue) {
+                //console.log('Local hook: model.updated',
+                //'property', property, 'value', value, 'prevValue', prevValue);
+            },
+            removed() {
+                //console.log('Local hook: model.removed');
+            },
+            handlePropChange() {                
+                //console.log('The value of testprop', this.get('testprop'));
+            }
+        },
+        view: {
+            init() {               
+                //console.log('Local hook: view.init');
+            },
+            onRender({ el }) {
+                //const btn = document.createElement('button');
+                //btn.value = '+';
+                //// This is just an example, AVOID adding events on inner elements,
+                //// use `events` for these cases
+                //btn.addEventListener('click', () => { });
+                //el.appendChild(btn);
+            },
+
+        },
+    });
+
+
+    // A block for the custom component
+    editor.BlockManager.add('analytics-component', {
+        label: 'Analytics Charts',
+        attributes: { class: 'gjs-fonts gjs-f-b1' },
+        category: 'Basic',
+        content: '<div data-gjs-type="analytics-component" class="cell"  draggable="false" data-highlightable="1"></div>',
+    });
+    editor.DomComponents.addType('page-component', {
+        //extend: 'div',
+        model: {
+
+            defaults: {
+                testprop: 1,
+            },
+            init() {
+                var url = '/Cms/Editor/AddPageTemplate?compId=' + this.cid;
+                var win = GetMainWindow();
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Title: 'Select Page Template', Width: 750, Height: 450 });
+            },
+            updated(property, value, prevValue) {
+                //console.log('Local hook: model.updated',
+                //'property', property, 'value', value, 'prevValue', prevValue);
+            },
+            removed() {
+                //console.log('Local hook: model.removed');
+            },
+            handlePropChange() {
+                //console.log('The value of testprop', this.get('testprop'));
+            }
+        },
+        view: {
+            init() {
+                //console.log('Local hook: view.init');
+            },
+            onRender({ el }) {
+                //debugger;
+                //const btn = document.createElement('button');
+                //btn.value = '+';
+                //// This is just an example, AVOID adding events on inner elements,
+                //// use `events` for these cases
+                //btn.addEventListener('click', () => { });
+                //el.appendChild(btn);
+            },
+
+        },
+    });
+
+
+    // A block for the custom component
+    editor.BlockManager.add('page-component', {
+        label: 'Page Template',
+        attributes: { class: 'gjs-fonts gjs-f-b1' },
+        category: 'Basic',
+        content: '<div data-gjs-type="page-component" class="cell"  draggable="false" data-highlightable="1"></div>',
+    });
+    function onSave() {
+
+        kendo.ui.progress($('#gjs'), true);
+        var content = JSON.stringify(editor.getComponents());
+        var style = JSON.stringify(editor.getStyle());
+        var id = $("#template").val();
+        var url = "@Url.Action("ManageSynergyWebsite", "Editor", new { @area = "Cms" })";
+        var model = { HtmlContent: content, NoteId: id, Style: style };
+        if (id != null && id != "" && id != undefined) {
+            $.post(url, model, function (res) {
+                if (res.success) {
+                    kendo.ui.progress($('#gjs'), false);
+                    alert("success");
+
+                }
+                else {
+                    kendo.ui.progress($('#gjs'), false);
+                    alert(res.error);
+                }
+            });
+        }
+    }
+    function onManageTemplate() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("manage", "Editor", new { @area= "Cms" })';
+        win.OpenWindow({ Title: 'Create Page', Width: 500, Height: 400});
+        return false;
+    }
+    $(document).ready(function () {
+        $("#template").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "NoteId",
+            optionLabel:"@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            change:onTemplateChange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Editor/GetAllSynergyWebsite",
+                    }
+                }
+            }
+        });
+
+
+
+    });
+    function onTemplateChange(e) {
+        $("#save").show();
+        $("#glink-as-btn").show();
+        $("#gallery-as-btn").show();
+        var id = e.sender.value();
+         $.ajax({
+                                    url: '@Url.Action("GetSynergyWebsiteData", "Editor", new { @area="Cms"})?id=' + id,
+                                    type: 'GET',
+                                     success: function (result) {
+                                        if (result != null) {
+
+                                            editor.setComponents(JSON.parse(result.HtmlContent));
+                                            editor.setStyle(JSON.parse(result.Style));
+
+                                        }
+                                        else {
+                                            alert("Load Failed !");
+                                        }
+                                    },
+                                    error: function (ert) {
+
+                                    }
+                                });
+    }
+
+     var clipboard = new ClipboardJS('#glink-as-btn', {
+        text: function () {
+            var id = $("#template").val();
+            var url = "@baseurl" + "cms/editor/render?enc=" + EncryptParams('id=' + id);
+            alert("Link Copied.")
+            return url;
+        },
+    });
+    function onOpenGallery() {
+        var id = $("#template").val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("gallery", "Editor", new { @area= "Cms" })?id='+id;
+        win.OpenWindow({ Title: 'Image Gallery', Width: 925, Height: 700});
+        return false;
+    }
+    function SetResponse(prms) {
+        debugger;
+        eval(prms);
+    }
+    //cubejsApi.load({ measures: ["MapDataTest.count"], dimensions: ["MapDataTest.ZONE_NAME"], filters: [], timeDimensions: [] })
+    //    .then((resultSet) => {
+
+    //        var inputs = { measures: ["MapDataTest.count"], dimensions: ["MapDataTest.ZONE_NAME"], filters: [], timeDimensions: [] };
+    //        var dim = inputs.dimensions[0];
+    //        dim = dim.replaceAll(".", "_");
+    //        var mes = inputs.measures[0];
+    //        mes = mes.replaceAll(".", "_");
+    //        var datastring = JSON.stringify(resultSet.loadResponse.results[0].data);
+    //        datastring = datastring.replaceAll(".", "_");
+    //        var dataSource1 = JSON.parse(datastring);
+    //        var count = [];
+    //        var cat = [];
+    //        dataSource1.forEach((index) => {
+    //            cat.push(index[dim]);
+    //            count.push(index[mes]);
+    //        });
+
+
+
+
+    //        var options = {
+    //            chart: {
+    //                type: "bar",
+    //                height: "auto",
+    //                events: {
+    //                    click: function (chart, w, e) {
+    //                        OnGrapetestChartClick(chart, w, e);
+    //                    }
+    //                }
+    //            },
+
+    //            theme: {
+    //                mode: "light",
+    //                palette: "palette1",
+    //                monochrome: {
+    //                    enabled: false,
+    //                    color: "",
+    //                }
+    //            },
+    //            plotOptions: {
+    //                bar: {
+    //                    columnWidth: "20%",
+    //                    distributed: true,
+    //                }
+    //            },
+    //            series: [
+    //                {
+    //                    name: 'GrapetestChart',
+    //                    data: count
+    //                }
+    //            ],
+    //            xaxis: {
+    //                categories: cat,
+    //                labels: { show: false }
+    //            },
+    //            legend: { show: true, position: "bottom" },
+    //            labels: {
+    //                style: {
+    //                    fontSize: "12px"
+    //                }
+    //            }
+    //        }
+    //        //document.getElementById('GrapetestChart').innerHTML = "";
+    //        var barChart = new ApexCharts(document.getElementsByClassName("gjs-frame")[0].contentWindow.document.querySelector('[chartId="GrapetestChart"]'), options)
+    //        barChart.render();
+    //    });
+    //function OnGrapetestChartClick(args) { }
+    function getBoilerplateCode(chartId) {
+        $.ajax({
+            type: "GET",
+            url: "/Cms/BusinessAnalytics/GetChartDataByItemNameWithParams?itemName=" + chartId,
+            success: function (response) {
+                if (response != "" && response != null) {                   
+                    eval(response);
+                }
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });
+    }
+</script>
+
+
+

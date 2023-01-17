@@ -1,0 +1,232 @@
+﻿@inject Synergy.App.Common.IUserContext _userContext
+@using Synergy.App.Common;
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+
+@*<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/open-iconic/font/css/open-iconic-bootstrap.min.css" asp-append-version="true">*@
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme.min.css" data-skin="default" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme-dark.min.css" data-skin="dark" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.css" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/custom.css" asp-append-version="true">
+<style>
+
+    .disable-color > * {
+        background-color: #f6f7f9;
+        opacity:1;
+    }
+    .text-sm {
+        font-size: .75rem !important;
+    }
+
+    .dropdown-scroll {
+        height: 360px !important;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 15px;
+        left: 30px;
+        /*color: #fff;*/
+    }
+
+    .nts-d-none {
+        display: none;
+    }
+
+    .dropdown-menu {
+        z-index: 999 !important;
+    }
+
+    #cms-content {
+        min-height: calc(100vh - 125px) !important;
+    }
+
+    .app {
+        background-color: #fff;
+    }
+
+    .col-form-label {
+        color: #888c9b !important;
+    }
+
+    .lang-text {
+        font-size: .8rem;
+        font-weight: 400;
+        opacity: .8;
+    }
+
+    .lang-menu-text {
+        font-size: .85rem;
+        opacity: .8;
+    }
+
+    .lang-flag {
+        width: 1.2rem;
+        height: .8rem;
+        border-radius: 0px !important;
+    }
+
+    .container {
+        margin-right: 0px !important;
+        margin-left: 0px !important;
+    }
+
+    .formio-error-wrapper {
+        background-color: transparent !important;
+    }
+
+    .formio-error-wrapper, .formio-warning-wrapper {
+        padding: 0px !important;
+    }
+</style>
+<script>
+    var skin = localStorage.getItem('skin') || 'default';
+    var isCompact = JSON.parse(localStorage.getItem('hasCompactMenu'));
+    var disabledSkinStylesheet = document.querySelector('link[data-skin]:not([data-skin="' + skin + '"])');
+    // Disable unused skin immediately
+    disabledSkinStylesheet.setAttribute('rel', '');
+    disabledSkinStylesheet.setAttribute('disabled', true);
+    // add flag class to html immediately
+    if (isCompact == true) document.querySelector('html').classList.add('preparing-compact-menu');
+    function IsPopupWindow() {
+        return (window.frameElement !== null && window.frameElement !== undefined && window.frameElement !== '');
+    }
+    if (IsPopupWindow()) {
+        $("<style>")
+            .prop("type", "text/css")
+            .html("\
+                .clear-padding {\
+                    margin-left: 0px !important;\
+                    padding-top: 0px!important;\
+                    padding-bottom: 0px!important;\
+                }\
+                .hide-in-popup {\
+                    display: none;\
+                }\
+                .app-main-popup {\
+                    padding-left: 0px !important;\
+                    padding-top: 0px !important;\
+                }")
+            .appendTo("head");
+    }
+
+    function MarkAllNotifications() {
+        debugger;
+        $.ajax({
+            url: '@Url.Action("MarkAllNotificationAsRead", "NotificationTemplate", new { @area= "PortalAdmin" })?userId=@_userContext.UserId&portalId=@_userContext.PortalId',
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        ShowNotification("Successfully marked as read", 'success');
+                    } else {
+                        ShowNotification("Update Failed", 'error');
+                    }
+                },
+                error: function (ert) {
+                    //
+                    ShowNotification("Update Failed", 'error');
+                }
+        });
+    }
+
+</script>
+
+<div id="overlay" class=""></div>
+<span id="popupNotification"></span>
+<div id="wrapper" class="app has-fullwidth">
+    <header class="hide-in-popup app-header app-header-dark">
+        <!-- .top-bar -->
+        <div class="top-bar">
+            <!-- .top-bar-brand -->
+            <div class="top-bar-brand hide-side-menu">
+                <!-- toggle aside menu -->
+                <!--<button class="hamburger hamburger-squeeze mr-2" type="button" data-toggle="aside-menu" aria-label="toggle aside menu"><span class="hamburger-box"><span class="hamburger-inner"></span></span></button>--> <!-- /toggle aside menu -->
+                <a href="@ViewBag.Portal?.LandingPage">
+                    <img alt="" title="" style="max-height:50px;" src="~/images/extra-synergy.jpg"  />
+                </a>
+            </div><!-- /.top-bar-brand -->
+            <!-- .top-bar-list -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary py-lg-0" style="width:100%;">
+                <!-- .container -->
+                <div class="container">
+                    <!-- .navbar-brand -->
+                    <a class="navbar-brand" href="~/cms/content/index">
+                        <img alt="" title="" style="max-height:50px;" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = ViewBag.Portal?.LogoId })" onerror='LogoError(this);' />
+                    </a> <!-- /.navbar-brand -->
+                    <button class="hamburger hamburger-squeeze d-flex d-lg-none" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation"><span class="hamburger-box"><span class="hamburger-inner"></span></span></button> <!-- .navbar-collapse -->
+                    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+                        <!-- .navbar-nav -->
+                        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" href="~/cms/content/index">Portal</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="~/cms/template/index">Template</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="~/cms/admin/index">Admin</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="~/cms/BusinessDiagram/BusinessDiagram">Business Diagram</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="~/cms/content/portalDiagram">Portal Diagram</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="~/cms/aqb/index">Query Builder</a>
+                            </li>
+
+                        </ul>
+                        <div class="top-bar-item top-bar-item-right px-0 d-flex mr-lg-n3">
+                            <!-- .nav -->
+                             
+                            <!-- .btn-account -->
+                            <div class="navbar-nav dropdown d-flex mr-lg-n3">
+                                <button class="btn-account" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="user-avatar user-avatar-md">
+                                        <img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" alt="" onerror='OnPhotoError(this);'>
+                                    </span> <span class="account-summary pr-lg-4 d-none d-lg-block"><span class="account-name">@_userContext.Name</span> <span class="account-description">@_userContext.JobTitle</span></span>
+                                </button> <!-- .dropdown-menu -->
+                                <div class="dropdown-menu">
+                                    <div class="dropdown-arrow d-lg-none" x-arrow=""></div>
+                                    <div class="dropdown-arrow ml-3 d-none d-lg-block"></div>
+                                    <h6 class="dropdown-header d-none d-md-block d-lg-none">@_userContext.Name</h6>
+                                    <a class="dropdown-item" href="javascript:OpenChangePassowrd()"><span class="dropdown-icon fa fa-key"></span>@Html.Raw(SharedResource["ChangePassword"])</a>
+                                    <a class="dropdown-item" href="javascript:$('#logoutModal').modal('show');"><span class="dropdown-icon fa fa-sign-out"></span>@Html.Raw(SharedResource["Log Out"])</a>
+                                </div><!-- /.dropdown-menu -->
+                            </div><!-- /.btn-account -->
+                        </div>
+
+                    </div><!-- /.navbar-collapse -->
+                </div><!-- /.container -->
+            </nav>
+        </div><!-- /.top-bar -->
+    </header><!-- /.app-header -->
+    <!-- /.app-header -->
+    <!-- .app-main -->
+    <main class="app-main" id="main-content">
+        @RenderBody()
+        <div id="global-overlay" class="global-overlay">
+            <div class="global-overlay-loader">
+            </div>
+        </div>
+        <footer class="app-footer hide-in-popup">
+            <div class="copyright">Copyright &copy; SYNERGY BRE @DateTime.Today.Year</div>
+        </footer>
+
+    </main>
+</div>
+
+<script src="~/Themes/Looper/dist/assets/vendor/pace-progress/pace.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/stacked-menu/js/stacked-menu.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/perfect-scrollbar/perfect-scrollbar.min.js" asp-append-version="true"></script> <!-- END PLUGINS JS -->
+<!-- BEGIN THEME JS -->
+<script src="~/Themes/Looper/dist/assets/javascript/theme.min.js" asp-append-version="true"></script> <!-- END THEME JS -->
+<script src="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/flatpickr/plugins/monthSelect/index.js" asp-append-version="true"></script>

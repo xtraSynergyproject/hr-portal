@@ -1,0 +1,38 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+  postgresql-slave:
+    image: docker.io/bitnami/postgresql:11
+    ports:
+      - '5432'
+    depends_on:
+      - postgresql-master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=Synergywelcome1
+      - POSTGRESQL_MASTER_HOST=193.123.64.182
+      - POSTGRESQL_PASSWORD=Synergywelcome1
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      #- ALLOW_EMPTY_PASSWORD=yes
+
+  pgbouncer:
+    dns:
+      - 8.8.8.8
+      - 4.2.2.4
+    depends_on:
+      - postgresql-slave
+    volumes:
+      - ./userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    restart: always
+    image: pgbouncer/pgbouncer
+    env_file:
+      - ./env/pgbouncer.env
+    ports:
+      - 6432:6432
+
+networks:
+  default:
+    external:
+      name: cmssynergy_default

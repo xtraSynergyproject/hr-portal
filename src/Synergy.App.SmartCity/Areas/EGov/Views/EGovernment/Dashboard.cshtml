@@ -1,0 +1,416 @@
+﻿@using Synergy.App.ViewModel;
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.Extensions;*@
+@inject Synergy.App.Common.IUserContext _userContext;
+@model EGovDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    // Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+
+}
+<link href="~/css/EGOV/DashBoardStyles.css" rel="stylesheet" asp-append-version="true" />
+<link href="~/css/EGOV/Dashboard-Navigation-with-Button.css" rel="stylesheet" asp-append-version="true" />
+<style>
+    
+</style>
+<script type="text/javascript">
+    $('#left').click(function (event) {
+        
+        event.preventDefault();
+        $('#paymentdues').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+    });
+
+    $('#right').click(function (event) {
+        
+        event.preventDefault();
+        $('#paymentdues').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+    });
+
+    $('#reqleft').click(function (event) {
+        
+        event.preventDefault();
+        $('#services').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+    });
+
+    $('#reqright').click(function () {
+        
+        event.preventDefault();
+        $('#services').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+
+    });
+
+    function CreateService(templatecode) {
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&source=Create&dataAction=Create&templateCodes=' + templatecode + '&portalId=' + portalId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Request', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function OnViewServiceList(status, tempCode) {
+        
+        if (status == "SERVICE_STATUS_INPROGRESS") {
+            status = "SERVICE_STATUS_INPROGRESS,SERVICE_STATUS_OVERDUE";
+        } else if (status == "SERVICE_STATUS_REJECT") {
+            status = "SERVICE_STATUS_REJECT,SERVICE_STATUS_CANCEL";
+        }
+        var url = '/EGov/EGovernment/ServiceList?statusCodes=' + status + "&templateCode=" + tempCode;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Service List', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    $(document).ready(function () {
+        var dataSource1 = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/EGov/EGovernment/ReadServiceTemplate",
+                    data: FilterTemplate,
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listViewSL").kendoListView({
+            dataSource: dataSource1,
+            template: kendo.template($("#tasktemplate1").html()),            
+        });
+                
+        
+    });
+
+    function FilterTemplate() {
+            return data = {
+                templateCode: '@Model.TemplateCodes',
+            }
+    }
+
+    function SelectTemplate(id, tempCode, temtype, area, cont, action, param) {
+        
+        var guestUser = '@_userContext';
+
+        if ('@_userContext.IsGuestUser' == 'True') {
+            var rturl = '@System.Web.HttpUtility.UrlEncode(string.Concat("/Portal/", @_userContext.PortalName,"?portalId=", @_userContext.PortalId))';
+            var url = "/Egov/EGovernment/Login?returnUrl=" + rturl;
+            window.location.href = url;
+        }
+        else {
+
+        var url = "";
+        var portalId = "";
+        var portalName = "";
+        var prms = "";
+        var callbackMethod = "";
+        if (window.parent == "" || window.parent == undefined) {
+            portalId = $("#GlobalPortalId").val();
+        }
+        else {
+            portalId = window.parent.$("#GlobalPortalId").val();
+        }
+        @*if ('@Model.UserId' != null && '@Model.UserId' != '') {
+
+            if ('@Model.Prms' != null && '@Model.Prms' != '') {
+                prms = encodeURIComponent('ownerUserId=@Model.UserId&@Html.Raw(Model.Prms)');
+            }
+            else {
+                prms = encodeURIComponent('ownerUserId=@Model.UserId');
+            }
+
+            var udfs = encodeURIComponent('SelectedUserId=@Model.UserId');
+        }
+        else {
+            prms = encodeURIComponent('@Html.Raw(Model.Prms)');
+        }
+        if ('@Model.CallBackMethodName' != null && '@Model.CallBackMethodName' != '') {
+            callbackMethod = '@Model.CallBackMethodName';
+        } else {
+            callbackMethod = "OnAfterServiceCreate";
+        }*@
+
+        if (temtype == @((int)TemplateTypeEnum.Custom)) {
+
+            url = '/' + area + '/' + cont + '/' + action + '?' + param;
+        }
+        else {
+            //url = '/Cms/Page?lo=Popup&pageType=Service&cbm=' + callbackMethod + '&source=Create&dataAction=Create&templateCodes=' + tempCode + '&portalId=' + portalId + '&prms=' + prms + '&udfs=' + udfs;
+            url = '/Cms/Page?lo=Popup&pageType=Service&cbm=callbackMethod&source=Create&dataAction=Create&templateCodes=' + tempCode + '&portalId=' + portalId;
+        }
+
+        @*var url = '@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?templateid=' + tempid + '&templateCodes=' + tempCode+'&lo=Popup&cbm=OnAfterServiceCreate';*@
+         var win = GetMainWindow();
+         win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Service', Width: 1000, Height: 600 });
+        return false;
+        //var win = GetMainWindow();
+        //win.CloseWindow();
+        //return false;
+        //var win = GetMainWindow();
+        ////var parent = win.GetParentWindow();
+        ////parent.backtoNtsTaskIndex(id);
+        //win.CloseWindow({ MethodName: 'backtoNtsServiceIndex' });
+        //return false;
+        }
+    }
+
+    function callbackMethod(){          
+        //$("#listViewSL").data("kendoListView").dataSource.read();
+        window.location.href = window.location.href;
+    }
+
+    function MoreServices() {
+        window.location.href = "/Portal/EGovCustomer/Services";
+    }
+
+</script>
+
+
+
+<div class="row" style="padding:10px;margin-top:20px;">
+
+    <div class="col-md-12">
+        <!--<div>
+        <div class="row">
+            <div class="col-6">
+                <h4 style="font-weight:500;margin-left:30px;">DUE PAYMENTS</h4>
+            </div>
+            <div class="col-6">
+                <button style="float:right" id="right" class="scrollbtn"><i class="fas fa-chevron-right"></i></button>
+                <button style="float:right" id="left" class="scrollbtn"><i class="fas fa-chevron-left"></i></button>
+
+            </div>
+
+            <div class="d-flex flex-row flex-nowrap overflow-hidden" id="paymentdues">
+                <div class="box" style=" overflow: unset; display: flex;">-->
+        @*@foreach (var item in Model.PaymentDueList)
+        {
+           <div class="box indiv-block-bg">
+                    <div class="row">
+                        <div class="col">
+                            <div class="title-bg"><label>@item.ServiceName</label></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div>
+                                <div class="L-block"><img class="service-img" src="assets/img/ico-property-tax.png"></div>
+                                <div class="R-block"><label class="amount">@item.DueAmount</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="dates-block">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="bill-date"><label class="sub-lable">Bill Date</label><label class="field-value">@item.BillDate</label></div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="due-date"><label class="sub-lable">Due Date</label><label class="field-value">@item.DueDate<br></label></div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="status"><label>@item.Status</label></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+        }*@
+        <!--</div>
+        </div>
+    </div>-->
+        @*@(Html.Kendo().ListView<EGovDashboardViewModel>()
+               .Name("listViewDuePayment")
+               .TagName("div")//.Events(e=>e.Change("Onchange"))
+               .ClientTemplateId("templateDuePay")
+               .DataSource(dataSource => dataSource
+               .Ajax()
+               .Read(read => read.Action("ReadDuePaymentList", "EGovernment", new { @area = "EGov"}))
+               )
+               .HtmlAttributes(new {@id = "board"})
+        )*@
+
+
+        <!--<!--<script type="text/x-kendo-tmpl" id="templateDuePay">-->
+        <!--@*<div class="card text-center" style="width:220px;height:310px;">
+          <div class="card-body">
+               <img class="caticon card-title" src="/cms/Document/GetImageMongo?id=#=IconFileId#" onerror="OnDocumentError(this);">
+            <h5 class="card-title">#:Name#</h5>
+            <p class="card-text">#:Description#</p>
+            <button  class="btn btn-primary" onclick="OnChange('#:Code#')";>View Services</button>
+          </div>
+        </div>*@-->
+        <!--<div class="card">
+    <div class="card-header" style="font-weight:500">#=ServiceName#</div>
+    <div class="card-body">
+        <div class="row no-gutters">
+            <div class="col-md-7" style="padding:10px;">
+                <div class="circle"><span style="margin-top:15px;">#=DueAmount#</span></div>
+            </div>
+            <div class="col-md-5">
+                <div class="card-body-col" style="height:100%;">
+                    <div style="text-align:center;padding:10px;">#=DueDate#</div>
+                    <div style="text-align:center;padding:10px;">#=BillDate#</div>
+                    <div style="text-align:center;padding:10px;">#=Status#</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </script>-->
+        <!--</div>-->
+
+
+        <div>
+            <div class="row" style="margin-top:10px;">
+                <div class="col-6">
+                    <h4 class="listheading">MY REQUESTS</h4>
+                </div>
+                <div class="col-6">
+                    <button style="float:right" id="reqright" class="scrollbtn"><i class="fas fa-chevron-right"></i></button>
+                    <button style="float:right" id="reqleft" class="scrollbtn"><i class="fas fa-chevron-left"></i></button>
+
+                </div>
+            </div>
+
+            <div class="d-flex flex-row flex-nowrap overflow-hidden" id="services">
+                <div class="box" style=" overflow: unset; display: flex;">
+                    @foreach (var item in Model.ServiceList)
+                    {
+                        <div class="box indiv-block-bg">
+                            <div class="row tempheader">
+                                <div class="col">
+                                    <div class="title-bg"><label>@item.ServiceName</label></div>
+                                </div>
+                            </div>
+                            <div class="row sercount">
+                                <div class="col text-primary" style="text-align:center;" onclick="OnViewServiceList('SERVICE_STATUS_INPROGRESS','@item.TemplateCode')">
+                                    <label class="amount">@item.InProgressCount</label>
+                                    <br />
+                                    <label style="font-size:14px;font-weight:500">Pending</label>
+                                    <!--<div>
+                                <div class="L-block">-->
+                                    @*<img class="service-img" src="assets/img/ico-property-tax.png">*@
+                                    <!--</div>
+                                    <div class="R-block"></div>
+                                </div>-->
+                                </div>
+                                <div class="col text-success" style="text-align:center;" onclick="OnViewServiceList('SERVICE_STATUS_COMPLETE','@item.TemplateCode')">
+                                    <label class="amount">@item.CompletedCount</label>
+                                    <br />
+                                    <label style="font-size:14px;font-weight:500">Completed</label>
+                                    <!--<div>
+                                <div class="L-block">-->
+                                    @*<img class="service-img" src="assets/img/ico-property-tax.png">*@
+                                    <!--</div>
+                                    <div class="R-block"></div>
+                                </div>-->
+                                </div>
+                                <div class="col text-danger" style="text-align:center;" onclick="OnViewServiceList('SERVICE_STATUS_REJECT','@item.TemplateCode')">
+                                    <label class="amount">@item.RejectedCount</label>
+                                    <br />
+                                    <label style="font-size:14px;font-weight:500">Rejected</label>
+                                    <!--<div>
+                                <div class="L-block">-->
+                                    @*<img class="service-img" src="assets/img/ico-property-tax.png">*@
+                                    <!--</div>
+                                    <div class="R-block"><label class="amount">@item.RejectedCount</label></div>
+                                </div>-->
+                                </div>
+                            </div>
+
+                            @*<div class="row">
+                                    <div class="col">
+                                        <div class="dates-block">
+                                            <div class="row">
+                                                <div class="col-4">
+                                                    <div class="bill-date"><label class="sub-lable">Requested Date</label><label class="field-value">@item.BillDate</label></div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="due-date"><label class="sub-lable">Due Date</label><label class="field-value">@item.DueDate<br></label></div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="status"><label>@item.Status</label></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>*@
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+
+
+
+
+        <h4 class="listheading" style="margin-top:20px;">QUICK ACCESS</h4>        
+        <div class="d-flex flex-row flex-nowrap overflow-hidden" id="quickaccess" style="margin-top:10px;">
+
+            <div id="listViewSL"></div>
+
+            <script type="text/x-kendo-template" id="tasktemplate1">
+                #if(Id!=null)
+                        {#
+                  <div class="card quickaccess" onclick="SelectTemplate('#=Id#','#=Code#','#=TemplateType#','#=AreaName#','#=ControllerName#','#=ActionName#','#=Parameter#');" >
+                  <div class="card-body">
+
+                       <a href="javascript:void(0);" >
+                            <div class="box">
+                                 <div class="menu-block">
+                                      <div class="L-block"> <img class="tempicon" src="/cms/Document/GetImageMongo?id=#=IconFileId#" onerror="OnDocumentError(this);"></div>
+                                      <div class="R-block"><label class="service-title-2"> #:DisplayName#</label></div>
+                                        <div class="vert-divider">
+                                        </div>
+                                    </div>
+                            </div>
+                        </a>
+                </div>
+                </div>
+                        #}
+                        else {#
+                        <div class="card quickaccess" onclick="MoreServices();" >
+                                <div class="card-body">
+                                      <div class="moreser" ><label class="service-title-3"> #:DisplayName#</label></div>
+                                </div>
+                        </div>
+                        #}#
+
+            </script>
+                        
+
+            @*<div class="card quickaccess" onclick="CreateService('NO_DUES_CERTIFICATE')">
+                <div class="card-body">
+                    <img class="card-img" src="~/images/EGOV/Regimage.jpg" alt="Card image" style="filter: blur(2px);">
+                    <div class="card-img-overlay" style="text-align:center;">
+                        <h5 class="card-title" style="color:#fff;font-weight:bold;margin-top:35px;">NO DUES CERTIFICATE REQUEST</h5>
+                    </div>
+                </div>
+            </div>*@
+        </div>
+
+    </div>
+
+    @*<div class="col-md-2" style="background-color:lightgrey">
+
+        </div>*@
+</div>
+

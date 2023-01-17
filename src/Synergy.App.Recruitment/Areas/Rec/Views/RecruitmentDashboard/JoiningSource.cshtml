@@ -1,0 +1,599 @@
+﻿@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using CMS.Common;
+@using Kendo.Mvc.UI
+@{
+    ViewBag.Title = "Requirement Dashboard";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+@model ApplicationViewModel
+
+<script type="text/javascript">
+      $(document).ready(function () {
+
+        if ('@ViewBag.Success' == "True") {
+           // closeNav();
+          //  window.parent.$("#grid").data("kendoGrid").dataSource.read();
+        }
+
+    });
+    function OnCreateBen(e) {
+        //
+        @*iframeOpenUrl = '@Url.Action("CreateBeneFiciary", "RecruitmentDashboard", new { @area = "Recruitment", applicatiodid=Model.Id })';
+        OpenIframePopup1(500, 1400, 'Manage Beneficiary');*@
+       // _RecruitmentPayElement
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateBeneFiciary", "RecruitmentDashboard", new { @area = "Recruitment" , applicatiodid=Model.Id })';
+        win.OpenWindow({ Title: 'Manage Beneficiary', Width: 500, Height: 1000 });
+        return false;
+
+
+    }
+
+    function OnEdit(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        @*iframeOpenUrl = '@Url.Action("EditBeneFiciary", "RecruitmentDashboard", new { @area = "Recruitment"})?Id=' + dataItem.Id + '&applicatiodid=' + '@Model.Id';
+        OpenIframePopup1(500, 1400, 'Manage Beneficiary');*@
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("EditBeneFiciary", "RecruitmentDashboard", new { @area = "Recruitment" })?Id=' + dataItem.Id + '&applicatiodid=' + '@Model.Id';
+        win.OpenWindow({ Title: 'Manage Beneficiary', Width: 500, Height: 1000 });
+        return false;
+       // _RecruitmentPayElement
+
+    }
+    function closeNav() {
+       // alert("test");
+        //window.parent.CloseIframePopup2();
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnDelete(e) {
+        //
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").open();
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(dataItem.Id);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDelete(id) {
+        //
+        //  var grid = $("#grd_OrderStatus").data("kendoGrid");
+        // var dataItem = $(e.currentTarget).closest("tr");
+        // alert(dataItem.Id);
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $.ajax({
+           // url: "~/UserRole/DeleteUserRole?Id=" + id,
+            url:'@Url.Action("DeleteBeneFiciary", "RecruitmentDashboard", new { @area= "Recruitment" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                // $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+                ShowNotification("Deleted Successfully", "success");
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+       // window.parent.CloseIframePopup();
+
+    }
+
+
+
+
+</script>
+
+<style>
+    .bold-text {
+        font-weight: bold;
+    }
+
+    .left-column-property {
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 1px;
+    }
+
+    .right-column-property {
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 0px;
+    }
+
+    .middle-column-property-1 {
+        border-width: 1px;
+        border-style: solid;
+    }
+
+    .middle-column-property-2 {
+        border-width: 1px;
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 1px;
+    }
+</style>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+    <form asp-controller="RecruitmentDashboard" asp-action="ManageJoiningSource" method="post" class="form-horizontal">
+        <div id="validation-summary-managepage" class="text-danger" asp-validation-summary="All"></div>
+        <div class="row no-gutters pad-10">
+
+            <div class="row no-gutters pad-10">
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:15px">
+                        <div>
+                            <label for="FirstName">First Name</label>
+                        </div>
+                        @*<input asp-for="OfferDesigination" type="text" class="form-control" required="required" autocomplete="off" style="margin-right:60px;" />*@
+                        @Html.Kendo().TextBoxFor(x => x.FirstName)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="MiddleName">Middle Name</label>
+                        </div>
+                        @*<input asp-for="GaecNo" type="text" />*@
+                        @Html.Kendo().TextBoxFor(x => x.MiddleName)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="LastName">Last Name</label>
+                        </div>
+                        @*<input type="number" asp-for="AnnualLeave" class="form-control" placeholder="Annual Leave" autocomplete="off" style="width:30%" />*@
+                        @Html.Kendo().TextBoxFor(x => x.LastName)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="GaecNo">GAEC No</label>
+                        </div>
+                        @*<input type="number" asp-for="AnnualLeave" class="form-control" placeholder="Annual Leave" autocomplete="off" style="width:30%" />*@
+                        @Html.Kendo().TextBoxFor(x => x.GaecNo)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row no-gutters pad-10">
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:15px">
+                        <div>
+                            <label for="Sourcing">Sourcing</label>
+                        </div>
+                        @*<input asp-for="OfferDesigination" type="text" class="form-control" required="required" autocomplete="off" style="margin-right:60px;" />*@
+                        @Html.Kendo().TextBoxFor(x => x.Sourcing)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="JobNo">Job No</label>
+                        </div>
+                        @*<input asp-for="GaecNo" type="text" />*@
+                        @Html.Kendo().TextBoxFor(x => x.JobNo)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="ReportingToId">Reporting To</label>
+                        </div>
+                        @Html.Kendo().TextBoxFor(x => x.ReportingToId)
+                        @*@(Html.Kendo().DropDownListFor(x => x.ReportingToId)
+                                    .DataTextField("Name")
+                                            .DataValueField("Id")
+                                             .Filter(FilterType.Contains)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetUsertIdNameList", "RecruitmentDashboard");
+                                        });
+                                    })
+                        // .Value(Model.Status.ToString())
+                        //  .HtmlAttributes(new { @class="form-control", style = "width:80%" })
+                            )*@
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group">
+                        <div>
+                            <label for="DateOfArrival">Date Of Arrival</label>
+                        </div>
+                        @*<input type="number" asp-for="AnnualLeave" class="form-control" placeholder="Annual Leave" autocomplete="off" style="width:30%" />*@
+                        @Html.Kendo().DatePickerFor(x => x.DateOfArrival)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row no-gutters pad-10">
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:15px">
+                        <div>
+                            <label for="NextOfKin">Next Of Kin</label>
+                        </div>
+                        @*<input asp-for="OfferDesigination" type="text" class="form-control" required="required" autocomplete="off" style="margin-right:60px;" />*@
+                        @Html.Kendo().TextBoxFor(x => x.NextOfKin)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="NextOfKinRelationship">Next Of Kin Relationship</label>
+                        </div>
+                        @*<input asp-for="GaecNo" type="text" />*@
+                        @Html.Kendo().TextBoxFor(x => x.NextOfKinRelationship)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="NextOfKinEmail">Next Of Kin Email</label>
+                        </div>
+                        @*<input type="number" asp-for="AnnualLeave" class="form-control" placeholder="Annual Leave" autocomplete="off" style="width:30%" />*@
+                        <input type="email" id="NextOfKinEmail" name="NextOfKinEmail" value="@Model.NextOfKinEmail" class="k-textbox" placeholder="e.g. myname@example.net" data-email-msg="Email format is not valid" />
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group">
+                        <div>
+                            <label for="NextOfKinPhoneNo">Next Of Kin Phone No.</label>
+                        </div>
+                        @*<input type="number" asp-for="AnnualLeave" class="form-control" placeholder="Annual Leave" autocomplete="off" style="width:30%" />*@
+                        <input type="number" id="NextOfKinPhoneNo" name="NextOfKinPhoneNo" value="@Model.NextOfKinPhoneNo" class="k-textbox" @*placeholder="e.g. myname@example.net"*@ />
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="row no-gutters pad-10">
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:15px">
+                        <div>
+                            <label for="OtherNextOfKin">Other Next Of Kin</label>
+                        </div>
+                        @*<input asp-for="OfferDesigination" type="text" class="form-control" required="required" autocomplete="off" style="margin-right:60px;" />*@
+                        @Html.Kendo().TextBoxFor(x => x.OtherNextOfKin)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="OtherNextOfKinRelationship">Other Next Of Kin Relationship</label>
+                        </div>
+                        @*<input asp-for="GaecNo" type="text" />*@
+                        @Html.Kendo().TextBoxFor(x => x.OtherNextOfKinRelationship)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="OtherNextOfKinEmail">Other Next Of Kin Email</label>
+                        </div>
+                        @*<input type="number" asp-for="AnnualLeave" class="form-control" placeholder="Annual Leave" autocomplete="off" style="width:30%" />*@
+                        <input type="email" id="OtherNextOfKinEmail" value="@Model.OtherNextOfKinEmail" name="OtherNextOfKinEmail" class="k-textbox" placeholder="e.g. myname@example.net" data-email-msg="Email format is not valid" />
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group">
+                        <div>
+                            <label for="OtherNextOfKinPhoneNo">Other Next Of Kin Phone No.</label>
+                        </div>
+                        @*<input type="number" asp-for="AnnualLeave" class="form-control" placeholder="Annual Leave" autocomplete="off" style="width:30%" />*@
+                        <input type="number" id="OtherNextOfKinPhoneNo" value="@Model.OtherNextOfKinPhoneNo" name="OtherNextOfKinPhoneNo" class="k-textbox" @*placeholder="e.g. myname@example.net"*@ />
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="row no-gutters pad-10">
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:15px">
+                        <div>
+                            <label for="WitnessName1">Witness Name1</label>
+                        </div>
+                        @*<input asp-for="OfferDesigination" type="text" class="form-control" required="required" autocomplete="off" style="margin-right:60px;" />*@
+                        @Html.Kendo().TextBoxFor(x => x.WitnessName1)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="WitnessDesignation1">Witness Designation1</label>
+                        </div>
+                        @*<input asp-for="GaecNo" type="text" />*@
+                        @Html.Kendo().TextBoxFor(x => x.WitnessDesignation1)
+                    </div>
+
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <div><label for="WitnessDate1">Witness Date1</label></div>
+                        </div>
+                        @Html.Kendo().DatePickerFor(x => x.WitnessDate1)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group">
+                        <div>
+                            <label for="WitnessGAEC1">Witness GAEC1</label>
+                        </div>
+                        @Html.Kendo().TextBoxFor(x => x.WitnessGAEC1)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row no-gutters pad-10">
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:15px">
+                        <div>
+                            <label for="WitnessName2">Witness Name2</label>
+                        </div>
+                        @*<input asp-for="OfferDesigination" type="text" class="form-control" required="required" autocomplete="off" style="margin-right:60px;" />*@
+                        @Html.Kendo().TextBoxFor(x => x.WitnessName2)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="WitnessDesignation2">Witness Designation2</label>
+                        </div>
+                        @*<input asp-for="GaecNo" type="text" />*@
+                        @Html.Kendo().TextBoxFor(x => x.WitnessDesignation2)
+                    </div>
+
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <div><label for="WitnessDate2">Witness Date2</label></div>
+                        </div>
+                        @Html.Kendo().DatePickerFor(x => x.WitnessDate2)
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group">
+                        <div>
+                            <label for="WitnessGAEC2">Witness GAEC2</label>
+                        </div>
+                        @Html.Kendo().TextBoxFor(x => x.WitnessGAEC2)
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row no-gutters pad-10">
+                <div class="col-6 pad-20">
+                    @*<input asp-for="Password" type="password" class="form-control" placeholder="Password" autocomplete="off" width="300" />*@
+                    <div class="form-label-group" style="padding-right:5px">
+                        <div>
+                            <label for="NationalityId">Nationality</label>
+                        </div>
+                        @*<input type="number" asp-for="AnnualLeave" class="form-control" placeholder="Annual Leave" autocomplete="off" style="width:30%" />*@
+                        @(Html.Kendo().DropDownListFor(x => x.NationalityId)
+                            .DataTextField("Name")
+                            .DataValueField("Id")
+                            .Filter(FilterType.Contains)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetNationalityIdNameList", "CandidateProfile");
+                                });
+                            })
+                            // .Value(Model.Status.ToString())
+                            //  .HtmlAttributes(new { @class="form-control", style = "width:80%" })
+                        )
+                    </div>
+                </div>
+
+                <div class="col-3 pad-20">
+                    <div class="form-label-group" style="padding-right:15px">
+                        <div>
+                            <label for="JoiningDate">Joining Date</label>
+                        </div>
+                        @*<input asp-for="OfferDesigination" type="text" class="form-control" required="required" autocomplete="off" style="margin-right:60px;" />*@
+                        @Html.Kendo().DateTimePickerFor(x => x.JoiningDate)
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div>
+            <h4>Nomination For Benefits</h4>
+        </div>
+
+        
+            @(Html.Kendo().Grid<ApplicationBeneficiaryViewModel>()
+                .Name("grid")
+                .ToolBar(toolbar =>
+                    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateBen();'><i class='fa fas fa-plus'></i>&nbsp;Add</button>"))
+
+                .Columns(columns =>
+                {
+                columns.Command(command =>
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon" });
+                    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                }).Title("Action").Width(100);
+
+                columns.Bound(c => c.Name);
+                columns.Bound(c => c.Address);
+                columns.Bound(c => c.Relationship);
+                columns.Bound(c => c.Ratio);
+
+                //columns.Bound(c => c.TargetBatchCount).Width(120);
+                //columns.Bound(c => c.Id).Title("Send Batch").Width(120).ClientTemplate("#if(BatchStatusName=='Draft'){#<button class='btn btn-info' onclick='UpdateBatch(\"#:Id#\")'>Send To Hiring Manager</button>#}#").Width(280);
+                })
+                .Scrollable(x => x.Enabled(true))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                //.Pageable(pageable => pageable
+                //.Refresh(true)
+                //.PageSizes(true)
+                //.ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                //.Events(events => events.Error("OnError"))
+                   .Read(read => read.Action("ReadBeneficiaryData", "RecruitmentDashboard", new { appid=Model.Id}))
+                .Model(model => model.Id(p => p.Id))
+                )
+            )
+
+       <br /><br /><br />
+        
+        @*@Html.HiddenFor(x => x.ApplicationId)*@
+        @*@Html.HiddenFor(x => x.DataAction)*@
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.TaskStatus)
+
+        @if (Model.TaskStatus == "INPROGRESS" || Model.TaskStatus == "OVERDUE")
+        {
+            <div class="cms-footer">
+                <div class="col-sm-12" style="text-align:right;">
+                    @*<button type="button" class="btn btn-light" onclick="closeNav();">Close</button>*@
+                    <button type="submit" class="btn btn-success" @*onclick="OnSave()"*@>Save</button>
+                </div>
+            </div>
+        }
+
+    </form>
+</div>
+
+
+
+<script type="text/javascript">
+      @*$(document).ready(function () {
+
+        if ('@ViewBag.Success' == "True") {
+            closeNav();
+          //  window.parent.$("#grid").data("kendoGrid").dataSource.read();
+        }
+
+    });
+    function OnCreateBen(e) {
+        //
+        iframeOpenUrl = '@Url.Action("CreateBeneFiciary", "RecruitmentDashboard", new { @area = "Recruitment", applicatiodid=Model.Id })';
+       // window.parent.OpenIframePopup(400, 1200, 'Recruitment Pay Elements');
+        OpenIframePopup1(400, 1200, 'Nomination For Benefits');
+       // _RecruitmentPayElement
+
+    }
+
+    function OnEdit(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        iframeOpenUrl = '@Url.Action("EditBeneFiciary", "RecruitmentDashboard", new { @area = "Recruitment"})?Id=' + dataItem.Id + '&applicatiodid=' + '@Model.Id';
+        OpenIframePopup1(1000, 1200,'Nomination For Benefits');
+       // _RecruitmentPayElement
+
+    }
+    function closeNav() {
+        window.parent.CloseIframePopup();
+    }
+
+    function OnDelete(e) {
+        // 
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").open();
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(dataItem.Id);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDelete(id) {
+        //  
+        //  var grid = $("#grd_OrderStatus").data("kendoGrid");
+        // var dataItem = $(e.currentTarget).closest("tr");
+        // alert(dataItem.Id);
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $.ajax({
+           // url: "~/UserRole/DeleteUserRole?Id=" + id,
+            url:'@Url.Action("DeleteBeneFiciary", "RecruitmentDashboard", new { @area= "Recruitment" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                // $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+                ShowNotification("Deleted Successfully", "success");
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+       // window.parent.CloseIframePopup();
+
+    }*@
+
+    function CallBack() {
+        $("#grid").data("kendoGrid").dataSource.read({ appid:'@Model.Id' });
+    }
+
+
+
+</script>
+
+
+
+

@@ -1,0 +1,395 @@
+﻿
+@inject Synergy.App.Common.IUserContext _userContext
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+     
+
+
+    <link rel="stylesheet" href="~/css/normalize.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" asp-append-version="true" />
+    @*<link rel="stylesheet" href="~/css/layout.css" />*@
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/floating-labels.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/flowy/css/flowy.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Rec/recruitment.css" asp-append-version="true" />
+
+    <link href="~/lib/font-awesome/css/all.min.css" rel="stylesheet" type="text/css" asp-append-version="true">
+    <link rel="stylesheet" href="~/lib/jquery-context-menu/dist/jquery.contextMenu.min.css" asp-append-version="true">
+    <link href="https://kendo.cdn.telerik.com/2021.1.224/styles/kendo.bootstrap-v4.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="~/css/jquery-splitter.css" asp-append-version="true" />
+
+    <link rel='stylesheet' href='https://cdn.form.io/formiojs/formio.full.min.css'>
+    <script src="~/js/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery-ajax-unobtrusive.js" asp-append-version="true"></script>
+
+
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/jquery.min.js"></script>
+    <script src="~/js/jquery-splitter.js" asp-append-version="true"></script>
+
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/jszip.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/kendo.all.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/kendo.aspnetmvc.min.js"></script>
+
+    <script src="~/lib/formio/js/formio.full.js" asp-append-version="true"></script>
+    <script src="~/lib/flowy/js/flowy.min.js" asp-append-version="true"></script>
+    <script src="~/lib/flowy/js/main.js" asp-append-version="true"></script>
+    <script src="~/js/Rec/recruitment.js" asp-append-version="true"></script>
+
+    <script src="https://kendo.cdn.telerik.com/2020.2.617/js/jszip.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2020.2.617/js/kendo.all.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2020.2.617/js/kendo.aspnetmvc.min.js"></script>
+</head>
+
+<body id="page-top">
+    <span id="popupNotification"></span>
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        @RenderBody()
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.0.4/popper.js"></script>
+    <script src="~/js/bootstrap.min.js" asp-append-version="true"></script>
+    <script src="~/lib/font-awesome/js/all.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery/dist/jquery-ui.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-easing/jquery.easing.min.js" asp-append-version="true"></script>
+
+    <script src="~/js/layout.js" asp-append-version="true"></script>
+
+    <script src="~/lib/loading-overlay/loading-overlay.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-context-menu/dist/jquery.contextMenu.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-context-menu/dist/jquery.ui.position.min.js" asp-append-version="true"></script>
+
+
+
+
+
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/material.css" />
+
+    <script src="https://cdn.syncfusion.com/ej2/dist/ej2.min.js"></script>
+    <script src="~/js/jquery-splitter.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @RenderSection("scripts", required: false)
+    
+    @(Html.Kendo().Window().Name("kiframepopupwindow1")
+        .Title("Title")
+        .Visible(false)
+        .Modal(true)
+        .Iframe(true)
+        //.ContentSettings(x => x.Cache(false))
+        .Draggable(true)
+        .Content("")
+.Actions(actions => actions.Maximize().Close())
+
+
+.Width(200)
+.Height(350)
+.Events(e => e.Activate("OnIframeActivate1").Open("OnIframeOpen1").Close("OnIframeClose1").Refresh("OnIframeRefresh1").Deactivate("OnIframeDeactivate1"))
+    )
+     
+    <ejs-scripts></ejs-scripts>
+
+    <script type="text/javascript">
+        //$(document).ready(function () {
+        //    $("form").on("submit", function () {
+        //        window.parent.ShowLoader($('.modal-body'));
+        //    });
+        //});
+        
+        var globalCallBack = null;
+        var globalWindowSender = null;
+        function IsPopupWindow() {
+            return (window.frameElement !== null && window.frameElement !== undefined && window.frameElement !== '');
+        }
+        if (IsPopupWindow()) {
+            $("<style>")
+                .prop("type", "text/css")
+                .html("\
+                .clear-padding {\
+                    margin-left: 0px !important;\
+                    padding-top: 0px!important;\
+                    padding-bottom: 0px!important;\
+                }\
+                .hide-in-popup {\
+                    display: none;\
+                }")
+                .appendTo("head");
+        }
+        function OpenWindow(winProp) {
+            var obj = eval(globalPopups.peek());
+            if (winProp.Reload == true) {
+            }
+            else {
+                if (obj === null) {
+                    winProp.Id = 1;
+                    obj = winProp;
+                    globalPopups.push(winProp);
+                }
+                else {
+                    winProp.Id = eval(obj.Id) + 1;
+                    obj = winProp;
+                    globalPopups.push(winProp);
+                }
+            }
+
+            var name = "popup_" + obj.Id;
+            var wnd = $("#" + name).data("kendoWindow");
+            if (wnd) {
+                wnd.setOptions({
+                    width: winProp.Width,
+                    height: winProp.Height,
+                    title: winProp.Title
+                });
+
+                wnd.refresh({ url: iframeOpenUrl });
+                if (globalWindowSender != null) {
+                    kendo.ui.progress(globalWindowSender.sender.element, true);
+                }
+
+            } else {
+                wnd = $("<div id='" + name + "'></div>").kendoWindow({
+                    title: winProp.Title,
+                    width: winProp.Width,
+                    iframe: true,
+                    resizable: false,
+                    height: winProp.Height,
+                    modal: true,
+                    open: OnWindowOpen,
+                    activate: OnWindowActivate,
+                    close: OnWindowClose,
+                    deactivate: OnWindowDeactivate,
+                    refresh: OnWindowRefresh,
+
+                    visible: true
+                }).data("kendoWindow");
+                if (winProp.Position === 'Right') {
+                    wnd.wrapper.addClass('k-popup-right');
+                }
+                else {
+                    wnd.center();
+                }
+                //  RemoveMultipleOverlays();
+
+            }
+        }
+        function CloseWindow(cb) {
+            globalCallBack = cb;
+            var obj = globalPopups.peek();
+            if (obj === null) {
+                return null;
+            }
+            var name = "popup_" + obj.Id;
+            var wnd = $("#" + name).data("kendoWindow");
+            if (wnd != null) {
+                wnd.close();
+            }
+            return false;
+        }
+        function GetMainWindow(win) {
+            if (win === null || win === undefined) {
+                win = window;
+            }
+            if (win.frameElement === null || win.frameElement === undefined) {
+                return win;
+            }
+            return GetMainWindow(win.parent);
+        }
+        function GetWindow() {
+            var obj = globalPopups.peek();
+            if (obj === null) {
+                return null;
+            }
+            var name = "popup_" + obj.Id;
+            var windowElement = $("#" + name);
+            var iframeDomElement = windowElement.children("iframe")[0];
+            var iframeWindowObject = iframeDomElement.contentWindow;
+            return iframeWindowObject;
+        }
+        function GetParentWindow() {
+            var obj = globalPopups.peek(1);
+            if (obj === null) {
+                return window;
+            }
+            var name = "popup_" + obj.Id;
+            var windowElement = $("#" + name);
+            var iframeDomElement = windowElement.children("iframe")[0];
+            var iframeWindowObject = iframeDomElement.contentWindow;
+            return iframeWindowObject;
+        }
+        function OnWindowActivate(e) {
+            var obj = globalPopups.peek();
+            console.log(obj)
+            if (obj === null) {
+                return null;
+            }
+            var name = "popup_" + obj.Id;
+            var wnd = $("#" + name).data("kendoWindow");
+            wnd.refresh({
+                url: iframeOpenUrl,
+                cache: false,
+                type: "GET"
+            });
+            globalWindowSender = e;
+            kendo.ui.progress(e.sender.element, true);
+        }
+        function OnWindowOpen(e) {
+        }
+        function OnWindowClose(e) {
+
+        }
+        function OnWindowRefresh(e) {
+            kendo.ui.progress(e.sender.element, false);
+        }
+        function OnWindowDeactivate(e) {
+            var obj = globalPopups.pop();
+            if (obj === null) {
+                return null;
+            }
+            var name = "popup_" + obj.Id;
+            var wnd = $("#" + name).data("kendoWindow");
+            wnd.content("");
+            wnd.destroy();
+
+            if (globalCallBack !== null && globalCallBack !== undefined) {
+                win = GetWindow();
+                if (win === null || win === undefined) {
+                    win = window;
+                }
+                win[globalCallBack.MethodName](globalCallBack.Prms);
+                globalCallBack = null;
+            }
+
+        }
+
+
+
+        function OpenIframePopup1(w, h, t) {
+            var wnd = $("#kiframepopupwindow1").data("kendoWindow");
+            w = GetW(w);
+            h = GetH(h);
+            wnd.setOptions({
+                width: w,
+                height: $(window).height() - 50,
+                title: t
+            });
+
+
+            wnd.wrapper.find('.k-window-titlebar').css({
+                'background-color': 'transparent',
+                // 'border-bottom-style': 'none',
+                //'color': 'rgb(193, 151, 42)'
+            });
+            wnd.wrapper.css({
+                'position': 'absolute',
+                'top': '0px',
+                'right': '0px'
+            });
+            wnd.open();
+        }
+        function GetW(w) {
+            return $(window).width() > w ? w : $(window).width() - 80;
+        }
+        function GetH(h) {
+            return $(window).height() > h ? h : $(window).height() - 80;
+        }
+        function CloseIframePopup1(reload) {
+            var wnd = $("#kiframepopupwindow1").data("kendoWindow");
+            if (wnd != null) {
+                wnd.close();
+            }
+            if (reload) {
+                window.location.href = window.location.href.split('#')[0];
+            }
+            return false;
+        }
+
+        function OnIframeActivate1(e) {
+            e.preventDefault();
+            var wnd = $("#kiframepopupwindow1").data("kendoWindow");
+            ActiveWindow = this;
+            wnd.refresh({
+                url: iframeOpenUrl,
+                cache: false,
+                type: "GET"
+            });
+        }
+        function OnIframeOpen1(e) {
+            kendo.ui.progress(e.sender.element, true);
+        }
+
+        function OnIframeClose1(e) {
+            // alert()
+            //try {
+            //    var pop1 = window.parent.GetIframePopup();
+            //    pop1.PopupClose();
+            //    var url = window.location.href;
+            //    if (url.includes('&documentId')) {
+            //        window.location.href = url.split('&documentId')[0];
+            //    }
+            //} catch (x) {
+
+            //}
+        }
+        function OnIframeRefresh1(e) {
+            kendo.ui.progress(e.sender.element, false);
+        }
+        function OnIframeDeactivate1(e) {
+            var wnd = $("#kiframepopupwindow1").data("kendoWindow");
+            wnd.content("");
+        }
+
+        function ShowLoader(target) {
+            kendo.ui.progress(target, true);
+        }
+        function HideLoader(target) {
+            kendo.ui.progress(target, false);
+        }
+        function CloseIframeModal(reloadParent) {
+            window.parent.CloseIframeModal(reloadParent);
+        }
+        var onAjaxBegin = function () {
+            ShowLoader($('#container'));
+        };
+
+        var onAjaxComplete = function () {
+            HideLoader($('#container'));
+        };
+        var onAjaxFailed = function (context, res) {
+        };
+        var showError = function (error) {
+            
+            //#validation-summary-manageform
+            $("#validation-summary").html(error);
+            $("#validation-summary").css("display", "block")
+        };
+        function ShowNotification(msg, type) {
+            var popupNotification = $("#popupNotification").kendoNotification({
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 30
+                }
+            }).data("kendoNotification");
+            popupNotification.show(msg, type);
+        }
+        function toTitleCase(str) {
+            var arr = str.split('_');
+            if (arr.length > 1) {
+                str = arr[1].replaceAll('_', ' ');
+            }
+            else {
+                str = str.replaceAll('_', ' ');
+            }
+            return str.replace(/\w\S*/g, function (txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        }
+    </script>
+
+</body>
+</html>

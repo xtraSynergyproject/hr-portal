@@ -1,0 +1,224 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@model PageViewModel
+@{
+    ViewData["Title"] = "Portal Details";
+    Layout = null;
+}
+<script>
+    var pagetype = '@Html.Raw(EnumExtension.EnumToJson(typeof(PageTypeEnum)))';
+    var pagetypeObj = JSON.parse(pagetype);
+   
+    var columnDefs = [
+        {field: "PortalName",},
+        { field: "Title" },
+        { field: "ModuleName" },
+        { field: "SubModuleName", },
+        { field: "MenuGroupName" },
+        { field: "TemplateName" },
+        {
+            field: "PageType",
+            cellRenderer: params => {
+                return pagetypeObj[params.value]; //only for enum
+            }
+        },
+        //{
+        //    field: "Status",
+        //    cellRenderer: params => {
+        //        return statusObj[params.value]; //only for enum
+        //    }
+        //},
+        //{
+        //    headerName: "Actions",
+        //    field: "Id",
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBin' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //}
+    ];
+
+    @*$(function () {
+
+        getData();
+
+        $.contextMenu('update');
+        $('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-menuBin',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        onEdit(id);
+                                        break;
+
+                                    case 'delete':
+                                        OnDelete(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+    function onEdit(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Edit", "UserSet", new { @area="Cms"})?Id=' + id;
+        win.OpenWindow({ Title: 'Manage UserSet', Width: 450, Height: 800 });
+        return false;
+    }
+
+    function OnDelete(id) {
+        var flag = confirm('Do you really want to delete the UserSet?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "UserSet", new { @area="Cms"})?Id=' + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    debugger;
+                    if (result.success) {
+                        getData();
+                        kendo.alert("UserSet Deleted Successfully.");
+                    } else {
+                        getData();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    getData();
+                }
+            });
+            return false;
+        }
+    }*@
+    
+    //$(document).ready(function () {
+    //    getDataPortalDetails();
+
+    //});
+     getDataPortalDetails();
+    function getDataPortalDetails() {
+        document.getElementById("myGridPortalDetails").innerHTML = "";
+       gridConfig(
+           "myGridPortalDetails",
+           "/cms/portalDetails/ReadData",
+           columnDefs,
+           false,
+           true,
+           true,
+           true,
+           1,
+           true,
+           10);
+    }
+     
+
+</script>
+
+<div>
+    <h4>@ViewBag.Title</h4>
+
+    <hr />
+
+
+    <div class="row">
+        <div class="col-12">
+            @*<button type='button' class='btn btn-primary' onclick='OnCreateUserSet();'><i class='fa fas fa-plus'></i>&nbsp;Create User Set</button>
+                <br /><br />*@
+            <div id="myGridPortalDetails" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>
+
+
+
+@*<script type='text/javascript'>
+
+
+
+</script>
+<div>
+    <h4>@ViewBag.Title</h4>
+
+    <hr />
+
+
+    <div class="row">
+        <div class="col-12">
+
+            @(Html.Kendo().Grid<PageViewModel>
+    ()
+    .Name("UserRolegrid")
+    //  .ToolBar(toolbar =>
+    // toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateUserRole();'><i class='fa fas fa-plus'></i>&nbsp;Create User Role</button>"))
+
+    .Columns(columns =>
+    {
+        // columns.Bound(c => c.Id).ClientTemplate("<div class='btn-group grid-menu' id='rolegrid-menu' data-idvalue=\"#:Id#\"  ><i class='fas fa-ellipsis-v'></i></div>").Width(150).Title("" + SharedResource["Action"] + "");
+        columns.Bound(c => c.PortalName);
+        columns.Bound(c => c.Title).Title("Page Name");
+        columns.Bound(c => c.ModuleName);
+        columns.Bound(c => c.SubModuleName);
+        columns.Bound(c => c.MenuGroupName);
+        columns.Bound(c => c.TemplateName);
+        columns.Bound(c => c.PageType);
+
+
+    })
+     .Scrollable(x => x.Enabled(false))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                //.Events(events => events.Error("OnError"))
+                .Read(read => read.Action("ReadData", "PortalDetails"))
+                .Model(model => model.Id(p => p.Id))
+                )
+          )
+        </div>
+    </div>
+
+</div>*@

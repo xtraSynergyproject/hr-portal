@@ -1,0 +1,278 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext
+@{
+    //Layout=null;
+}
+
+@model ServiceTemplateViewModel;
+@*<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>*@
+<style>
+    div.bhoechie-tab-container {
+        z-index: 10;
+        background-color: #ffffff;
+        padding: 0 !important;
+        border-radius: 4px;
+        -moz-border-radius: 4px;
+        border: 1px solid #ddd;
+        margin-top: 20px;
+        -webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+        box-shadow: 0 6px 12px rgba(0,0,0,.175);
+        -moz-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+        background-clip: padding-box;
+        opacity: 0.97;
+        filter: alpha(opacity=97);
+    }
+
+    div.bhoechie-tab-menu {
+        padding-right: 0;
+        padding-left: 0;
+        padding-bottom: 0;
+    }
+
+        div.bhoechie-tab-menu div.list-group {
+            margin-bottom: 0;
+        }
+
+            div.bhoechie-tab-menu div.list-group > a {
+                margin-bottom: 0;
+            }
+
+                div.bhoechie-tab-menu div.list-group > a .glyphicon,
+                div.bhoechie-tab-menu div.list-group > a .fa {
+                    color: #d9d9d9;
+                }
+
+                div.bhoechie-tab-menu div.list-group > a:first-child {
+                    border-top-right-radius: 0;
+                    -moz-border-top-right-radius: 0;
+                }
+
+                div.bhoechie-tab-menu div.list-group > a:last-child {
+                    border-bottom-right-radius: 0;
+                    -moz-border-bottom-right-radius: 0;
+                }
+
+                div.bhoechie-tab-menu div.list-group > a.active,
+                div.bhoechie-tab-menu div.list-group > a.active .glyphicon,
+                div.bhoechie-tab-menu div.list-group > a.active .fa {
+                    /*   background-color: #5A55A3;
+                    background-image: #5A55A3;*/
+                    background-color: #d9d9d9;
+                    color: black;
+                }
+
+                    div.bhoechie-tab-menu div.list-group > a.active:after {
+                        content: '';
+                        position: absolute;
+                        left: 100%;
+                        top: 50%;
+                        margin-top: -13px;
+                        border-left: 0;
+                        border-bottom: 13px solid transparent;
+                        border-top: 13px solid transparent;
+                        border-left: 10px solid #d9d9d9;
+                    }
+
+    div.bhoechie-tab-content {
+        background-color: #ffffff;
+        /* border: 1px solid #eeeeee; */
+        padding-left: 20px;
+        padding-top: 10px;
+    }
+
+    .list-group-item {
+        padding: 0px !important;
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+        height: 100px;
+    }
+
+        .list-group-item.active {
+            border: 1px solid #d9d9d9;
+        }
+
+    .tab-item {
+        color: #00264d;
+        font-weight: 500;
+        padding-left: 0px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+        margin-left: 10px;
+    }
+
+    .tab-user-img {
+        width: 3.5rem;
+        height: 3.5rem;
+        margin-top: 6px;
+        border-radius: 50%;
+        border: 1px solid #c0c0c0;
+    }
+
+    .border-inprogress {
+        border-left: 15px solid green !important;
+    }
+
+    .border-overdue {
+        border-left: 10px solid green !important;
+    }
+
+    .border-draft {
+        border-left: 10px solid green !important;
+    }
+
+    .border-complete {
+        border-left: 10px solid green !important;
+    }
+
+    .border-reject {
+        border-left: 10px solid green !important;
+    }
+
+    .border-cancel {
+        border-left: 10px solid green !important;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        LoadInitialItem();
+        $("div.bhoechie-tab-menu>div.list-group>a").click(function (e) {
+            e.preventDefault();
+            $(this).siblings('a.active').removeClass("active");
+            $(this).addClass("active");
+            var index = $(this).index();
+            $("div.bhoechie-tab>div.bhoechie-tab-content").removeClass("active");
+            $("div.bhoechie-tab>div.bhoechie-tab-content").eq(index).addClass("active");
+            alert();
+        });
+    });
+    function LoadInitialItem() {
+        @if (Model.LoadType==NtsTypeEnum.Service)
+        {
+
+        }
+        else
+        {
+            var dt= await Html.PartialAsync("ServiceDefault.cshtml", Model);
+            var html = System.Web.HttpUtility.HtmlDecode( dt.GetString());
+            @: console.log('@html');
+            @: $('.bhoechie-tab-content').html('@html');
+        }
+    }
+</script>
+
+<div class="row no-gutters bhoechie-tab-container" style="min-height:95vh;">
+    <div class="col-3 bhoechie-tab-menu">
+        <div class="list-group">
+            @{
+                var total = Model.ComponentResultList.Count();
+                for (int i = 0; i < total; i++)
+                {
+                    var item = Model.ComponentResultList[i];
+                    <a href="#" class="list-group-item border-@item.ItemStatus @(Model.ServiceId==item.TaskId?"active":"")">
+                        <div class="row no-gutters">
+                            <div class="col-12  border-bottom">
+                                <div class="col-12 tab-item" style="font-size:13px;" title="@item.TaskSubject">@item.ItemSubjectLimited</div>
+                            </div>
+                            <div class="col-12 row no-gutters">
+                                <div class="col-sm-4 col-md-3">
+                                    <img title="@item.Assignee" class="tab-user-img" src="@Url.Action("GetUserPhotoByUserId", "document", new { @area = "Cms", userId = item.AssigneeId })" onerror='OnPhotoError(this);' />
+                                </div>
+                                <div class="col-sm-8 col-md-9 row">
+                                    <div class="col-12 tab-item" style="font-size:12px;">@item.Assignee</div>
+                                    <div class="col-12 tab-item" style="font-size:13px;">@Html.Raw(item.StatusAndNo)</div>
+                                    <div class="col-12 tab-item" style="font-size:13px;">@item.ItemDateRange</div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </a>
+                    @if (i != total - 1)
+                    {
+                        <div class="text-center">
+                            <span class="fa fa-arrow-down" style="font-size:1.4rem;"></span>
+                        </div>
+                    }
+                }
+            }
+
+
+            @*<a href="#" class="list-group-item text-center">
+                    <div class="row no-gutters">
+                        <div class="col-2">
+                            <img class="user-img rounded-circle" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" onerror='OnPhotoError(this);' />
+                        </div>
+                        <div class="col-10">
+                            <div class="col-12">Service</div>
+                            <div class="col-12">Status</div>
+                        </div>
+                    </div>
+                </a>
+                <div class="text-center">
+                    <h4 class="fa fa-arrow-down"></h4>
+                </div>
+                <a href="#" class="list-group-item text-center">
+                    <div class="row no-gutters">
+                        <div class="col-2">
+                            <img class="user-img rounded-circle" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" onerror='OnPhotoError(this);' />
+                        </div>
+                        <div class="col-10">
+                            <div class="col-12">Service</div>
+                            <div class="col-12">Status</div>
+                        </div>
+                    </div>
+                </a>
+                <div class="text-center">
+                    <h4 class="fa fa-arrow-down"></h4>
+                </div>
+                <a href="#" class="list-group-item text-center">
+                    <div class="row no-gutters">
+                        <div class="col-2">
+                            <img class="user-img rounded-circle" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" onerror='OnPhotoError(this);' />
+                        </div>
+                        <div class="col-10">
+                            <div class="col-12">Service</div>
+                            <div class="col-12">Status</div>
+                        </div>
+                    </div>
+                </a>
+                <div class="text-center">
+                    <h4 class="fa fa-arrow-down"></h4>
+                </div>
+                <a href="#" class="list-group-item text-center">
+                    <div class="row no-gutters">
+                        <div class="col-2">
+                            <img class="user-img rounded-circle" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" onerror='OnPhotoError(this);' />
+                        </div>
+                        <div class="col-10">
+                            <div class="col-12">Service</div>
+                            <div class="col-12">Status</div>
+                        </div>
+                    </div>
+                </a>*@
+
+        </div>
+    </div>
+    <div class="col-9 bhoechie-tab">
+        <!-- flight section -->
+        <div class="bhoechie-tab-content active">
+            
+        </div>
+        <!-- train section -->
+
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+

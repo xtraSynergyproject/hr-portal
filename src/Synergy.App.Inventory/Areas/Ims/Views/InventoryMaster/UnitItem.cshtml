@@ -1,0 +1,355 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@*<script src="~/js/IMS/InventoryManagement/Vendor.js" asp-append-version="true"></script>*@
+<div class="row  pad-10 no-gutters page-content">
+    <div class="container card-header" style="padding:10px;max-width:100%">
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li class="nav-item"><a data-toggle="tab" href="#draft" class="nav-link active" role="tab" aria-controls="draft" aria-selected="true" onclick="onVendorList()"><i class="far fa-file-alt" style="margin-left:15px;"></i><br />UNIT ITEMS</a></li>
+
+            <li class="nav-item" style="display:none;" id="categoryTab"><a data-toggle="tab" href="#categoryPage" class="nav-link" aria-controls="categoryPage" aria-selected="false"><i class="fab fa-css3" style="margin-left:3px;"></i><br />VIEW STOCK ENTRIES</a></li>
+
+
+
+        </ul>
+        <div class="tab-content" style="border: 1px solid silver;border-top:none;">
+            <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+                <div style="width: 100%;" class="p-3">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Search Criteria</legend>
+                        <div class="text-danger" asp-validation-summary="All"></div>
+                        <div class="row">
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Item Type</label>
+                                </div>
+                                <input type="text" id="ItemType" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Item Category</label>
+                                </div>
+                                <input type="text" id="ItemCategory" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Item Sub Category</label>
+                                </div>
+                                <input type="text" id="ItemSubCategory" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label required">
+                                    <label>Item Warehouse</label>
+                                </div>
+                                <input type="text" id="ItemWareHouse" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    &nbsp;
+                                </div>
+                                <input type="button" class="btn btn-primary btn-control" value="Search" style="color:white" onclick="OnSearch()" />
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Items List</legend>
+                        <div id="ItemGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                    </fieldset>
+                </div>
+            </div>
+            <div id="categoryPage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+       $("#ItemType").kendoDropDownList({
+           optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=IMS_ITEM_TYPE",
+                    }
+                }
+            }
+        });
+
+        $("#ItemCategory").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetItemCategoryList",
+                    }
+                }
+            }
+        });
+
+        $("#ItemSubCategory").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetItemSubCategoryList",
+                    }
+                }
+            }
+        });
+
+           $("#ItemWareHouse").kendoDropDownList({
+               optionLabel: "--Select--",
+                dataTextField: "WarehouseName",
+                dataValueField: "Id",
+                filter: "contains",
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: "/IMS/InventoryMaster/GetWarehouseList",
+                        }
+                    }
+                }
+        });
+
+       // getItemsListData("","","","");
+        $.contextMenu({
+            selector: '#tree-unitItemMenu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                // id - stock id
+                var id = $trigger.data('idvalue');
+                var noteId = $trigger.data('noteid');
+                // status - stock note status
+                var status = $trigger.data('status');
+                // itemId - item id
+                var itemId = $trigger.data('itemid');
+                //var status = $trigger.data('status');
+                var isSerializable = $trigger.data('isserializable');
+
+                switch (0) {
+                    case 0:
+                        var Items;
+                        debugger;
+                        if (status == "NOTE_STATUS_DRAFT" || status == null) {
+                            if (isSerializable == "4") {
+                                Items = {
+                                    "edit": { name: "Edit", icon: "fas fa-edit" },
+                                   // "StockEntries": { name: "View Stock Entries", icon: "fas fa-edit" },
+                                    "serialNumbers": { name: "Serial Numbers", icon: "fas fa-edit" },
+                                    "submit": { name: "Submit", icon: "fas fa-edit" }
+                                };
+                            }
+                            else {
+                                Items = {
+                                    "edit": { name: "Edit", icon: "fas fa-edit" },
+                                   
+                                    /*"serialNumbers": { name: "Serial Numbers", icon: "fas fa-edit" },*/
+                                    "submit": { name: "Submit", icon: "fas fa-edit" }
+                                };
+                            }
+                        } else {
+                            Items = {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "StockEntries": { name: "View Stock Entries", icon: "fas fa-edit" }
+                            };
+                        }
+
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEditUnitItem(itemId);
+                                        break;
+
+                                    case 'StockEntries':
+                                        OnViewStockEntries(itemId);
+                                        break;
+                                    case 'serialNumbers':
+                                        onserialNumbers(id);
+                                        break;
+                                    case 'submit':
+                                        onItemSubmit(id, itemId, noteId, isSerializable);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: Items
+                            //items: {
+                            //    "edit": { name: "Edit", icon: "fas fa-edit" },
+                            //    "StockEntries": { name: "View Stock Entries", icon: "fas fa-edit" },
+                            //    "serialNumbers": { name: "Serial Numbers", icon: "fas fa-edit" },
+                            //}
+                        };
+
+
+                }
+            }
+        });
+    });
+    function OnAfterClose()
+    {
+
+    }
+    function refreshUnitItemGrid() {
+        debugger;
+        getItemsListData(null, null, null, null);
+    }
+
+    function onItemSubmit(id, itemId, noteId, isSerializable) {
+        debugger;
+        ShowLoader($("#cms-content"));
+        $.ajax({
+            url: '/IMS/InventoryMaster/SubmitUnitItem?stockId=' + id + '&itemId=' + itemId + '&noteId=' + noteId + '&isSerializable=' + isSerializable,
+            type: 'POST',
+            data: {},
+            dataType: 'json',
+            success: function (result) {
+
+                if (result.success) {
+                    HideLoader($("#cms-content"));
+                    ShowNotification("Submitted Successfully", "success");
+                    OnAfterNoteCreate();
+                } else {
+                    HideLoader($("#cms-content"));
+                    ShowNotification(result.error, "error");
+                }
+            },
+            error: function (ert) {
+                HideLoader($("#cms-content"));
+                kendo.alert(ert);
+            }
+        });
+
+
+
+
+    }
+
+    var columnDefs = [
+        {
+            field: "WarehouseName",
+            headerName: "Warehouse",
+            maxWidth: 600
+        },
+        {
+            field: "ItemName",
+            headerName: "Item Name",
+            maxWidth: 600
+        },
+        {
+            field: "ItemUnit",
+            headerName: "Item Unit",
+            maxWidth: 440
+        },
+        {
+            field: "ClosingQuantity",
+            headerName: "Closing Quantity",
+              maxWidth: 340
+        },
+        
+        {
+            headerName: "Actions",
+            field: "Id",
+             maxWidth: 240,
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-unitItemMenu' data-idvalue='" + params.value + "' data-status='" + params.data.NoteStatusCode + "' data-itemid='" + params.data.ItemId + "'data-noteid='" + params.data.NoteId + "'data-isserializable='" + params.data.IsSerializable + "' ><i class='fas fa-ellipsis-v'></i></div>"
+                /*return "<div class='btn-group grid-menu' id='tree-unitItemMenu' data-idvalue='" + params.value + "' data-status='" + params.data.NoteStatusCode + "' data-itemid='"+params.data.ItemId+"' ><i class='fas fa-ellipsis-v'></i></div>"*/
+            }
+        }
+    ];
+
+    function getItemsListData(itemType, ItemCategory, ItemSubCategory,ItemWareHouse) {
+        document.getElementById("ItemGrid").innerHTML = "";
+        gridConfig(
+            "ItemGrid",
+            "/IMS/InventoryMaster/ReadItemStockData?itemTypeId=" + itemType + "&itemCategory=" + ItemCategory + "&itemSubCategory=" + ItemSubCategory+ "&warehouseId=" + ItemWareHouse,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+      function OnEditUnitItem(Id)
+    {
+          debugger;
+          if ($("#ItemWareHouse").data("kendoDropDownList").value() == "") {
+              kendo.alert("Please select warehouse");
+          }
+          else
+          {
+              var url = "/IMS/InventoryMaster/EditUnitItem?Id=" + Id + "&warehouseId=" + $("#ItemWareHouse").data("kendoDropDownList").value();
+              var win = GetMainWindow();
+              win.iframeOpenUrl = url;
+              win.OpenWindow({ Title: "Edit Unit Item", Width: 900, Height: 550 });
+          }
+       // var portalId = $('#GlobalPortalId').val();
+         
+    }
+
+    function OnViewStockEntries(Id)
+    {
+        if ($("#ItemWareHouse").data("kendoDropDownList").value() == "") {
+            kendo.alert("Please select warehouse");
+        }
+        else {
+            $("#categoryTab").show();
+
+            $('#myTabs a[href="#categoryPage"]').tab('show');
+            //var portalId = $('#GlobalPortalId').val();
+            var url = "/IMS/InventoryMaster/ViewStockEntries?Id=" + Id + "&warehouseId=" + $("#ItemWareHouse").data("kendoDropDownList").value();
+
+            LoadPartailView(url, $('#categoryPage'));
+        }
+    }
+      function OnAfterNoteCreate(note) {
+          var itemType = $("#ItemType").data("kendoDropDownList").value();
+          var ItemCategory = $("#ItemCategory").data("kendoDropDownList").value();
+          var ItemSubCategory = $("#ItemSubCategory").data("kendoDropDownList").value();
+          var ItemWareHouse = $("#ItemWareHouse").data("kendoDropDownList").value();
+          getItemsListData(itemType, ItemCategory, ItemSubCategory, ItemWareHouse);
+    }
+
+    function onVendorList()
+    {
+        $("#categoryTab").hide();
+    }
+
+      function OnSearch()
+    {
+        var itemType = $("#ItemType").data("kendoDropDownList").value() ;
+        var ItemCategory =  $("#ItemCategory").data("kendoDropDownList").value();
+        var ItemSubCategory = $("#ItemSubCategory").data("kendoDropDownList").value();
+        var ItemWareHouse = $("#ItemWareHouse").data("kendoDropDownList").value();
+        getItemsListData(itemType, ItemCategory, ItemSubCategory,ItemWareHouse);
+    }
+
+    function onserialNumbers(id)
+    {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Ims/InventoryManagement/ManageSerialNo?referenceId=" + id+"&referenceHeaderId=" + id;
+        win.OpenWindow({ Title: 'Serial Numbers', Width: 1000, Height: 700 });
+        return false;
+    }
+</script>
+
+@*        var url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=Edit&dataAction=Edit&templateCodes=ITEM_STOCK&portalId=' + portalId+'&recordId='+noteId;
+*@

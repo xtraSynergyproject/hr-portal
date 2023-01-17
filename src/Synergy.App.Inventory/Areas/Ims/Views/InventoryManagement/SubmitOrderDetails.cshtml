@@ -1,0 +1,522 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Direct Sales";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model DirectSalesViewModel
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+
+
+    .avatar-myProfile {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .avatar-mysign {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .bold {
+        font: bold
+    }
+</style>
+
+<div style="width: 100%;" class="p-3">
+
+    <form asp-controller="InventoryManagement" asp-action="OnOrderSubmit" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Customer Information</legend>
+            <div class="row form-horizontal">
+                <div class="col-4 form-group">
+                    <div class="col-form-label required">
+                        <label>Customer</label>
+                    </div>
+                    <input type="text" asp-for="CustomerName" class="form-control" readonly />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label required">
+                        <label>Contact Person</label>
+                    </div>
+                    <input type="text" asp-for="ContactPersonName" class="form-control" readonly />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>Designation</label>
+                    </div>
+                    <input type="text" asp-for="Designation" class="form-control" readonly />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>Mobile No</label>
+                    </div>
+                    <input type="text" asp-for="MobileNo" class="form-control" readonly />
+                </div>
+                @*<div class="col-3 form-group">
+                        <div class="col-form-label">
+                            <label>Contact No</label>
+                        </div>
+                        <input type="text" asp-for="ContactNo" class="form-control" readonly />
+                    </div>*@
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>Email</label>
+                    </div>
+                    <input type="text" asp-for="EmailId" class="form-control" readonly />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>PAN<span class="required">**</span></label>
+                    </div>
+                    <input type="text" asp-for="PAN" class="form-control" />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>TAN<span class="required">**</span></label>
+                    </div>
+                    <input type="text" asp-for="TAN" class="form-control" />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>GST No.<span class="required">**</span></label>
+                    </div>
+                    <input type="text" asp-for="GSTNo" class="form-control" />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label required">
+                        <label>PIN No.</label>
+                    </div>
+                    <input type="text" asp-for="PINNo" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <span> <span class="required float-right">**</span>&nbsp;Atleast one is required</span>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Project Information</legend>
+            <div class="row">
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>Summary</label>
+                    </div>
+                    <input type="text" asp-for="Summary" readonly class="form-control" />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>Proposal Value</label>
+                    </div>
+                    <input type="text" asp-for="ProposalValue" readonly class="form-control" />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>Competition With</label>
+                    </div>
+                    <input type="text" asp-for="CompetitionWith" readonly class="form-control" />
+                </div>
+
+            </div>
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Order Information</legend>
+            <div class="row form-horizontal">
+                <div class="col-3 form-group">
+                    <div class="col-form-label">
+                        <label>Order No.</label>
+                    </div>
+                    <input type="text" style="width:100%" asp-for="OrderNo" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Order Date.</label>
+                    </div>
+                    <input type="text" asp-for="OrderDate" id="OrderDate" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Base Value</label>
+                    </div>
+                    <input type="text" asp-for="BaseValue" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>TAX Value</label>
+                    </div>
+                    <input type="text" asp-for="TAXValue" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Order Value</label>
+                    </div>
+                    <input type="text" asp-for="OrderValue" readonly class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Order Document</label>
+                    </div>
+                    <div id="orderDocFile" class="dm-uploader">
+                        <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                        <div class="btn btn-primary btn-block ">
+                            <span>Open the file Browser</span>
+                            <input type="file" title='Click to add Files' />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Completion Date</label>
+                    </div>
+                    <input type="text" asp-for="CompletionDate" class="form-control" />
+                </div>
+
+            </div>
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Order Information</legend>
+            <div class="row form-horizontal">
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>Country</label>
+                    </div>
+                    <input type="text" asp-for="Country" class="form-control" />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>State</label>
+                    </div>
+                    <input type="text" asp-for="State" class="form-control" />
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-form-label">
+                        <label>City</label>
+                    </div>
+                    <input type="text" asp-for="City" class="form-control" />
+                </div>
+                <div class="col-10 form-group">
+                    <div class="col-form-label">
+                        <label>Address</label>
+                    </div>
+                    <input type="text" asp-for="Address" class="form-control" />
+                </div>
+                <div class="col-2 form-group">
+                    <div class="col-form-label">
+                        &nbsp;
+                    </div>
+                    <input type="submit" class="btn btn-primary" value="Save" onclick="OnSubmit()" />
+                    <input type="button" class="btn btn-secondary" value="Close" onclick="closeNav()" />
+                </div>
+            </div>
+        </fieldset>
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.ServiceId)
+        @Html.HiddenFor(x => x.OrderDocumentId)
+        @Html.HiddenFor(x => x.ProposalDate)
+        @Html.HiddenFor(x => x.ProposalSource)
+        @Html.HiddenFor(x => x.ProposalType)
+        @Html.HiddenFor(x => x.MobileNo)
+        @Html.HiddenFor(x => x.Designation)
+        @Html.HiddenFor(x => x.NextFollowUpDate)
+        @Html.HiddenFor(x => x.CustomerGSTNo)
+        @Html.HiddenFor(x => x.ContactPerson)
+        @Html.HiddenFor(x => x.Customer)
+    </form>
+</div>
+
+<script type="text/javascript">
+    function uploadDocFile() {
+        $("#orderDocFile").dmUploader({
+            url: '/Cms/Document/SaveFile',
+            multiple: false,
+            maxFileSize: 3000000,
+            onDragEnter: function () {
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#OrderDocumentId").val(data.fileId);
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }
+    function OnSubmit(e)
+    {
+        var PAN = $("#PAN").val();
+        var TAN = $("#TAN").val();
+        var GSTNo = $("#GSTNo").val();
+        var PINNo = $("#PINNo").val();
+        var OrderValue = parseFloat($("#BaseValue").val()) * parseFloat($("#TAXValue").val());
+        var BaseValue = $("#BaseValue").val();
+        var TaxValue = $("#TAXValue").val();
+        var OrderDate = $("#OrderDate").val();
+        if ((PAN == null || PAN == '' || PAN == undefined) && (TAN == null || TAN == '' || TAN == undefined) && (GSTNo == null || GSTNo == '' || GSTNo == undefined)) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Any of the field from PAN, TAN and GSTNo is required");
+            e.preventDefault();
+            return false;
+        }
+
+        if (PINNo == null || PINNo == '' || PINNo == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("PIN No. is required");
+            e.preventDefault();
+            return false;
+        }
+        if (OrderValue == null || OrderValue == '' || OrderValue == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Order Value is required");
+            e.preventDefault();
+            return false;
+        }
+        if (BaseValue == null || BaseValue == '' || BaseValue == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Base Value is required");
+            e.preventDefault();
+            return false;
+        }
+        if (TaxValue == null || TaxValue == '' || TaxValue == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Tax Value is required");
+            e.preventDefault();
+            return false;
+        }
+        if (OrderDate == null || OrderDate == '' || OrderDate == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Order Date With is required");
+            e.preventDefault();
+            return false;
+        }
+    }
+    $(document).ready(function () {
+        $("#CompletionDate").kendoDatePicker({
+
+        });
+        $("#OrderDate").kendoDatePicker({
+
+        });
+       $("#Country").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.Country",
+             optionLabel: "--All--",
+            change: function (e)
+            {
+                //debugger
+                $("#State").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+               // serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCountryList",
+                    }
+                }
+            }
+        });
+
+        $("#State").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            value: "@Model.State",
+            filter: "contains",
+            autoBind: false,
+           // cascadeFrom: "Country",
+
+            change: function (e)
+            {
+                $("#City").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+                //serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetStateList",//+ $("#Country").data("kendoDropDownList").value(),
+                        data: filterState,
+                    },
+                }
+            }
+        });
+         $("#City").kendoDropDownList({
+            dataTextField: "Name",
+             dataValueField: "Id",
+            optionLabel: "--All--",
+            value: "@Model.City",
+             filter: "contains",
+             autoBind: false,
+            // cascadeFrom: "State",
+             dataSource: {
+                // serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCityList",
+                        data: filterCity,
+                    }
+                }
+            }
+         });
+
+
+        uploadDocFile();
+
+
+
+
+    });
+
+    function filterState() {
+        //debugger
+        return {
+            countryId: $("#Country").data("kendoDropDownList").value()
+        };
+    }
+    function filterCity() {
+      //  debugger
+        return {
+            stateId: $("#State").data("kendoDropDownList").value()
+        };
+    }
+        var onAjaxSuccess = function (res) {
+            if (res.success) {
+                closeNav()
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+
+
+    function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName:"getDirectSalesData"});
+        return false;
+    }
+
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            $.ajax({
+                url: "/user/ChangeUserProfilePhoto?photoId=" + e.response.fileId,
+                type: "GET",
+                contentType: "application/json",
+                dataType: "JSON",
+                success: function (response) {
+                    $(".avatar-myProfile").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+                    $("#PhotoId").val(e.response.fileId);
+                }
+            });
+
+        }
+        return true;
+    }
+
+    function onFileUploadSuccess1(e) {
+        if (e.response.success) {
+            $.ajax({
+                url: "/user/ChangeUserSignature?photoId=" + e.response.fileId,
+                type: "GET",
+                contentType: "application/json",
+                dataType: "JSON",
+                success: function (response) {
+                    $(".avatar-mysign").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+                    $("#SignatureId").val(e.response.fileId);
+                }
+            });
+
+        }
+        return true;
+    }
+    function onProfileDel() {
+
+        if ( $("#PhotoId").val()!='') {
+            kendo.confirm("Are you sure that you want to proceed?").then(function () {
+                confirmDelete();
+            }, function () {
+
+            });
+        }
+
+    }
+    function onSignatureDel() {
+        if ($("#SignatureId").val() != '') {
+            kendo.confirm("Are you sure that you want to proceed?").then(function () {
+                $(".avatar-mysign").attr("src", "/images/200.png");
+                $("#SignatureId").val('');
+                var logoupload = $("#files2").data("kendoUpload");
+                logoupload.clearFile(function (file) { return true; });
+            }, function () {
+
+            });
+        }
+
+    }
+
+    function confirmDelete() {
+        $(".avatar-myProfile").attr("src", "/images/200.png");
+        $("#PhotoId").val('');
+        var logoupload = $("#files").data("kendoUpload");
+        logoupload.clearFile(function (file) { return true; });
+    }
+
+
+    function ViewDocument(DocId) {
+        var url = "/cms/PreviewAttachment?Id=" + DocId + "&canEdit=false";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Policy Document', Width: 1200, Height: 600 });
+        return false;
+    }
+
+</script>
+

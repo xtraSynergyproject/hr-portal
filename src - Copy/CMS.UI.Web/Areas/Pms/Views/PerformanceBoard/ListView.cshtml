@@ -1,0 +1,437 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceBoardController> Resource
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@model ProgramDashboardViewModel
+
+@{
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    Layout = null;
+}
+<style>
+
+    #listView-Attach {
+        background: transparent;
+        border: none;
+        width: 100%;
+        padding: 10px 5px;
+    }
+
+    .card {
+        margin-left: 10px;
+        float: left;
+        width: 640px;
+        /*height:400px;*/
+    }
+
+    .attach {
+        float: left;
+        position: relative;
+        width: 111px;
+        height: 80px;
+        margin: 0 5px;
+        padding-bottom: 23px;
+    }
+
+    #Project {
+        height: 400px;
+    }
+
+    .ui-item {
+        padding: 10px;
+        color: #fff;
+        border-radius: 5px;
+        text-align: center;
+    }
+
+    .card {
+        min-height: 50px;
+    }
+
+    h5, .h5 {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    body {
+        background-color: #efefef87;
+    }
+
+    .nav-side-menu li:hover {
+        border-left: 3px solid #d19b3d;
+        background-color: #ff7a5961;
+    }
+
+    .nav-side-menu li a {
+        text-decoration: none;
+        color: #2c3131e3;
+        font-size: 12px;
+    }
+
+    .nav-side-menu li {
+        padding-left: 0px;
+        border-left: 0px;
+        border-bottom: 0px;
+    }
+
+    .nav-side-menu {
+        position: fixed;
+        overflow: auto;
+        font-family: verdana;
+        font-size: 10px;
+        font-weight: 200;
+        background-color: #ffffff;
+        top: 0px;
+        height: 100%;
+        color: #394848;
+        margin-bottom: 10px;
+        margin-top: 50px;
+        padding-top: 15px;
+        width: 225px;
+        /* border-right: 1px solid; */
+        box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.22), 0 7px 10px -5px #fff;
+        border: 1px solid #eee;
+    }
+
+    .Card-header {
+        padding: 10px 15px;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+        background: #F8F9FB;
+        color: #5191bd;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .label {
+        border-radius: 1.25em;
+    }
+
+    .label-info {
+        background-color: #34bfa3;
+    }
+
+    .Pills {
+        /*background-color: #428bca;*/
+        background-color: #22b9ff !important;
+        border: none;
+        color: #fff;
+        padding: 6px 20px !important;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0px 6px !important;
+        cursor: pointer;
+        border-radius: 22px !important;
+        font-size: 12px !important;
+    }
+
+        .Pills:hover {
+            background-color: #428bca;
+        }
+
+    /*  .board {
+        height: 300px;
+        overflow-y: scroll;
+    }*/
+
+    .k-listview {
+        border: none;
+    }
+
+    .amont {
+        color: #22b9ff !important;
+    }
+
+    .contract {
+        font-size: 1.0em;
+    }
+
+    .cursor {
+        cursor: pointer;
+    }
+
+    .Card-header .k-dropdown-wrap {
+        border-radius: 25px !important;
+        font-size: 15px;
+    }
+
+    .red {
+        color: red;
+    }
+
+    .orange {
+        color: darkorange;
+    }
+
+    .green {
+        color: green;
+    }
+
+    .k-widget .k-colorpicker {
+        float: right;
+    }
+
+    .fa-circle {
+        font-size: 0.5em;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        HideLoader($("#global-overlay"));
+
+    });
+
+    function preview(e) {
+
+       // var grid = $('#board').data().kendoListView;
+
+      //  var dataItem = grid.dataItem($(this).closest('tr'));
+        var x = e.sender.element[0].id;
+        var y = document.getElementById("count_" + x.split("_")[1])
+        y.style.backgroundColor = e.value
+    }
+
+    function OnSwitchView() {
+        var url = "/Pms/PerformanceBoard/index?mode=@Model.Mode"+ "&permissions="+'@ViewBag.Permissions';
+        LoadPartailView(url, $('#cms-content'));
+    }
+    function OnView(type) {
+        var url = "/Pms/PerformanceBoard/listview?permissions=@ViewBag.Permissions";
+        if (type == "Shared") {
+            url = "/Pms/PerformanceBoard/listview?mode=Shared"+ "&permissions="+'@ViewBag.Permissions';
+        }
+        LoadPartailView(url, $('#cms-content'));
+    }
+    function OnProject(id) {
+        var url = "/Pms/PerformanceDashboard?projectId=" + id;
+        window.location.href = url;
+    }
+    function Edit(id) {
+        var portalId = $('#GlobalPortalId').val();
+        //var prms = encodeURIComponent( 'parentServiceId=123&parentTaskId=223');
+
+        // var url = '/Cms/Page?source=Edit&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + id ;
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Versioning&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + id;
+        LoadCmsPartialView(url, 'Service', true, 1000, 600, '@Html.Raw(SharedResource["Edit"])');
+    }
+    function View(id) {
+        window.location.href = "/Pms/PerformanceDashboard?projectId=" + id;
+    }
+    function dataBound() {
+        var grid = this;
+
+        // $("#progress").data("kendoProgressBar").value(50);
+
+        //$(this).find(".progress").kendoProgressBar({
+        //    value: 50
+        //});
+        //grid.tbody.find("tr[role='row']").each(function () {
+        //    var model = grid.dataItem(this);
+
+
+        //});
+    }
+
+    var colors = ['#F56564', '#90D142', '#28BAF5', '#7551F5', '#5BA79F', '#7A8F9D', '#4F67B6'];
+    function OnDataBoundDoc(arg) {
+        var childDiv = document.getElementById('board').children;
+        //var childDiv = document.getElementById('count').children;
+
+        for (var i = 0; i < childDiv[0].children.length; i++) {
+            var uc = childDiv[0].children[i].getElementsByClassName("usercount");
+            var up = childDiv[0].children[i].getElementsByClassName("userpicker");
+            var colr = colors[Math.floor(Math.random() * colors.length)];
+            //childDiv[i].children[2].style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            uc[0].style.backgroundColor = colr;
+            $("#"+up[0].id).data("kendoColorPicker").value(colr);
+           // up[0].style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        }
+    }
+    function OnService() {
+        var portalId = $('#GlobalPortalId').val();
+        //var prms = encodeURIComponent( 'parentServiceId=123&parentTaskId=223');
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=Project&portalId=' + portalId /*+ '&prms=' + prms*/;
+        LoadCmsPartialView(url, 'Service', true, 1000, 600, '@Html.Raw(SharedResource["Create"])');
+        return false;
+    }
+    function OnAfterServiceCreate(service) {
+        getListViewData();
+      //  $("#kgrdJob").data("kendoGrid").dataSource.read();
+    }
+
+</script>
+<script>
+    var columnDefs = [
+
+        {
+            field: "ProjectName",
+            headerName:"@Resource["ProjectName"]"
+        },
+           {
+               field: "CreatedBy",
+               headerName: "@Resource["CreatedBy"]"
+           },
+
+        {
+            field: "CreatedOn",
+            headerName: "@SharedResource["CreatedOn"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            field: "StartDate",
+            headerName: "@SharedResource["StartDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+         {
+             field: "DueDate",
+             headerName: "@SharedResource["DueDate"]",
+             cellRenderer: params => {
+
+                 var date = new Date(params.value);
+                 return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+             }
+        },
+         {
+             field: "AllTaskCount",
+            headerName: "@Resource["AllTaskCount"]"
+        },
+         {
+             field: "UserCount",
+            headerName: "@Resource["UserCount"]"
+        },
+    ];
+
+    $(function () {
+
+            getListViewData();
+    });
+
+    function getListViewData() {
+        document.getElementById("kgrdJob").innerHTML = "";
+        gridConfig(
+            "kgrdJob",
+            "/Pms/PerformanceBoard/ReadProjectData?mode=@Model.Mode",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<div style="margin:20px;">
+    <div class="row hr-pad-top-10">
+        <div class="col-md-6">
+            <h4>
+                @Resource["PerformanceBoard"]
+            </h4>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+
+        <div class="col-md-5" @*style="margin-left:-20px;"*@>
+            @if (Model.Mode == "Shared")
+            {
+                <div class="btn btn-sm btn-default" title="@Resource["CreateOwnedPerformance"])" style="width:100px;" onclick="OnView()">
+                    <span>@Resource["Owned"]</span>
+                </div>
+                <div class="btn btn-sm btn-primary" title="@Resource["CreateSharedPerformance"])" style="width:100px;" onclick="OnView('Shared')">
+                    <span>@Resource["Shared"]</span>
+                </div>
+            }
+            else
+            {
+                <div class="btn btn-sm btn-primary" title="@Resource["CreateOwnedPerformance"])" style="width:100px;" onclick="OnView()">
+                    <span>@Resource["Owned"]</span>
+                </div>
+                <div class="btn btn-sm btn-default" title="@Resource["CreateSharedPerformance"])" style="width:100px;" onclick="OnView('Shared')">
+                    <span>@Resource["Shared"]</span>
+                </div>
+            }
+
+        </div>
+        <div class="col-md-6" style="text-align:right">
+            <div class="formHeader" style="padding-bottom:10px;">
+                <div class="btn-group" role="group">
+                    @if (Model.Mode == null && ViewBag.Permissions.Contains("CREATE_PROJECT"))
+                    {<a href="#" class="btn btn-sm btn-primary" onclick="OnService()"><i class="fal fa-plus"></i> @SharedResource["Create"]</a>
+
+                    @*<div class="col-md-1">
+                            <div class="btn btn-sm btn-primary" title="Create Project" style="width:45px;border-radius:30px;" onclick="OnService()">
+                                <i class="fal fa-plus"></i>
+                            </div>
+                        </div>*@
+                }  &nbsp;&nbsp;&nbsp;
+                    <a href="javascript: void(0); onclick=OnSwitchView()" class="btn btn-sm btn-primary" title="@Resource["CardView"]"><i class="fas fa-line-columns fa-1x"></i></a>
+                    &nbsp;&nbsp;&nbsp;
+                    <a href="#" class="btn btn-sm btn-primary" title="@Resource["ListView"]"><i class="fas fa-list-alt fa-1x"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <div>
+        <br />
+        <br />
+
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div id="kgrdJob" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            @*@(Html.Kendo().Grid<ProgramDashboardViewModel>
+                            ().Name("kgrdJob")
+                            .Columns(col =>
+                            {
+                                col.Bound(c => c.ProjectName).Title("" + Resource["ProjectName"] + "").Width(120);
+                                col.Bound(c => c.CreatedBy).Title("" + Resource["Createdby"] + "").Width(120);
+                                col.Bound(c => c.CreatedOn).Title("" + SharedResource["CreatedOn"] + "").Width(120).Format("{0:dd.MM.yyyy hh:mm tt}");
+                                col.Bound(c => c.StartDate).Title("" + SharedResource["StartDate"] + "").Width(120).ClientTemplate("#= kendo.toString(kendo.parseDate(StartDate), 'dd/MM/yyyy') #");
+                                col.Bound(c => c.DueDate).Title("" + SharedResource["DueDate"] + "").Width(120).ClientTemplate("#= kendo.toString(kendo.parseDate(DueDate), 'dd/MM/yyyy') #");
+                                col.Bound(c => c.AllTaskCount).Title("" + Resource["AllTaskCount"] + "").Width(120);
+                                col.Bound(c => c.UserCount).Title("" + Resource["UserCount"] + "").Width(120);
+                            })
+
+
+                                    .Sortable(srt => srt.Enabled(true))
+                                    .Selectable(select => select.Enabled(false))
+                                    .Filterable(filter => filter.Mode(GridFilterMode.Menu))
+                                    .Pageable(pageable => pageable
+                                    .Refresh(true)
+                                    .PageSizes(new[] { 10, 50, 100, 200, 500 })
+                                    .ButtonCount(10))
+                                    .DataSource(
+                                    dataSource => dataSource
+                                    .Ajax()
+                                    .PageSize(20)
+                                    //.Events(events => events.Error("OnError"))
+                                   .Read(read => read.Action("ReadProjectData", "PerformanceBoard", new { @area = "Pms", mode = Model.Mode }))
+                                    .Model(model => model.Id(p => p.Id))
+                                    )
+                )*@
+        </div>
+        @Html.HiddenFor(x => x.Mode);
+    </div>
+
+</div>
+
+
+
+

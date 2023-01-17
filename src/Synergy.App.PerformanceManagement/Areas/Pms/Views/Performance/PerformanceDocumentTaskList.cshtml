@@ -1,0 +1,459 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+
+@model PerformanceDocumentViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+    var PMSType = "Goal";
+}
+
+<style>
+    .listViewDoc {
+        border: none;
+        border-radius: 6px;
+        overflow-x: hidden;
+    }
+
+    input.largerCheckbox {
+        width: 15px;
+        height: 20px;
+        background-color: #2196F3;
+    }
+
+    .board {
+        border: none;
+        overflow-x: scroll;
+        display: flex;
+    }
+
+    .card_task {
+        border-color: #209EB8;
+    }
+
+    .newtask {
+        background-color: black;
+        color: #fff;
+    }
+
+    .tasklist {
+        background-color: #209EB8;
+        color: #fff;
+        border-radius: 0px 0px 3px 3px;
+    }
+
+    .taskname {
+        /*color: #1D6EF4;*/
+        color: black;
+    }
+
+    .drp-user-photo {
+        height: 50px;
+        width: 50px;
+        border-radius: 30px;
+    }
+
+    #board > .k-listview-content {
+        display: flex;
+    }
+
+    .k-listview-content {
+        overflow: unset;
+    }
+
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+    }
+
+    .scrollbtn {
+        background-color: #4E4D4D;
+        color: white;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 2px;
+    }
+
+    .k-treeview-lines {
+        overflow-x: scroll;
+        width: 100%;
+    }
+    .banner-container {
+        position: relative;
+        color: white;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 14px;
+        left: 60px;
+        font-size: 35px;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&isLineManage=true", 'PerformanceFilter');
+        GetPDTLData();
+        HideLoader($("#global-overlay"));
+    });
+
+    var columnDefs = [
+        { field: "MasterName", headerName:"@Resource["MasterName"]" },
+        { field: "ProjectName", headerName:"@Resource["DocumentName"]" },
+        { field: "OwnerName", headerName:"@SharedResource["Owner"]" },
+        { field: "DepartmentName", headerName:"@SharedResource["DepartmentName"]" },
+        { field: "JobName", headerName: "@SharedResource["JobName"]" },
+        { field: "ServiceStage", headerName:"@Resource["Objectives"]" },
+        { field: "Title", headerName: "@SharedResource["TaskName"]" },
+        { field: "TaskNo", headerName: "@SharedResource["TaskNo"]" },
+        { field: "TaskOwnerName", headerName: "@SharedResource["TaskOwnerName"]" },
+        { field: "UserName", headerName: "@SharedResource["TaskAssignedTo"]" },
+        { field: "Priority", headerName: "@SharedResource["Priority"]" },
+        { field: "NtsStatus", headerName: "@SharedResource["TaskStatus"]"},       
+        {
+            field: "Start",
+            headerName: "@SharedResource["StartDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            }
+        },
+        {
+            field: "End",
+            headerName: "@SharedResource["EndDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            }
+        },
+    ];
+
+    function GetPDTLData(urlnew) {
+        var url = "";
+        if (urlnew != "" && urlnew != null) {
+            url = urlnew;
+        } else {
+            url = "/Pms/Performance/GetPerformanceTaskList";
+        }
+        document.getElementById("kgdPDTL").innerHTML = "";
+        gridConfig(
+            "kgdPDTL",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+
+    function OnSelect(e) {
+        //
+        e.preventDefault();
+
+    }
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+    function OnTask(userId) {
+        //
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id&assignedToUserId=' + userId);
+            var url = '/Cms/Page?source=Create&dataAction=Create&templateCodes=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Task');
+            return false;
+    }
+
+    function OnSubTask(parentTaskId) {
+        //
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id&parentTaskId=' + parentTaskId);
+        var url = '/Cms/Page?source=Create&dataAction=Create&templateCodes=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Sub Task');
+            return false;
+    }
+    function EditTask(taskId) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id');
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Versioning&dataAction=Edit&templateCodes=ProjectTask&portalId=' + portalId + '&recordId=' + taskId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Edit Task');
+            return false;
+    }
+    function OnGridGroupByUser() {
+        PMSType = "Goal";
+        $("#divgridGoal").show();
+        $("#divgridCompentency").hide();
+        var g = $("#kgdProjectGridView").data("kendoGrid");
+        g.dataSource.group([{ field: "UserName" }, { field: "ServiceStage" }]);
+
+    }
+    function OnGridGroupByProject() {
+        PMSType = "Compentency";
+        $("#divgridGoal").hide();
+        $("#divgridCompentency").show();
+
+        var g = $("#kgdProjectGridView").data("kendoGrid");
+        g.dataSource.group([{ field: "UserName" }, { field: "ServiceStage" }]);
+    }
+    function onSearch() {
+        var search = {
+            projectIds: $("#ProjectFiltersIds").data("kendoMultiSelect").value(),
+            recieverids : $("#Receiver").data("kendoMultiSelect").value(),
+            senderIds : $("#Sender").data("kendoMultiSelect").value(),
+            statusIds: $("#Status").data("kendoMultiSelect").value(),
+            pmsTypes: $("#mdlTaskStagesType").data("kendoMultiSelect").value(),
+            stageIds: $("#mdlTaskStages").data("kendoMultiSelect").value(),
+            column: $("#Column").data("kendoDropDownList").value(),
+            dateRange: $("#DateType").data("kendoDropDownList").value(),
+            fromDate : kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            toDate : kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+    }
+    function onReset() {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&isLineManage=true", 'PerformanceFilter');
+        $("#kgdProjectGridView").data("kenModeloGrid").dataSource.read();
+    }
+    function OnCreate() {
+
+        url = "/Pms/PerformanceTask/CreatePerformanceTask";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+
+        win.OpenWindow({ Title: '@Html.Raw(Resource["CreateTask"])', Width: 500, Height: 550 });
+    }
+    function OnCloseCreatePerformanceTask(prms) {
+        var portalId = $('#GlobalPortalId').val();
+        if (prms.code == "PMS_GOAL") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.objective + '&assignedToUserId=' + prms.owner +'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_GOAL_ADHOC_TASK&portalId=' + portalId + '&prms=' + prms;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateGoalTask"])', Width: 1200, Height: 700 });
+            return false;
+        } else if (prms.code == "PMS_COMPENTENCY") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.objective + '&assignedToUserId=' + prms.owner +'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_COMPENTENCY_ADHOC_TASK&portalId=' + portalId + '&prms=' + prms;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateCompetencyTask"])', Width: 1200, Height: 700 });
+            return false;
+        } else if (prms.code == "PMS_DEVELOPMENT") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.objective + '&assignedToUserId=' + prms.owner +'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_DEVELOPMENT_ADHOC_TASK&portalId=' + portalId + '&prms=' + prms;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateDevelopmentTask"])', Width: 1200, Height: 700 });
+            return false;
+        } else if (prms.code == "PMS_PEER_REVIEW") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.objective + '&assignedToUserId=' + prms.owner +'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_REVIEW_TASK&portalId=' + portalId + '&prms=' + prms;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreatePeerReviewTask"])', Width: 1200, Height: 700 });
+            return false;
+        }
+        return false;
+    }
+    function OnEdit(e) {
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        //alert(dataItem.Id);
+        var portalId = $('#GlobalPortalId').val();
+        if (dataItem.Type == "Goal") {
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_GOAL_ADHOC_TASK&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Task', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        } else if (dataItem.Type == "Competency") {
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_COMPENTENCY_ADHOC_TASK&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Task', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        } else if (dataItem.Type == "Development") {
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_DEVELOPMENT_ADHOC_TASK&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Task', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        } else if (dataItem.Type == "PeerReview") {
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_REVIEW_TASK&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Task', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        }
+        return false;
+    }
+    function OnView(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        alert(dataItem.Id);
+    }
+    function OnDelete(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        alert(dataItem.Id);
+    }
+    function OnAfterTaskCreate(task) {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&isLineManage=true", 'PerformanceFilter');
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read();
+    }
+</script>
+
+
+<div class="banner-container">
+    <img style="width:100%; height:100px" src="~/images/PMS/Performance document by User.png" />
+    <div class="banner-text">@Resource["PerformanceDocumentList"]</div>
+</div>
+    @*<div class="col-md-6">
+            <h4>
+                Project Team Workload
+            </h4>
+        </div>*@
+
+
+
+@*<div id="PerformanceFilter">
+
+</div>*@
+<div class="row" style="padding-right:10px;">
+   
+</div>
+<div id="divgridview" class="row">
+    <div id="divgridGoal" class="col-sm-12">
+        <br />
+        <div id="kgdPDTL" style="width:100%;height:550px" class="ag-theme-alpine"></div>
+
+        @*@(Html.Kendo().Grid<ProjectGanttTaskViewModel>()
+    .Name("kgdPDTL")
+    .Columns(columns =>
+    {
+        //columns.Command(command =>
+        //{
+
+        //    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon", title = "Edit" });
+
+        //}).Width(120);
+        columns.Bound(p => p.MasterName).Title("" + Resource["MasterName"] + "").Width(250);
+        columns.Bound(p => p.ProjectName).Title("" + Resource["DocumentName"] + "").Width(250);
+        columns.Bound(p => p.OwnerName).Title("" + SharedResource["Owner"] + "").Width(250); columns.Bound(p => p.EmployeeNo).Title("" + SharedResource["EmployeeNo"] + "").Width(250);
+        columns.Bound(p => p.DepartmentName).Title("" + SharedResource["DepartmentName"] + "").Width(250);
+        columns.Bound(p => p.JobName).Title("" + SharedResource["JobName"] + "").Width(250);
+        columns.Bound(p => p.ServiceStage).Title("" + Resource["Objectives"] + "").Width(250);
+        columns.Bound(p => p.Title).Title("" + SharedResource["TaskName"] + "").Width(300);
+        columns.Bound(p => p.TaskNo).Title("" + SharedResource["TaskNo"] + "").Width(300);
+        columns.Bound(p => p.TaskOwnerName).Title("" + SharedResource["TaskOwnerName"] + "").Width(200);
+        columns.Bound(p => p.UserName).Title("" + SharedResource["TaskAssignedTo"] + "").Width(200);
+        columns.Bound(p => p.Priority).Title("" + SharedResource["Priority"] + "").Width(200);
+        columns.Bound(p => p.NtsStatus).Title("" + SharedResource["TaskStatus"] + "").Width(200);
+        columns.Bound(p => p.Start).Title("" + SharedResource["StartDate"] + "").Format("{0:dd MMM yyyy}").Width(150);
+        columns.Bound(p => p.End).Title("" + SharedResource["EndDate"] + "").Format("{0:dd MMM yyyy}").Width(150);
+
+    })
+    .ToolBar(toolbar =>
+    {
+        //toolbar.Excel();
+        //toolbar.Pdf();
+        toolbar.Search();
+        //toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;"+Html.Raw(Resource["CreateTask"])+"</button>");
+    })
+
+    .ColumnMenu(col=>col.Filterable(true))
+    .Height(700)
+    .Editable()
+    .Pageable()
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+
+.DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+    .AutoSync(true)
+    .ServerOperation(false)
+    //.Events(events => events.Error("error_handler"))
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+
+    })
+
+    .Read("GetPerformanceTaskList", "Performance", new { @area = "Pms" })
+
+
+)
+)*@
+
+    </div>
+    
+</div>
+
+
+
+<script>
+
+    var colors = ['#F56564', '#90D142', '#28BAF5', '#7551F5', '#5BA79F', '#7A8F9D', '#4F67B6'];
+    function OnDataBoundDoc(arg) {
+        var childDiv = document.getElementById('board').children;
+
+        for (var i = 0; i < childDiv.length; i++) {
+            childDiv[i].children[0].style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        }
+    }
+
+    $('#left').click(function () {
+        event.preventDefault();
+        $('#board').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+    });
+
+    $('#right').click(function () {
+        event.preventDefault();
+        $('#board').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+    });
+
+
+</script>
+

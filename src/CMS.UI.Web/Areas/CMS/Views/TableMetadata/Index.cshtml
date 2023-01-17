@@ -1,0 +1,223 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Table Metadata";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+<style>
+    .kgrdTabelMetadataStyle {
+        width: 100% !important;
+    }
+</style>
+<script>
+   var tableType = '@Html.Raw(EnumExtension.EnumToJson(typeof(TableTypeEnum)))';
+    var tableTypeObj = JSON.parse(tableType);
+     var templateType = '@Html.Raw(EnumExtension.EnumToJson(typeof(TemplateTypeEnum)))';
+    var templateTypeObj = JSON.parse(templateType);
+
+    var columnDefs = [
+        {
+            field: "TableType",
+            cellRenderer: params => {
+                return tableTypeObj[params.value]; //only for enum
+            }
+        },
+        {
+            field: "TemplateType",
+            cellRenderer: params => {
+                return templateTypeObj[params.value]; //only for enum
+            }
+        },
+        //{ field: "TemplateType" },
+        { field: "Name" },
+        {
+            field: "DisplayName",
+
+        },
+        {
+            field: "Schema",
+
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBinTableData' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\"><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    $(function () {
+
+        getDataTableData();
+
+        //$.contextMenu('update');
+        //$('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-menuBinTableData',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        onEdit(id);
+                                        break;
+
+                                    case 'onManageTableCol':
+                                        OnManageTableCol(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "onManageTableCol": { name: "Manage Column", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+     function OnCreateTable() {
+        //alert("Create Table");
+        
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateTableMetadata", "TableMetadata", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Create Table', Width: 600, Height: 600 });
+        return false;
+
+    }
+
+    function onEdit(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("EditTableMetadata", "TableMetadata", new { @area = "Cms" })?Id=' + id;
+        win.OpenWindow({ Title: 'Manage TableMetadata', Width: 600, Height: 600 });
+        return false;
+    }
+      function OnManageTableCol(id) {
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //alert("Manage Table Col : " + dataItem.Id);
+        LoadPartailView('@Url.Action("TableColumn", "TableMetadata", new { @area = "Cms"})?tableMetadataId='+ id , $('#page-content'));
+    }
+
+        function getDataTableData() {
+        document.getElementById("myGridtable").innerHTML = "";
+        gridConfig(
+        "myGridtable",
+        "/cms/TableMetadata/ReadTableMetadata",
+        columnDefs,
+        false,
+        true,
+        true,
+        true,
+        1,
+        true,
+        10);
+        }
+
+</script>
+
+<div>
+    <h4>@ViewBag.Title</h4>
+
+    <hr />
+
+
+    <div class="row">
+        <div class="col-12">
+            <button type='button' class='btn btn-primary' onclick='OnCreateTable();'><i class='fa fas fa-plus'></i>&nbsp;Create New Table</button>
+            <br /><br />
+            <div id="myGridtable" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!--<h3>@ViewBag.Title</h3>
+<div class="row">
+    <div class="col-md-12">
+       @* @(Html.Kendo().Grid<TableMetadataViewModel>
+    ().Name("kgrdTabelMetadata").HtmlAttributes(new { @class = "kgrdTabelMetadataStyle" })
+    .Columns(col =>
+    {
+        col.Command(command =>
+        {
+            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditTable").HtmlAttributes(new { @class = "action-icon",@title="Edit" });
+            command.Custom("Manage Column").Text("<i class='fa fas fa-cog'></i>").Click("OnManageTableCol").HtmlAttributes(new { @class = "action-icon", @title = "Manage Columns" });
+        }).Title("Action").Width(150);
+        col.Bound(c => c.TableType).Title("Table Type").Width(300);
+        col.Bound(c => c.TemplateType).Title("Template Type").Width(300);
+        col.Bound(c => c.Name).Title("Table Name").Width(300);
+        col.Bound(c => c.DisplayName).Title("Display Name").Width(300);
+        //col.Bound(c => c.ModuleName).Title("Module Name").Width(300);
+        col.Bound(c => c.Schema).Title("Schema Name").Width(300);
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Custom().Text(" Create New Table").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateTable();" });
+    })
+    .Scrollable(x => x.Enabled(false))
+    .Sortable(srt => srt.Enabled(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("ReadTableMetadata", "TableMetadata", new { Area="Cms"}))
+    .Model(model => model.Id(p => p.Id)))
+    )*@
+    </div>
+</div>
+
+<script type="text/javascript">
+    function OnCreate() {
+        //alert("Under Development : Create New");
+        //window.location.href = "/Cms/TableMetadata/TableViewPage";-->
+
+       
+        @*OpenIframeModal('@Url.Action("TableViewPage", "TableMetadata", new { @area="Cms"})', 'Create Table / Veiw',450,450);*@
+            <!--var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("TableViewPage", "TableMetadata", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Create Table / Veiw', Width: 300, Height: 200 });
+        return false;
+    }
+    function onEditTable(e) {
+        //alert("Hello Edit");
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        alert(dataItem.Id);
+    }
+
+</script>-->

@@ -1,0 +1,416 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@inject CMS.Common.IUserContext _userContext
+@model PageViewModel
+
+<style>
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+    /*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+</style>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#ModuleId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Module/GetModuleList",
+                    }
+                }
+            }
+        });
+
+        $("#SubModuleId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/SubModule/GetSubModuleList",
+                    }
+                }
+            }
+        });
+
+        $("#MenuGroupId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/MenuGroup/GetMenuGroupList",
+                    }
+                }
+            }
+        });
+
+        $("#PageType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",            
+            change: OnPageTypechange,            
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=PageTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#dropdowntree").kendoDropDownTree({
+            placeholder: "Select Data",
+            height: "auto",
+            dataSource: [
+                {
+                    text: "Tables", items: [
+                        { text: "T1" },
+                        { text: "T2" },                        
+                    ]
+                },
+                {
+                    text: "Views", expanded: true, items: [
+                        { text: "V1" },
+                        { text: "V2" },                        
+                    ]
+                }
+            ]
+        });
+
+        //$('input[type=radio]').change(function () {
+        //
+        //    if (this.value == 'Form') {
+        //        $("#chkIndexPage").show();
+        //    }
+        //    else {
+        //        $("#chkIndexPage").hide();
+        //    }
+        //});
+    });
+    function OnPageTypechange(args) {
+        var pagetype = $("#PageType").data("kendoDropDownList").value();
+        if (pagetype == "Form") { $("#chkIndexPage").show(); }
+        else {
+            $("#chkIndexPage").hide();
+            $("#EnableIndexPage").val("false");
+        }
+    }
+    function closeNavPortal() {
+      
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function onFileUploadSuccessLogo(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-mylogoimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#LogoId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onFileUploadSuccessBanner(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-mybannerimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BannerId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+</script>
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+    <form asp-controller="Content" asp-action="ManageGeneralTabData" method="post" class="form-horizontal">
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.Name)     
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.IconColor)
+        @Html.HiddenFor(x => x.IconCss)
+        @*<div class="col-sm-12" style="text-align:right;">
+                <button type="button" class="btn btn-light" onclick="CloseIframeModal();">Cancel</button>
+                <button type="submit" class="btn btn-success">Save</button>
+            </div>*@
+        <div class="row" style="padding:10px;">
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label for="Module">Module</label>
+                </div>
+                <div class="col-9">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.ModuleId)
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        //.Events(e => e.Change("change"))
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                            read.Action("GetModuleList", "Module", new { @area = "Cms" });
+                            });
+                        })
+                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                        .HtmlAttributes(new { style = "width: 100%" })
+                        )*@
+
+                    <input asp-for="ModuleId" id="ModuleId" style="width:100%" />
+                </div>
+            </div>
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label for="Module">Sub Module</label>
+                </div>
+                <div class="col-9 ">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.SubModuleId)
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    // .Events(e => e.Change("change"))
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetSubModuleList", "SubModule", new { @area = "Cms" });
+                        });
+                    })
+                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                    .HtmlAttributes(new { style = "width: 100%" })
+                    )*@
+
+                    <input asp-for="SubModuleId" id="SubModuleId" style="width:100%" />
+
+                    @*<input asp-for="MenuName" type="text" class="form-control" placeholder="Enter Menu Name" autocomplete="off" />*@
+                </div>
+            </div>
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label for="Module">Menu Group</label>
+                </div>
+                <div class="col-9">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.MenuGroupId)
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        // .Events(e => e.Change("change"))
+                        .DataSource(source =>
+                        {
+                        source.Read(read =>
+                        {
+                            read.Action("GetMenuGroupList", "MenuGroup", new { @area = "Cms" });
+                        });
+                        })
+                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                        .HtmlAttributes(new { style = "width: 100%" })
+                        )*@
+
+                    <input asp-for="MenuGroupId" id="MenuGroupId" style="width:100%" />
+                    @*<input asp-for="MenuName" type="text" class="form-control" placeholder="Enter Menu Name" autocomplete="off" />*@
+                </div>
+            </div>
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label for="Module">Page Type</label>
+                </div>
+                <div class="col-9">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.PageType)
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .Events(e => e.Change("OnPageTypechange"))
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                            read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "PageTypeEnum" });
+                            });
+                            })
+                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                        .HtmlAttributes(new { style = "width: 100%" })
+                        )*@
+
+                    <input asp-for="PageType" id="PageType" style="width:100%" />
+                </div>
+            </div>
+            <!--<div class="row col-12 pad-10">
+            <div class="col-12 ">
+                <input type="radio" name="rbtn" class="k-radio" value="Page" style="margin-right:5px;" />
+                <label>Page</label>
+            </div>
+            <div class="row col-12 pad-10" style="padding-left:15px!important;">
+                <div class="col-5">
+                    <input type="radio" name="rbtn" class="k-radio" value="Form" style="margin-right:5px;" />
+                    <label>Form</label>
+                </div>
+                <div Style="display:none" id="chkIndexPage" class="col-5">
+                    <input type="checkbox" name="EnableIndexPage" class="k-checkbox" style="margin-right:5px;" />
+                    <label>Enable Index Page</label>-->
+            @*@(Html.Kendo().CheckBox().Name("EnableIndexPage").Checked(true).Label("Enable Index Page"))*@
+            <!--</div>
+            </div>-->
+            @*@(Html.Kendo().RadioButton().Name("Page").Value("Page").Checked(true).HtmlAttributes(new { @name = "rbtn"}).Label("Page"))
+                @(Html.Kendo().RadioButton().Name("Form").Value("Form").HtmlAttributes(new { @name = "rbtn" }).Label("Form"))*@
+            <!--</div>-->
+            <div class="row col-12 pad-10" Style="display:none" id="chkIndexPage">
+                <div class="col-3">
+                    <input type="checkbox" asp-for="EnableIndexPage" style="margin-right:5px;" />
+                    <label>Enable Index Page</label>
+
+                </div>
+
+            </div>
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <input type="checkbox" asp-for="ShowTitleInPage" class="k-checkbox" style="margin-right:5px;" />
+                    <label>Show Page Title in Page</label>
+                    @**@
+                    @*@(Html.Kendo().CheckBox().Name("chkPageTitle").Checked(true).Label("Show Page Title in Page"))*@
+                </div>
+
+            </div>
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <input type="checkbox" asp-for="HideInMenu" class="k-checkbox" style="margin-right:5px;" />
+                    <label>Show Page in Menu</label>
+                </div>
+                <div class="col-9">
+                    <input asp-for="MenuName" type="text" class="form-control" placeholder="Menu Name" autocomplete="off" />
+                </div>
+            </div>
+            <div class="row col-12 pad-10">
+                <div class="col-3 ">
+                    <label for="MenuName">Sequence No</label>
+                </div>
+                <div class="col-9 ">
+                    <input asp-for="SequenceOrder" type="number" class="form-control" placeholder="Enter Sequence Order" autocomplete="off" />
+                </div>
+            </div>
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label for="Description">Description</label>
+                </div>
+                <div class="col-9">
+                    <textarea placeholder="Description" rows="3" class="form-control"></textarea>
+                </div>
+
+
+            </div>
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label for="Description">Select Data</label>
+                </div>
+                <div class="col-9">
+
+                    @*@(Html.Kendo().DropDownTree()
+                        .Name("dropdowntree") //The name of the dropdowntree is mandatory. It specifies the "id" attribute of the widget.
+                        .HtmlAttributes(new { style = "width: 100%" })
+                        .Height("auto")
+                        .Placeholder("Select Data")
+                        .Items(dropdowntree =>
+                        {
+                            dropdowntree.Add().Text("Tables")
+                            .Items(root =>
+                            {
+                                root.Add().Text("T1");
+                                root.Add().Text("T2");
+                            });
+                            dropdowntree.Add().Text("Views")
+                .           Expanded(true)
+                            .Items(root =>
+                            {
+                                root.Add().Text("V1");
+                                root.Add().Text("V2");
+                            });
+                        })
+                     )*@
+
+                    <input id="dropdowntree" style="width:100%" />
+                    <a href="#">Add Data</a>
+
+                </div>
+
+            </div>
+            @*<div class="col-12 pad-15"> </div>*@
+        </div>
+        <div class="cms-footer">
+            <input type="button" class="btn btn-link" value="Save and Preview" onclick="OnSave('Preview')" />
+            <input type="button" class="btn btn-success" value="Save and Publish" onclick="OnSave('Publish')" />
+            <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave()" />
+        </div>
+    </form>
+</div>
+

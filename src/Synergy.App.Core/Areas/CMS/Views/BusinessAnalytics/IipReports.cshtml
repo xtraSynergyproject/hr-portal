@@ -1,0 +1,345 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@{
+    ViewData["Title"] = "Reports";
+    Layout = null;
+    
+}
+<script>
+    $(document).ready(function () {
+
+        loadTableDll();
+        loadQueryColumnsDll();
+        loadFilterTypeDll();
+        loadGranularityDll();
+        loadTimeDimensionDll();
+        loadChartTypeDll();
+
+    });
+    function onChangeMeasures() {
+        var tabId = $("#queryTableId").data("kendoDropDownList").value();
+        $("#queryColumns").data("kendoMultiSelect").dataSource.read();       
+        $("#timeDimensionId").data("kendoDropDownList").dataSource.read({ measure: tabId});
+        var result = $('#builder').html();
+        if (!$.isEmptyObject(result)) {
+            $('#builder').queryBuilder('reset');
+             $.ajax({
+                url: '@Url.Action("GetDimensionsColumnData", "BusinessAnalytics", new { @area="CMS"})?measure=' + tabId,
+                type: 'GET',
+                 success: function (result) {
+                     $('#builder').queryBuilder('setFilters', result);
+                },
+                error: function (ert) {
+
+                }
+            });
+        }
+        else {
+         $.ajax({
+                        url: '@Url.Action("GetDimensionsColumnData", "BusinessAnalytics", new { @area="CMS"})?measure=' + tabId,
+                        type: 'GET',
+             success: function (result) {
+                 $('#builder').queryBuilder({
+                     operators: [
+                         { type: 'contains', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'notContains', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'equals', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'notEquals', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'set', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'notSet', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'inDateRange', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'notInDateRange', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'afterDate', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+                         { type: 'beforeDate', nb_inputs: 1, multiple: false, apply_to: ['string'] },
+
+                     ],
+                                filters: result
+                            });
+                        },
+                        error: function (ert) {
+
+                        }
+                    });
+        }
+
+
+
+
+    }
+    function FilterDimDLL() {
+        var tabId = $("#queryTableId").data("kendoDropDownList").value();
+        return {
+            measure: tabId
+        };
+    }
+function loadTableDll() {
+    $("#queryTableId").kendoDropDownList({
+            dataTextField: "title",
+            dataValueField: "name",
+            dataSource: {
+                serverFiltering: false,
+                transport: {
+                    read: {
+                        url: "/Cms/BusinessAnalytics/GetMeasuresData",
+                    }
+                },
+            },
+            change: onChangeMeasures,
+            optionLabel: "Select Table",
+            filter: '@FilterType.Contains',
+        }).data("kendoDropDownList");
+}
+function loadQueryColumnsDll() {
+    $("#queryColumns").kendoMultiSelect({
+        placeholder: "Select columns...",
+        dataTextField: "title",
+        dataValueField: "name",
+        dataSource: {
+            serverFiltering: false,
+            transport: {
+                read: {
+                    url: "/Cms/BusinessAnalytics/GetDimensionsData",
+                    data: function () {
+                        return FilterDimDLL();
+                    }
+                }
+            }
+        },
+        @*value: ['@Html.Raw(Model.queryColumns)']*@
+    });
+}
+function loadFilterTypeDll() {
+    $("#timeDimensionDuration").kendoDropDownList({
+        dataTextField: "Name",
+        dataValueField: "Id",
+        //filter: "contains",
+        //change: onDateFilterchange,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/Home/GetEnumIdNameList?enumType=SocialMediaDatefilters",
+                }
+            },
+            filter: { field: "Name", operator: "neq", value: "Custom" }
+        }
+    });
+}
+function loadGranularityDll() {
+    $("#granularity").kendoDropDownList({
+        dataTextField: "Name",
+        dataValueField: "Id",
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/Home/GetEnumIdNameList?enumType=GranularityEnum",
+                }
+            }
+        }
+    });
+}
+function loadTimeDimensionDll() {
+        $("#timeDimensionId").kendoDropDownList({
+                dataTextField: "title",
+                dataValueField: "name",
+                dataSource: {
+                    serverFiltering: false,
+                    transport: {
+                        read: {
+                            url: "/Cms/BusinessAnalytics/GetTimeDimensionsData",
+                            data: function () {
+                                return FilterDimDLL();
+                            }
+                        }
+                    },
+                },
+                optionLabel: "Select column",
+                filter: '@FilterType.Contains',
+         }).data("kendoDropDownList");
+    }
+function loadChartTypeDll() {
+        $("#chartTypeId").kendoDropDownList({
+                dataTextField: "Name",
+                dataValueField: "Id",
+                filter: "contains",
+                //select: onSelect,
+                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                dataSource: {
+                    serverFiltering: false,
+                    transport: {
+                        read: {
+                            url: "/CMS/BusinessAnalytics/GetChartTemplateList",
+                        }
+                    }
+                }
+        });
+    }
+</script>
+<style>
+    .cms-footer {
+        position: unset !important;
+        background-color: unset !important;
+    }
+    .rules-group-container {
+        width: 100%;
+    }
+   
+</style>
+<div class="container-fluid hr-pad-top-10">
+    <h4>Advance Search</h4>
+    <hr />
+    <div class="row col-12 pad-10">
+        <div class="col-2">
+            <label for="chartTypeId">Chart Type</label>
+        </div>
+        <div class="col-10">
+            <input id="chartTypeId" style="width:100%" />
+        </div>
+
+    </div>
+    <div class="row col-12 pad-10">
+        <div class="col-2">
+            <label>Table</label>
+        </div>
+        <div class="col-10">
+            <input id="queryTableId" style="width:100%" />
+        </div>
+    </div>
+    <div class="row col-12 pad-10">
+        <div class="col-2">
+            <label>Coulmn</label>
+        </div>
+        <div class="col-10">
+            <input id="queryColumns" style="width:100%" />
+        </div>
+    </div>
+    <div class="row col-12 pad-10">
+        <div class="col-2">
+            <label for="Query">Filters</label>
+        </div>
+        <div class="col-10">
+            <div id="builder"></div>
+        </div>
+
+    </div>
+    <div class="row col-12 pad-10">
+        <div class="col-2">
+            <label for="Query">Time Dimension</label>
+        </div>
+        <div class="col-3">
+            <input id="timeDimensionId" style="width: 100%" />
+        </div>
+        <div class="col-3">
+            <input id="timeDimensionDuration" style="width: 100%" />
+        </div>
+        <div class="col-3">
+            <input id="granularity" style="width: 100%" />
+        </div>
+
+    </div>
+    <div class="row col-12 pad-10">
+        <div class="col-2">
+            <label for="Query">Report Name</label>
+        </div>
+        <div class="col-10">
+            <input type="text" id="reportName" class="form-control" />
+        </div>
+
+    </div>
+    <div class="cms-footer">
+        <input type="button" class="btn btn-success" value="Search" onclick="onSearchReport()" />
+        <input type="button" class="btn btn-primary" value="Save Report" onclick="onSaveReport()" />
+    </div>
+    <hr />
+    <div class="row col-12 pad-10">
+        <div class="col-12">
+            <div id="iipReportGrid" style="width: 100%;height:550px"></div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function onSearchReport() {
+        var colItems = $("#queryColumns").data("kendoMultiSelect").dataItems();
+        var col = "";
+        for (var i = 0; i < colItems.length; i++) {
+            if (i == colItems.length - 1) {
+                col += colItems[i].name;
+            }
+            else {
+                col += colItems[i].name + ",";
+            }
+
+        }
+        var chartId=$("#chartTypeId").val();
+        var tableId = $("#queryTableId").val();
+        var timeDimensionId = $("#timeDimensionId").val();
+        var timeDimensionDuration = $("#timeDimensionDuration").val();
+        var granularity = $("#granularity").val();
+        var result = $('#builder').queryBuilder('getRules');
+        var filters = "";
+        if (!$.isEmptyObject(result)) {
+            filters = JSON.stringify(result, null, 2);
+        }
+        $.ajax({
+            url: '@Url.Action("GenerateIipReports", "BusinessAnalytics", new { @area="Cms"})?chartTypeId=' + chartId + '&chartName=iipReportGrid&tableId=' + tableId + '&columnIds=' + col + '&filters=' + filters + '&timeDimenstionId=' + timeDimensionId + '&timeDimensionDuration=' + timeDimensionDuration + '&granularity=' + granularity,
+            type: 'GET',
+            data: {},
+            dataType: 'json',
+            success: function (result) {
+                debugger;
+                if (result.success) {
+                    eval(result.charts);
+                }
+
+            },
+            error: function (ert) {
+
+
+            }
+        });
+    }
+    function onSaveReport() {
+        var colItems = $("#queryColumns").data("kendoMultiSelect").dataItems();
+        var col = "";
+        for (var i = 0; i < colItems.length; i++) {
+            if (i == colItems.length - 1) {
+                col += colItems[i].name;
+            }
+            else {
+                col += colItems[i].name + ",";
+            }
+
+        }
+        var chartId=$("#chartTypeId").val();
+        var tableId = $("#queryTableId").val();
+        var timeDimensionId = $("#timeDimensionId").val();
+        var timeDimensionDuration = $("#timeDimensionDuration").val();
+        var granularity = $("#granularity").val();
+        var reportName = $("#reportName").val();
+        var result = $('#builder').queryBuilder('getRules');
+        var filters = "";
+        if (!$.isEmptyObject(result)) {
+            filters = JSON.stringify(result, null, 2);
+        }
+        $.ajax({
+            url: '@Url.Action("SaveIipReports", "BusinessAnalytics", new { @area="Cms"})?chartTypeId=' + chartId + '&reportName=' + reportName + '&tableId=' + tableId + '&columnIds=' + col + '&filters=' + filters + '&timeDimenstionId=' + timeDimensionId + '&timeDimensionDuration=' + timeDimensionDuration + '&granularity=' + granularity,
+            type: 'POST',
+            data: {},
+            dataType: 'json',
+            success: function (result) {                
+                if (result.success) {
+                    alert("Saved Successfully");
+                }
+                else {
+                    alert(result.error);
+                }
+
+            },
+            error: function (ert) {
+
+
+            }
+        });
+}
+</script>

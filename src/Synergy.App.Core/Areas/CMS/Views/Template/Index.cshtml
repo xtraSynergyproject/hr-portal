@@ -1,0 +1,468 @@
+﻿@{
+    ViewData["Title"] = "Templates";
+    Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@using Synergy.App.ViewModel;
+@model SynergyTemplateViewModel
+<style>
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+    /*Portal Start*/
+    .sidenav {
+        height: 100vh; /* 100% Full-height */
+        width: 0; /* 0 width - change this with JavaScript */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Stay on top */
+        top: 0; /* Stay at the top */
+        right: 0;
+        background-color: #fff; /* Black*/
+        border-left: 1px solid silver;
+        overflow-x: hidden; /* Disable horizontal scroll */
+        padding-top: 30px; /* Place content 60px from the top */
+        transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    }
+
+
+
+        /* Position and style the close button (top right corner) */
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            font-size: 30px;
+            font-weight: bold;
+            margin-left: 20px;
+            color: gray;
+            border: none;
+            text-decoration: none;
+        }
+
+            .sidenav .closebtn:hover {
+                color: red;
+            }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 92% !important;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Portal End*/
+</style>
+<script>
+    function Export(id) {
+        //
+        @*var json =
+        {
+            Id: '@Model.Id',
+            Name: '@Model.Name',
+            DisplayName: '@Model.DisplayName',
+            Code: '@Model.Code',
+            Description: '@Model.Description',
+        };
+        var Jsondata = JSON.stringify(json);*@
+
+
+        var url = '/cms/template/ManageExport?Id=' + id;
+        window.open(url, '_blank');
+        return false;
+        @* $.ajax({
+            url: "/cms/template/ManageExport",
+            type: 'POST',
+            data:
+            {
+                Id: '@Model.Id',
+                Name: '@Model.Name',
+                DisplayName: '@Model.DisplayName',
+                Code: '@Model.Code',
+                Description: '@Model.Description',
+            },
+            cache: false,
+            success: function (data) {
+
+            },
+            error: function (errData) {
+                OnError(errData);
+            }
+        });*@
+    }
+
+    function CopyTemplate(id) {
+        var url = "/Cms/Template/CopyTemplate?id="+id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Copy Template', Width: 1200, Height: 600 });
+        return false;
+    }
+
+     function OnDelete(id) {
+
+
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(id);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDelete(id) {
+
+
+        $.ajax({
+
+            url:'@Url.Action("DeleteTemplate", "Template", new { @area= "Cms" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+
+                ShowNotification("Deleted Successfully", "success");
+                //window.parent.$("#documentTypeTreeView").data("kendoTreeView").dataSource.read();
+                $('#documentTypeTreeView').jstree(true).refresh();
+
+            }
+        });
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+       
+
+    }
+
+
+</script>
+<div class="splitter-container">
+    <div class="left">
+        @*@(Html.Kendo().TreeView()
+            .Name("documentTypeTreeView").HtmlAttributes( new {@class="treeview"})
+            .Events(e=>e.Select("OnSelect"))
+            .DataTextField("Name")
+            .TemplateId("ct-tv-template")
+            .DataSource(dataSource => dataSource
+                .Read(read => read
+                    .Action("GetNtsTemplateTreeList", "Template",new { @area="Cms"})
+                )
+            )
+        )*@
+        <div id="documentTypeTreeView" class="demo treeview"></div>
+
+        <script id="ct-tv-template" type="text/kendo-ui-template">
+            <span style="width:100%">   #: item.DisplayName #</span>
+            <span data-id="#:item.id#" data-type="#:item.Type#" data-portal-name="#:item.Name#" data-parent-id="#:item.ParentId#" class="tree-menu" data-level="#:item.Level#"><i class="fa fa-ellipsis-h"></i></span>
+
+        </script>
+
+
+    </div>
+    <div class="right pad-l-t-15" id="template-content">
+
+    </div>
+</div>
+<div id="create-category-div">
+    <div id="mySidenavPageCategory" class="sidenav">
+        <h1 class="cms-panel-header-name" id="sidebarHeader">Create Category</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavCategory()" title="Close">&times;</a>
+        <hr />
+        <div id="create-category" class="row no-gutters slidenav-flow">
+        </div>
+    </div>
+</div>
+<script>
+
+    $('#documentTypeTreeView')
+
+
+        .jstree({
+            'core': {
+                'data': function (node, cb) {
+                    if (node.id === "#") {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/cms/template/GetNtsTemplateTreeList",
+                            dataType: "json",
+                            success: function (json) {
+                                debugger;
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                        //cb([{ "text": "Root", "id": "1", "children": true }]);
+                    }
+                    else {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/cms/template/GetNtsTemplateTreeList?id=" + node.id,
+                            dataType: "json",
+                            success: function (json) {
+                                debugger;
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+    function closeNavCategory() {
+        document.getElementById("mySidenavPageCategory").style.width = "0";
+        $("#overlay").removeClass("overlay");
+    }
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+    function OnSelect(e) {
+        e.preventDefault();
+
+    }
+     function editNavStyle(sid, stype) {
+
+          var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("TemplateProperties", "Template", new { @area="Cms"})?id=' + sid;
+         win.OpenWindow({ Title: 'Template Properties', Width: 650, Height: 950 });
+        return false;
+
+    }
+
+
+    function editNavStyle1(sid, stype, tempfieldid) {
+
+         var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("TemplateField", "Template", new { @area="Cms"})?templatefieldId=' + sid;
+        win.OpenWindow({ Title: 'Template Fields', Width: 650, Height: 950 });
+        return false;
+
+    }
+    function OpenIframeModal(url, title) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: title, Width: 450, Height: 1200 });
+        return false;
+    }
+    //$(function () {
+    //    $.contextMenu({
+    //        selector: '.tree-menu',
+    //        trigger: 'left',
+
+    //        items: {
+    //            "edit": {
+    //                name: "Edit", icon: "cut", callback: function (itemKey, opt, e) {
+    //                    console.log($(this).data('id'));
+    //                }
+    //            },
+    //            "cut": { name: "Cut", icon: "cut" },
+    //            "copy": { name: "Copy", icon: "copy" },
+    //            "paste": { name: "Paste", icon: "paste" },
+    //            "delete": { name: "Delete", icon: "delete" },
+    //            "sep1": "---------",
+    //            "quit": { name: "Quit" }
+    //        }
+    //    });
+    //});
+
+
+    $(function () {
+        $.contextMenu({
+            selector: '.jstree-anchor',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                debugger;
+                var parentId = $trigger.attr('data_id');
+                var parentType = $trigger.attr('data_type');
+                var selectParentId = $trigger.attr('data_parentId');
+                console.log(parentId, parentType, selectParentId);
+
+                 switch (parentType) {
+                    case 'Root':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateCategory?type=Note', 'Create Category');
+                                        $("#sidebarHeader").html("Create Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+
+                                        LoadPartailView('@Url.Action("Create", "TemplateCategory", new { @area = "Cms" })?type=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+
+                                        break;
+                                    case 'importData':
+                                        var win = GetMainWindow();
+                                        win.iframeOpenUrl = '@Url.Action("ManageImportData","Template",new { @area = "Cms" })?type=' + parentId, $('#template-content');
+                                        win.OpenWindow({ Title: 'Import Template', Width: 450, Height: 950, Position: 'Right' });
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-chart-area" },
+                                "importData": { name: "Import Data", icon: "fas fa-upload" }
+                            }
+                        };
+                    case 'Category':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+
+                                        LoadPartailView('@Url.Action("Template", "Template", new { @area="Cms"})?categoryId=' + parentId/* + '&type=' + parentType*/, $('#template-content'));
+                                        break;
+                                    case 'open':
+                                        $("#sidebarHeader").html("Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("Edit", "TemplateCategory", new { @area="Cms"})?id=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                       // OpenIframeModal('/cms/Template/EditCategory?id=' + parentId, 'Category');
+                                        break;
+                                     case 'import':
+                                        @*LoadPartailView('@Url.Action("ManageImport", "Template", new { @area = "Cms"})?templateId=' + parentId /*+ '&type=' + selectParentId*/, $('#template-content'));*@
+
+                                         var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("ManageImport", "Template", new { @area = "Cms"})?categoryId=' + parentId + '&type=' + selectParentId, $('#template-content');
+        win.OpenWindow({ Title: 'Import', Width: 450, Height: 950 ,Position:'Right'});
+        return false;
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Template", icon: "fas fa-chart-area" },
+                                "open": { name: "Manage Category", icon: "fas fa-chart-area" },
+                                "import": { name: "Import Template", icon: "fas fa-upload" }
+                            }
+                        };
+                    case 'Template':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                       // OpenIframeModal('/cms/Template/EditTemplateMaster?id=' + parentId, 'Edit Template');
+                                        $("#sidebarHeader").html("Edit Template");
+                                           document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("EditTemplateMaster", "Template", new { @area="Cms"})?id=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    case 'open':
+                                        LoadPartailView('@Url.Action("Template", "Template", new { @area="Cms"})?templateId=' + parentId /*+ '&type=' + selectParentId*/, $('#template-content'));
+                                        break;
+                                    case 'deletePage':
+                                        OnDelete(parentId);
+                                        break;
+                                      case 'Export':
+                                        @*LoadPartailView('@Url.Action("ManageImport", "Template", new { @area = "Cms"})?templateId=' + parentId /*+ '&type=' + selectParentId*/, $('#template-content'));*@
+
+                                        Export(parentId);
+                                        break;
+                                    case 'Copy':
+                                        CopyTemplate(parentId);
+
+
+
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                //"edit": { name: "Edit Template", icon: "fas fa-chart-area" },
+                                "open": { name: "Edit Template", icon: "fas fa-chart-area" },
+                                "deletePage": { name: "Delete Template", icon: "fas fa-trash-alt" },
+                                "Export": { name: "Export Template", icon: "fas fa-download" },
+                                "Copy": { name: "Copy Template", icon: "fas fa-download" }
+                            }
+                        };
+
+                        return {
+
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateCategory?type=Task', 'Create Category');
+                                        $("#sidebarHeader").html("Create Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("CreateCategory", "Template", new { @area="Cms", @type = "Task" })' , $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-chart-area" },
+
+                            }
+                        };
+
+                    default:
+                        return {
+                            callback: function (key, options) {
+                                alert(parentId);
+                                alert(parentType);
+                            },
+                            items: {
+
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+
+</script>
+

@@ -1,0 +1,147 @@
+﻿@model Synergy.App.ViewModel.LoginViewModel
+@using Synergy.App.Common
+@{
+    Layout = null;// "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@*<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/open-iconic/font/css/open-iconic-bootstrap.min.css" asp-append-version="true">
+*@
+
+<style>
+    #content-wrapper {
+        background-color: #fff !important;
+    }
+
+    .modal-login {
+        width: 380px !important;
+    }
+
+    #validation-summary > ul {
+        list-style: none;
+    }
+
+    .login-auth {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100%;
+        padding-top: 150px;
+    }
+</style>
+<script>
+    
+    function onAjaxMobileSuccess(res) {
+        var mode = $('#Mode').val();
+        if (res.success) {
+            if (mode === 'VALIDATE') {
+                window.location.href = res.ru;
+            }
+            else {
+                $('#div-mobile').hide('slow');
+                $('#div-otp').show('slow');
+                $('#Email').val(res.email);
+                countdown(9);
+            }
+        }
+        else {
+            showError(res.error);
+        }
+        return false;
+    }
+    function LoginSubmit(val) {
+        $('#Mode').val(val);
+        return true;
+    }
+    function ReSend() {
+        var email = $('#Email').val();
+        ShowLoader();
+         $.ajax({
+                url: "/Account/ReSendOTP",
+                type: "POST",
+                data: { 'email': email},
+             success: function (data) {
+                 HideLoader();
+                 alert("OTP has been sent successfully.");
+                 countdown(9);
+                }
+
+            });
+        }
+        var current_minutes = 0;
+        var current_seconds = 0;
+        var t;
+        function countdown(m) {
+            var mins = m;
+            current_seconds = 60;
+            function tick() {
+
+                var counter = document.getElementById("testTimer");
+                current_minutes = mins;
+                
+
+                if (current_seconds > 0) {
+                    current_seconds--;
+                } else {
+                    current_seconds = 59;
+                }
+
+                counter.innerHTML = "We have sent One time password(OTP) to the given mobile number. It will expire in: " + current_minutes.toString() + ":" + current_seconds + " &nbsp;<a href='javascript:void(0);' onclick='ReSend();'>Resend OTP</a>";
+
+
+                if (current_seconds > 0) {
+                    t = setTimeout(tick, 1000);
+                } else {
+
+                    if (mins >= 1) {
+                        countdown(mins - 1);
+                    }
+
+                    if (current_minutes == 0 && current_seconds == 0) {
+                        $("#btnSubmit").hide();
+                        counter.innerHTML = "Your OTP is expired. Click 'Resend OTP' to get a new OTP.&nbsp;<a href='javascript:void(0);' onclick='ReSend();'>Resend OTP</a>"
+                    }
+                }
+            }
+            tick();
+        }
+</script>
+<main class="login-auth">
+    <form asp-controller="Account" asp-action="JammuCustomerLogin" method="post" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxMobileSuccess" class="auth-form" id="loginform" style="padding-top:15px !important;"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <h5 class="text-center pb-3" style="width:100%;">SIGN IN</h5>
+        <div id="div-mobile">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text fa fa-mobile-button" style="font-size:22px;padding-top:6px;" id="icon-email"></span>
+                </div>
+                <input type="text" required="required" class="form-control" placeholder="Enter Your Mobile No" asp-for="MobileNo" aria-describedby="icon-email">
+            </div>
+            <div class="form-group pt-2">
+                <button class="btn btn-primary btn-block" type="submit" onclick="LoginSubmit('MOBILE');">Submit</button>
+            </div>
+        </div>
+        <div id="div-otp" style="display:none;">
+            <div class="form-group mb-4">
+                <div id="testTimer" style="color:red;"> </div>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text fa fa-lock" style="font-size:22px;padding-top:6px;" id="icon-otp"></span>
+                </div>
+                <input type="text" class="form-control" placeholder="Enter Your OTP" asp-for="TwoFactorAuthOTP" aria-describedby="icon-otp">
+            </div>
+            <div class="form-group pt-2">
+                <button class="btn btn-primary btn-block" type="submit" onclick="LoginSubmit('VALIDATE');">Validate</button>
+            </div>
+        </div>
+        @Html.HiddenFor(x => x.AuthenticateViewName)
+        @Html.HiddenFor(x => x.LoginViewName)
+        @Html.HiddenFor(x => x.PortalId)
+        @Html.HiddenFor(x => x.Email)
+        @Html.HiddenFor(x => x.ReturnUrl)
+        @Html.HiddenFor(x => x.Mode)
+    </form>
+
+</main>

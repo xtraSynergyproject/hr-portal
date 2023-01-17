@@ -1,0 +1,467 @@
+﻿@*@using Syncfusion.EJ2
+@using Syncfusion.EJ2.Navigations*@
+
+@using Synergy.App.ViewModel
+@using Synergy.App.Business
+@using Synergy.App.Common;
+@{
+    ViewData["Title"] = "Import";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model TemplateViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .k-widget k-upload k-upload-async k-upload-empty {
+        width: 80%
+    }
+</style>
+<script>
+    function ShowLoader(target) {
+        // target.loadingOverlay();
+        kendo.ui.progress(target, true);
+    }
+    function HideLoader(target) {
+        //target.loadingOverlay('remove');
+        kendo.ui.progress(target, false);
+    }
+    function Import() {
+
+
+        if ($("#actualCode").val() == $("#Code").val()) {
+            kendo.confirm("Are you about to override the existing template.If you want to Create new template change the code.").then(function () {
+                OnImport();
+            }, function () {
+                return;
+            });
+        }
+        else
+        {
+            OnImport();
+        }
+
+    }
+    function OnImport()
+    {
+        ShowLoader($('#content-wrapper'));
+         $.ajax({
+            type: "POST",
+             url: "/Cms/Template/ImportData",
+            dataType: "json",
+            data:
+            {
+                TemplateType: '@Model.TemplateType',
+                ImportFileId: $("#ImportFileId").val(),
+                /*TemplateCategoryId: $("#TemplateCategoryId").val(),*/
+                ////Name: $("#Name").val(),
+                ////Code: $("#Code").val(),
+                ////DisplayName: $("#DisplayName").val(),
+                ////Description: $("#Description").val(),
+
+            },
+             success: function (response) {
+                 
+                if (response.success) {
+                    ShowNotification("Imported Successfully", 'success');
+
+
+                    var win = GetMainWindow();
+                    win.CloseWindow();
+                    return false;
+                }
+                else
+                {
+                    ShowNotification(response.error, 'error');
+                }
+                HideLoader($('#content-wrapper'));
+            },
+            error: function (res) {
+                HideLoader($('#content-wrapper'));
+                showError(res.error);
+            }
+        });
+    }
+    function onFileUploadSuccess(e) {
+        
+        if (e.success) {
+            $("#ImportFileId").val(e.fileId);
+            $.ajax({
+                type: "GET",
+                url: "/Cms/Template/getTemplateDetails?fileId=" + $("#ImportFileId").val(),
+                dataType: "json",
+                success: function (response) {
+                    $("#Name").val(response.Name);
+                    $("#DisplayName").val(response.DisplayName);
+                    $("#Code").val(response.Code);
+                    /*$("#actualCode").val(response.Code);*/
+                    $("#Description").val(response.Description);
+                },
+            });
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    $(document).ready(function () {
+
+      //  uploadFile();
+
+
+    });
+
+    function uploadFile() {
+        $("#iconFile").dmUploader({ //
+            url: '/Cms/Document/SaveFile',
+            multiple: false,
+            extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#ImportFileId").val(data.fileId);
+                //upload Callback
+                $.ajax({
+                    type: "GET",
+                    url: "/Cms/Template/getTemplateDetails?fileId=" + $("#ImportFileId").val(),
+                    dataType: "json",
+                    success: function (response) {
+                        $("#Name").val(response.Name);
+                        $("#DisplayName").val(response.DisplayName);
+                        $("#Code").val(response.Code);
+                        $("#actualCode").val(response.Code);
+                        $("#Description").val(response.Description);
+                    },
+                });
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }
+
+</script>
+
+<script>
+    var disable = false;
+    var columnDefs = [
+        {
+            field: "",
+            headerName: "Action",
+            minWidth: 150,
+            checkboxSelection: true
+        },
+        {
+            field: "TemplateId",
+            headerName: "Template Id",
+            minWidth: 150
+        },
+        {
+            field: "Name",
+            headerName: "Template Name",
+            minWidth: 200
+        },
+        {
+            field: "Code",
+            headerName: "Template Code",
+            minWidth: 150
+        },
+        {
+            field: "TemplateCategoryName",
+            headerName: "Template Category Name",
+            minWidth: 200
+        },
+        {
+            field: "TemplateCategoryId",
+            headerName: "Template Category Id",
+            minWidth: 150
+        },
+    ];
+    $(function () {
+        document.getElementById("tgrid").innerHTML = "";
+        var url = "/cms/Template/FetchTemplatesListByTemplateType?type=@Model.TemplateType";
+        debugger;
+        agGridCustomConfig(
+            "tgrid",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            15);
+
+    });
+
+    var gridCustomOptions;
+    function agGridCustomConfig(selector,
+        url,
+        columns,
+        editableC,
+        sortableC,
+        resizableC,
+        filterC,
+        flexC,
+        paginationC,
+        pageSizeC,
+    ) {
+
+        ShowLoader($('#' + selector));
+        $.ajax({
+            url: url,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                HideLoader($('#' + selector));
+                document.getElementById(selector).innerHTML = "";
+                if (response.length >= 0) {
+
+                    var tabledata = response;
+
+                    // specify the columns
+                    const columnDefs = columns;
+
+                    // specify the data
+                    const rowData = tabledata
+
+                    // let the grid know which columns and what data to use
+                    gridCustomOptions = {
+                        defaultColDef: {
+                            editable: editableC,
+                            sortable: sortableC,
+                            resizable: resizableC,
+                            filter: filterC,
+                            flex: flexC,
+                        },
+                        columnDefs: columnDefs,
+                        rowData: rowData,
+                        pagination: paginationC,
+                        paginationPageSize: pageSizeC,
+                        rowSelection: 'multiple',
+
+                    };
+
+                    const eGridDiv = document.querySelector('#' + selector);
+                    new agGrid.Grid(eGridDiv, gridCustomOptions);
+                    return gridCustomOptions
+                } else {
+                }
+            },
+            error: function (ert) {
+                HideLoader($('#' + selector));
+            }
+        });
+    }
+
+    function ondevImport()
+    {
+        debugger;
+        var selectedRow = gridCustomOptions.api.getSelectedRows();
+        //var id = selectedRow["TemplateId"];
+        var ids = '';
+        for (var i in selectedRow) {
+            if (ids == '') {
+                ids = ids + selectedRow[i]["TemplateId"];
+            } else {
+                ids = ids + "," + selectedRow[i]["TemplateId"];
+            }
+        }
+        //call ajax post method to import
+        ShowLoader($('#devImport'));
+        $.ajax({
+            url: "/cms/Template/FetchTemplateDataById?ids="+ids,
+            //type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                HideLoader($('#devImport'));
+                alert("success");
+                ShowNotification("Imported Successfully", 'success');
+
+
+                var win = GetMainWindow();
+                win.CloseWindow();
+                return false;
+            },
+            error: function (ert) {
+                HideLoader($('#devImport'));
+                alert("false");
+                ShowNotification("Import Failed", 'error');
+
+
+                var win = GetMainWindow();
+                win.CloseWindow();
+                return false;
+            }
+        });
+    }
+
+
+</script>
+
+<div class="container">
+    <div class="row" style="margin-top: 10px;">
+        <div class="col-12 col-md-8 col-lg-6">
+            
+            <ul class="nav nav-pills nav-justified">
+                <li class="nav-item">
+                    <a class="nav-link active" data-toggle="pill" href="#fileImport" role="tab" aria-controls="pills-fileImport" aria-selected="true">File Import</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="pill" href="#devImport" role="tab" aria-controls="pills-devImport" aria-selected="false">Dev Import</a>
+                </li>
+            </ul>
+            
+            <div class="tab-content mt-3">
+                @*File Import*@
+                <div class="tab-pane fade show active" id="fileImport" role="tabpanel" aria-labelledby="fileImport-tab">
+
+                    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+                    <input type="hidden" name="actualCode" id="actualCode" />
+                    <div class="row" style="padding:10px;margin-left:15px;">
+                        @*<div class="row">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="margin-top:20px"><label class="col-form-label SYN-sub-title">Select File To Import</label></div>
+                        </div>
+                        <br />
+                        <br />*@
+                        <div class="row">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="margin-top:20px">
+                                <label class="col-form-label SYN-sub-title">Select File To Import</label>
+                                <div class="x-dropdown dropdown" style="width:80%">
+                                    <div class="row">
+                                        @{
+                                            await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel
+                                            {
+                                                CallbackMethod = "onFileUploadSuccess",
+                                                Property = nameof(Model.ImportFileId),
+                                            });
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" style=" padding:10px;">
+                                <div class="col-12 pad-10">
+                                    <div class="form-label-group">
+                                        <input asp-for="Name" type="text" class="form-control" placeholder="Enter Name" title="Special character and space not allowed in name." required="required" autocomplete="off" style="width:80%" disabled />
+                                        <label for="Name">Name <span class="required">*</span></label>
+                                    </div>
+                                </div>
+                                @*<div class="col-12 pad-15">
+                                 @Html.TextBoxFor(model => model.Name, htmlAttributes: new { @class = "form-control", placeholder = "Name", style = "width:80%", required = "required" })
+                                </div>*@
+                                <div class="col-12 pad-10">
+                                    <div class="form-label-group">
+                                        <input asp-for="DisplayName" type="text" class="form-control" placeholder="Enter Display Name" title="Special character and space not allowed in name." required="required" autocomplete="off" style="width:80%" disabled />
+                                        <label for="DisplayName">Display Name <span class="required">*</span> </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 pad-10">
+                                    <div class="form-label-group">
+
+                                        <input asp-for="Code" type="text" class="form-control" placeholder="Enter Code" autocomplete="off" required="required" style="width:80%" disabled />
+                                        <label for="Code">Code <span class="required">*</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 pad-10">
+                                    <div class="form-label-group">
+                                        <div>
+                                            <label for="Description">Description </label>
+                                        </div>
+                                        <textarea asp-for="Description" class="form-control" placeholder="Description" autocomplete="off" style="width:80%; height:150px;" disabled></textarea>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="margin:20px">
+                                        <button class="btn btn-dark SYN-but-share" type="button" onclick="Import()">Import</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    @Html.HiddenFor(x => x.ImportFileId)
+                    @Html.HiddenFor(x => x.TemplateType)
+                    @Html.HiddenFor(x => x.TemplateCategoryId)
+
+                </div>
+                
+                @*Dev Import*@
+                <div class="tab-pane fade" id="devImport" role="tabpanel" aria-labelledby="devImport-tab">
+                    <div style="margin-top: 10px;">
+                        <div id="tgrid" style="width: 100%;height:550px" class="ag-theme-balham"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="margin-top:20px">
+                            <button class="btn btn-dark SYN-but-share" style="float:right;" type="button" onclick="ondevImport()">Import</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<script type="text/javascript">
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+</script>

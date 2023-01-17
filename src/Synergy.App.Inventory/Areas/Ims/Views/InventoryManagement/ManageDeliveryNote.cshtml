@@ -1,0 +1,426 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Direct Sales";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@model DeliveryNoteViewModel
+
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .avatar-myProfile {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .avatar-mysign {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .bold {
+        font: bold
+    }
+</style>
+
+<div class="row" style="margin:10px;margin-bottom:60px;">
+
+    <form asp-controller="InventoryManagement" asp-action="ManageDeliveryNote" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+
+        <div style="width: 100%;" class="p-3">
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Requisition Order</legend>
+
+                <div class="row col-12" style="padding:10px;">
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Requisition Code</label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        @Html.DisplayFor(x => x.RequisitionCode)
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Requisition Date</label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        @Html.DisplayFor(x => x.RequisitionDate)
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Item Head</label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        @Html.DisplayFor(x => x.ItemHead)
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Requisition Value</label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        @Html.DisplayFor(x => x.RequisitionValue)
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Particular</label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        @Html.DisplayFor(x => x.Particular)
+                    </div>
+                </div>
+
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Item Issued against Requisition</legend>
+
+
+                <div id="IssueItemsGrid" style="width: 100%;" class="ag-theme-alpine"></div>
+
+            </fieldset>
+
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Shipping Details</legend>
+
+
+                <div class="row col-12" style="padding:10px;">
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Issue Remark</label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="IssueRemark" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Name & Scope of Work<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="NameScopeOfWork" required />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>GSTIN</label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="GSTIN" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Delivery On<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="DeliveryOn" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Country<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="CountryId" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>State<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="StateId" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>City<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="CityId" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>PIN <span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="PIN" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Transport/Vehicle No</label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="VehicleNo" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Shipping Address<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" class="form-control" asp-for="ShippingAddress" />
+                    </div>
+                </div>
+
+            </fieldset>
+            
+                <div class="row pad-10" style="float:right;">
+                    <input type="submit" class="btn btn-primary" value="Add" style="margin:5px;" onclick="SaveData(event)" />
+                    <input type="button" class="btn btn-primary" value="Close" style="margin:5px;" onclick="closeNav()" />
+                </div>
+          
+            </div>
+                @Html.HiddenFor(x => x.DataAction)
+                @Html.HiddenFor(x => x.ServiceId)
+                @Html.HiddenFor(x => x.UdfNoteTableId)
+                @Html.HiddenFor(x => x.IssuedItemIds)
+                @Html.HiddenFor(x => x.RequisitionId)
+</form>
+</div>
+
+
+<script>
+    $("#DeliveryOn").kendoDatePicker({
+        value: new Date()
+    });
+    $("#CountryId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+              value: "@Model.CountryId",
+        optionLabel: "--Select--",
+        filter: "contains",
+            change: function (e)
+            {
+                //debugger
+                $("#StateId").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+                //serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCountryList",
+                    }
+                }
+            }
+        });
+
+        $("#StateId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--Select--",
+              value: "@Model.StateId",
+            filter: "contains",
+            autoBind: false,
+            //cascadeFrom: "CountryId",
+
+            change: function (e)
+            {
+                $("#CityId").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+              //  serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetStateList",//+ $("#Country").data("kendoDropDownList").value(),
+                        data: filterState,
+                    },
+                }
+            }
+        });
+         $("#CityId").kendoDropDownList({
+            dataTextField: "Name",
+             dataValueField: "Id",
+            optionLabel: "--Select--",
+              value: "@Model.CityId",
+             filter: "contains",
+             autoBind: false,
+            // cascadeFrom: "StateId",
+             dataSource: {
+               //  serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCityList",
+                        data: filterCity,
+                    }
+                }
+            }
+         });
+    $("#IssueItemsGrid").jsGrid({
+        width: "100%",
+        //height: "600px",
+
+        inserting: false,
+        editing: true,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        controller: {
+            loadData: function (filter) {
+
+                return $.ajax({
+                    type: "GET",                    
+                    url: "/IMS/InventoryManagement/GetRequisistionIssueItemsToDeliver?requisitionId=@Model.RequisitionId",
+                    @*url: "/IMS/InventoryManagement/GetRequisistionIssueItemsByRequisitionId?requisitionId=@Model.RequisitionId",*@
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+            onItemEditing: function (e) {
+                //debugger;
+                //if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                //    //
+                //    e.grid.updateItem();
+                //}
+            },
+            updateItem: function (item) {
+                debugger;
+            },
+            //deleteItem: function (item) {
+            //    onDeleteItem(item.NoteId);
+            //}
+        },
+        fields: [
+
+            { name: "Select", type: "checkbox", width: 60,},
+            {
+                name: "ItemName",
+                title: "Item Name",
+                type: "text",
+                editing: false
+            },
+            //{
+            //    name: "ItemSpecification",
+            //    title: "Item Specification",
+            //    type: "text",
+            //    editing: false
+            //},
+            {
+                name: "IssuedQuantity",
+                title: "Quantity Issued",
+                type: "text",
+                editing: false
+            },
+            {
+                name: "CreatedBy",
+                title: "Issued By",
+                type: "text",
+                editing: false
+            },
+            {
+
+                type: "control", deleteButton: false,
+
+            },
+        ]
+    })
+    function filterState() {
+        debugger
+        return {
+            countryId: $("#CountryId").data("kendoDropDownList").value()
+        };
+    }
+    function filterCity() {
+        debugger
+        return {
+            stateId: $("#StateId").data("kendoDropDownList").value()
+        };
+    }
+    function pushPopinArray(arr) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].Select == true) {
+                selectedDataItems.push(arr[i].Id);
+            }
+        }
+
+    }
+    function SaveData(e) {
+        debugger;
+        var selectedDataItems = [];
+        var entityGrid = $("#IssueItemsGrid").data("JSGrid");
+        //if (entityGrid._editingRow != null) {
+        //    entityGrid.updateItem();
+        //}
+        //pushPopinArray(entityGrid.data);
+        for (var i = 0; i < entityGrid.data.length; i++) {
+            if (entityGrid.data[i].Select == true) {
+                selectedDataItems.push(entityGrid.data[i].Id);
+
+            }
+
+        }
+       // console.log(selectedDataItems);
+
+        $("#IssuedItemIds").val(JSON.stringify(selectedDataItems));
+
+        if (selectedDataItems.length == 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("select at leaset one item");
+            e.preventDefault();
+            return false;
+        }
+        var Country = $("#CountryId").data("kendoDropDownList").value();
+        var State = $("#StateId").data("kendoDropDownList").value();
+        var City = $("#CityId").data("kendoDropDownList").value();
+        if (Country == null || Country == '' || Country == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Country is required");
+            e.preventDefault();
+            return false;
+        }
+        if (State == null || State == '' || State == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("State is required");
+            e.preventDefault();
+            return false;
+        }
+        if (City == null || City == '' || City == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("City is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#NameScopeOfWork").val() == null || $("#NameScopeOfWork").val() == '' || $("#NameScopeOfWork").val() == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Name & Scope of Work is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#PIN").val() == null || $("#PIN").val() == '' || $("#PIN").val() == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("PIN is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#ShippingAddress").val() == null || $("#ShippingAddress").val() == '' || $("#ShippingAddress").val() == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Shipping Address is required");
+            e.preventDefault();
+            return false;
+        }
+    }
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            closeNav()
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+
+
+    function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+</script>

@@ -1,0 +1,47 @@
+version: '2.2'
+
+services:
+  nginx:
+    image: nginx:alpine
+    hostname: 'nginx'
+    container_name: 'nginxcube'
+    volumes:
+      - ./nginxn.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/proxy.conf:/etc/nginx/proxy.conf:ro
+#     Only For SSL Implementation
+#      - ../nginx/aitalkxcert/aitalkx.crt:/etc/nginx/ssl/bundle.crt:ro
+#      - ../nginx/aitalkxcert/aitalkx.key:/etc/nginx/ssl/bundle.key:ro
+      - ../nginx/logs/:/var/log/nginx/
+    ports:
+      - '81:81'
+#      - '443:443'
+    depends_on:
+      - cube
+    restart: always
+  cube:
+    image: cubejs/cube:latest
+    depends_on:
+      - redis
+    links:
+      - redis
+    ports:
+      # It's better to use random port binding for 4000/3000 ports
+      # without it you will not able to start multiple projects inside docker
+      # - 4000
+      # - 3000
+      # 4000 is a port for Cube.js API
+      - 4000:4000
+      # 3000 is a port for Playground web-server
+      - 3000:3000
+    #env_file: .env
+    volumes:
+      - .:/cube/conf
+
+
+  redis:
+    image: redis:6
+    restart: always
+
+
+#volumes:
+#  cubeconf:

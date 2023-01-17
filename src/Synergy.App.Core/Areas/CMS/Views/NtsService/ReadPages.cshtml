@@ -1,0 +1,127 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+@{
+    ViewData["Title"] = "Template";
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+<style>
+    h5 {
+        color: black;
+    }
+</style>
+<div id="template">
+    <h5>Books</h5>
+    <div class="row">
+        <div class="col-12">
+
+            <div id="PagesGrid"> </div>
+            <input type="button" class="btn btn-primary" onclick="SaveData(event)" value="Save" />
+        </div>
+
+    </div>
+
+
+</div>
+
+<script>
+    var selectedDataItems = [];
+    $(document).ready(function () {
+       $("#PagesGrid").jsGrid({
+                    width: "100%",
+                    height: "400px",
+                    // selecting: true,
+                    inserting: false,
+                   editing: true,
+                    sorting: true,
+                    paging: true,
+           autoload: true,
+                    //filtering:true,
+                    pageSize: 14,
+                    pageButtonCount: 5,
+                    deleteConfirm: "Do you really want to delete client?",
+                    //data: clients,
+                    controller: {
+                        loadData: function (filter) {
+                            return $.ajax({
+                                type: "GET",
+                                url: "/cms/NtsService/ReadAllPages?serviceId=@ViewBag.BookId",
+                                data: filter,
+                                dataType: "json"
+                            });
+                        },
+                        onItemEditing: function (e) {
+                            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+
+                                e.grid.updateItem();
+                            }
+                        },
+                    updateItem: function (item) {
+
+                        },
+                    },
+                    fields: [
+                        {
+                            name: "Select", title: "Select", type: "checkbox",editing: true
+                        },
+                        {
+                            name: "CategoryName", title: "Category Name", type: "text", width: 150, editing: false
+                        },
+                        {
+                            name: "BookName", title: "Book Name", type: "text", width: 120, editing: false
+                        },
+                        {
+                            name: "PageName", title: "Page Name", type: "text", width: 120, editing: false
+                        },
+                    ]
+                });
+    });
+    function pushPopinArray(arr) {
+
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].Select == true) {
+                selectedDataItems.push(arr[i]);
+
+            }
+
+        }
+
+    }
+    function SaveData(e) {
+
+        var selectedRows = [];
+        var entityGrid = $("#BooksGrid").data("JSGrid");
+        if (entityGrid._editingRow != null) {
+            entityGrid.updateItem();
+        }
+        //entityGrid.updateItem();
+        pushPopinArray(entityGrid.data);
+
+        console.log(selectedDataItems);
+
+       var jsondata=JSON.stringify(selectedDataItems);
+        selectedRows = selectedDataItems;
+        if (selectedRows.length == 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");ViewBag
+            $(".text-danger").html("select at leaset one book");
+            e.preventDefault();
+            return false;
+        }
+        $.ajax({
+            type: "POST",
+            url: "/cms/NtsService/ManagePageRelation",
+            data:
+            {
+                data: jsondata,
+                serviceId:"@ViewBag.BookId"
+            },
+            dataType: "json",
+            success: function (data1) {
+
+            }
+        });
+    }
+</script>

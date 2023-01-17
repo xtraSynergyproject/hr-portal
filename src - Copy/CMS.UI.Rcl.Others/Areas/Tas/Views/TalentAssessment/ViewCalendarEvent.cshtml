@@ -1,0 +1,1284 @@
+﻿@model AssessmentCalendarViewModel
+@using System.Text;
+@using Kendo.Mvc.UI;
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using System.Web;
+
+@{
+    ViewBag.Title = "ViewCalendarEvent";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<script>
+
+    function onManageAssessment() {
+        var url = '@Html.Raw(string.Concat("/Portal/TalentAssessment/ManageAssessments?&customurl="))' + encodeURIComponent("userId=" + '@Model.CandidateId');
+        window.open(url, '_blank');
+        return false;
+    }
+
+    function onManageInterview() {
+        //window.open('/Tas/TalentAssessment/ManageInterview?userId=' + '@Model.CandidateId', '_blank');
+        var url = '@Html.Raw(string.Concat("/Portal/TalentAssessment/ManageInterview?&customurl="))' + encodeURIComponent("userId=" + '@Model.CandidateId');
+        window.open(url, '_blank');
+        return false;
+    }
+
+    function onAssessmentReport() {
+
+        //window.open('/Tas/TalentAssessment/ManageInterview?userId=' + '@Model.CandidateId', '_blank');
+        var url = '@Html.Raw(string.Concat("/Portal/TalentAssessment/AssessmentReport?&customurl="))' + encodeURIComponent("userId=" + '@Model.CandidateId');
+        window.open(url, '_blank');
+        return false;
+    }
+
+    function Send() {
+       var sd = kendo.toString($("#Start").data("kendoDateTimePicker").value(), '@ApplicationConstant.DateAndTime.DefaultDateTimeFormat');
+        var ed = kendo.toString($("#End").data("kendoDateTimePicker").value(), '@ApplicationConstant.DateAndTime.DefaultDateTimeFormat');
+        var id = '@Model.Id';
+        var userId = '@Model.CandidateId';
+
+        if (userId!=null && id != null && sd != null && ed != null) {
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/tas/talentassessment/Email?slotId=@Model.Id&userId=@Model.CandidateId&start=" + sd + "&end=" + ed;
+            win.OpenWindow({ Title: 'Send Calendar Invite', Width: 1200, Height: 600 });
+            return false;
+        }
+    }
+
+    function filterAssessments() {
+        return {
+            assSetId: $("#AssessmentSetId").val()
+        };
+    }
+
+        function LoadPopoverContent(userId, div) {
+        var newdiv = '#user_' + div;
+
+        $('[data-toggle="popover"]').popover(
+            {
+                html: true
+
+            });
+        if (userId != '') {
+            var openUrl = "/Admin/User/GetUserDetails?userId=" + userId;
+            $.ajax({
+                url: openUrl,
+                type: 'GET',
+                cache: false,
+                success: function (data) {
+                    var template = kendo.template($("#user-popup-template1").html());
+                    try {
+                        $(newdiv).attr('data-content', template(data)).data('bs.popover').setContent();
+
+                        $(newdiv).popover('show');
+
+                    } catch (e) {
+
+                    }
+
+                },
+                error: function (errData) {
+                    OnError(errData);
+                }
+            });
+
+        }
+        else {
+
+        }
+    }
+
+      function PostMessage(e) {
+         var wnd = $("#kiframepopupwindow").data("kendoWindow");
+         @*var t ='@Model.NoteId';
+         iframeOpenUrl = "/nts/NoteComment/PostMessage?noteId=" + t;*@
+        var t ='@Model.Id';
+         iframeOpenUrl = "/assessment/assessment/AssessmentPostComment?noteId=" + t +"&versionId=" + '@ViewBag.VersionNo'
+
+        wnd.setOptions({
+            width: 600,
+            height: 450,
+            title: 'Post Message'
+        });
+        wnd.center().open();
+    }
+
+     function Reply(parentId, version) {
+        var wnd = $("#kiframepopupwindow").data("kendoWindow");
+        @*var t ='@Model.NoteId';
+        iframeOpenUrl = "/nts/NoteComment/PostMessage?noteId=" + t + "&parentId=" + parentId;*@
+        var t ='@Model.Id';
+        iframeOpenUrl = "/assessment/assessment/AssessmentPostComment?noteId=" + t + "&parentId=" + parentId + "&versionId=" + version;
+
+        wnd.setOptions({
+            width: 600,
+            height: 600,
+            title: 'Reply' @*'@ERP.Translation.General.Reply'*@ //"Reply"
+        });
+        wnd.center().open();
+    }
+
+    function onCommentDelete(id) {
+        //alert("Delete" + id);
+        //ShowNotification('Comment Deleted successfully.');
+        //ShowNotification('Delete Comment successfully.');
+
+        kendo.confirm("Are you sure that you want to delete?").then(function () {
+            $.ajax({
+                url: "/nts/NoteComment/CommentDelete?Id=" + id,
+                dataType: "json",
+                type: "POST",
+                success: function (data) {
+
+                    if (data.success) {
+                        $("#noteComment").data("kendoTreeList").dataSource.read();
+                        ShowNotification('Comment Deleted successfully.');
+
+                    }
+                    else {
+
+                        var msg = ExtractError(data.errors);
+                        ShowNotification(msg);
+                    }
+                },
+                error: function (xhr) {
+
+                    alert('error');
+                }
+            });
+        }, function () {
+
+        });
+
+        return;
+
+    }
+
+    function onCommentDeleteUndo(id) {
+        kendo.confirm("Are you sure that you want to delete?").then(function () {
+            $.ajax({
+                url: "/nts/NoteComment/CommentDeleteUndo?Id=" + id,
+                dataType: "json",
+                type: "POST",
+                success: function (data) {
+
+                    if (data.success) {
+                        $("#noteComment").data("kendoTreeList").dataSource.read();
+                        ShowNotification('Comment Delete Undo successfully.');
+
+                    }
+                    else {
+
+                        var msg = ExtractError(data.errors);
+                        ShowNotification(msg);
+                    }
+                },
+                error: function (xhr) {
+
+                    alert('error');
+                }
+            });
+        }, function () {
+
+        });
+
+        return;
+
+    }
+
+    function Close(dorefresh) {
+        var wnd = $("#kiframepopupwindow").data("kendoWindow");
+        if (wnd != null) {
+            wnd.close();
+        }
+        if (dorefresh) {
+            //$("#noteComment").data("kendoTreeList").dataSource.read({ NoteId: "@Model.Id" });
+            $("#noteComment").data("kendoTreeList").dataSource.read({ Id: "@Model.Id" });
+
+        }
+    }
+
+    function GetFile() {
+                @*window.location.href = "../../General/File/GetFile?fileId=" + '@Model.AttachmentId';*@
+                window.location.href = "../../cms/Document/GetFileMongo?fileId=@Model.AttachmentId";
+    }
+
+    var filedId = "";
+    //function onUploadSuccess(obj) {
+    //    filedId = obj.response.fileId;
+    //}
+    function onUploadSuccess(e) {
+        if (e.response.success) {
+            $("#AttachmentId").val(e.response.fileId);
+            filedId = e.response.fileId;
+        }
+        //return true;
+    }
+
+    function onTypeChanges() {
+        debugger;
+        var val = $("#AssessmentType").data("kendoDropDownList").value();
+        if (val == '@((int)AssessmentScheduleTypeEnum.Assessment)') {
+            document.getElementById("interview").style.display = "none";
+            document.getElementById("interviewWeightage").style.display = "none";
+            document.getElementById("proctor").style.display = "";
+            document.getElementById("assessmentSet").style.display = "";
+            document.getElementById("assessment").style.display = "";
+        } else {
+            document.getElementById("proctor").style.display = "none";
+            document.getElementById("assessmentSet").style.display = "none";
+            document.getElementById("assessment").style.display = "none";
+            document.getElementById("interview").style.display = "";
+            document.getElementById("interviewWeightage").style.display = "";
+        }
+
+    }
+
+
+    function onCreateAssessment() {
+        var canId = $("#CandidateId").data("kendoDropDownList").value();
+        var assessmentId = $("#AssessmentSetId").data("kendoDropDownList").value();
+        var assType = $("#AssessmentType").data("kendoDropDownList").value();
+        var interviewPanelId = $("#InterviewPanelId").data("kendoDropDownList").value();
+        var proctorId = $("#ProctorId").data("kendoDropDownList").value();
+
+        if (assType == '@AssessmentScheduleTypeEnum.Assessment') {
+            if (canId && assessmentId && proctorId) {
+                createAssessment();
+            } else {
+                kendo.alert("Candidate, Protor and Assessment Set should be selected");
+            }
+        }
+        if (assType == '@AssessmentScheduleTypeEnum.Interview') {
+
+            if (canId && interviewPanelId) {
+                createAssessment();
+            } else {
+                kendo.alert("Candidate and Interviwer should be selected");
+            }
+        }
+    }
+
+    function createAssessment() {
+        kendo.ui.progress($(document.body), true);
+        var url = "/assessment/assessment/CreateAssessmentFromSlot?slotId=" + '@Model.Id';
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    success: function (data) {
+                        if (data) {
+                            ShowNotification("Assessment created successfully");
+                            $("#btnCreateAssessment").hide();
+                        }
+                        kendo.ui.progress($(document.body), false);
+                    },
+                    error: function (errData) {
+                        kendo.ui.progress($(document.body), false);
+                    }
+                });
+    }
+
+    function onViewAssessmentReport() {
+        window.open('/assessment/assessment/assessmentreportministry?userId='+ '@Model.CandidateId', '_blank');
+
+    }
+
+    function onViewDetails() {
+        var canId = $("#CandidateId").data("kendoDropDownList").value();
+        if (canId) {
+
+        } else {
+             kendo.alert("Candidate should be selected");
+        }
+    }
+
+     function dateformat(value) {
+        if (value.toString().includes("GMT")) {
+            return value.toString().split('GMT')[0];
+        } else {
+            return "";
+        }
+    }
+
+     function TeamFilter() {
+            return { 'groupCode': 'ASSESSMENT_INTERVIEW_PANEL' };
+        }
+
+
+    function onSwap() {
+        var val = $("#SwapCandidate").data("kendoDropDownList").value();
+
+        if (val) {
+            var sid = val.split(" - ")[0];
+            var scanId = val.split(" - ")[1];
+            var id = '@Model.Id';
+            var canId = '@Model.CandidateId';
+            //var data = '@Model'
+            var url = "/assessment/assessment/SwapCandidateAssessmentDate?id=" + id + "&canId=" + canId + "&sid=" + sid + "&scanId=" + scanId;
+            $.ajax({
+                type: "POST",
+                url: url,
+                dataType: 'json',
+                success: function (res) {
+                    if (res.success) {
+                        window.parent.parent.CloseSchedule(true, res);
+                    }
+                }
+            });
+        } else {
+             kendo.alert("Select Candidate to swap dates");
+        }
+    }
+
+    function OnSwapCandidateChange() {
+        var val = $("#SwapCandidate").data("kendoDropDownList").value();
+        var id = val.split(" - ")[0];
+        var canId = val.split(" - ")[1];
+
+        var url = "/assessment/assessment/GetCandidateAssessmentDetails?id=" + id + "&candidateId=" + canId;
+         $.ajax({
+            type: "GET",
+            url: url,
+            dataType: 'json',
+             success: function (res) {
+                 var s = new Date(parseInt(res.Start.substr(6)));
+                 var e = new Date(parseInt(res.End.substr(6)));
+                 document.getElementById("swapstart").innerText = getDate(s);
+                 document.getElementById("swapend").innerText = getDate(e);
+            }
+        });
+
+    }
+
+    function getDate(date) {
+        var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "July", "Aug", "Sept", "Oct", "Nov", "Dec"
+        ];
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var ampm = date.getHours() >= 12 ? 'PModel' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        var strTime = hours + ':' + minutes + ' ' + ampm;
+
+        return monthNames[date.getMonth()] + " " + date.getDate() + " " + date.getFullYear() + " " + strTime;
+
+    }
+
+    $(document).ready(function () {
+        debugger;
+        $("#Start").kendoDateTimePicker({ value:new Date('@Model.Start'),format:"@ApplicationConstant.DateAndTime.DefaultDateTimeFormat" });
+        $("#End").kendoDateTimePicker({ value: new Date('@Model.End'), format: "@ApplicationConstant.DateAndTime.DefaultDateTimeFormat" });
+
+        
+
+        $("#AssessmentType").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "EnumId",
+            change: onTypeChanges,
+            dataBound: onTypeChanges,
+            value:'@(ViewBag.AssessmentType.ToString() == ""?"":(int)((AssessmentScheduleTypeEnum)Enum.Parse(typeof(AssessmentScheduleTypeEnum), ViewBag.AssessmentType.ToString())))',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=AssessmentScheduleTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#CandidateId").kendoDropDownList({
+            optionLabel: "Select Candidate...",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value:'@Model.CandidateId',
+            Filter: "contains",
+            change: OnCandidateChange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Tas/TalentAssessment/GetAssessmentUserList",
+                    }
+                }
+            }
+        });
+
+        $("#PreferredLanguageId").kendoDropDownList({
+            optionLabel: "Select Preferrred Language...",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value:'@Model.PreferredLanguageId',
+            Filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/CMS/LOV/GetLOVIdNameList?lovType=PREFERED_LANGUAGE",
+                    }
+                }
+            }
+        });
+
+        $("#MonitoringTypeId").kendoDropDownList({
+            optionLabel: "Select Monitoring Type...",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value:'@Model.MonitoringTypeId',
+            Filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/CMS/LOV/GetLOVIdNameList?lovType=MONITORING_TYPE",
+                    }
+                }
+            }
+        });
+
+        $("#InterviewPanelId").kendoDropDownList({
+            optionLabel: "Select Interviewer...",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value:'@Model.InterviewPanelId',
+            Filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/Team/GetIdNameListByGroupCode",
+                        data: TeamFilter,
+                    }
+                }
+            }
+        });
+
+        $("#ProctorId").kendoDropDownList({
+            optionLabel: "Select Proctor...",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value:'@Model.ProctorId',
+            Filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Tas/TalentAssessment/GetAssessmentProctorList",
+                    }
+                }
+            }
+        });
+
+        $("#Status").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "EnumId",
+            value:'@(Model.Status.IsNotNull()?(int)((StatusEnum)Enum.Parse(typeof(StatusEnum), Model.Status.ToString())): Model.Status)',
+            Filter: "contains",
+            valuePrimitive:true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StatusEnum",
+                    }
+                }
+            }
+        });
+
+        $("#AssessmentSetId").kendoDropDownList({
+            optionLabel: "Select Assessment Set...",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value:'@Model.AssessmentSetId',
+            Filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Tas/TalentAssessment/GetAssessmentSetList",
+                    }
+                }
+            }
+        });
+
+        $("#AssessmentId").kendoDropDownList({
+            optionLabel: "Select Assessment...",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value:'@Model.AssessmentId',
+            Filter: "contains",
+            cascadeFrom: "AssessmentSetId",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        dataType:"json",
+                        url: "/Tas/TalentAssessment/GetAssessmentList",
+                        data: filterAssessments,
+                    }
+                }
+            }
+        });
+
+        if ('@ViewBag.Role' != "ADMIN") {
+            document.getElementById("Start").disabled = true;
+            //document.getElementById("End").disabled = true;
+            $("#btnSubmit").hide();
+            $("#swapdiv").hide();
+            $("#btnViewUser").hide();
+
+            $("#AssessmentType").data("kendoDropDownList").enable(false);
+            $("#CandidateId").data("kendoDropDownList").enable(false);
+            $("#MinistryId").data("kendoDropDownList").enable(false);
+            $("#InterviewPanelId").data("kendoDropDownList").enable(false);
+            $("#ProctorId").data("kendoDropDownList").enable(false);
+            $("#AssessmentSetId").data("kendoDropDownList").enable(false);
+            $("#Status").data("kendoDropDownList").enable(false);
+            $("#JobTitle").prop("disabled", true).addClass("k-state-disabled");
+            $("#Url").prop("disabled", true).addClass("k-state-disabled");
+            $('#Start').data('kendoDateTimePicker').enable(false);
+            $('#End').data('kendoDateTimePicker').enable(false);
+            $('#files').data('kendoUpload').enable(false);
+        } else {
+
+        }
+
+        if ('@ViewBag.Role' == "ADMIN" || '@ViewBag.Role' == 'PROCTOR') {
+            $("#btnCreateAssessment").show();
+        } else {
+            $("#btnCreateAssessment").hide();
+        }
+
+        if ('@Model.Id' != null && '@Model.Id' != "") {
+            if ('@ViewBag.AssessmentType' == '@AssessmentScheduleTypeEnum.Interview') {
+                  document.getElementById("interview").style.display = "";
+                document.getElementById("interviewWeightage").style.display = "";
+                document.getElementById("proctor").style.display = "none";
+                document.getElementById("assessmentSet").style.display = "none";
+                        @*var val = $("#AssessmentType").data("kendoDropDownList").value(@AssessmentScheduleTypeEnum.Interview);*@
+                        @*var val = $("#AssessmentType").data("kendoDropDownList").value(@((int)AssessmentScheduleTypeEnum.Interview));*@
+                        var val = $("#AssessmentType").val(@((int)AssessmentScheduleTypeEnum.Interview));
+
+            } else if ('@ViewBag.AssessmentType' == '@AssessmentScheduleTypeEnum.Assessment') {
+                  document.getElementById("interview").style.display = "none";
+                document.getElementById("interviewWeightage").style.display = "none";
+                document.getElementById("proctor").style.display = "";
+                        @*var val = $("#AssessmentType").data("kendoDropDownList").value(@AssessmentScheduleTypeEnum.Assessment);*@
+                        @*var val = $("#AssessmentType").data("kendoDropDownList").value(@((int)AssessmentScheduleTypeEnum.Assessment));*@
+                        var val = $("#AssessmentType").val(@((int)AssessmentScheduleTypeEnum.Assessment));
+            }
+        }
+        if ('@ViewBag.AssessmentType' == '@AssessmentScheduleTypeEnum.Interview') {
+            document.getElementById('AssessmentType').value = @((int)AssessmentScheduleTypeEnum.Interview);
+        } else if ('@ViewBag.AssessmentType' == '@AssessmentScheduleTypeEnum.Assessment') {
+            document.getElementById('AssessmentType').value = @((int)AssessmentScheduleTypeEnum.Assessment);
+        }
+
+    });
+
+    function onDateChange() {
+          var sd = kendo.toString($("#Start").data("kendoDateTimePicker").value(), '@ApplicationConstant.DateAndTime.DefaultDateTimeFormat');
+        var ed =kendo.toString($("#End").data("kendoDateTimePicker").value(), '@ApplicationConstant.DateAndTime.DefaultDateTimeFormat');
+
+        var diff = (new Date(ed).getTime() - new Date(sd).getTime()) / 1000;
+        diff /= 60;
+        document.getElementById("duration").innerText = Math.abs(Math.round(diff));
+    }
+
+    function onUpdate() {
+        //return false;
+        /*kendo.ui.progress($(document.body), true);*/
+        ShowLoader($('#divUpdate'));
+        var sd = kendo.toString($("#Start").data("kendoDateTimePicker").value(), '@ApplicationConstant.Database.JQueryDateFormat');
+        var ed = kendo.toString($("#End").data("kendoDateTimePicker").value(), '@ApplicationConstant.Database.JQueryDateFormat');
+        var val = $("#AssessmentType").data("kendoDropDownList").value();
+
+        if (val == '@AssessmentScheduleTypeEnum.Assessment') {
+            $("#InterviewPanelId").data("kendoDropDownList").value(null);
+        }
+
+        if (val == '@AssessmentScheduleTypeEnum.Interview') {
+            $("#ProctorId").data("kendoDropDownList").value(null);
+        }
+
+        var data = {
+              "id": document.getElementById('Id').value,
+              "jobTitle": document.getElementById('JobTitle').value,
+              "description": document.getElementById('Description').value,
+              "Start": sd,
+            "End": ed,
+              //"duration": document.getElementById('Duration').value,
+              "candidateId": $("#CandidateId").data("kendoDropDownList").value(),
+/*              "ministryId": $("#MinistryId").data("kendoDropDownList").value(),*/
+              "interviewPanelId":$("#InterviewPanelId").data("kendoDropDownList").value(),
+              "proctorId": $("#ProctorId").data("kendoDropDownList").value(),
+              "url": document.getElementById("Url").value,
+            "InterviewWeightage": document.getElementById("InterviewWeightage").value,
+        /*"AttachmentId": filedId,*/
+            "AttachmentId": document.getElementById('AttachmentId').value,
+            "AssessmentSetId": $("#AssessmentSetId").data("kendoDropDownList").value(),
+            "AssessmentId": $("#AssessmentId").data("kendoDropDownList").value(),
+            "MonitoringTypeId": $("#MonitoringTypeId").data("kendoDropDownList").value(),
+            "PreferredLanguageId": $("#PreferredLanguageId").data("kendoDropDownList").value(),
+            "SlotType": val,
+            "Status": $("#Status").data("kendoDropDownList").value(),
+            "ServiceId": document.getElementById('ServiceId').value,
+            "Location": document.getElementById('Location').value,
+        };
+
+        if (val && sd && ed) {
+
+            //var data = '@Model'
+            var url = "/tas/talentassessment/AddUpdateCalendarEvents"
+            $.ajax({
+                type: "POST",
+                data: data,
+                url: url,
+                dataType: 'json',
+                success: function (res) {
+                    if (res.success) {
+
+
+                        //window.parent.parent.CloseSchedule(true, res);
+                        //window.CloseSchedule();
+                        //ShowNotification("Saved Successfully!");
+                        var win = GetMainWindow();
+                        win.CloseWindow({ MethodName: 'CloseSchedule', Prms: res });
+                    }
+                /*kendo.ui.progress($(document.body), false);*/
+                    HideLoader($('#divUpdate'));
+
+                },
+                error: function (res) {
+                    HideLoader($('#divUpdate'));
+                }
+            });
+        } else {
+             kendo.alert("Please fill all required fields")
+        }
+            return false;
+    }
+
+    function Send() {
+       var sd = kendo.toString($("#Start").data("kendoDateTimePicker").value(), '@ApplicationConstant.Database.JQueryDateFormat');
+        var ed = kendo.toString($("#End").data("kendoDateTimePicker").value(), '@ApplicationConstant.Database.JQueryDateFormat');
+        var id = '@Model.Id';
+        var userId = '@Model.CandidateId';
+
+        if (userId!=null && id != null && sd != null && ed != null) {
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/tas/talentassessment/Email?slotId=@Model.Id&userId=@Model.CandidateId&start=" + sd + "&end=" + ed;
+            win.OpenWindow({ Title: 'Send Calendar Invite', Width: 1200, Height: 800 });
+            return false;
+        }
+    }
+    function OnEmail() {
+
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/tas/talentassessment/PreviewEmail?slotId=@Model.Id";
+        win.OpenWindow({ Title: 'Email', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function ShowLoader(target) {
+        kendo.ui.progress(target, true);
+    }
+    function HideLoader(target) {
+        kendo.ui.progress(target, false);
+    }
+    function OnCandidateChange() {
+        var canId = $("#CandidateId").data("kendoDropDownList").value();
+        var url = "/cms/user/GetUser?userId=" + canId;
+        $.ajax({
+            type: "GET",
+            url: url,
+            dataType: 'json',
+            success: function (res) {
+                debugger;
+                var job = res.JobTitle;
+                //alert(job);
+                $("#JobTitle").val(job);
+            }
+        });
+    }
+</script>
+
+<br />
+<br />
+
+<div class="row pad-l-30" id="asstype">
+    <div class="col-6">
+        <span class="fa fa-circle" style="color:brown">&nbsp;&nbsp;&nbsp; </span>        <span class="required">*</span>
+        Type
+    </div>
+    <div class="col-6">
+
+        @*@(Html.Kendo().DropDownList()
+                              .Name("AssessmentType")
+                              //.Height(350)
+                              //.ValuePrimitive(true)
+                              .DataTextField("Name")
+                              .DataValueField("EnumId")
+                              //.OptionLabel(@ApplicationConstant.PlaceHolder_SelectOption)
+                              //.Filter(FilterType.Contains)
+                              .HtmlAttributes(new { @class = "hr-large" })
+                                          .Events(e => e.Change("onTypeChanges").DataBound("onTypeChanges"))
+                                          //.BindTo(EnumExtension.SelectListFor(typeof(AssessmentScheduleTypeEnum), Model.SlotType))
+                                          .DataSource(source =>
+                                          {
+                                              source.Read(read =>
+                                              {
+                                                  read.Action("GetEnumIdNameList", "Home", new { area = "", enumType = "AssessmentScheduleTypeEnum" });
+                                              });
+                                          })
+        )*@
+        <input id="AssessmentType" class="hr-large" />
+
+    </div>
+
+</div>
+<br />
+
+<div class="row pad-l-30">
+    <div class="col-6"><span class="fa fa-user" style="color:brown">&nbsp;&nbsp;&nbsp; </span>Candidate Name</div>
+    <div class="col-6">
+        @*@Model.CandidateName*@
+        @*@(Html.Kendo().DropDownListFor(x => x.CandidateId)
+             .HtmlAttributes(new { style = "width:70%" })
+             .OptionLabel("Select Candidate...")
+             .DataTextField("Name")
+             .DataValueField("Id")
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("GetAssessmentUserList", "TalentAssessment", new { @area = "Tas" });
+                 });
+             })
+             .Filter(FilterType.Contains)
+             .Events(e=>e.Change("OnCandidateChange"))
+        )*@
+        <input asp-for="CandidateId" id="CandidateId" style="width:70%;" />
+
+    </div>
+</div>
+
+<br />
+<div class="row pad-l-30">
+    <div class="col-6"><span class="fa fa-user" style="color:brown">&nbsp;&nbsp;&nbsp; </span>Preferred Language</div>
+    <div class="col-6">
+        @*@Model.CandidateName*@
+
+        @*@(Html.Kendo().DropDownListFor(x => x.PreferredLanguageId)
+             .HtmlAttributes(new { style = "width:70%" })
+             .OptionLabel("Select Preferrred Language...")
+             .DataTextField("Name")
+             .DataValueField("Id")
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "PREFERED_LANGUAGE" });
+                 });
+             })
+             .Filter(FilterType.Contains)
+        )*@
+
+        <input asp-for="PreferredLanguageId" id="PreferredLanguageId" style="width:70%;" />
+
+    </div>
+</div>
+<br />
+
+<div class="row pad-l-30">
+    <div class="col-6"><span class="fas fa-business-time" style="color:red">&nbsp;&nbsp;&nbsp; </span>Job Title</div>
+    <div class="col-6">
+        @*@Model.JobTitle*@
+        @*@(Html.Kendo().TextBoxFor(x => x.JobTitle).HtmlAttributes(new { style = "width:70%" }))*@
+        <input asp-for="JobTitle" type="text" class="form-control" style="width:70%" />
+
+    </div>
+
+</div>
+
+
+@*<br />
+    <div class="row">
+        <div class="col-xs-6"><span class="fa fa-university" style="color:coral">&nbsp;&nbsp;&nbsp; </span>Ministry Name</div>
+        <div class="col-xs-6">
+            @(Html.Kendo().DropDownListFor(x => x.MinistryId)
+                .HtmlAttributes(new { style = "width:70%" })
+                .OptionLabel("Select Ministry...")
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetAssessmentSponserList", "assessment");
+                    });
+                })
+                .Filter(FilterType.Contains)
+            )
+
+        </div>
+
+    </div>*@
+
+<br />
+<div class="row pad-l-30" id="monitoringType" @*style="display:none"*@>
+    <div class="col-6"><span class="fa fa-university" style="color:coral">&nbsp;&nbsp;&nbsp; </span>Monitoring Type</div>
+    <div class="col-6">
+        @*@Model.MinistryName*@
+        @*@(Html.Kendo().DropDownListFor(x => x.MonitoringTypeId)
+            .HtmlAttributes(new { style = "width:70%" })
+            .OptionLabel("Select Monitoring Type...")
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "MONITORING_TYPE" });
+                });
+            }).Filter(FilterType.Contains)
+        )*@
+
+        <input asp-for="MonitoringTypeId" id="MonitoringTypeId" style="width:70%;" />
+
+    </div>
+</div>
+
+<br />
+<div class="row pad-l-30" id="interview" style="display:none">
+    <div class="col-6"><span class="fa fa-university" style="color:coral">&nbsp;&nbsp;&nbsp; </span>Interviwer</div>
+    <div class="col-6">
+        @*@Model.MinistryName*@
+        @*@(Html.Kendo().DropDownListFor(x => x.InterviewPanelId)
+            .HtmlAttributes(new { style = "width:70%" })
+            .OptionLabel("Select Interviewer...")
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                   read.Action("GetIdNameListByGroupCode", "Team", new { area = "Cms" }).Data("TeamFilter");
+                });
+            })
+            .Filter(FilterType.Contains)
+        )*@
+        <input asp-for="InterviewPanelId" id="InterviewPanelId" style="width:70%;" />
+
+    </div>
+
+</div>
+
+<br />
+<div class="row pad-l-30" id="proctor" style="display:none">
+    <div class="col-6"><span class="fa fa-university" style="color:coral">&nbsp;&nbsp;&nbsp; </span>Proctor</div>
+    <div class="col-6">
+        @*@Model.MinistryName*@
+        @*@(Html.Kendo().DropDownListFor(x => x.ProctorId)
+            .HtmlAttributes(new { style = "width:70%" })
+            .OptionLabel("Select Proctor...")
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetAssessmentProctorList", "TalentAssessment", new { @area = "Tas" });
+                });
+            }).Filter(FilterType.Contains)
+        )*@
+        <input asp-for="ProctorId" id="ProctorId" style="width:70%;" />
+
+    </div>
+</div>
+@*<br />
+    <div class="row">
+        <div class="col-xs-6"><div style="height:20px;width:20px;background-color:@Model.Color"></div></div>
+        <div class="col-xs-6">
+            <h6>@Model.Description</h6>
+        </div>
+    </div>*@
+
+<br />
+<div class="row pad-l-30">
+
+    <div class="col-6">
+        <span class="fa fa-calendar" style="color:blue">&nbsp;&nbsp;&nbsp; </span>        <span class="required">*</span>
+        Start
+    </div>
+    <div class="col-6">
+        @*@Html.Kendo().DateTimePickerFor(model => model.Start).Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat).HtmlAttributes(new { style = "width:70%" })*@
+        <input id="Start" style="width:70%" />
+
+    </div>
+
+</div>
+@*<br />
+    <div class="row">
+
+        <div class="col-xs-6"><span class="fa fa-clock" style="color:orange">&nbsp;&nbsp;&nbsp;</span>End</div>
+        <div class="col-xs-6">
+            <span id="pal">   @(Html.Kendo().IntegerTextBoxFor(x => x.End)) </span>&nbsp;Minutes
+            @Html.Kendo().DateTimePickerFor(model => model.End).Format(Constant.Annotation.DefaultDateTimeFormatOnly).HtmlAttributes(new { style = "width:70%" })
+        </div>
+
+    </div>*@
+<br />
+<div class="row pad-l-30">
+
+    <div class="col-6">
+        <span class="fa fa-calendar" style="color:green">&nbsp;&nbsp;&nbsp; </span>        <span class="required">*</span>
+        End
+    </div>
+    <div class="col-6">
+
+        @*@Html.Kendo().DateTimePickerFor(model => model.End).Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat).HtmlAttributes(new { style = "width:70%" })*@
+        <input  id="End"  style="width:70%"/>
+
+        @*  @Html.Kendo().DateTimePickerFor(model => model.End).Events(e => e.Change("onDateChange")).HtmlAttributes(new { @class = "form-control hr-xx-large", @onkeydown = "javascript:return false;" })*@
+    </div>
+
+</div>
+
+<br />
+<div class="row pad-l-30">
+    <div class="col-6"><span class="fas fa-map-marker-alt" style="color:red">&nbsp;&nbsp;&nbsp; </span>Location</div>
+    <div class="col-6">
+        @*@Model.JobTitle*@
+        @*@(Html.Kendo().TextBoxFor(x => x.JobTitle).HtmlAttributes(new { style = "width:70%" }))*@
+        <input asp-for="Location" type="text" class="form-control" style="width:70%" />
+
+    </div>
+
+</div>
+
+<br />
+<div class="row pad-l-30">
+
+    <div class="col-6"><span class="fa fa-upload" style="color:purple">&nbsp;&nbsp;&nbsp;</span>Attachment</div>
+    <div class="col-6">
+        @(Html.Kendo().Upload().Multiple(false)
+                              .Name("file")
+                              .Async(a => a
+                              .Save("SaveFile", "Document", new { @area = "cms" })
+                              .AutoUpload(false)
+                              )
+                              .Events(e => e.Success("onUploadSuccess"))
+                              .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" }).MaxFileSize(10485760))
+        //.Validation(validation => validation.MaxFileSize(ApplicationConstant.MaxFileSizeAllowed))
+        .HtmlAttributes(new { @style="width:70%;" })
+        )
+
+    </div>
+
+</div>
+
+<br />
+
+@if (Model.AttachmentId.IsNotNullAndNotEmpty())
+{
+    <div class="row pad-l-30">
+        <div class="col-6"></div>
+        <div class="col-6">
+            @*<a href="/file/GetFile?fileId=@Model.AttachmentId" download>Download Attachment</a>*@
+            <a href="/cms/Document/GetFileMongo?fileId=@Model.AttachmentId" target="_blank"><i class="fas fa-download" title="Download Attachment"></i></a>
+        </div>
+    </div>
+}
+
+<br />
+<div class="row pad-l-30">
+
+    <div class="col-6"><span class="fa fa-link" style="color:purple">&nbsp;&nbsp;&nbsp;</span>Url</div>
+    <div class="col-6">
+        @*@(Html.Kendo().TextBoxFor(x => x.Url).HtmlAttributes(new { style = "width:70%" }))*@
+        <input asp-for="Url" id="Url" type="text" class="form-control" style="width:70%" />
+    </div>
+
+</div>
+
+<br />
+<div class="row pad-l-30" id="interviewWeightage">
+
+    <div class="col-6"><span class="fa fa-balance-scale" style="color:purple">&nbsp;&nbsp;&nbsp;</span>Interview Weightage</div>
+    <div class="col-6">
+        @*@(Html.Kendo().TextBoxFor(x => x.InterviewWeightage).HtmlAttributes(new { style = "width:70%" }))*@
+        <input asp-for="InterviewWeightage" id="InterviewWeightage" type="text" class="form-control" style="width:70%" />
+
+    </div>
+
+</div>
+
+<br />
+<div class="row pad-l-30">
+
+    <div class="col-6"><span class="fa fa-angle-right" style="color:purple">&nbsp;&nbsp;&nbsp;</span>Active</div>
+    <div class="col-6">
+        @*@(Html.Kendo().DropDownListFor(x=>x.Status)
+                              //.Name("Status")
+                              //.Height(350)
+                              .ValuePrimitive(true)
+                              .DataTextField("Name")
+                              .DataValueField("EnumId")
+                              .OptionLabel(@ApplicationConstant.PlaceHolder_SelectOption)
+                              //.Filter(FilterType.Contains)
+                              .HtmlAttributes(new { @class = "hr-large" })
+                              //.BindTo(EnumExtension.SelectListFor(typeof(StatusEnum), Model.Status))
+                              .DataSource(source =>
+                              {
+                                  source.Read(read =>
+                                  {
+                                      read.Action("GetEnumIdNameList", "Home", new { area = "", enumType = "StatusEnum" });
+                                  });
+                              })
+        )*@
+        <input asp-for="Status" id="Status" class="hr-large" />
+
+    </div>
+
+</div>
+
+<br />
+<div class="row pad-l-30" id="assessmentSet">
+
+    <div class="col-6"><span class="fa fa-link" style="color:purple">&nbsp;&nbsp;&nbsp;</span>Assessment Set</div>
+    <div class="col-6">
+        @*@(Html.Kendo().DropDownListFor(x => x.AssessmentSetId)
+            .HtmlAttributes(new { style = "width:70%" })
+            .OptionLabel("Select Assessment Set...")
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetAssessmentSetList", "TalentAssessment", new { @area = "Tas" });
+                })/*.ServerFiltering(true)*/;
+            })
+           .Filter(FilterType.Contains)
+        )*@
+        <input asp-for="AssessmentSetId" id="AssessmentSetId" style="width:70%" />
+
+    </div>
+
+</div>
+
+<br />
+<div class="row pad-l-30" id="assessment">
+
+    <div class="col-6"><span class="fa fa-link" style="color:purple">&nbsp;&nbsp;&nbsp;</span>Assessment</div>
+    <div class="col-6">
+        @*@(Html.Kendo().DropDownListFor(x => x.AssessmentId)
+            .HtmlAttributes(new { style = "width:70%" })
+            .OptionLabel("Select Assessment...")
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetAssessmentList", "TalentAssessment", new { @area = "Tas" }).Data("filterAssessments");
+                })
+                .ServerFiltering(true);
+            })
+           //.Filter(FilterType.Contains)
+           .CascadeFrom("AssessmentSetId")
+        )*@
+
+        <input asp-for="AssessmentId" id="AssessmentId" style="width:70%" />
+
+    </div>
+
+</div>
+
+<br />
+<div class="row pad-l-30" id="divUpdate">
+    @*<div class="col-6"></div>*@
+    <div class="col-12" style="text-align:end;">
+        <button class="btn btn-primary" id="btnSubmit" onclick="onUpdate()">Update</button>
+        @if (Model.Id != null)
+        {
+            @if (ViewBag.Role == "ADMIN" || ViewBag.Role == "PROCTOR")
+            {
+                <button class="btn btn-primary" id="btnManageAssessment" onclick="onManageAssessment()">Manage Assessment</button>
+                <button class="btn btn-primary" id="btnManageInterview" onclick="onManageInterview()">Manage Interview</button>
+                <button class="btn btn-primary" id="btnAssessmentreport" onclick="onAssessmentReport()">View Assessment Report</button>
+                <button class="btn btn-primary" onclick="OnEmail()">View Calendar Email</button>
+                <button class="btn btn-primary" onclick="Send()">Send Calendar Invite</button>
+            }
+        }
+    </div>
+
+
+    @*<button class="btn btn-primary" id="btnViewUser" onclick="onViewDetails()">View User</button>*@
+    @*@if (2451.HasPermission() && (Model.IsAssessmentCreated == false || Model.IsAssessmentCreated == null) && Model.Id > 0)
+        {
+            <button class="btn btn-primary" id="btnCreateAssessment" onclick="onCreateAssessment()">Create Assessment</button>
+        }
+
+        @if (2451.HasPermission())
+        {
+            <button class="btn btn-primary" id="btnManageAssessment" onclick="onManageAssessment()">Manage Assessment</button>
+        }
+        @if (2452.HasPermission())
+        {
+            <button class="btn btn-primary" id="btnManageInterview" onclick="onManageInterview()">Manage Interview</button>
+        }
+        @if (2453.HasPermission())
+        {
+            <button class="btn btn-primary" id="btnViewAssessmentReport" onclick="onViewAssessmentReport()">View Assessment Report</button>
+        }
+        @if (ViewBag.Role == "ADMIN" || ViewBag.Role == "PROCTOR")
+        {
+            <button class="btn btn-primary" onclick="OnEmail()">View Calendar Email</button>
+            <button class="btn btn-primary" onclick="Send()">Send Calendar Invite</button>
+        }*@
+</div>
+
+@Html.HiddenFor(x => x.Description)
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.CandidateId)
+@Html.HiddenFor(x => x.AttachmentId)
+@Html.HiddenFor(x => x.ServiceId)
+<br />
+
+<div class="row no-gutter">
+    <div class="col-md-6">
+        @*<b> <h5 class="h5-responsive m-0 d-inline-block"><i class="far fa-comment-alt"></i> Comments</h5></b>*@
+    </div>
+    <div class="col-md-6" style="text-align:right">
+        @*<a class="k-button k-button-icontext" href="#" id="btnPost" onclick="return PostMessage('post');">
+                <span class="k-icon k-i-arrowhead-w"></span>Post Message
+            </a>*@
+    </div>
+
+</div>
+
+@*<div class="row no-gutter hr-pad-top-bot-15">
+        @(Html.Kendo().TreeList<ERP.UI.ViewModel.NoteCommentViewModel>()
+                                                .Name("noteComment")
+                                                .Columns(columns =>
+                                                {
+                                                    columns.Add().Title("Created By").Field(e => e.CommentedByUserUserName).Width(100).TemplateId("photo-template").Title("Commented By");
+                                                    columns.Add().Title("Message").Template("#if (IsCommentDelete == true) {# #=' This comment was deleted '# #} else {# #=Comment# #}#").Width(250);
+                                                    columns.Add().Title("Message To").Field(e => e.CommentedToUser).Width(100).Template(string.Concat(@"<span id='user_#=Id#' onClick='LoadPopoverContent(#=CommentedToUserIds#,#=Id#)' data-toggle='popover' data-content ='<div></div>'  class='user-icon glyphicon glyphicon-user'></span>&nbsp;<span>#=CommentedToUser#</span>"));
+                                                    columns.Add().Title("Created Date").Field(e => e.CreatedDate).Width(100).Title("Commented Date");
+                                                    //columns.Add().Title("Version").Field(e => e.NoteVersionId).Width(100).Title(" Version");
+                                                    columns.Add().Width(150).Title(@ERP.Translation.Nts.Note.Attachment).Template(
+                                                              "#if (FileId != null && IsCommentDelete != true) {#<a href='../../General/File/GetFile?fileId=#=FileId#'>Download</a>#} #");
+                                                    columns.Add().Width(150).Template("#if(CreatedBy==LoggedInUserId){ if(IsCommentDelete == true){#<a href='javascript: void(0);' title ='Undo Deleted Comment' style='color:gray;text-decoration:none;font-size:12px;' onclick='onCommentDeleteUndo(#=Id#);'>Undo</a>#} else{#<a href='javascript: void(0);' title ='Delete Comment' style='color:gray;text-decoration:none;font-size:12px;' onclick='onCommentDelete(#=Id#);'>Delete</a>#} } else {##' '##}#");
+                                                    columns.Add().Width(50).Template(
+                                                              "<a href='javascript: void(0);' style='font-size:12px;' onclick='Reply(#=Id#, #=NoteVersionId#);'>Reply</a>");
+                                                })
+                                                .Filterable(false)
+                                                .Scrollable(false)
+                                                .Sortable()
+                                                .DataSource(dataSource => dataSource
+                                                //.Read(read => read.Action("ReadNoteCommentData", "NoteComment", new { NoteId = Model.NoteId }))
+                                                .Read(read => read.Action("ReadNoteCommentData", "NoteComment", new { area = "nts", NoteId = Model.Id }))
+                                                .ServerOperation(false)
+                                                .Model(m =>
+                                                {
+                                                    m.Id(f => f.Id);
+                                                    m.ParentId(f => f.ParentNoteCommentId);
+                                                    m.Expanded(true);
+                                                })
+                                                )                                              //.Scrollable(true)
+        )
+    </div>*@
+
+@*<div id="swapdiv">
+
+        <div style="background-color:aliceblue;height:20px; font-weight:600;font-size:15px">Swap Dates with Another Candidate</div>
+        <br />
+
+        @(Html.Kendo().DropDownList()
+           .Name("SwapCandidate")
+           .HtmlAttributes(new { style = "width:30%" })
+           .OptionLabel("Select Candidate...")
+           .DataTextField("Name")
+           .DataValueField("Code")
+           .Filter(FilterType.Contains)
+           .Events(e => e.Change("OnSwapCandidateChange"))
+           .DataSource(source =>
+           {
+               source.Read(read =>
+               {
+                   read.Action("GetAssessCandidateList", "assessment");
+               });
+           })
+        )
+
+        <br />
+        <br />
+        <div>
+            <span style="font-weight:600">Start:</span> &nbsp;&nbsp;<span id="swapstart">-</span>
+            <span style="font-weight:600">End:</span> &nbsp;&nbsp;<span id="swapend">-</span>
+        </div>
+
+        <div class="row" style="text-align:end">
+            <button class="btn btn-primary" id="btnSwap" onclick="onSwap()">Swap</button>
+        </div>
+    </div>*@
+
+<br />
+<hr />
+
+@if (ViewBag.Role == "ADMIN")
+{
+    @*<div id="candidateAssessments">
+
+            <div style="background-color:aliceblue;height:20px; font-weight:600;font-size:15px">Other Details</div>
+            <br />
+
+            @(Html.Kendo().Grid<AssessmentViewModel>().Name("kgrdAssessmentCandidate")
+                                                 .Columns(col =>
+                                                 {
+                                                     col.Bound(c => c.ScheduledStartDate).Title("Scheduled StartDate").ClientTemplate("#if(ScheduledStartDate!=null){# #:kendo.toString(dateformat(ScheduledStartDate))# #}#");
+                                                     col.Bound(c => c.AssessmentType);
+                                                     //col.Bound(c => c.Subject).Title("Assessment Name");
+                                                     col.Bound(c => c.Title).Title("Assessment Title");
+                                                     col.Bound(c => c.AssessmentStatus);
+                                                     col.Bound(c => c.ScoreText).Title("Result");
+                                                 })
+                                                  .ToolBar(toolbar =>
+                                                  {
+                                                      toolbar.Excel();
+                                                  })
+                                                   .Excel(excel => excel
+                                                   .FileName("ManageAssessments.xlsx")
+                                                   .AllPages(true)
+                                                   )
+                                                 .Scrollable(x => x.Enabled(false))
+                                                 .Sortable(srt => srt.Enabled(true))
+                                                 .Selectable(select => select.Enabled(false))
+                                                 .Filterable(f => f.Extra(false)
+                                                                           .Operators(o => o.ForString(s => s.Clear()
+                                                                           .Contains("Contains")
+                                                                           .IsEqualTo("Is equal to")
+                                                                           )))
+                                                 .Pageable(pageable => pageable
+                                                 .Refresh(true)
+
+                                                 .PageSizes(true)
+                                                 .ButtonCount(5))
+                                                 .AutoBind(true)
+                                                 .DataSource(
+                                                 dataSource => dataSource
+                                                 .Ajax()
+                                                 .PageSize(20)
+                                                 .Read(read => read.Action("GetCandidateAssessmentList", "Assessment", new { id = Model.CandidateId }))
+                                                 .Model(model => model.Id(p => p.Id))
+                                                 )
+                )
+
+        </div>*@
+}
+

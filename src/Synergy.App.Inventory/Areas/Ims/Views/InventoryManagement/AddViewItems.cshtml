@@ -1,0 +1,193 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@*@using Kendo.Mvc.UI*@
+
+@{
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    ViewData["Title"] = "Delivery Challan Details";
+
+}
+
+
+
+<div class="row  pad-10 no-gutters">
+    <div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+        <div class="text-danger"></div>
+        <div style="width: 100%;" class="p-3">
+            <fieldset class="fieldset">
+
+
+                @if (ViewBag.ReceiptType == ImsReceiptTypeEnum.StockAdjustment)
+                {
+                    <legend class="fs-legend">Items</legend>
+
+                }
+                else
+                {
+                    <legend class="fs-legend"> Delivery Challan Items</legend>
+                }
+
+
+                <div id="deliveryChallanItemList" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+            </fieldset>
+            <br />
+            @if (ViewBag.ReceiptType == ImsReceiptTypeEnum.StockAdjustment)
+            {
+
+            }
+            else
+            {
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Attachments</legend>
+            @if (ViewBag.InvoiceFile != null)
+            {
+
+                <a href="#" onclick="Preview('@ViewBag.InvoiceFile')">View Invoice Details</a><br />
+            }
+            @if (ViewBag.ChallanFile != null)
+            {
+
+                <a href="#" onclick="Preview('@ViewBag.ChallanFile')">View Challan Details</a>
+            }
+        </fieldset>
+                    <br />
+                
+
+            }
+
+               
+                    <div>
+                        <button class="btn btn-danger" style="margin:5px;color:white;float:right" onclick="AVIClose();">Close</button>
+                    </div>
+            
+
+
+        </div>
+    </div>
+    </div>
+
+<script>
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-menuChallanItem',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var isserializable = $trigger.data('isserializable');
+                var items = {};
+                if (isserializable == "YES")
+                {
+                    items={
+                        "serials": { name: "Serials", icon: "fas fa-edit" },
+                    }
+                }
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'serials':
+                                        onSerials(id);
+                                        break;
+                                    case 'receive':
+                                    //ReceiveNote(id, serno);
+                                    //break;
+                                    default:
+                                }
+                            },
+                            items: items
+                        };
+
+
+                }
+            }
+        });
+
+        $("#deliveryChallanItemList").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/IMS/InventoryManagement/GetDeliveryChallanItems?id=@ViewBag.Id",
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                onItemEditing: function (e) {
+                    /*debugger;*/
+                    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                        //
+                        e.grid.updateItem();
+                    }
+                },
+                updateItem: function (item) {
+                    /*debugger;*/
+                },
+                //deleteItem: function (item) {
+                //    onDeleteItem(item.NoteId);
+                //}
+            },
+            fields: [
+                {
+                    name: "ItemName",
+                    title: "Item Name",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "ItemQuantity",
+                    title: "Received Quantity",
+                    type: "text",
+                    editing: false
+                },
+                //{
+                //    title: "Action",
+                //    name: "Id",
+                //    itemTemplate: function (value, item) {
+                //        if (item.IsSerializable == "YES")
+                //        {
+                //            return "<div class='btn-group grid-menu' id='tree-menuChallanItem' data-idvalue='" + value + "' data-isserializable='" + item.IsSerializable + "' ><i class='fas fa-ellipsis-v'></i></div>"
+                //        }
+                //        return "";
+                //    }
+                //}
+            ]
+        });
+
+    });
+    function onSerials(id)
+    {
+        var url = "/IMS/InventoryManagement/ManageSerialNo?referenceId=" + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Add Serial No', Width: 1000, Height: 600 });
+        return false;
+    }
+    function AVIClose() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+
+        return false;
+    }
+    function Preview(id) {
+        
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=' + id + '&canEdit=false';
+        win.OpenWindow({ Title: 'Preview ttachment', Width: 1000, Height: 700 });
+        return false;
+    }
+</script>

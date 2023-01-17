@@ -1,0 +1,890 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+
+@{
+    ViewData["Title"] = "Manage User Role";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model UserRoleViewModel
+
+<style>
+
+    .required {
+        color: red;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+        @*var search = FilterDDl();
+        $("#UserlistView").data("kendoListView").dataSource.read(search)
+        if ('@ViewBag.Success' == "True") {
+            closeNavMemberGroup();
+            if (window.parent.$("#UserRolegrid").data("kendoGrid").dataSource.read()) { }
+        }*@
+
+        $("#Portal").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/cms/user/GetPortalForUser",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select Portal ...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.Portal)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });
+
+    });
+
+    var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+    var columnDefs = [
+
+        //{ field: "ShortName" },
+        //{ field: "Prefix" },
+        //{
+        //    field: "Status",
+        //    cellRenderer: params => {
+        //        return statusObj[params.value]; //only for enum
+        //    }
+        //},
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBinUserRoleUser' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+         {
+            field: "UserName",
+        }
+    ];
+
+    $(function () {
+
+        getDataUserRoleUser();
+
+        //$.contextMenu('update');
+        //$('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-menuBinUserRoleUser',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+
+
+                                    case 'delete':
+                                        OnDelete(id);
+                                        break;
+
+
+                                    default:
+                                }
+                            },
+                            items: {
+
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+
+
+    @*function OnDeleteUser(e) {
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        kendo.confirm("Are you sure that you want to delete the selected user?").then(function () {
+            $.ajax({
+                type: "POST",
+                url: "/Cms/UserRole/DeleteUserFromUserRole?Id=" + dataItem.Id,
+
+                success: function (data) {
+
+                    kendo.alert("User Deleted Successfully");
+                    // $("#kgrdUsers").data("kendoGrid").dataSource.read({ userRoleId: '@Model.Id'});
+                },
+                dataType: "json",
+            });
+        }, function () {
+
+        });
+    }*@
+        function OnDelete(id) {
+        var flag = confirm('Do you really want to delete the Selected User?');
+
+        if (flag) {
+            $.ajax({
+                url:"/Cms/UserRole/DeleteUserFromUserRole?Id=" + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+
+                    if (result.success) {
+                        getDataUserRoleUser();
+                        kendo.alert("User Deleted Successfully.");
+                    } else {
+                        getDataUserRoleUser();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    getDataUserRoleUser();
+                }
+            });
+            return false;
+        }
+    }
+
+    function FilterDDl() {
+        //alert($("#Users").val());
+        var multiselect = $("#UserIds").data("kendoMultiSelect");
+        var multiselectvalue = multiselect.value();
+        return {
+            selectedValues: multiselectvalue.join()
+        };
+    }
+   function getDataUserRoleUser() {
+       document.getElementById("myGridUserRoleUser").innerHTML = "";
+       gridConfig(
+           "myGridUserRoleUser",
+           "@Url.Action("GetUsersList1", "User", new { Area = "Cms", userRoleId = Model.Id })",
+           columnDefs,
+           false,
+           true,
+           true,
+           true,
+           1,
+           true,
+           10);
+    }
+
+       function OnChange(e)
+    {
+        var search = FilterDDl();
+        $("#UserlistView").data("kendoListView").dataSource.read(search)
+    }
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    var onAjaxSuccess = function (res) {
+        console.log(res);
+        if (res.success) {
+
+             ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+             id = res.data;
+             var win = GetMainWindow();
+             win.iframeOpenUrl = "/Cms/UserRole/EditUserRole?Id=" + id;
+            win.OpenWindow({ Title: 'Manage User Role', Width: 450, Height: 550, Reload: true });
+            closeNavMemberGroup();
+            window.parent.getDataUserRole();
+             //var win = GetMainWindow();
+             //win.iframeOpenUrl = "/pay/Calendar/ManageCalendar?CalendarId=" + id;
+             //win.OpenWindow({ Title: 'Manage User Role', Width: 450, Height: 700, Reload: true });
+
+             //HideLoader($('#calendar'));
+             return false;
+         }
+        else {
+             $(".text-danger").removeClass("validation-summary-valid");
+             $(".text-danger").addClass("validation-summary-errors");
+             $(".text-danger").html(res.error);
+             HideLoader($('#calendar'));
+        }
+
+    };
+
+
+
+    function AddUser() {
+
+        var selUserId = $("#UserId").val();
+        if (selUserId != "") {
+            $.ajax({
+                type: "POST",
+                url: "/Cms/UserRole/AddUserToUserRole?userRoleId=" + '@Model.Id' + '&userId=' + selUserId,
+                dataType: "json",
+                success: function (data) {
+                    if (data.success) {
+                        ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+                        getDataUserRoleUser();
+                        //  $("#kgrdUsers").data("kendoGrid").dataSource.read({ userRoleId: '@Model.Id' });
+                    }
+                    else {
+                        ShowNotification(data.msg, "error");
+                    }
+
+                },
+                error: function (data) {
+
+                }
+
+            });
+        }
+        else {
+            alert("Please Select User");
+        }
+
+    }
+
+    function enableportals() {
+
+
+        var dropdownlist = $("#PreferencePortalId").data("kendoDropDownList");
+        dropdownlist.wrapper.show();
+        dropdownlist.value('');
+        dropdownlist.enable(true);
+        $("#AddbtnPref").show();
+        $("#PageSettingMode").val('@DataActionEnum.Create');
+        OnChange(null);
+    }
+
+    function OnChange(pageid) {
+        var value = $("#PreferencePortalId").val();
+        $("#DefaultLandingPageId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+
+            dataSource: new kendo.data.DataSource({
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/cms/userrole/ReadPageByPortalId?portalId=" + value ,
+                        dataType: "json",
+
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select Page ...",
+
+            filter: '@FilterType.Contains',
+        });
+        if (pageid == null && pageid == undefined) {
+            var dropdownlist = $("#DefaultLandingPageId").data("kendoDropDownList");
+            dropdownlist.wrapper.show();
+            dropdownlist.value('');
+        }
+
+    }
+
+    function AddUserRolePref() {
+        var portal = $("#PreferencePortalId").val();
+        var page = $("#DefaultLandingPageId").val();
+        var mode = $("#PageSettingMode").val();
+        var userRoleId ='@Model.Id';
+         $.ajax({
+                type: "POST",
+             url: "/Cms/UserRole/AddUserRolePreferences?userRoleId=" + '@Model.Id' + '&portalId=' + portal + '&pageId=' + page + '&mode=' + mode,
+                dataType: "json",
+                success: function (data) {
+                    if (data.success) {
+                        ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+                        getPageSetting();
+                        $("#PreferencePortalId").data("kendoDropDownList").value('');
+                        $("#DefaultLandingPageId").data("kendoDropDownList").value('');
+                      // $("#PageSettingMode").val('');
+                    }
+                    else {
+                        alert(data.msg);
+                    }
+
+                },
+                error: function (data) {
+
+                }
+
+            });
+    }
+
+    function onEditPageSetting(id, portalid, pageid) {
+      //  enableportals();
+        var dropdownlist = $("#PreferencePortalId").data("kendoDropDownList");
+        dropdownlist.wrapper.show();
+        $("#PageSettingMode").val('@DataActionEnum.Edit');
+        dropdownlist.value(portalid);
+        //$("#PreferencePortalId").val(portalid);
+        $("#PreferencePortalId").data("kendoDropDownList").enable(false);
+        OnChange(pageid);
+        var dropdownlist = $("#DefaultLandingPageId").data("kendoDropDownList");
+        dropdownlist.wrapper.show();
+        dropdownlist.value(pageid);
+        $("#AddbtnPref").show();
+    }
+
+    function OnDeletePageSetting(id) {
+        var flag = confirm('Do you really want to delete?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteUserRolePreference", "UserRole", new { @area="Cms"})?Id=' + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+
+                    if (result.success) {
+                        getPageSetting();
+                        kendo.alert("Deleted Successfully.");
+                    } else {
+                        getPageSetting();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    getPageSetting();
+                }
+            });
+            return false;
+        }
+    }
+
+    var pageSettingColumnDefs = [
+        {
+            field: "PreferencePortalName",
+            headerName:"Portal Name"
+        },
+        {
+            field: "DefaultLandingPageName",
+            headerName: "Page Name"
+        },
+
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-pageSetting' data-idvalue='" + params.value + "' data-portalid='" + params.data.PreferencePortalId + "' data-pageid='" + params.data.DefaultLandingPageId + "' data-status=\"0\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    function getPageSetting() {
+        document.getElementById("pageSettingGrid").innerHTML = "";
+        gridConfig(
+            "pageSettingGrid",
+            "/cms/userRole/GetUserRolePreferences?userRoleId=@Model.Id",
+            pageSettingColumnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+
+    $(document).ready(function () {
+       // debugger;
+        if ('@Model.DataAction'=='@DataActionEnum.Edit') {
+
+            getPageSetting();
+             $("#PreferencePortalId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/cms/userrole/ReadPortalByCompanyId",
+                        dataType: "json",
+                        success: function () {
+
+                        }
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select Portal ...",
+            optionLabel: "Select",
+            change: OnChange,
+            filter: '@FilterType.Contains',
+        });
+
+        var dropdownlist = $("#PreferencePortalId").data("kendoDropDownList");
+        dropdownlist.wrapper.hide();
+        }
+
+
+        $("#Status").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            //optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.Status.ToString()',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StatusEnum",
+                    }
+                }
+            }
+        });
+
+        $("#UserId").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.UserId',
+            dataSource:
+            {
+            transport:
+                {
+                read:
+                    {
+                        url: "/Cms/User/GetUserIdNameList",
+                    }
+                }
+            }
+        });
+
+
+        $.contextMenu({
+            selector: '#tree-pageSetting',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var portalid = $trigger.data('portalid');
+                var pageid = $trigger.data('pageid');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        onEditPageSetting(id, portalid, pageid);
+                                        break;
+
+                                    case 'delete':
+                                        OnDeletePageSetting(id);
+                                        break;
+
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+    });
+
+
+
+</script>
+
+<div class="row" style="margin-left:15px;">
+
+    <form asp-controller="UserRole" asp-action="ManageUserRole" class="form-horizontal" id="myForm"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" style="width:300px;" asp-validation-summary="All"></div>
+
+        <div class="row" style="padding:10px;margin-right:15px;">
+
+            <div class="col-12 pad-15">
+                <div class="form-label-group">
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Enter Name" required="required" autocomplete="off" />
+                    <label for="Name">Name <span class="required">*</span></label>
+                </div>
+            </div>
+            <div class="col-12 pad-15">
+                <div class="form-label-group">
+                    <input asp-for="Code" type="text" class="form-control" placeholder="Enter Code" autocomplete="off" />
+                    <label for="Code">Code</label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-15">
+                <div class="form-label-group">
+
+                    <input asp-for="SequenceOrder" type="number" class="form-control" placeholder="Sequence Order" autocomplete="off" />
+                    <label for="SequenceOrder">Sequence Order</label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">Status <span class="required">*</span></div>
+            <div class="col-12 pad-10">
+                <input asp-for="Status" id="Status" class="form-control" required="required" style="width:80%" />
+            </div>
+
+            @*  <div class="col-12 pad-15">
+                Status <span class="required">*</span>
+                <br />*@
+            @*@(Html.Kendo().DropDownListFor(x=>x.Status)
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .DataSource(source =>
+                {
+                source.Read(read =>
+                {
+                    read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "StatusEnum" });
+                });
+                })
+                .Value(Model.Status.ToString())
+                .HtmlAttributes(new { @class = "form-control" })
+                )*@
+
+            @*                <input asp-for="Status" id="Status" class="form-control" required="required"/>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>*@
+            @*<div class="col-12 pad-10">
+                    <label for="Users">Users </label>
+                    @(Html.Kendo().MultiSelectFor(x => x.UserIds)
+                                                                                   .AutoClose(false)
+                                                                                   .Placeholder("Select Users...")
+                                                                                   .DataSource(source =>
+                                                                                   {
+                                                                                       source.Read(read =>
+                                                                                       {
+                                                                                           read.Action("GetUserIdNameList", "User",new { @area="Cms"});
+                                                                                       });
+
+                                                                                   })
+                                                                                   .Events(x=>x.Change("OnChange"))
+                                                                                   .DataTextField("Name")
+                                                                                   .DataValueField("Id")
+                                                                                   .AutoBind(true)
+                                                                                   .HtmlAttributes(new { @class = "hr-xx-large" })
+                                                                                    .ValuePrimitive(true)
+                                                                                   .Height(300)
+                                    )
+                </div>*@
+            @*<div class="col-12 pad-10">Status</div>
+                        <div class="col-12 pad-10">
+                            @(Html.Kendo().DropDownListFor(x=>x.UserId)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .DataSource(source =>
+                                    {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetUserIdNameList", "User", new { @area = "Cms" });
+                                    });
+                                    })
+                                    .HtmlAttributes(new { @class = "form-control" })
+                                    )
+                        </div>
+                        <div class="col-12 pad-10">
+                            <label>Selected Users </label>
+                            @(Html.Kendo().ListView<UserViewModel>()
+                .Name("UserlistView")
+                .TagName("div")
+                .ClientTemplateId("template")
+                .AutoBind(false)
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Read(read => read.Action("GetUsersList", "User",new { area="Cms"}).Data("FilterDDl"))
+                    .PageSize(21)
+                )
+                .Pageable()
+                )
+                        </div>*@
+
+            <div class="col-12 pad-15">
+                <label for="Users">Portal </label>
+                <br />
+                @*@(Html.Kendo().MultiSelectFor(x => x.Portal)
+                                                                   .AutoClose(false)
+                                                                   .Placeholder("Select Portal...")
+                                                                   .DataSource(source =>
+                                                                   {
+                                                                       source.Read(read =>
+                                                                       {
+                                                                           read.Action("GetPortalForUser", "User", new { @area = "cms" });
+                                                                       });
+
+                                                                   })
+                                                                   .DataTextField("Name")
+                                                                   .DataValueField("Id")
+                                                                   .AutoBind(true)
+                                                                    .ValuePrimitive(true)
+                                                                   .Height(300)
+
+                                                                   .HtmlAttributes(new { @class = "hr-x-large", @style="width:80%" })
+                    )*@
+
+                <select asp-for="Portal" id="Portal" style="width:100%"></select>
+            </div>
+
+
+            <div class="col-12 pad-10" style="text-align:right;padding-right:20px;">
+                <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">@SharedResource["Close"]</button>
+                <input type="submit" class="btn btn-primary" value="@SharedResource["Save"]" id="submitBtn" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+    </form>
+</div>
+<hr />
+@if (Model.DataAction == DataActionEnum.Edit)
+{
+<div class="col-md-12" style="margin: 0 5px 0 5px;">
+    <h4>User Role Landing Page Settings </h4> <br /> <br />
+    <a href="javascript:enableportals()"> Add New Landing Page Settings</a>
+    <div class="row">
+
+        <div class="col-5">
+
+            <input id="PreferencePortalId" class="form-control" style="display:none" />
+        </div>
+        <div class="col-5">
+
+            <input id="DefaultLandingPageId" class="form-control" style="display:none" />
+        </div>
+        <input id="PageSettingMode" class="form-control" hidden />
+        <div class="col-2" >
+            <button class="btn btn-primary" style="display:none" id="AddbtnPref" type="button" onclick="AddUserRolePref()">Add</button>
+        </div>
+    </div>
+    <div class="row">
+       
+        <div id="pageSettingGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </div>
+</div>
+    <div class="" id="users">
+        <div style="padding-left:15px;"><h4>Users</h4></div>
+        <div class="col-md-12" style="margin: 0 5px 0 5px;">
+            <div class="row">
+                <div class="col-10">
+                    @*@(Html.Kendo().DropDownListFor(x => x.UserId)
+                            .DataTextField("Name")
+                            .DataValueField("Id")
+                            .DataSource(source =>
+                            {
+                            source.Read(read =>
+                            {
+                                read.Action("GetUserIdNameList", "User", new { @area = "Cms" });
+                            });
+                            })
+                            .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                            .Filter(FilterType.Contains)
+                            .HtmlAttributes(new { @class = "form-control" })
+                        )*@
+
+                    <input asp-for="UserId" id="UserId" class="form-control" />
+                </div>
+                <div class="col-2" style="margin-left:-10px;">
+                    <button class="btn btn-primary" type="button" onclick="AddUser()">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                @*<button type='button' class='btn btn-primary' onclick='OnCreateUserRole();'><i class='fa fas fa-plus'></i>&nbsp;Create User Role</button>
+                    <br /><br />*@
+                <div id="myGridUserRoleUser" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            </div>
+        </div>
+
+        @*<div class="col-md-12">
+                @(Html.Kendo().Grid<UserRoleUserViewModel>().Name("kgrdUsers")
+                    .HtmlAttributes(new { @class = "kgrdUsers" })
+                    .Columns(col =>
+                    {
+                        col.Command(command =>
+                        {
+                            command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteUser").HtmlAttributes(new { @class = "action-icon action-delete", title = @SharedResource["Delete"] });
+                        }).Title(@SharedResource["Action"]).Width(100);
+                        col.Bound(c => c.UserName).Title("Name").Width(200);
+
+                    })
+                    .Scrollable(x => x.Enabled(true))
+                    .Sortable(srt => srt.Enabled(true))
+                    .Selectable(select => select.Enabled(false))
+                    .Filterable(f => f.Extra(false)
+                    .Operators(o => o.ForString(s => s.Clear()
+                    .Contains("Contains")
+                    .IsEqualTo("Is equal to")
+                    )))
+                    .Resizable(resize => resize.Columns(true))
+                    .Pageable(pageable => pageable
+                    .Refresh(true)
+                    .PageSizes(true)
+                    .ButtonCount(5))
+                    .AutoBind(true)
+                    .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .PageSize(10)
+                        .Read(read => read.Action("GetUsersList", "User", new { Area = "Cms", userRoleId = Model.Id }))
+                        .Model(model => model.Id(p => p.Id)))
+                        )
+            </div>*@
+    </div>
+}
+
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="row col-12" style="margin:5px;">
+    @*<div class="col-3">
+    <span>#:Id#</span>
+    </div>*@
+    <div class="col-9">
+      <span>#:Name#</span>
+    </div>
+    </div>
+
+    <div class="row col-12" style="margin:5px;">
+    @*<div class="col-3">
+    <span>#:Id#</span>
+    </div>*@
+    <div class="col-9">
+      <span>#:Status#</span>
+    </div>
+    </div>
+</script>
+
+<!--<script type="text/javascript">
+    function OnChange(e)
+    {
+        var search = FilterDDl();
+        $("#UserlistView").data("kendoListView").dataSource.read(search)
+    }
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+
+             ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+             id = res.data;
+             var win = GetMainWindow();
+             win.iframeOpenUrl = "/Cms/UserRole/EditUserRole?Id=" + id;
+             win.OpenWindow({ Title: 'Manage User Role', Width: 450, Height: 800, Reload: true });
+
+             //var win = GetMainWindow();
+             //win.iframeOpenUrl = "/pay/Calendar/ManageCalendar?CalendarId=" + id;
+             //win.OpenWindow({ Title: 'Manage User Role', Width: 450, Height: 700, Reload: true });
+
+             //HideLoader($('#calendar'));
+             return false;
+         }
+        else {
+             $(".text-danger").removeClass("validation-summary-valid");
+             $(".text-danger").addClass("validation-summary-errors");
+             $(".text-danger").html(res.error);
+             HideLoader($('#calendar'));
+        }
+
+    };
+    function AddUser() {
+
+        var selUserId = $("#UserId").val();
+        $.ajax({
+                type: "POST",
+                url: "/Cms/UserRole/AddUserToUserRole?userRoleId=" + '@Model.Id' + '&userId=' + selUserId,
+                dataType: "json",
+                success: function (data) {
+                    if (data.success) {
+                        ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+                        $("#kgrdUsers").data("kendoGrid").dataSource.read({ userRoleId: '@Model.Id' });
+                    }
+                    else {
+                        ShowNotification(data.msg, "error");
+                    }
+
+            },
+            error: function (data) {
+
+            }
+
+            });
+    }-->
+@*function OnDeleteUser(e) {
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        kendo.confirm("Are you sure that you want to delete the selected user?").then(function () {
+            $.ajax({
+                type: "POST",
+                url: "/Cms/UserRole/DeleteUserFromUserRole?Id=" + dataItem.Id,
+
+                success: function (data) {
+
+                    kendo.alert("User Deleted Successfully");
+                    $("#kgrdUsers").data("kendoGrid").dataSource.read({ userRoleId: '@Model.Id'});
+                },
+                dataType: "json",
+            });
+        }, function () {
+
+        });
+    }*@
+
+<!--function FilterDDl() {
+    //alert($("#Users").val());
+    var multiselect = $("#UserIds").data("kendoMultiSelect");
+    var multiselectvalue = multiselect.value();
+    return {
+        selectedValues: multiselectvalue.join()
+    };
+}
+$(document).ready(function () {-->
+@*var search = FilterDDl();
+    $("#UserlistView").data("kendoListView").dataSource.read(search)
+    if ('@ViewBag.Success' == "True") {
+        closeNavMemberGroup();
+        if (window.parent.$("#UserRolegrid").data("kendoGrid").dataSource.read()) { }
+    }*@
+
+<!--});
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+</script>-->

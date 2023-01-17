@@ -1,0 +1,291 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+
+@{
+    ViewData["Title"] = "Manage Tag Category";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model TagCategoryViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        var TypeName = '@Model.TagCategoryType';
+
+        if (TypeName == "Static") {
+                $("#divTagsource").hide();
+                //ddlTagSourceId.value(newvalue);
+            } else { $("#divTagsource").show(); }
+
+        $("#TagCategoryType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.TagCategoryType.ToString()',
+            change: OnTagCategoryChange,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=TagCategoryTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#ParentNoteId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.ParentNoteId.ToString()',            
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/cms/TagCategory/GetParentTagCategory",
+                    }
+                }
+            }
+        });
+    });
+
+    function Close() {
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnSave(evt) {
+       var categoryType=  $("#TagCategoryType").data("kendoDropDownList").value();
+
+        ShowLoader($('.form-horizontal'));
+        if (categoryType == "Master")
+        {
+            var query = $("#TextQueryCode").val();
+            if (query == "")
+            {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("Text Query Code is required");
+                HideLoader($('.form-horizontal'));
+                evt.preventDefault();
+                return false;
+            }
+        }
+        if ($("#TagCategoryType").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Tag Category Type is required");
+            HideLoader($('.form-horizontal'));
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#TagCategoryName").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Tag Category Name is required");
+            HideLoader($('.form-horizontal'));
+            evt.preventDefault();
+            return false;
+        } else if ($("#TagCategoryCode").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+           $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Tag Category Code is required");
+            HideLoader($('.form-horizontal'));
+            evt.preventDefault();
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+            $(".text-danger").html("");
+        }
+    }
+
+    var onAjaxSuccess = function (res) {
+        HideLoader($('.form-horizontal'));
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                window.parent.ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                window.parent.ShowNotification("Updated Successfully", "success");
+            }
+
+            Close();
+            //window.parent.$("#kgrdTagCategory").data("kendoGrid").dataSource.read();
+            window.parent.getTagCatData();
+
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+        }
+    };
+
+
+    function OnTagCategoryChange(e) {
+        var dataItem = e.sender.dataItem();
+        var Name = dataItem.Name;
+        if (Name == "Static") {
+            $("#divTagsource").hide();
+
+            $("#TextQueryCode").val("");
+            $("#TextQueryFilter").val("");
+
+
+            var newvalue = new Array();
+            var ddlTagSourceId = $("#TagSourceId").data("kendoDropDownList");
+            ddlTagSourceId.value(newvalue);
+        } else { $("#divTagsource").show(); }
+    }
+
+
+
+</script>
+
+<div class="row" style="margin-left:15px;">
+
+    <form asp-controller="TagCategory" asp-action="ManageTagCategory" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12">Tag Category Type<span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().DropDownListFor(x=>x.TagCategoryType)
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "TagCategoryTypeEnum" });
+                            });
+                        })
+                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                        .Value(Model.TagCategoryType.ToString())
+                        .Events(x => x.Change("OnTagCategoryChange"))
+                        .HtmlAttributes(new { @class = "form-control", @style = "width:80%", required = "required" })
+                        )*@
+
+                <input asp-for="TagCategoryType" id="TagCategoryType" style="width: 80%" />
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="TagCategoryName" type="text" class="form-control" placeholder="Enter Tag Category Name" required="required" autocomplete="off" style="width:80%" />
+                    <label for="TagCategoryName">Tag Category Name <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="TagCategoryCode" type="text" class="form-control" placeholder="Enter Tag Category Code" autocomplete="off" style="width:80%"/>
+                    <label for="TagCategoryCode">Enter Tag Category Code <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="EnableAutoTag" type="checkbox" class="form-control" placeholder="Enable Auto Tag" style="width:60%;height:26px" />
+                    <label for="EnableAutoTag" style="color:black;">Enable Auto Tag <span class="required"></span></label>
+                </div>
+            </div>
+
+
+
+
+
+            <div class="col-12"> Parent Tag Category <span class="required"></span></div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().DropDownListFor(x=>x.ParentNoteId)
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetParentTagCategory", "TagCategory", new { @area = "cms"});
+            });
+        })
+        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+        .Value(Model.ParentNoteId.ToString())
+        .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+        )*@
+
+                <input asp-for="ParentNoteId" id="ParentNoteId" style="width: 80%" />
+            </div>
+
+
+
+            <div id="divTagsource" class="col-12">
+
+                <div class="col-12 pad-10">
+                    <div class="form-label-group">
+                        <textarea asp-for="TextQueryCode" class="form-control" placeholder="Text Query Code" autocomplete="off" style="width:80%"></textarea>
+                        <label for="TagCategoryCode">Text Query Code</label>
+                    </div>
+                </div>
+
+                <div class="col-12 pad-10">
+                    <div class="form-label-group">
+                        <textarea asp-for="TextQueryFilter" class="form-control" placeholder="Text Query Filter" autocomplete="off" style="width:80%"></textarea>
+                        <label for="TagCategoryCode">Text Query Filter</label>
+                    </div>
+                </div>
+
+
+                @*<div> Tag Source <span class="required"></span></div>
+        <div>
+            @(Html.Kendo().DropDownListFor(x=>x.TagSourceId)
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetAllsourceid", "TagCategory", new { @area = "cms"});
+                    });
+                })
+                .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                .Value(Model.TagSourceId.ToString())
+                .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+                )
+        </div>*@
+            </div>
+
+
+
+            <div class="col-12 pad-10" style="text-align:right;padding-right:40px;">
+                <button type="button" class="btn btn-light" onclick="Close();">Close</button>
+                <input type="submit" class="btn btn-primary" value="Save" id="submitBtn" onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+    </form>
+</div>
+
+

@@ -1,0 +1,307 @@
+﻿@{
+    ViewData["Title"] = "CCTV Dashboard";
+    Layout = null;
+}
+@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.BusinessAnalyticsController> Resource
+
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+<style>
+
+
+    
+    .footage {
+        float: left;
+        position: relative;
+        /*  width: 710px;
+        height: 360px;*/
+        margin: 0 5px;
+        padding: 0;
+    }
+
+    #listview_cctv {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+        /* Avoid cutout if font or line is bigger */
+        font: inherit;
+        border: none;
+    }
+
+    .k-listview-content {
+        overflow: hidden;
+    }
+
+    #listview_cctv .card {
+        width: 470px;
+        height: 290px;
+        margin-bottom: 10px;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        getcctvData();
+        $("#ViewType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "GridView",
+            change: onViewChange,
+            dataSource: [
+                { Name: "Grid View", Id: "GridView" },
+                //{ Name: "Card View", Id: "CardView" },
+                { Name: "Map View", Id: "MapView" },
+            ],
+        });
+
+
+    });
+
+
+</script>
+<h4>CCTV Dashboard</h4>
+<hr />
+<div id="cctv" class="tab-pane pad-10 active">
+    <div class="row">
+        <div class="col-10"></div>
+            <div class="col-2">
+                <input id="ViewType" style="width: 100%" />
+            </div>
+        </div>
+        <hr />
+        <div id="grid-view" class="tab-pane" style="padding-top: 10px">
+            <div id="gridview_cctv" style="width: 100%;height:600px" class="ag-theme-alpine"></div>
+        </div>
+        <div id="card-view" class="tab-pane" style="display:none">
+            <div id="listview_cctv">
+
+            </div>
+            <div id="pager" class="k-pager-wrap"></div>
+        </div>
+        <div id="map-view" class="tab-pane" style="display:none;padding-top:10px">
+            <div class="card" style="padding:5px">
+                <div id="map" style="height:550px"></div>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+
+    var columnDefsCctv = [
+        {
+            field: "View",
+            headerName: "View",
+            cellRenderer: params => {
+                return "<span class='fas fa-eye' onclick='onMonitorView(\"" + params.data.RtspLink + "\",\"" + params.data.Id + "\")'></span>";
+            }
+        },
+        {
+            field: "NoteSubject",
+            headerName: "Camera Name",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.NoteSubject + " </div>";
+            }
+        },
+        {
+            field: "City",
+            headerName: "City",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.City + " </div>";
+            }
+        },
+        {
+            field: "Location",
+            headerName: "Location",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.Location + " </div>";
+            }
+
+        },
+        {
+            field: "PoliceStation",
+            headerName: "Police Station",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.PoliceStation + " </div>";
+            }
+
+        },
+        {
+            field: "Longitude",
+            headerName: "Longitude",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.Longitude + " </div>";
+            }
+
+        },
+        {
+            field: "Latitude",
+            headerName: "Latitude",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.Latitude + " </div>";
+            }
+
+        },
+        {
+            field: "RtspLink",
+            headerName: "RTSP URL",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.RtspLink + " </div>";
+            }
+
+        },
+
+
+    ];
+    function getcctvData() {
+        document.getElementById("gridview_cctv").innerHTML = "";
+        gridConfig(
+            "gridview_cctv",
+            "/Cms/IIPPHQ/ReadCctvData",
+            columnDefsCctv,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function onViewChange() {
+        var view = $("#ViewType").data("kendoDropDownList").value();
+        if (view == "GridView") {
+            getcctvData();
+            $("#grid-view").show();
+            $("#card-view").hide();
+            $("#map-view").hide();
+
+        }
+        else if (view == "CardView") {
+            loadCctvFootage();
+            $("#grid-view").hide();
+            $("#card-view").show();
+            $("#map-view").hide();
+        }
+        else {
+            loadMap();
+            window.dispatchEvent(new Event('resize'));
+            $("#grid-view").hide();
+            $("#card-view").hide();
+            $("#map-view").show();
+        }
+    }
+
+    function onMonitorView(rtsplink, id) {
+        var _encodeUrl = encodeURI(rtsplink)
+        _encodeUrl = _encodeUrl.replaceAll("&", "^");
+        var url = '/Cms/BusinessAnalytics/Streaming?rtspLink=' + _encodeUrl + '&id=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'CCTV Camera', Width: 1200, Height: 600 });
+        return false;
+    }   
+    function loadMap() {
+        var container = L.DomUtil.get('map');
+        if (container['_leaflet_id'] != null) {
+            container['_leaflet_id'] = null;
+            document.getElementById("map").innerHTML = "";
+        }
+        $.ajax({
+            type: "GET",
+            url: "/Cms/BusinessAnalytics/ReadIIPCameraData?radius=0",
+            success: function (response) {
+                if (response != "" && response != null) {
+                    var locations = response;
+                    var markers = L.markerClusterGroup({ showCoverageOnHover: false });
+                    for (var i = 0; i < locations.length; i++) {
+                        var a = locations[i];
+                        if ((a['Latitude'] > -90 || a['Latitude'] < 90) && (a['Longitude'] > -180 || a['Longitude'] < 180)) {
+                            var colors = "green";
+                            var iconDes = L.divIcon({
+                                html: '<i class="fa fa-map-marker fa-3x" style="color:' + colors + '"></i>',
+                                iconSize: [20, 20],
+                                className: 'myDivIcon'
+                            })
+                            var title = "<p><b>Camera Name :</b>" + a['NoteSubject'] + "</p><p><b>Police Station :</b>" + a['PoliceStation'] + "</p><p><b>Location :</b>" + a['Location'] + "</p>";
+                            var marker = L.marker([a['Latitude'], a['Longitude']], { icon: iconDes, link: a['RtspLink'], id: a['Id'], contextmenu: true, contextmenuInheritItems: false, contextmenuItems: [{ text: 'Preview', callback: onPreview }] });
+                            marker.bindPopup(title);
+                            markers.addLayer(marker);
+
+                        }                        
+                    }
+                    var map = L.map("map", {
+                        center: [locations[0]["Latitude"], locations[0]["Longitude"]],
+                        zoom: 1,
+                        maxZoom: 20,
+                        layers: [markers],
+                        fullscreenControl: {
+                            pseudoFullscreen: false
+                        }
+                    });
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                        attribution: "© OpenStreetMap contributors"
+                    }).addTo(map);
+                    markers.getBounds().isValid();
+                    map.fitBounds(markers.getBounds());
+                }
+            },
+            error: function (response) {
+
+            },
+        });
+
+
+    }
+    function loadCctvFootage() {
+        document.getElementById("listview_cctv").innerHTML = "";
+        document.getElementById("pager").innerHTML = "";
+        var dataSourcey = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/IIPPHQ/ReadCctvData",
+                    //data: Filter,
+                    dataType: "json",
+                }
+            },
+            pageSize: 6,
+
+        });
+        $("#pager").kendoPager({
+            dataSource: dataSourcey
+        });
+        $("#listview_cctv").kendoListView({
+            dataSource: dataSourcey,
+            template: kendo.template($("#template_cctv").html()),
+            pageable: true,
+
+        });
+    }
+    function onPreview(e) {
+        var rtsplink = e.relatedTarget.options.link;
+        var id = e.relatedTarget.options.id;
+        var _encodeUrl = encodeURI(rtsplink)
+        _encodeUrl = _encodeUrl.replaceAll("&", "^");
+        var url = '/Cms/BusinessAnalytics/Streaming?rtspLink=' + _encodeUrl + '&id=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'CCTV Camera', Width: 1200, Height: 600 });
+        return false;
+    }
+</script>
+<script type="text/x-kendo-tmpl" id="template_cctv">
+    <div class="footage">
+     <div class="card">
+        <div class="card-header">
+    #=NoteSubject#
+        </div>
+
+        <div class="card-block">
+            <iframe src="/Cms/BusinessAnalytics/Streaming?rtspLink=#=RtspLink#&id=#=Id#" style="width:100%;height:220px;" ></iframe>
+        </div>
+    </div>
+    </div>
+</script>
+
+
+
+

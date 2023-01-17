@@ -1,0 +1,288 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Table Metadata";
+    Layout = null;
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model TableMetadataViewModel;
+
+<style>
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+    /*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+</style>
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    @*<h1 class="cms-panel-header-name">@ViewBag.Title</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavPortal()" title="Close">&times;</a>
+        <hr />*@
+    <form asp-controller="TableMetadata" asp-action="ManageTableMetadata" method="post" class="form-horizontal">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12">Schema <span class="required" style="color:red;">*</span></div>
+            <div class="col-12 pad-10">
+                @*@(Html.Kendo().DropDownListFor(model => model.Schema)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetSchemaList", "TableMetadata", new {@area="Cms"});
+                                            });
+                                        })
+                                        //.AutoBind(true)
+                                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        //.Value(Model.Schema.ToString())
+                                        .Height(100)
+                                        //.Filter(FilterType.Contains)
+                                        .HtmlAttributes(new { @class = "form-control" }))*@
+
+                <input asp-for="Schema" id="Schema" style="width: 100%" />
+            </div>
+            <div class="col-12">Template Type <span class="required" style="color:red;">*</span></div>
+            <div class="col-12 pad-10">
+                @*@(Html.Kendo().DropDownListFor(x=>x.TemplateType)
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    //.Events(e => e.Change("OnPageTypechange"))
+                    .DataSource(source =>
+                        {
+                        source.Read(read =>
+                            {
+                                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "TemplateTypeEnum" });
+                        });
+                    })
+                    .Value(Model.TemplateType.ToString())
+                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                    .HtmlAttributes(new { style = "width: 100%" })
+                    )*@
+
+                <input asp-for="TemplateType" id="TemplateType" style="width: 100%" />
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="DisplayName" type="text" class="form-control" placeholder="Table Name (Display Name)" required="required" autocomplete="off" />
+                    <label for="displayname">Table Name (Display Name) <span class="required" style="color:red;">*</span></label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input type="text" asp-for="Name" class="form-control" placeholder="Name" autocomplete="off" required="required" readonly />
+                    <label for="name">Name <span class="required" style="color:red;">*</span></label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input type="text" asp-for="Alias" class="form-control" placeholder="Alias / Short Name" autocomplete="off" required="required" />
+                    <label for="name">Alias / Short Name <span class="required" style="color:red;">*</span></label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <textarea asp-for="Description" class="form-control" rows="5" style="padding-top: 20px !important;height:100px;"></textarea>
+                    <label for="description" style="margin-top: -5px !important;">Description</label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="EnableLegalEntityPermission" type="checkbox" class="k-checkbox" style="margin-right:5px;" />
+                    <label>Enable Legal Entity Permission</label>
+                </div>
+            </div>
+                <div class="col-12 pad-15">
+                    &nbsp;
+                </div>
+                <div class="cms-manageportal-footer">
+                    <input type="button" class="btn btn-link" value="Close" onclick="closeNavTable()" />
+                    <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave(event);" />
+                </div>
+                @*<div class="col-sm-12">
+                <button type="submit" class="btn btn-success">Save</button>
+                <button type="button" class="btn btn-light" onclick="CloseIframeModal();">Close</button>
+            </div>*@
+            </div>
+            @Html.HiddenFor(x => x.Id)
+            @Html.HiddenFor(x => x.DataAction)
+            @Html.HiddenFor(x => x.TableType)
+</form>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+            //alert("1");
+            closeNavTable();
+           // if (window.parent.$("#kgrdTabelMetadata").data("kendoGrid").dataSource.read()) { }
+            window.parent.getDataTableData();
+        }
+
+        $("#Schema").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.Schema',
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Cms/TableMetadata/GetSchemaList",
+                    }
+                }
+            }
+        });
+
+        $("#TemplateType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.TemplateType.ToString()',
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=TemplateTypeEnum",
+                    }
+                }
+            }
+        });
+    });
+    function closeNavTable() {
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    $("#DisplayName").on('input', function () {
+        var txt = $("#DisplayName").val();
+        var txt2 = $("#DisplayName").val();
+        var t = capitalizeTheFirstLetterOfEachWord(txt);
+        txt = t.replace(/[^A-Z0-9]/ig, "");
+        //$("#Name").html(txt);
+        var t2 = getcapitalizeTheFirstLetter(txt2);
+        txt2 = t2.replace(/[^A-Z0-9]/ig, "");
+        $("#Name").val(txt);
+        $("#Alias").val(txt2);
+
+    });
+
+    function capitalizeTheFirstLetterOfEachWord(words) {
+        var separateWord = words.toLowerCase().split(' ');
+        for (var i = 0; i < separateWord.length; i++) {
+            separateWord[i] = separateWord[i].charAt(0).toUpperCase() +
+                separateWord[i].substring(1);
+        }
+        return separateWord.join(' ');
+    }
+
+    function getcapitalizeTheFirstLetter(words) {
+
+        var separateWord = words.toLowerCase().split(' ');
+        var myword = "";
+        for (var i = 0; i < separateWord.length; i++) {
+            var num = separateWord[i].match(/\d+/);
+            var wrd = separateWord[i].match(/[a-zA-Z]+/);
+            if (num == null) {
+                myword += separateWord[i].charAt(0).toUpperCase();
+            } else {
+                if (wrd != null) {
+                    myword += wrd[0].charAt(0).toUpperCase();
+                }
+                myword += num;
+            }
+        }
+        return myword;
+    }
+
+    function OnSave(evt) {
+        var msg = "";
+        var msgcount = 0;
+        var schema = $("#Schema").val();
+        if (schema=='') {
+            msg = msg + "<li>Schema field is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var templatetype = $("#TemplateType").val();
+        if (templatetype == '') {
+            msg = msg + "<li>Template Type field is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var displayname = $("#DisplayName").val();
+        if (displayname == '') {
+            msg = msg + "<li>Display Name field is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var name = $("#Name").val();
+        if (name == '') {
+            msg = msg + "<li>Name field is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var alias = $("#Alias").val();
+        if (alias == '') {
+            msg = msg + "<li>Alias/Short Name field is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        if (msgcount > 0) {
+            $(".text-danger").html(msg);
+            $(".text-danger").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+    }
+</script>

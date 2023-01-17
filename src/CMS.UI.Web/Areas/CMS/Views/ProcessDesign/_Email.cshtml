@@ -1,0 +1,312 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model EmailComponentViewModel
+
+<style>
+    .form-label-group {
+        position: relative;
+        margin-bottom: 0px;
+    }
+
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+    /*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+    .k-editor-toolbar {
+        display: none !important;
+    }
+
+    .var-editor {
+    }
+    .k-editable-area {
+    }
+        .k-editable-area iframe {
+            height: 60px !important;
+        }
+    .k-editor {
+        width: 85% !important;
+    }
+</style>
+<script type="text/javascript">
+    function DataBound(e) {
+        
+        $(".selectcheckbox").bind("click", function (e) {
+            e.stopPropagation();
+            $(e.target).closest("tr").toggleClass("k-state-selected");
+        });
+
+        var rows = e.sender.element.find("tr");
+        rows.each(function (e) {
+            $(this).children().first().on("click", onFirstTDClick);
+        })
+        var abc = "@ViewBag.RowData";
+        var arr = JSON.parse(abc.replace(/&quot;/g, '"'));
+
+            for (var i = 0; i < arr.length; i++)
+            {
+                console.log(e.sender._data[0].Id);
+                //if (e.sender._data[0].Id == arr[i].Id)
+                //{
+                    $("#selectcheckbox_"+ arr[i].Id).closest("tr").toggleClass("k-state-selected");
+                    document.getElementById('selectcheckbox_' + arr[i].Id + '/').closest('tr').classList.add("k-state-selected");
+                    document.getElementById('selectcheckbox_' + arr[i].Id + '/').checked = true;
+
+
+                //}
+            }
+
+    }
+    function onFirstTDClick(e) {
+        e.stopPropagation();
+        var tr = $(e.target).closest("tr");
+        tr.find('[type=checkbox]').prop('checked', !tr.hasClass("k-state-selected"));
+        tr.toggleClass("k-state-selected");
+
+    }
+
+    function ongridChange(arg) {
+        
+        var selectedRows = this.select();
+        this.editRow(this.select());
+
+
+        $('tr').find('[type=checkbox]').prop('checked', false);
+        $('tr.k-state-selected').find('[type=checkbox]').prop('checked', true);
+
+        var selectedRows = this.select();
+        var selectedDataItems = [];
+        for (var i = 0; i < selectedRows.length; i++) {
+            var dataItem = this.dataItem(selectedRows[i]);
+            selectedDataItems.push(dataItem);
+        }
+        selectedRows = selectedDataItems;
+    }
+    function SaveData(e) {
+        
+        var selectedRows = [];
+        var entityGrid = $("#grid").data("kendoGrid");
+        var rows = entityGrid.select();
+        rows.each(function (index, row) {
+            var selectedItem = entityGrid.dataItem(row);
+            selectedRows.push(selectedItem);
+        });
+        console.log(selectedRows);
+        $("#RowData").val(JSON.stringify(selectedRows));
+        if (selectedRows.length==0)
+        {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("select at leaset one column");
+            e.preventDefault();
+            return false;
+        }
+    }
+
+    function OnCancel(args) {
+
+    }
+    $(document).ready(function () {
+        $('.content').richText();
+        //alert($('#EnableDeletebtn').val());
+        $('#EnableDeletebtn').change(function () {
+            
+            if (this.checked) {
+
+                $('#confirmationdel').show();
+            }
+            else {
+                $('#confirmationdel').hide();
+            }
+
+        });
+        if ($('#EnableDeletebtn').val() == 'true')
+        {
+            $('#confirmationdel').show();
+        }
+
+        $("#btnsubmit").click(function (e) {
+            var valdata = JSON.stringify($("#myForm").serializeObject());
+            SetBlockProperties('@Model.Id', valdata, '@Model.TempId');
+            CloseSideNav();
+        });
+    });
+
+    function closeNavPortal() {
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+
+
+    var onAjaxSModelccess = function (res) {
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+           // window.parent.parent.$("#documentTypeTreeView").data("kendoTreeView").dataSource.read();
+            var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("ManageIndex", "Template", new { @area = "Cms"})?templateId=' + TemplateId, $('#index'));
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+
+   
+
+    $.fn.serializeObject = function () {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function () {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+
+</script>
+
+<div class="pad-15">
+    <form  class="form-horizontal" id="myForm">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <!--<label for="ReceipientEmail">Receipient Email <span class="required">*</span></label>-->
+                @*<input asp-for="ReceipientEmail" type="text"  class="form-control" placeholder="Receipient Email" required="required" autocomplete="off"  />*@
+                <!--<div class="form-control" contenteditable="true"><span class="pd-variable"><span class="fa fas fa-home"></span><span>123</span></span></div><span class="fa fas fa-home"></span>-->
+                <label for="ReceipientEmail">Receipient Email <span class="required">*</span></label>
+                <div class="input-group mb-3">
+                    @*<input type="text" class="form-control" placeholder="Recipient's username" aria-label="Recipient's username" aria-describedby="basic-addon2" />
+        <div class="form-control var-editor" id="ReceipientEmail" contenteditable="true">@Model.ReceipientEmail</div>*@
+                    @* @Html.Kendo().EditorFor(x => x.ReceipientEmail).HtmlAttributes(new { @class = "form-control var-editor" })*@
+
+                    <div class="page-wrapper box-content">
+                        <textarea class="content" asp-for="ReceipientEmail" id="ReceipientEmail"></textarea>
+                    </div>
+                    <div class="input-group-append">
+                        <span class="input-group-text cursor-pointer add-variable" onclick="OpenVairaible('ReceipientEmail', 400);"><i class="fa fas fa-plus"></i></span>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+
+
+                <div class="form-label-group">
+                    <input asp-for="CC" type="text" class="form-control" placeholder="CC" autocomplete="off" />
+                    <label for="CC">CC </label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Bcc" type="text" class="form-control" placeholder="Bcc" autocomplete="off" />
+                    <label for="Bcc">Bcc</label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Subject" type="text" class="form-control" placeholder="Subject" required="required" autocomplete="off" />
+                    <label for="Subject">Subject</label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <textarea asp-for="Body" class="form-control" required="required" autocomplete="off"></textarea>
+                    <label for="Body">Body</label>
+                </div>
+            </div>
+
+            <div class="cms-slidebar-footer">
+                <input type="button" class="btn btn-light" value="Close" onclick="CloseSideNav()" />
+                <input type="button" class="btn btn-primary" value="Save" id="btnsubmit" />
+            </div>
+
+        </div>
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.TempId)
+    </form>
+
+</div>
+@*<p class="inputlabel">Select database</p>
+    <div class="dropme">Database 1 <i class="fad fa-sitemap"></i></div>
+    <p class="inputlabel">Check properties</p>
+    <div class="dropme">All<i class="fad fa-sitemap"></i></div>
+    <div class="checkus"><i class="fad fa-sitemap"></i><p>Log on successful performance</p></div>
+    <div class="checkus"><i class="fad fa-sitemap"></i><p>Give priority to this block</p></div>*@
+@*</div>*@
+@*<div id="divisionthing"></div>*@
+@*<div id="removeblock">Delete blocks</div>*@

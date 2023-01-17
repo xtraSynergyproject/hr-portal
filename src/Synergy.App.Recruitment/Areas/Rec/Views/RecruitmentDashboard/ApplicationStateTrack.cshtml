@@ -1,0 +1,170 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+@model ApplicationStateTrackDetailViewModel
+
+@{
+    ViewData["Title"] = "Application Status Track";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    //Layout = null;
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+<style>
+    .k-grid td, .k-grid th {
+        font-size: 14px !important;
+    }
+
+    .tb-bg {
+        /*background-color:cadetblue;*/
+        background-color: #17a2b8 !important;
+        color: #fff;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .tb-bg1 {
+        /*background-color: cornflowerblue;*/
+        background-color: #ffc107 !important;
+        color: #000;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .tb-bg2 {
+        /* background-color: darkcyan;*/
+        background-color: #17a2b8 !important;
+        color: #fff;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .k-footer-template {
+        background-color: #DAEDFF
+    }
+
+    .k-grid-header .k-header, .k-grid-header thead, .k-grid-header .k-hierarchy-cell {
+        background-color: #527ab8;
+    }
+
+        .k-grid-header thead a {
+            color: #fff !important;
+        }
+</style>
+<script>
+
+   function onViewComment(appId, appStateId)
+   {
+       @*iframeOpenUrl = '@Url.Action("AddComment", "CandidateShortlist", new { @area="Recruitment"})?appId=' + appId + "&appStateId=" + appStateId + "&type=" + "view";
+       OpenIframePopup1(1000, 1200, 'Comments');*@
+          var win = GetMainWindow();
+       win.iframeOpenUrl = '@Url.Action("AddComment", "CandidateShortlist", new { @area = "Recruitment" })?appId=' + appId + "&appStateId=" + appStateId + "&type=" + "view";
+       win.OpenWindow({ Title: 'Comments', Width: 1000, Height: 1000 });
+        return false;
+    }
+
+    function onViewTask(taskId) {
+        //alert(taskId);
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Index", "Task", new { @area = "Cms" })?taskId=' + taskId + '&isPopUp=true' ;
+        win.OpenWindow({ Title: 'View Task Details', Width: 1200, Height: 1000 });
+        return false;
+    }
+    function IframePostbackScript() {
+        //alert("test");
+        //$("#kgrdCandInterview").data("kendoGrid").dataSource.read();
+        $("#kgridApplicationStateTrack").data("kendoGrid").dataSource.read();
+    }
+</script>
+
+<div class="div_header row no-gutters" style="margin: 50px;color: #ffffff;">
+    <div class="col-md-5 col-sm-5 col-lg-5">
+        <i class="fa fa-user"></i> <label style="font-size: 20px;margin-left: 8px;">@Html.DisplayFor(x => x.CandidateName)</label>
+    </div>
+    <div class="col-md-7 col-sm-7 col-lg-7">
+        <div class="row">
+            <div class="col-sm-6 col-md-6"><i class="fa fa-calendar"></i><label style="font-size: 20px;margin-left: 10px;">Job Applied Date </label></div>
+            <div class="col-sm-6 col-md-6">: @Html.DisplayFor(x => x.AppliedDate)</div>
+        </div>
+        @*<i class="fa fa-calendar"></i><label style="font-size: 20px;margin-left: 14px;">Job Application Date :&nbsp;</label><label style="font-size: 20px; margin-left:10px">@Html.DisplayFor(x => x.AppliedDate)</label>*@
+    </div>
+    <div class="col-md-5 col-sm-5 col-lg-5">
+        <i class="fa fa-suitcase"></i> <label style="font-size: 20px;margin-left: 5px;">Position : @Html.DisplayFor(x => x.JobName)</label>
+    </div>
+    <div class="col-md-7 col-sm-7 col-lg-7">
+        <div class="row">
+            <div class="col-sm-6 col-md-6"><i class="fa fa-sitemap"></i><label style="font-size: 20px;margin-left: 5px;">Organization </label></div>
+            <div class="col-sm-6 col-md-6">: @Html.DisplayFor(x => x.OrgName)</div>
+        </div>
+    </div>
+    <div class="col-md-5 col-sm-5 col-lg-5">
+        @*<i class="fa fa-suitcase"></i>*@ <label style="font-size: 20px;margin-left: 5px;">Current Application State : @Html.DisplayFor(x => x.ApplicationStateName)</label>
+    </div>
+    <div class="col-md-7 col-sm-7 col-lg-7">
+        <div class="row">
+            <div class="col-sm-6 col-md-6">@*<i class="fa fa-sitemap"></i>*@<label style="font-size: 20px;margin-left: 5px;">Current Application Status </label></div>
+            <div class="col-sm-6 col-md-6">: @Html.DisplayFor(x => x.ApplicationStatusName)</div>
+        </div>
+    </div>
+    <div class="col-md-5 col-sm-5 col-lg-5">
+        @*<i class="fa fa-suitcase"></i>*@ <label style="font-size: 20px;margin-left: 5px;">Batch : @Html.DisplayFor(x => x.BatchName)</label>
+    </div>
+    <div class="col-md-7 col-sm-7 col-lg-7">
+        <div class="row">
+            <div class="col-sm-6 col-md-6">@*<i class="fa fa-sitemap"></i>*@@*<label style="font-size: 20px;margin-left: 5px;">Current Status </label>*@</div>
+            <div class="col-sm-6 col-md-6">@*: @Html.DisplayFor(x => x.ApplicationStatusName)*@</div>
+        </div>
+    </div>
+</div>
+<div class="div_body">
+    @(Html.Kendo().Grid<ApplicationStateTrackDetailViewModel>()
+            .Name("kgridApplicationStateTrack").Excel(e => e.AllPages(true))
+            .ToolBar(tools =>
+            {
+                //tools.Excel();
+            })
+              .Columns(col =>
+              {
+                  col.Bound(c => c.Number).Width(60).Title("#");
+                  col.Bound(c => c.SubNumber).Title("#.#").Width(60);
+                  col.Bound(c => c.Stage).Title("Stage").Width(130);
+                  col.Bound(c => c.ActionName).Title("Action");
+                  col.Bound(c => c.ActionStatus).Title("Action # - Status").Width(150).ClientTemplate("#if('"+ViewBag.IsUserHR + "'=='True' && TaskId!=null){#<a style='cursor:pointer;color:blue' onclick='onViewTask(\"#:TaskId#\")'>#:ActionStatus#</a>#}else if(TaskAssignedToUserId=='" + @ViewBag.LoginUserId + "' && TaskId!=null){#<a style='cursor:pointer;color:blue' onclick='onViewTask(\"#:TaskId#\")'>#:ActionStatus#</a>#}else{#<span>#:ActionStatus#</span>#}#");
+                  col.Bound(c => c.AssigneeName).Title("Assignee Name").Width(100);
+                  col.Bound(c => c.TextValue1).Title("Comments").Width(100);
+                  col.Bound(c => c.ChangedDate).Title("Action Date").Width(100).Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat);
+                  col.Bound(c => c.ActionSLAPlanned).Title("Action SLA Planned").Width(80);
+                  col.Bound(c => c.ActionSLAActual).Title("Action SLA Actual").Width(80);
+                  col.Bound(c => c.DaysElapsed).Title("Days Elapsed").Width(80);
+
+              })
+            //.ToolBar(toolbar =>
+            //{
+            //    toolbar.Custom().Text("Add Manpower Requirement").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAdd();" });
+
+            //})
+            .Resizable(resizable => resizable.Columns(true))
+            .Scrollable(scrollable => scrollable.Enabled(true))
+            .Sortable(srt => srt.Enabled(true))
+            .Selectable(select => select.Enabled(false))
+            .Filterable(f => f.Extra(false)
+                .Operators(o => o.ForString(s => s.Clear()
+                .Contains("Contains")
+            //.IsEqualTo("Is equal to")
+            )))
+            .AutoBind(true)
+            .Pageable(pageable => pageable.Enabled(false)
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5))
+            .DataSource(
+            dataSource => dataSource
+            .Ajax()
+            .Read(read => read.Action("ReadApplicationStateTrackDetails", "RecruitmentDashboard",new {@area="Recruitment", applicationId=Model.ApplicationId }))
+            .Model(model => model.Id(p => p.ApplicationStateId))
+            )
+            .HtmlAttributes(new { @style = "font-size: 12px"})
+)
+</div>
+
+

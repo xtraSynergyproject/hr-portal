@@ -1,0 +1,759 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@{
+    ViewData["Title"] = ViewBag.ReportTitle;
+    Layout = null;
+}
+
+<style>
+    .k-grid-header .k-header {
+        position: relative;
+        vertical-align: bottom;
+        cursor: default;
+        font-weight: 600 !important;
+    }
+
+    .k-grid .k-grid-header .k-header .k-link {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+    td[role="gridcell"] {
+        white-space: normal;
+    }
+</style>
+
+<div class="contener" style="padding:20px;">
+    <div class="row" style="padding-top:10px;padding-bottom:10px;">
+        <div class="col-12" style="text-align:center;">
+            <h4>@ViewData["Title"]</h4>
+        </div>
+    </div>
+    <div class="row" style="padding-top:10px;padding-bottom:10px;">
+        <div class="col-12" id="divcharttrend">
+            <div id="chartGrievanceReportTrend"></div>
+        </div>
+    </div>
+    <div class="row" style="padding-top:10px;padding-bottom:10px;">
+
+        <div class="col-2" id="divinputdept">
+            <label style="font-weight:bold;">Select Department</label>
+            <input id="DepartmentId" style="width: 100%;" />
+        </div>
+        <div class="col-2" id="divinputward">
+            <label style="font-weight:bold;">Select Ward</label>
+            <input id="WardId" style="width: 100%;" />
+        </div>
+        <div class="col-2" id="divinputemp">
+            <label style="font-weight:bold;">Select Employee</label>
+            <input id="EmployeeId" style="width: 100%;" />
+        </div>
+@*        <div class="col-2" id="divinputgrev">
+            <label style="font-weight:bold;">Select Complaint Type</label>
+            <input id="GrievanceTypeId" style="width: 100%;" />
+        </div>
+        <div class="col-2" id="divinputgrvstatus">
+            <label style="font-weight:bold;">Select Status</label>
+            <input id="GrvStatusId" style="width: 100%;" />
+        </div>*@
+        <div class="col-2" id="divinputdaterange">
+            <label style="font-weight:bold;">Select Duration</label>
+            <input id="DateRangeId" style="width: 100%;" />
+        </div>
+        <div class="col-2" style="display:none;">
+            <label style="font-weight:bold;">From Date</label>
+            <input id="FromDate" style="width: 100%;" />
+        </div>
+        <div class="col-2" style="display:none;">
+            <label style="font-weight:bold;">To Date</label>
+            <input id="ToDate" style="width: 100%;" />
+        </div>
+        <div class="col-2" style="padding-top:15px;">
+            <button class="btn btn-primary mt-3" onclick="onSearchChart()" style="margin-right:10px;"><i class="fas fa-magnifying-glass"></i>  Search</button>
+            <button class="btn btn-info mt-3" onclick="onResetChart()"><i class="fas fa-rotate-left"></i> Reset</button>
+        </div>
+        @*<div class="col" style="padding-top:15px;text-align:right;">
+            <button class="btn btn-warning mt-3" onclick="onBackReportDashboard()"><i class="fas fa-left"></i> Back to Report Dashboard</button>
+        </div>*@
+    </div>
+    <div class="row" style="padding-top:10px;padding-bottom:10px;">
+            <div class="col-12" id="divchart">
+                <div id="chartGrievanceReportDeptWise"></div>
+            </div>
+    </div>
+    <div class="row" style="padding-top:10px;">
+        <div class="col-6">
+            <span id="gridtitle" style="color:inherit;padding-left: 2px;font-weight:bold;font-size:16px;"></span>
+        </div>
+        <div class="col-6" style="text-align:right;" id="divflag">
+            <span style="color:dodgerblue;padding-left: 2px;font-weight:bold" class="fas fa-flag-pennant" title='Level 2'> Level 2 </span>
+            <span style="color:orange;padding-left: 2px" class="fas fa-flag-pennant" title='Level 3'> Level 3 </span>
+            <span style="color:red;padding-left: 2px" class="fas fa-flag-pennant" title='Level 4'> Level 4 </span>
+            <span style='color:blue;' class='fas fa-rotate-right' title='Reopened'> Reopened</span>
+        </div>
+    </div>
+    <div class="row" style="padding-top:10px;padding-bottom:10px;">
+        <div class="col-12 p-2" id="divgrid">
+            <div id="kGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+
+</div>
+<script>
+    $(document).ready(function () {
+        
+        $("#DepartmentId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            filter: "contains",
+            change: onchangeDept,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetJSCDepartmentList",
+                    }
+                }
+            }
+        });
+
+        $("#WardId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetWardList"
+                    }
+                },
+            },
+        });
+
+        $("#EmployeeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetJSCGrievanceEmployeeByDepartment",
+                        data: ondataEmp,
+                    }
+                }
+            }
+        });
+
+        $("#DateRangeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Code",
+            filter: "contains",
+            change: onchangeDateRange,
+            dataBound: onchangeDateRange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetJSCTurnaroundDateRange",
+                    }
+                }
+            }
+        });
+
+
+        $("#FromDate").kendoDatePicker({
+            //value: new Date(new Date().setMonth(new Date().getMonth() - 6)),
+            value: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+            format: "dd-MM-yyyy",
+            dateInput: false
+        });
+        $("#FromDate").attr("disabled", "disabled");
+
+        $("#ToDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd-MM-yyyy",
+            dateInput: false
+        });
+        $("#ToDate").attr("disabled", "disabled");
+    
+        //getData();
+        onSearchChart();
+    });
+
+    function onchangeDateRange(){
+        var range = $("#DateRangeId").data("kendoDropDownList").value();
+        debugger;
+        //alert(range);
+        if(range == "MONTH"){
+        var fd1 = new Date(new Date().setDate(1));
+        var fd2 = new Date(fd1.setMonth(fd1.getMonth()-1));
+        var td1 = new Date(new Date().setDate(0));
+        $("#FromDate").data("kendoDatePicker").value(new Date(fd2));
+        $("#ToDate").data("kendoDatePicker").value(new Date(td1));
+        }
+        else if(range=="QUARTER"){
+        var fd1 = new Date(new Date().setDate(1));
+        var fd2 = new Date(fd1.setMonth(fd1.getMonth()-3));
+        var td1 = new Date(new Date().setDate(0));
+        $("#FromDate").data("kendoDatePicker").value(new Date(fd2));
+        $("#ToDate").data("kendoDatePicker").value(new Date(td1));
+        }
+        else if(range=="HALF_YEAR"){
+        var fd1 = new Date(new Date().setDate(1));
+        var fd2 = new Date(fd1.setMonth(fd1.getMonth()-6));
+        var td1 = new Date(new Date().setDate(0));
+        $("#FromDate").data("kendoDatePicker").value(new Date(fd2));
+        $("#ToDate").data("kendoDatePicker").value(new Date(td1));
+        } 
+    }
+
+    function onchangeDept(){
+        var empdrplst = $("#EmployeeId").data("kendoDropDownList");
+        //var deptid = $("#DepartmentId").data("kendoDropDownList").value();
+        //{departmentId:deptid};
+        empdrplst.dataSource.read();
+    }
+
+    function ondataEmp(){
+        var deptid = $("#DepartmentId").data("kendoDropDownList").value();
+        var search = {
+            departmentId: deptid,
+        };
+        return search;
+    }
+
+    function onSearchChart(){
+        //getData();
+        $("#divchart").show();
+        $("#divgrid").hide();
+        $("#divflag").hide();
+        $("#gridtitle").hide();
+        
+        var did = $("#DepartmentId").data("kendoDropDownList").value();
+        var wid = $("#WardId").data("kendoDropDownList").value();
+        var empid = $("#EmployeeId").data("kendoDropDownList").value();
+        var fd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var td = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var trendurl = "/Egov/SmartCity/GetGrievanceReportDeptTurnaroundTimeTrendData";
+        lineChartTrend(trendurl, "chartGrievanceReportTrend", "Turnaround Time Trend (Last 1 months)");
+        var barurl = "/Egov/SmartCity/GetGrievanceReportDeptTurnaroundTimeData?typeCode=@ViewBag.ReportTypeCode&departmentId=" + did + "&wardId="+wid+"&fromDate=" + fd + "&toDate=" + td+"&employeeId="+empid;
+        //var barurl = "/Egov/SmartCity/GetGrievanceReportAgingData?typeCode=AGING_WISE";
+        barChart(barurl, "chartGrievanceReportDeptWise", "Turnaround Time");
+    }
+    function onResetChart(){
+        $("#divchart").hide();
+        $("#divflag").hide();
+        $("#gridtitle").hide();
+        $("#divgrid").hide();
+        $("#DepartmentId").data("kendoDropDownList").value(-1);
+        $("#DateRangeId").data("kendoDropDownList").select(0);
+        $("#DateRangeId").data("kendoDropDownList").dataSource.read();
+
+        //$("#FromDate").data("kendoDatePicker").value(new Date(new Date().setMonth(new Date().getMonth() - 6)));
+        //$("#ToDate").data("kendoDatePicker").value(new Date());        //getData();
+        onSearchChart();
+    }
+    if('@ViewBag.ReportTypeCode'=="TURNAROUND_TIME"){
+        //$("#divinputward").show();
+        //$("#divinputdept").show();
+        //$("#divinputgrev").hide();
+        //$("#divinputgrvstatus").hide();
+        $("#divchart").hide();
+        $("#divflag").hide();
+        $("#gridtitle").hide();
+        $("#divgrid").hide();
+    }
+    
+    function lineChartTrend(url, chartId, chartTitle){
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    var linevals = res.StackBarItemValueSeries;
+                    var linecatg = res.ItemValueLabel;
+                    var itcode = res.Code;
+                    var linecolors = res.Colors;
+                    var chart = "#" + chartId;
+                    var options;
+                    if (true) {
+                        options = {
+                            series: linevals,
+                            chart: {
+                                height: 300,
+                                type: 'line',
+                                zoom: {
+                                    enabled: false
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            colors: ["#088FFA", "#228B22", "#FF2E2E"],
+                            stroke: {
+                                width: [4, 4, 4],
+                                curve: 'smooth',
+                                //dashArray: [0, 8, 5]
+                            },
+                            title: {
+                                text: chartTitle,
+                                align: 'left'
+                            },
+                            legend: {
+                                tooltipHoverFormatter: function (val, opts) {
+                                    return val + ' - ' + opts.w.globals.series[opts.seriesIndex][opts.dataPointIndex] + ''
+                                }
+                            },
+                            markers: {
+                                size: 0,
+                                hover: {
+                                    sizeOffset: 6
+                                }
+                            },
+                            xaxis: {
+                                categories: linecatg,
+                            },
+                            tooltip: {
+                                y: [
+                                    {
+                                        title: {
+                                            formatter: function (val) {
+                                                return val + " "
+                                            }
+                                        }
+                                    },
+                                    {
+                                        title: {
+                                            formatter: function (val) {
+                                                return val + " "
+                                            }
+                                        }
+                                    },
+                                    {
+                                        title: {
+                                            formatter: function (val) {
+                                                return val;
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            grid: {
+                                borderColor: '#f1f1f1',
+                            }
+                        };
+                    }
+                    else {
+
+                    }
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                }
+            }
+        });
+    }
+
+    function barChart(url, chartId, chartTitle) {
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+
+                    var vals = res.ItemValueSeries;
+                    var barvals = res.BarItemValueSeries;
+                    var itcode = res.Code;
+                    var barcolors = res.Colors;
+                    var chart = "#" + chartId;
+                    var options;
+                    if (true) {
+                        options = {
+                            series: barvals,
+                            title: {
+                                text: chartTitle
+                            },
+                            fill: {
+                                type: 'gradient',
+                                gradient: {
+                                    shade: 'dark',
+                                    type: 'vertical',
+                                    shadeIntensity: 0.1,
+                                    opacityFrom: 1,
+                                    opacityTo: 0.4,
+                                    stops: [0, 80, 100]
+                                },
+                            },
+                            chart: {
+                                type: 'bar',
+                                height: 450,
+                                events: {
+                                    dataPointSelection: function (event, chartContext, config) {
+                                        debugger;
+                                        var name = config.w.globals.labels[config.dataPointIndex];
+                                        //var name = config.w.globals.labels[config.seriesIndex];
+                                        document.getElementById("gridtitle").innerHTML = "Department : " + name;
+                                        $("#divflag").show();
+                                        $("#gridtitle").show();
+                                        $("#divgrid").show();
+                                        getComplaintData(name);
+                                    }
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    borderRadius: 4,
+                                    horizontal: false,
+                                }
+                            },
+                            dataLabels: {
+                                enabled: true
+                            },
+                            xaxis: {
+                                categories: res.ItemValueLabel,
+                                show: true,
+                                title: {
+                                    text: 'Department(s)'
+                                },
+                            },
+                            yaxis: {
+                                show: true,
+                                title: {
+                                    text: 'Average Days'
+                                },
+                                labels: {
+                                    formatter: function (val, index) {
+                                        return val.toFixed(0);
+                                    },
+                                    style: {
+                                        fontSize: '14px',
+                                    }
+                                }
+                            },
+                            //labels: res.ItemValueLabel,
+                            //colors: ['#FFBF00'],
+                            colors: res.Colors,//['#00FF00', '#FF0000', '#f2a818', '#13b713', '#f10b0b', '#008ffb', '#f2a818'],
+                            //dataLabels: {
+                            //    formatter: function (val, opts) {
+                            //        return opts.w.config.series[opts.seriesIndex]
+                            //    },
+                            //},
+                        };
+                    }
+                    else {
+
+                    }
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                }
+            }
+        });
+    }
+
+    function htmlDecode(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+    var columnDefs = [
+        {
+            title: "Complaint No",
+            field: "ServiceNo",
+            hidden: true,
+            exportable: { excel: true }
+        },
+        {
+            title: "Complaint No",
+            field: "ComplaintNoText",
+            width: "250px",
+            exportable: { excel: false },
+            template: "#= htmlDecode(ComplaintNoText)#",
+
+        },
+        {
+            title: "Ward",
+            field: "Ward",
+            width: 120,
+            template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:Ward#<span/>#}else{##:Ward##}#"
+        },
+        //{
+        //    title: "Department",
+        //    field: "Department",
+        //    template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:Department#<span/>#}else{##:Department##}#"
+        //},
+        {
+            title: "Complaint Date",
+            field: "CreatedDateText",
+            template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:CreatedDateText#<span/>#}else{##:CreatedDateText##}#"
+        },
+        {
+            title: "Complaint Type",
+            field: "GrievanceType",
+            template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:GrievanceType#<span/>#}else{##:GrievanceType##}#"
+        },
+        {
+            title: "Complaint",
+            field: "Name",
+            template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:Name#<span/>#}else{##:Name##}#"
+        },
+        {
+            title: "Applicant Name",
+            field: "OwnerUserName",
+            template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:OwnerUserName#<span/>#}else{##:OwnerUserName##}#"
+        },
+        {
+            title: "Complaint Status",
+            field: "GrvStatus",
+            template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<div style='font-weight:bold'> Pending</div>#}else{##:GrvStatus##}#"
+        },
+        {
+            title: "Officer Name",
+            field: "Level1User",
+            template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:Level1User#<span/>#}else{##:Level1User##}#"
+        },
+        //{
+        //    title: "No. of Days",
+        //    field: "NoOfDaysPending",
+        //    template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:NoOfDaysPending#<span/>#}else{##:NoOfDaysPending##}#"
+        //},
+        {
+            title: "Disposed Days",
+            field: "NoOfDaysDisposed",
+            template: "#if(GrvStatusCode == null || GrvStatusCode == 'GRV_PENDING'){#<span style='font-weight:bold'>#:NoOfDaysDisposed#<span/>#}else{##:NoOfDaysDisposed##}#"
+        },
+    ];
+
+
+    var columnDefs1 = [
+        {
+            headerName: "Complaint No",
+            field: "ServiceNo",
+            suppressSizeToFit: true,
+            cellRenderer: params => {
+                var a = "";
+                debugger;
+                var cnt = params.data.FlagDetails.length;
+                for (var i = 0; i < cnt; i++) {
+                    if (params.data.FlagDetails[i].LevelUserRole.includes("COMPLAINT_RESOLVER_LEVEL_2")) {
+                        a = a + '<span style="color:dodgerblue;padding-left: 2px;font-weight:bold" class="fas fa-flag-pennant" title = "' + params.data.FlagDetails[i].OwnerUserName + '"> 2 </span>';
+                    }
+                    if (params.data.FlagDetails[i].LevelUserRole.includes("COMPLAINT_RESOLVER_LEVEL_3")) {
+                        a = a + '<span style="color:orange;padding-left: 2px" class="fas fa-flag-pennant" title = "' + params.data.FlagDetails[i].OwnerUserName + '"> 3 </span>';
+                    }
+                    if (params.data.FlagDetails[i].LevelUserRole.includes("COMPLAINT_RESOLVER_LEVEL_4")) {
+                        a = a + '<span style="color:red;padding-left: 2px" class="fas fa-flag-pennant" title = "' + params.data.FlagDetails[i].OwnerUserName + '"> 4 </span>';
+                    }
+
+                }
+                if (params.data.ReopenCount > 0) {
+                    a = a + " <span title='Reopened' style='color:blue;cursor:pointer' class='fas fa-rotate-right'></span>";
+                }
+
+                if (params.data.GrvStatusCode == null || params.data.GrvStatusCode == "GRV_PENDING") {
+                    return a + "<input title='View Details' style='font-weight:bold' type='button' class='btn btn-link' onclick='OpenTask(\"" + params.data.Id + "\",\"" + params.data.TemplateCode + "\" )' value=\"" + params.value + "\" />";
+                } else {
+                    return a + "<input title='View Details' type='button' class='btn btn-link' onclick='OpenTask(\"" + params.data.Id + "\",\"" + params.data.TemplateCode + "\" )' value=\"" + params.value + "\" />";
+                }
+
+            }
+        },
+        {
+            headerName: "Department",
+            field: "Department",
+            cellRenderer: params => {
+                if (params.data.GrvStatusCode == null || params.data.GrvStatusCode == "GRV_PENDING") {
+                    return "<span style='font-weight:bold'>" + params.value + "<span/>";
+                } else {
+                    return params.value;
+                }
+            }
+        },
+        {
+            headerName: "Complaint Type",
+            field: "GrievanceType",
+            cellRenderer: params => {
+                if (params.data.GrvStatusCode == null || params.data.GrvStatusCode == "GRV_PENDING") {
+                    return "<span style='font-weight:bold'>" + params.value + "<span/>";
+                } else {
+                    return params.value;
+                }
+            }
+
+        },
+        {
+            headerName: "Name",
+            field: "Name",
+            cellRenderer: params => {
+                if (params.data.GrvStatusCode == null || params.data.GrvStatusCode == "GRV_PENDING") {
+                    return "<span style='font-weight:bold'>" + params.value + "<span/>";
+                } else {
+                    return params.value;
+                }
+            }
+        },
+        {
+            headerName: "Complaint Status",
+            field: "GrvStatus",
+            cellRenderer: params => {
+                if (params.data.GrvStatusCode == null || params.data.GrvStatusCode == "GRV_PENDING") { return "<div style='background-color:#f7f5bc;padding-left:10px;font-weight:bold'>  Pending</div>"; }
+                if (params.data.GrvStatusCode == "GRV_IN_PROGRESS") { return "<div style='background-color:#DFE9F5;padding-left:10px'>  " + params.value + "</div>"; }
+                if (params.data.GrvStatusCode == "GRV_NOT_PERTAINING") { return "<div style='background-color:#FFCD91;padding-left:10px'>   " + params.value + "</div>"; }
+                if (params.data.GrvStatusCode == "GRV_DISPOSED") { return "<div style='background-color:#90EE90;padding-left:10px'>   " + params.value + "</div>"; }
+                else { return params.value; }
+            }
+        },
+        {
+            headerName: "Complaint Date",
+            field: "CreatedDate",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+
+                if (params.data.GrvStatusCode == null || params.data.GrvStatusCode == "GRV_PENDING") {
+                    return "<span style='font-weight:bold'>" + datefun(date) + "<span/>";
+                } else {
+                    return datefun(date);
+                }
+            }
+        },
+    ];
+
+
+    $("#dateRange").kendoDropDownList({
+        dataTextField: "Name",
+        dataValueField: "Id",
+        value: "AllTime",
+        change: onchangeFilter,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/Home/GetEnumIdNameList?enumType=GrievanceDatefilters",
+                }
+            }
+        }
+    });
+    var today = new Date();
+
+
+
+
+    function onchangeFilter() {
+        var res = $("#dateRange").data("kendoDropDownList").value();
+        if (res == "Custom") {
+            $("#startDate").kendoDatePicker({
+                value: today,
+            });
+            $("#endDate").kendoDatePicker({ value: today, });
+            document.getElementById("sDate").style.display = "";
+            document.getElementById("eDate").style.display = "";
+
+        }
+        getData(res);
+    }
+
+    //getData('@GrievanceDatefilters.AllTime');
+    
+    function getComplaintData(dept) {
+        var fd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var td = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var url = "/EGov/SmartCity/GetGrievanceReportTurnaroundTimeData?department="+dept+"&fromDate=" + fd + "&toDate=" + td;
+        //gridConfig(
+        //    "kGridView",
+        //    "/EGov/SmartCity/GetGrievanceReport?datefilters=" + filter,
+        //    columnDefs,
+        //    false,
+        //    true,
+        //    true,
+        //    true,
+        //    1,
+        //    true,
+        //    10);
+
+        $("#kGridView").kendoGrid({
+            toolbar: ["search", "excel"],
+            excel: {
+                fileName: "Report.xlsx",
+                filterable: true,
+                allPages: true
+            },
+            //pdf: {
+            //    allPages: true,
+            //    avoidLinks: true,
+            //    paperSize: "A4",
+            //    margin: { top: "2cm", left: "1cm", right: "1cm", bottom: "1cm" },
+            //    landscape: true,
+            //    repeatHeaders: true,
+            //    template: $("#page-template").html(),
+            //    scale: 0.8
+            //},
+            dataSource: {
+                transport: {
+                    read: url
+                },
+            },
+            height: 550,
+            groupable: false,
+            sortable: true,
+            resizable: true,
+            reorderable: true,
+            pageable: true,
+            //columnMenu: true,
+            columns: columnDefs
+        });
+
+    }
+
+    function datefun(d) {
+        let h = addZero(d.getHours());
+        let m = addZero(d.getMinutes());
+
+        return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear() + " " + h + ":" + m;
+    }
+
+    function addZero(i) {
+        if (i < 10) { i = "0" + i }
+        return i;
+    }
+
+    function OpenService(serviceId, templateCode) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterService&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + serviceId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View Service', Width: 1200, Height: 700 });
+        return false;
+    }
+
+
+    function OpenTask(taskId, tempCode) {
+
+        var id = taskId;
+        var source = '@RequestSourceEnum.Edit.ToString()';
+        var action = '@DataActionEnum.Edit.ToString()';
+
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&pageType=Task&cbm=OnAfterService&source=' + source + '&dataAction=' + action + '&templateCodes=' + tempCode + '&portalId=' + portalId + '&recordId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "Task", Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function OnAfterService() {
+        getData();
+    }
+
+    function OpenTask(id, tempCode) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/EGov/SmartCity/ManageGrievanceForm?complaintId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View Complaint', Width: 1200, Height: 700 });
+        return false;
+    }
+
+</script>

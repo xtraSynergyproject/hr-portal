@@ -1,0 +1,196 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceDocumentController> Resource
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@model CompetencyViewModel
+@{
+    ViewData["Title"] = "Competency Master";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    //Layout = null;
+
+}
+<style>
+    .kgrdPDMS {
+        width: 100% !important;
+    }
+</style>
+<script type="text/javascript">
+    $(document).ready(function () { });
+
+    function OnCreateComp() {
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Pms/PerformanceDocument/ManageCompetencyMaster?compnoteId=@Model.ParentNoteId";
+        win.OpenWindow({ Title: '@Html.Raw(Resource["CreateCompetency"])', Width: 450, Height: 700 });
+        return false;
+    }
+    function onEditComp(noteidval) {
+        //e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var win = GetMainWindow();
+
+        win.iframeOpenUrl = "/Pms/PerformanceDocument/ManageCompetencyMaster?compId=" + noteidval + "&compnoteId=@Model.ParentNoteId";
+        win.OpenWindow({ Title: '@Html.Raw(Resource["EditCompetency"])', Width: 450, Height: 700 });
+        return false;
+    }
+
+    function OnAfterCompCreate() {
+        @*$("#kgrdCompMas").data("kendoGrid").dataSource.read({ ParentNoteId: '@Model.ParentNoteId'});*@
+        GetCompetencyMasterData();
+    }
+
+    function OnDeleteComp(idval) {
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        kendo.confirm("@SharedResource["ConfirmDelete"]").then(function () {
+            $.ajax({
+                type: "POST",
+                url: "/Pms/PerformanceDocument/DeleteComp?Id=" + idval,
+
+                success: function (data) {
+                    kendo.alert("@SharedResource["DeletedSuccessfully"]");
+                    //$("#kgrdCompMas").data("kendoGrid").dataSource.read();
+                    GetCompetencyMasterData();
+                },
+                dataType: "json",
+            });
+        }, function () {
+
+        });
+    }
+
+    //Data Grid
+
+    $(function () {
+        GetCompetencyMasterData();
+
+        //grid context menu
+        $.contextMenu({
+            selector: '#cm-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                debugger;
+                console.log($trigger);
+                var noteId = $trigger.data('notevalue');
+                var id = $trigger.data('idvalue');
+                var status = 0;
+
+                switch (status) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        onEditComp(noteId);
+                                        break;
+                                    case 'delete':
+                                        OnDeleteComp(id);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "@SharedResource["Edit"]", icon: "fas fa-pencil" },
+                                "delete": { name: "@SharedResource["Delete"]", icon: "fas fa-trash" },
+                            }
+                        };                    
+                }
+            }
+        });
+    });
+
+    function GetCompetencyMasterData() {
+                
+        var newUrl = "/Pms/PerformanceDocument/ReadCompetencyData?ParentNoteId="+'@Model.ParentNoteId';
+        
+        document.getElementById("kgrdCompMas").innerHTML = "";
+        gridConfig(
+            "kgrdCompMas",
+            newUrl,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    var columnDefs = [
+                            {
+                                field: "Id",
+                                headerName: "@SharedResource["Action"]",
+                                cellRenderer: params => {                                    
+                                    return "<div class='btn-group grid-menu' id='cm-menu' data-idvalue=\"" + params.data.Id + "\" data-notevalue=\"" + params.data.NoteId + "\" ><i class='fas fa-ellipsis-v'></i></div>"                                                                        
+                               }
+                            },
+                            {
+                                field: "CompetencyName",
+                                headerName: "@SharedResource["Name"]",
+                            },
+                            {
+                                field: "CompetencyCode",
+                                headerName:"@SharedResource["Code"]",width:200
+                            },
+                            {
+                                field: "CompetencyType",
+                                headerName: "@SharedResource["CompetencyType"]", width: 100,
+                            },
+                            {
+                                field: "CompetencyDescription",
+                                headerName: "@SharedResource["Description"]", width: 200,
+                            },                                                       
+    ];
+
+
+</script>
+
+<div class="row" style="padding:10px;">
+    <div class="col-md-12">
+        <button class="btn btn-primary" id="btnAdd" onclick="OnCreateComp();"><i class="fa fas fa-plus"></i>&nbsp;@SharedResource["Create"]</button>
+        <div id="kgrdCompMas" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+        @*@(Html.Kendo().Grid<CompetencyViewModel>()
+    .Name("kgrdCompMas")
+    .Columns(col =>
+    {
+        col.Command(command =>
+        {
+            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("onEditComp").HtmlAttributes(new { @class = "action-icon", @title = "" + SharedResource["Edit"] + "" });
+            command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteComp").HtmlAttributes(new { @class = "action-icon action-delete", title = "" + SharedResource["Delete"] + "" });
+        }).Title("" + SharedResource["Action"] + "").Width(100);
+        col.Bound(c=>c.CompetencyName).Title("" + SharedResource["Name"] + "");
+        col.Bound(c => c.CompetencyCode).Title("" + SharedResource["Code"] + "");
+        col.Bound(c => c.CompetencyType).Title("" + SharedResource["CompetencyType"] + "");
+        col.Bound(c => c.CompetencyDescription).Title("" + SharedResource["Description"] + "");
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Custom().Text("" + SharedResource["Create"] + "").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateComp();" });
+    })
+    .Scrollable(x => x.Enabled(true))
+    .Sortable(srt => srt.Enabled(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+    .Resizable(resize => resize.Columns(true))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("ReadCompetencyData", "PerformanceDocument", new { Area="Pms", ParentNoteId = Model.ParentNoteId }))
+    .Model(model => model.Id(x=>x.Id)))
+    )*@
+    </div>
+</div>
+

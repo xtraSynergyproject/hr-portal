@@ -1,0 +1,129 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pay.Controllers.CalendarController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+
+@{
+    ViewData["Title"] = @Resource["CalendarHoliday"];
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model CalendarHolidayViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#ToDate").kendoDatePicker({ value: "@Model.ToDate", format:"dd MMM yyyy"});
+        $("#FromDate").kendoDatePicker({ value: "@Model.FromDate", format:"dd MMM yyyy"});
+    });
+
+    function Close() {
+       
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'CallBack' });
+        return false;
+    }
+
+    
+
+    var onAjaxSuccess = function (res) {
+        
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                window.parent.ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                window.parent.ShowNotification("@SharedResource["UpdatedSuccessfully"]", "success");
+            }
+
+            Close();
+            //window.parent.$("#kgrdCalendarHoliday").data("kendoGrid").dataSource.read();
+
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+            HideLoader($('#calendarHoliday'));
+        }
+    };
+    
+
+    function OnSave(evt) {
+        var from = $(document.getElementById("FromDate")).val();
+        var to = $(document.getElementById("ToDate")).val();
+        if (from != "" && to != "") {
+            
+                ShowLoader($('#calendarHoliday'));
+            }
+            else {
+            evt.preventDefault();
+                return false;
+            }
+        }
+        
+  
+
+</script>
+
+<div class="row" style="margin-left:15px;" id="calendarHoliday">
+
+    <form asp-controller="Calendar" asp-action="ManageCalendarHoliday" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="HolidayName" type="text" class="form-control" placeholder="Enter Holiday Name" required="required" autocomplete="off" style="width:80%" />
+                    <label for="HolidayName">@Resource["HolidayName"] <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="FromDate">@Resource["FromDate"] <span class="required">*</span></label>
+                    </div>
+                    @*@(Html.Kendo().DatePickerFor(x=>x.FromDate).Format("dd MMM yyyy").HtmlAttributes(new { @class = "form-control", style = "width: 80%", onkeydown = "javascript:return false;", @required="required" }))*@
+                    <input asp-for="FromDate" id="FromDate" class="form-control" style="width:80%" required="required" />
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="ToDate">@Resource["ToDate"] <span class="required">*</span></label>
+                    </div>
+                    @*@(Html.Kendo().DatePickerFor(x=>x.ToDate).Format("dd MMM yyyy").HtmlAttributes(new { @class = "form-control", style = "width: 80%", onkeydown = "javascript:return false;", @required = "required" }))*@
+                    <input asp-for="ToDate" id="ToDate" class="form-control" style = "width:80%"  required="required"/>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10" style="text-align:right;padding-right:40px;">
+                <button type="button" class="btn btn-light" onclick="Close();">@SharedResource["Close"]</button>
+                <input type="submit" class="btn btn-primary" value="@SharedResource["Save"]" id="submitBtn" onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.ParentNoteId)
+        @Html.HiddenFor(x => x.CalendarId)
+    </form>
+</div>
+
+

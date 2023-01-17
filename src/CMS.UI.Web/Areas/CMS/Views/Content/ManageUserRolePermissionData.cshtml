@@ -1,0 +1,253 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@model UserRoleDataPermissionViewModel
+<br />
+
+<script>
+
+    $("#UserRoleIds").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/cms/UserRole/GetUserRoleIdNameList?portalId=@Model.PortalId",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+        placeholder: "Select User role...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.UserRoleIds)),
+            valuePrimitive: true,
+            serverFiltering: true,
+        });
+
+
+
+    function onSave() {
+        var isValid = true;
+        if ($("#UserRoleIds").data("kendoMultiSelect").value() == "" ) {
+            alert("User Role is mandatory");
+            isValid = false;
+        } else if ($("#ColumnMetadataId2").data("kendoDropDownList").value() != "" ) {
+            if ($("#LogicalOperationType").data("kendoDropDownList").value() == "") {
+                alert("Logical Operator field is mandatory");
+                isValid = false;
+            }
+        }
+
+        if (isValid) {
+
+            var data;
+            if ('@Model.Id' == null || '@Model.Id' == "") {
+                data = {
+                    Id: $("#Id").val(),
+                    PortalId: $("#PortalId").val(),
+                    PageId: $("#PageId").val(),
+                    UserRoleIds: $("#UserRoleIds").data("kendoMultiSelect").value(),
+                    ColumnMetadataId: $("#ColumnMetadataId").data("kendoDropDownList").value(),
+                    LogicalOperationType: $("#LogicalOperationType").data("kendoDropDownList").value(),
+                    ColumnMetadataId2: $("#ColumnMetadataId2").data("kendoDropDownList").value()
+                };
+            } else {
+                data = {
+                    Id: $("#Id").val(),
+                    PortalId: $("#PortalId").val(),
+                    PageId: $("#PageId").val(),
+                    UserRoleId: $("#UserRoleId").val(),
+                    ColumnMetadataId: $("#ColumnMetadataId").data("kendoDropDownList").value(),
+                    LogicalOperationType: $("#LogicalOperationType").data("kendoDropDownList").value(),
+                    ColumnMetadataId2: $("#ColumnMetadataId2").data("kendoDropDownList").value()
+                };
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/cms/content/ManageUserRolesDataPermission",
+                data: data,
+                dataType: "json",
+                success: function (result) {
+                    kendo.alert("Data Saved Successfully");
+                    //window.parent.ClosePopup();
+                    var win = GetMainWindow();
+                    win.CloseWindow();
+                    return false;
+                },
+                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                    alert(customErrorMessage);
+                }
+            });
+        }
+    }
+
+
+     $(document).ready(function () {
+
+          $("#ColumnMetadataId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+          //  optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.ColumnMetadataId',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Content/GetColunmMetadataListByPage?pageId=@Model.PageId",
+                    }
+                }
+            }
+        });
+
+          $("#LogicalOperationType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "Select Logical Operation",
+            value:'@Model.LogicalOperationType',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=LogicalOperationTypeEnum",
+                    }
+                }
+            }
+          });
+
+          $("#ColumnMetadataId2").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+           optionLabel: "Select ColumnMetadata2",
+            value:'@Model.ColumnMetadataId2',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Content/GetColunmMetadataListByPage?pageId=@Model.PageId",
+                    }
+                }
+            }
+        });
+
+
+    });
+
+</script>
+
+
+@(Html.HiddenFor(x=>x.Id))
+@(Html.HiddenFor(x=>x.PageId))
+@(Html.HiddenFor(x=>x.PortalId))
+@if (Model.Id.IsNullOrEmpty())
+{
+    <div style="padding: 20px;">
+        Select User Role
+        @*@(Html.Kendo().MultiSelectFor(x => x.UserRoleIds)
+            .AutoClose(false)
+            .Placeholder("Select User role...")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetUserRoleIdNameList", "UserRole", new { @area = "Cms" ,portalId=Model.PortalId});
+                });
+
+            })
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .AutoBind(true)
+            .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%" })
+            .ValuePrimitive(true)
+            .Height(300)
+            )*@
+        <select asp-for="UserRoleIds" id="UserRoleIds" data-placeholder="Select User role..." style="width:80%"></select>
+    </div>
+}
+else
+{
+    <div style="padding: 20px;">
+        <span>User Role:  @Model.UserRoleName</span>
+    </div>
+    @(Html.HiddenFor(x=>x.UserRoleIds))
+    @(Html.HiddenFor(x=>x.UserRoleId))
+}
+
+
+<div style="padding: 20px;">
+    Select Colunm Metadata
+    @*@(Html.Kendo().DropDownListFor(x => x.ColumnMetadataId)
+        .DataSource(source =>
+        {
+        source.Read(read =>
+        {
+        read.Action("GetColunmMetadataListByPage", "Content",new { @area="Cms", pageId = Model.PageId});
+        });
+
+        })
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .AutoBind(true)
+        .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%" })
+        .ValuePrimitive(true)
+        .Height(300)
+        )*@
+
+    <input id="ColumnMetadataId" class="hr-xx-large" style="width:80%;" />
+
+</div>
+
+
+<div style="padding: 20px;">
+    Select Logical Operation Type
+
+    @*@(Html.Kendo().DropDownListFor(x=>x.LogicalOperationType)
+                            .OptionLabel("Select Logical Operation")
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .DataSource(source =>
+                    {
+                    source.Read(read =>
+                    {
+                        read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "LogicalOperationTypeEnum" });
+                    });
+                    })
+                    .Value(Model.Status.ToString())
+                    .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+        )*@
+
+    <input id="LogicalOperationType" class="hr-xx-large" style="width:80%" />
+
+</div>
+
+<div style="padding: 20px;">
+    Select Colunm Metadata
+    @*@(Html.Kendo().DropDownListFor(x => x.ColumnMetadataId2)
+                                .OptionLabel("Select ColumnMetadata2")
+        .DataSource(source =>
+        {
+        source.Read(read =>
+        {
+        read.Action("GetColunmMetadataListByPage", "Content",new { @area="Cms", pageId = Model.PageId});
+        });
+
+        })
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .AutoBind(true)
+        .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%" })
+        .ValuePrimitive(true)
+        .Height(300)
+        )*@
+    <input id="ColumnMetadataId2" class="hr-xx-large" style="width:80%" />
+</div>
+
+
+
+<div style="padding: 20px;">
+
+    <button class="btn btn-primary" onclick="onSave();">Save</button>
+
+</div>

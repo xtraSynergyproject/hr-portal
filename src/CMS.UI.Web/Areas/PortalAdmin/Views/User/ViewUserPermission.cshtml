@@ -1,0 +1,182 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PortalAdmin.Controllers.UserController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+
+@model TeamViewModel
+@{
+    ViewData["Title"] = "Team";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+<script>
+      function OnDeleteTeam(e) {
+        var flag = confirm("@SharedResource["Areyousurethatyouwanttoproceed?"]");
+        //alert("..Delete");
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "Team", new { @area="PortalAdmin"})?Id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#Teamgrid").data("kendoGrid").dataSource.read();
+                        kendo.alert("@SharedResource["DeletedSuccessfully"]");
+                    } else {
+                        $("#Teamgrid").data("kendoGrid").dataSource.read();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    $("#Teamgrid").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+     function OnCreateTeam() {
+
+        
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Create", "Team", new { @area= "PortalAdmin" })';
+         win.OpenWindow({ Title: 'Manage Team', Width: 450, Height: 1000 });
+        return false;
+
+
+    }
+    function OnEditTeam(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+       
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Edit", "Team", new { @area= "PortalAdmin" })?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Team', Width: 450, Height: 1000 });
+        return false;
+    }
+</script>
+<script>
+
+    var NtsType = '@Html.Raw(EnumExtension.EnumToJson(typeof(NtsTypeEnum)))';
+    var NtsTypeObj = JSON.parse(NtsType);
+     var UserType = '@Html.Raw(EnumExtension.EnumToJson(typeof(UserTypeEnum)))';
+    var UserTypeObj = JSON.parse(UserType);
+    var columnDefs = [
+        
+        {
+            field: "UserName",
+             headerName:"@SharedResource["PortalName"]"
+        },
+           {
+               field: "PortalName",
+                headerName:"@Resource["PortalName"]"
+           },
+           {
+               field: "Type",
+               headerName:"@Resource["Type"]"
+           },
+           {
+               field: "PageName",
+               headerName:"@Resource["PageName"]"
+           },
+
+        {
+            field: "Permission",
+            headerName:"@Resource["Permission"]"
+        },
+
+
+    ];
+
+    $(function () {
+
+        getViewPermissionsData();
+
+
+
+
+    });
+
+    function getViewPermissionsData() {
+        document.getElementById("ViewPermissions").innerHTML = "";
+        gridConfig(
+            "ViewPermissions",
+            "/PortalAdmin/User/ReadUserPermissionData?userId=@ViewBag.UserId",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<div>
+
+
+    <div class="row">
+        <div class="col-12">
+          
+            <div id="ViewPermissions" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            @*@(Html.Kendo().Grid<UserPermissionViewModel>
+        ()
+        .Name("ViewPermissions")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.UserName).Title(@SharedResource["UserName"]).Width(100);
+            columns.Bound(c => c.PortalName).Title(@Resource["PortalName"]).Width(100);
+            columns.Bound(c => c.Type).Title(@Resource["Type"]).Width(100);
+            columns.Bound(c => c.PageName).Title(@Resource["PageName"]).Width(100);
+            columns.Bound(c => c.Permission).Title(@Resource["Permission"]).Width(200);
+        })
+         .Scrollable(x => x.Enabled(true))
+                    .Sortable(srt => srt.Enabled(true))
+                    .Selectable(select => select.Enabled(false))
+                    .Filterable(f => f.Extra(false)
+                                                        .Operators(o => o.ForString(s => s.Clear()
+                                                        .Contains("Contains")
+                                                        .IsEqualTo("Is equal to")
+                                                    )))
+                    .Pageable(pageable => pageable
+                    .Refresh(true)
+
+                    .PageSizes(true)
+                    .ButtonCount(5))
+                    .AutoBind(true)
+                    .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .PageSize(10)
+                    .Read(read => read.Action("ReadUserPermissionData", "User", new { @area = "PortalAdmin",userId = ViewBag.UserId }))
+                    .Model(model => model.Id(p => p.Id))
+                    )
+              )*@
+        </div>
+    </div>
+
+</div>
+
+<script>
+    //function OnCreateTeam() {
+    //    window.location.href = "/Cms/Team/Manage";
+    //}
+
+        // $(document).ready(function () {
+
+        //        $("#grid").data("kendoGrid").dataSource.reload()
+
+        //});
+
+    //function OnDeleteUser() {
+    //
+    //    $('#dlg_DeleteConfirmation').data("kendoDialog").open();
+    //}
+
+
+
+</script>

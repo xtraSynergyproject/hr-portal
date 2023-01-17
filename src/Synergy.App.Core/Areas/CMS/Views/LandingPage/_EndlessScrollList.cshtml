@@ -1,0 +1,96 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.LandingPageController> Resource
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.ViewModel
+@model EndlessScrollListViewModel
+
+<script>
+
+    $(document).ready(function () {
+        
+        @(Model.Name)_LoadData($('#@Model.Name'));
+    });
+    function @(Model.Name)_Refresh(container) {
+        
+        container.attr('page-no', '1');
+        container.empty();
+        @(Model.Name)_LoadData(container);
+    }
+    function @(Model.Name)_LoadData(container) {
+        
+        var page = container.attr('page-no');
+        var pageSize = container.attr('page-size');
+        var orgId = container.attr('org-id');
+        var homeType = container.attr('home-type');
+        var userId = container.attr('user-id');
+        var moduleId = container.attr('module-id');
+        var url = container.attr('url');
+        var postId = container.attr('post-id');
+        var prm = {
+            PageNo: page,
+            PageSize: pageSize,
+            OrgId: orgId,
+            HomeType: homeType,
+            UserId: userId,
+            ModuleName: moduleId,
+            Url: url,
+            PostId: postId
+        };
+        var url = "@Url.Action(Model.UrlActionName,Model.UrlControlName, new { Area = Model.UrlAreaName })";
+        @*var url = "/@Model.UrlAreaName/@Model.UrlControlName/@Model.UrlActionName";*@
+        console.log(url);
+        var ret = "";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            cache: false,
+            data:prm,
+            success: function (data) {
+
+                @(Model.Name)_AppendTemplate(data, page, pageSize);
+            },
+            error: function (errData) {
+                OnError(errData);
+
+            }
+        });
+        return ret;
+    }
+
+    function @(Model.Name)_AppendTemplate(jsonre, pageNumber) {
+        $("#@Model.Name").append(
+            jsonre
+        );
+
+        if (jsonre != null && jsonre!='') {
+            $("#@Model.Name").attr("page-no", parseInt(pageNumber) + 1);
+
+
+            var dh = $(document).height(), wh = $(window).height();
+            if (wh >= dh) {
+
+            }
+
+
+        }
+        else {
+            $("#@Model.Name").attr("page-no", "");
+        }
+    }
+
+
+</script>
+<div id="@Model.Name" page-no="1" page-size="@Model.PageSize" org-id="@Model.OrgId" search="" class="@Model.CssClass" home-type="@Model.HomeType" style="height:@Model.Height;overflow:auto;" user-id="@Model.UserId" module-id="@Model.ModuleName" url="@Model.Url" post-id="@Model.PostId">
+</div>
+<div id="no-data" class="no-data" style="display:none;">
+    <i class="fad fa-file-exclamation"></i>
+    <br />
+    <span style="font-size:20px">@Resource["NoHelpDocumentAvailable"]</span>
+</div>
+
+<style>
+    .no-data {
+        text-align: center;
+        margin-top: 25%;
+        font-size: 40px;
+    }
+</style>

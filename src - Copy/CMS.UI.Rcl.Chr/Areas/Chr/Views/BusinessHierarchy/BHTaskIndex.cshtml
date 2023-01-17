@@ -1,0 +1,159 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@{
+    ViewData["Title"] = "Business Hierarchy Task";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+
+<script>
+    var columnDefs = [
+        {
+            headerName: "Service No",
+            field: "ServiceNo",
+            cellRenderer: params => {
+                return "<label style='font-weight:400;'>" + params.value + "</label>";
+                /*return "<input type='button' class='btn btn-link' onclick='OpenService(\"" + params.data.Id + "\",\"" + params.data.TemplateCode + "\" )' value=\"" + params.value + "\" />";*/
+            }
+        },
+        {
+            headerName: "Service",
+            field: "ServiceName",
+        },
+        {
+            headerName: "Service Status",
+            field: "WorkflowStatus",
+        },
+        {
+            headerName: "Task No",
+            field: "TaskNo",
+            cellRenderer: params => {
+                debugger;
+                if (params.value != null && params.value != "") {
+                    /*return "<label style='font-weight:400;'>" + params.value + "</label>";*/
+                    return "<input type='button' class='btn btn-link' onclick='OpenTask(\"" + params.data.TaskActionId + "\",\"" + params.data.TemplateMasterCode + "\" )' value=\"" + params.value + "\" />";
+                } else {
+                    return "";
+                }
+            }
+        },
+        {
+            headerName: "Task Assignee",
+            field: "AssigneeUserName",
+        },
+        {
+            headerName: "Task Status",
+            field: "TaskStatusName",
+            cellRenderer: params => {
+                if (params.value == null || params.value == "") {
+                    return "";
+                }else if (params.value == "Completed") {
+                    return "<label class='text-success' style='font-weight:400;'>" + params.value + "</label>"
+                }
+                else if (params.value == "In Progress") {
+                    return "<label class='text-primary' style='font-weight:400;'>" + params.value + "</label>"
+                }
+                else if (params.value == "Overdue") {
+                    return "<label class='text-warning' style='font-weight:400;'>" + params.value + "</label>"
+                }
+                else {
+                    return "<label class='text-danger' style='font-weight:400;'>" + params.value + "</label>"
+                }
+                //return "<label #if(\"" + params.value + "\"=='Completed'){# class='btn btn-success' #}else if(\"" + params.value + "\"=='In Progress'){# class='btn btn-primary' #}else if(\"" + params.value + "\"=='Overdue'){# class='btn btn-warning' #}else if(\"" + params.value + "\"=='Rejected'){# class='btn btn-danger' #}#>" + params.value + "</label>";
+            }
+        },
+        {
+            headerName: "Requested By",
+            field: "ServiceOwner",
+        },
+        {
+            headerName: "Requested Date",
+            field: "CreatedDate",
+            cellRenderViewBagr: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            headerName: "Due Date",
+            field: "DueDate",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        //{
+        //    headerName: "Service Status",
+        //    field: "ServiceStatusName",
+        //},
+
+    ];
+
+    $(function () {
+        getBHTaskData();
+    });
+
+    function getBHTaskData() {
+        document.getElementById("myGridBHTask").innerHTML = "";
+        gridConfig(
+            "myGridBHTask",
+            "/CHR/BusinessHierarchy/GetBHTaskData",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function OnAfterService() {
+        getBHTaskData();
+    }
+    function OnAfterTask() {
+        getBHTaskData();
+    }
+
+    function OpenService(serviceId, templateCode) {
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&popup=true&pageType=Service&cbm=OnAfterService&source=View&dataAction=View&templateCodes=' + templateCode +'&portalId=' + portalId + '&recordId=' + serviceId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View Service', Width: 1200, Height: 700 });
+        return false;
+    }
+
+     function OpenTask(taskId, tempCode) {
+        var id = taskId;
+        var source = '@RequestSourceEnum.Edit.ToString()';
+        var action = '@DataActionEnum.Edit.ToString()';
+        var portalId = $('#GlobalPortalId').val();
+         var url = '/Cms/Page?lo=Popup&pageType=Task&cbm=OnAfterTask&source=' + source + '&dataAction=' + action + '&templateCodes=' + tempCode + '&portalId=' + portalId + '&recordId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title:  "Task", Width: 1200, Height: 600 });
+        return false;
+     }
+
+    function OnCreate() {
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterService&pageType=Service&source=Create&dataAction=Create&templateCodes=BH_CHANGE_REQUEST&portalId=' + portalId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Change Request', Width: 1200, Height: 650 });
+        return false;
+    }
+</script>
+
+<div>
+    <h4>@ViewBag.Title</h4>
+    <hr />
+    <div class="row">
+        <div class="col-12">
+            @*<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Service Request</button>*@
+            <br /><br />
+            <div id="myGridBHTask" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>

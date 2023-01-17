@@ -1,0 +1,356 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.ProjectTaskController> Resource
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@model ServiceViewModel;
+
+@{
+    ViewBag.Title = "";
+    // Layout = "/Views/Shared/_PopupLayout.cshtml";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCMS.cshtml";
+    Layout = null;
+}
+<style>
+    .dropdown-toggle::after {
+        display: none;
+    }
+
+    .dropdown-menu {
+        width: 100%;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        display: none;
+        float: left;
+        min-width: 160px;
+        padding: 5px 0;
+        margin: 2px 0 0;
+        font-size: 14px;
+        list-style: none;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 4px;
+        -webkit-box-shadow: 0 6px 12px rgb(0 0 0 / 18%);
+        box-shadow: 0 6px 12px rgb(0 0 0 / 18%);
+        background-clip: padding-box;
+    }
+
+    .project-dropdown ul {
+        list-style-type: none;
+        margin-bottom: 0px;
+    }
+    /* #dropdown {
+        height: 42px;
+        left: 221px;
+        bottom: 35px;
+        font-size: 18px;
+
+        width: 99%;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid #E8E5E5;
+        box-sizing: border-box;
+        border-radius: 3px;
+        color: #FFFFFF;
+    }*/
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+
+    .banner-item-project {
+        background-color: #d6aa24;
+    }
+
+    .banner-item {
+        color: #fff;
+        height: 60px;
+        text-align: left;
+    }
+
+        .banner-item:hover {
+            color: #fff;
+        }
+
+    .banner-item-project {
+        background-color: #42ca88;
+    }
+
+    .banner-item-date {
+        background-color: #f0ad4e;
+    }
+
+    .k-dropdown-project .k-input {
+        display: none !important;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+        HideLoader($("#global-overlay"));
+
+        var homogeneous = new kendo.data.HierarchicalDataSource({
+            transport: {
+                read: {
+                    url: "/pjm/projectTask/GetBannerProjectsList",
+                    dataType: "json"
+                }
+            },
+            schema: {
+                model: {
+                    id: "Id",
+                    hasChildren: "HasChildren"
+                }
+            }
+        });
+
+        $("#Id").kendoDropDownTree({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            //filter: "contains",
+            change: OnServiceChange,
+           // dataBound: OnServiceChange,
+           // value:'@Model.Id',
+            dataSource: homogeneous
+        });
+
+        if (localStorage["projId"] != null && localStorage["projId"] == '@Model.Id') {
+            debugger;
+           // $("#Id").data("kendoDropDownList").value(localStorage["projId"]);
+            $("#Id").data("kendoDropDownTree").value(localStorage["projId"]);
+            //$("#Id").val(localStorage["projId"]);
+
+        }
+        var dataItem = $("#Id").data("kendoDropDownTree").value();
+         if ("@Model.PageName" == "ProjectTaskByUser")
+        {
+            if (window.parent != window.top) {
+        LoadPartailView1("/pjm/ProjectTask/ProjectTaskByName?ProjectId=" + dataItem, 'Project-content');
+            } else {
+                window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskByName?ProjectId=" + dataItem, 'Project-content');
+            }
+        }
+        if ("@Model.PageName" == "TimeEntries")
+        {
+            if (window.parent == "" || window.parent == undefined) {
+                LoadPartailView1("/pjm/ProjectTask/TimeEntries?ProjectId=" + dataItem, 'Project-content');
+            } else {
+                window.parent.LoadPartailView1("/pjm/ProjectTask/TimeEntries?ProjectId=" + dataItem, 'Project-content');
+            }
+        }
+         if ("@Model.PageName" == "ProjectTaskByDate")
+         {
+             if (window.parent != window.top) {
+                 LoadPartailView1("/pjm/ProjectTask/ProjectTaskByDate?ProjectId=" + dataItem, 'Project-content');
+             } else {
+
+                 window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskByDate?ProjectId=" + dataItem, 'Project-content');
+             }
+        }
+        if ("@Model.PageName" == "ProjectTaskByStatus")
+       {
+           if (window.parent != window.top) { LoadPartailView1("/pjm/ProjectTask/ProjectTaskView?ProjectId=" + dataItem, 'Project-content');} else {
+               window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskView?ProjectId=" + dataItem, 'Project-content');
+           }
+        }
+        if ("@Model.PageName" == "ProjectDashboard")
+        {
+            if (window.parent != window.top) {
+                LoadPartailView1("/pjm/Project/ProjectDashboard?projectId=" + dataItem, 'Project-content');
+            } else {
+                window.parent.LoadPartailView1("/pjm/Project/ProjectDashboard?projectId=" + dataItem, 'Project-content');
+            }
+        }
+        if ("@Model.PageName" == "ProjectTaskCalendarView")
+        {
+            if (window.parent != window.top) {
+                LoadPartailView1("/pjm/ProjectTask/ProjectTaskCalendarView?ProjectId=" + dataItem, 'Project-content');
+            } else {
+
+                window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskCalendarView?ProjectId=" + dataItem, 'Project-content');
+            }
+        }
+        if ("@Model.PageName" == "ProjectPlanningView")
+        {
+            if (window.parent != window.top) {
+                LoadPartailView1("/pjm/Project/ProjectPlanningView?ProjectId=" + dataItem, 'Project-content');
+            } else {
+
+                window.parent.LoadPartailView1("/pjm/Project/ProjectPlanningView?ProjectId=" + dataItem, 'Project-content');
+            }
+        }
+        if ("@Model.PageName" == "WorkBreakDownStructure")
+        {
+            if (window.parent != window.top) {
+                LoadPartailView1("/pjm/Project/ProjectWorkBreakDownStructure?projectId=" + dataItem, 'Project-content');
+            } else {
+                window.parent.LoadPartailView1("/pjm/Project/ProjectWorkBreakDownStructure?projectId=" + dataItem, 'Project-content');
+            }
+        }
+
+    });
+    //function OnDataBound() {
+    //
+    //    var dropdownlist = $('#Id').getKendoDropDownList();
+    //    alert(dropdownlist.value());
+    //    dropdownlist.trigger("OnServiceChange");
+    //    dropdownlist.trigger(OnServiceChange);
+    //}
+
+    function OnServiceChange(e) {
+        debugger;
+        //var dataItem = e.sender.dataItem();
+
+        var treeValue = $("#Id").data("kendoDropDownTree").value();
+
+        localStorage["projId"] = treeValue;
+        //debugger
+        LoadPartailView1("/pjm/ProjectTask/ProjectDetailsBanner?pageName=@Model.PageName&ProjectId=" + treeValue, 'ProjectBanner');
+        @*if ("@Model.PageName" == "ProjectTaskByUser")
+        {
+            if (window.parent != window.top) {
+        LoadPartailView1("/pjm/ProjectTask/ProjectTaskByName?ProjectId=" + dataItem.Id, 'Project-content');
+            } else {
+                window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskByName?ProjectId=" + dataItem.Id, 'Project-content');
+            }
+        }
+         if ("@Model.PageName" == "ProjectTaskByDate")
+         {
+             if (window.parent != window.top) {
+                 LoadPartailView1("/pjm/ProjectTask/ProjectTaskByDate?ProjectId=" + dataItem.Id, 'Project-content');
+             } else {
+
+                 window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskByDate?ProjectId=" + dataItem.Id, 'Project-content');
+             }
+        }
+        if ("@Model.PageName" == "ProjectTaskByStatus")
+       {
+           if (window.parent != window.top) { LoadPartailView1("/pjm/ProjectTask/ProjectTaskView?ProjectId=" + dataItem.Id, 'Project-content');} else {
+               window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskView?ProjectId=" + dataItem.Id, 'Project-content');
+           }
+        }
+        if ("@Model.PageName" == "ProjectDashboard")
+        {
+            if (window.parent != window.top) {
+                LoadPartailView1("/pjm/Project/ProjectDashboard?projectId=" + dataItem.Id, 'Project-content');
+            } else {
+                window.parent.LoadPartailView1("/pjm/Project/ProjectDashboard?projectId=" + dataItem.Id, 'Project-content');
+            }
+        }
+        if ("@Model.PageName" == "ProjectTaskCalendarView")
+        {
+            if (window.parent != window.top) {
+                LoadPartailView1("/pjm/ProjectTask/ProjectTaskCalendarView?ProjectId=" + dataItem.Id, 'Project-content');
+            } else {
+
+                window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskCalendarView?ProjectId=" + dataItem.Id, 'Project-content');
+            }
+        }
+        if ("@Model.PageName" == "WorkBreakDownStructure")
+        {
+            if (window.parent != window.top) {
+                LoadPartailView1("/pjm/Project/ProjectWorkBreakDownStructure?projectId=" + dataItem.Id, 'Project-content');
+            } else {
+                window.parent.LoadPartailView1("/pjm/Project/ProjectWorkBreakDownStructure?projectId=" + dataItem.Id, 'Project-content');
+            }
+        }*@
+    }
+</script>
+
+<div id="banner" role="group" style="width:100%;color:#FFFFFF;background: #17a2b8;padding-left: 5px;">
+    <div class="row" style="padding-top:10px;">
+        <div class=" col-md-3">
+
+            <div style="font-size:.8em;">
+                @SharedResource["ServiceNo"]
+                <div title="Service No" style="padding-top:5px;font-size:18px">
+                    @Model.ServiceNo
+
+                </div>
+            </div>
+        </div>
+        <div class=" col-md-9">
+            <div style="font-size:.8em;padding-top:0px;">
+                @Resource["ProjectName"]
+
+
+                <div class="project-dropdown" id="dropdown" title="Project Name">
+
+                    @*@(Html.Kendo().DropDownListFor(x =>x.Id)
+           .DataSource(source =>
+           {
+               source.Read(read =>
+               {
+                   read.Action("GetProjectsList", "ProjectTask", new { @area = "PJM" });
+               });
+           })
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .Events(x => x.Change("OnServiceChange"))
+            .HtmlAttributes(new { @class = "text-box-property" })
+        )*@
+
+                    @*@(Html.Kendo().DropDownListFor(model=>model.Id)
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .Filter(FilterType.Contains)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetProjectsList", "ProjectTask", new { @area = "PJM" });
+            });
+        })
+        .Events(x => x.Change("OnServiceChange"))
+        .HtmlAttributes(new { @class = "form-control" , @style="width:80%" })
+        )*@
+                    <input asp-for="Id" id="Id" class="form-control" style="width:80%" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="padding-top:20px">
+        <div class=" col-md-3">
+            <div title="Project Status" style="font-size:.8em;">
+                @Resource["ProjectStatus"]
+                <div style="padding-top:5px;font-size:18px"> @Model.ServiceStatusName</div>
+            </div>
+        </div>
+        @* <div style="display:inline-flex;padding-left:140px">*@
+        <div class=" col-md-3">
+            <div title="Project Priority" style="font-size:.8em">
+               @SharedResource["Priority"]
+                <div style="padding-top:5px;font-size:18px">@Model.Priority</div>
+            </div>
+        </div>
+
+        @* <div style="display:inline-flex;padding-left:140px">*@
+        <div class=" col-md-3">
+            <div style="font-size:.8em;">
+               @SharedResource["StartDate"]
+                <div title="Start Date" style="padding-top:5px;font-size:18px">
+                    @Model.StartDate.ToDefaultDateFormat()
+                </div>
+            </div>
+        </div>
+        @* <div style="display:inline-flex;padding-left:140px">*@
+        <div class=" col-md-3">
+            <div style="font-size:.8em;">
+                @SharedResource["DueDate"]
+                <div title="Due Date" style="padding-top:5px;font-size:18px">
+                    @Model.DueDate.ToDefaultDateFormat()
+                </div>
+            </div>
+        </div>
+    </div>
+    @* <div class="btn banner-item banner-item-date col-sm-2">&nbsp;</div>*@
+</div>

@@ -1,0 +1,296 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pay.Controllers.PayrollTransactionController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+@model System.Data.DataTable
+
+
+@{
+    ViewData["Title"] = "Payroll Transaction";
+    Layout = null;
+}
+
+<div style="width:100%;overflow:scroll">
+    <script>
+                        var columnDefs = [
+                            {
+                                field: "Id",
+                                cellRenderer: params => {
+                                    if ("'" + params.data.ProcessStatusId_Name + "'" != 'Processed')
+                                    {
+                                        
+                                        return "<div class='btn-group grid-menu' id='tree-menu1' data-idvalue='" + params.value + "'  ><i class='fas fa-ellipsis-v'></i></div>"
+                                        //return   "<span class='fas fa-pencil' onclick='OnEdit(\"" + params.value+"\")'>" +
+                                        //"</span><span class='fas fa-trash' onclick='OnDelete(\"" + params.value + "\")'></span>"
+                                    }
+                                }
+                            },
+                            {
+                                field: "PersonId_PersonFullName",
+                                headerName: "@Resource["PersonName"]",
+
+                            },
+                            {
+                                field: "PersonId_PersonNo",
+                                headerName:"@Resource["PersonNo"]",width:200
+                            },
+                            {
+                                field: "ProcessStatusId_Name",
+                                headerName: "@Resource["ProcessStatus"]", width: 100,
+
+
+                            },
+                            {
+                                field: "ElementName",
+                                headerName: "@Resource["ElementName"]", width: 200,
+
+
+                            },
+                            {
+                                field: "EffectiveDate",
+                                headerName: "@Resource["EffectiveDate"]", width: 200,
+                                cellRenderer: params => {
+                                    return moment(params.value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateFormatForMoment')
+                                }
+
+                            },
+                            {
+                                field: "OpeningBalance",
+                                headerName: "@Resource["OpeningBalance"]", width: 200,
+                            },
+                              {
+                                  field: "EarningAmount",
+                                headerName: "@Resource["EarningAmount"]", width: 200,
+                            },
+                              {
+                                  field: "DeductionAmount",
+                                headerName: "@Resource["DeductionAmount"]", width: 200,
+                            },
+                              {
+                                  field: "Amount",
+                                headerName: "@Resource["Amount"]", width: 200,
+                            },
+                              {
+                                  field: "ClosingBalance",
+                                headerName: "@Resource["ClosingBalance"]", width: 200,
+                            },
+                              {
+                                  field: "OpeningQuantity",
+                                headerName: "@Resource["OpeningQuantity"]", width: 200,
+                            },
+                              {
+                                  field: "EarningQuantity",
+                                headerName: "@Resource["EarningQuantity"]", width: 200,
+                            },
+                            {
+                                field: "DeductionQuantity",
+                                headerName: "@Resource["DeductionQuantity"]", width: 200,
+                            },
+                             {
+                                field: "Quantity",
+                                headerName: "@Resource["Quantity"]", width: 100,
+                            },
+
+
+
+
+                        ];
+                        $(function () {
+                            GetPayrollTransData();     
+                            $.contextMenu({
+                                selector: '#tree-menu1',
+                                trigger: 'left',
+                                build: function ($trigger, e) {
+                                    var id = $trigger.data('idvalue'); 
+                                    switch (0) {
+                                        case 0:
+                                            return {
+                                                callback: function (key, options) {
+                                                    switch (key) {
+
+                                                        case 'edit':
+                                                            OnEdit(id);
+                                                            break;
+                                                        case 'delete':
+                                                            OnDelete(id);
+                                                            break;
+
+                                                        default:
+                                                    }
+                                                },
+                                                items: {
+
+
+                                                    "edit": { name: "Edit", icon: "fas fa-pencil" },
+                                                    "delete": { name: "Delete", icon: "fas fa-trash" },
+
+                                                }
+                                            };
+
+
+                                    }
+                                }
+                            });
+                        });
+
+                function GetPayrollTransData() {
+                    document.getElementById("kgrdpayrollTransaction").innerHTML = "";
+                            gridConfig(
+                                "kgrdpayrollTransaction",
+                                "/Pay/PayrollTransaction/GetPayrollTraansactions",
+                                columnDefs,
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+    </script>
+    <button type="submit" class="btn btn-primary" onclick="return OnCreate();"><i class="fa fa-plus pr-1"></i>@Resource["CreatePayrollTransaction"]</button>
+    <div id="kgrdpayrollTransaction" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    @*@(Html.Kendo().Grid<dynamic>()
+            .Name("kgrdpayrollTransaction")
+             .ToolBar(toolbar =>
+             {
+                 toolbar.Custom().Text(Resource["CreatePayrollTransaction"]).IconClass("fa fas fa-plus icon").HtmlAttributes(new { @style = "background-color:#007bff;color:#fff;margin-left:5px;", onclick = "OnCreate();" });
+             })
+            .Columns(columns =>
+            {
+                columns.Bound("Id").ClientTemplate("#if (ProcessStatusId_Name != 'Processed') {#<span class='fas fa-pencil' onclick='OnEdit(\"#:Id#\")'>" +
+                    "</span><span class='fas fa-trash' onclick='OnDelete(\"#:Id#\")'></span> #}# ").Locked(true).Width(100);
+                columns.Bound("PersonId_PersonFullName").Title(@Resource["PersonName"]).Locked(true).Width(100);
+                columns.Bound("PersonId_PersonNo").Title(@Resource["PersonNo."]).Locked(true).Width(100);
+                columns.Bound("ProcessStatusId_Name").Title(@Resource["ProcessStatus"]).Width(100);
+                columns.Bound("ElementName").Title(@Resource["ElementName"]).Width(100);
+                columns.Bound("EffectiveDate").Title(@Resource["EffectiveDate"]).Width(100);
+                columns.Bound("OpeningBalance").Title(@Resource["OpeningBalance"]).Width(100);
+                columns.Bound("EarningAmount").Title(@Resource["EarningAmount"]).Width(100);
+                columns.Bound("DeductionAmount").Title(@Resource["DeductionAmount"]).Width(100);
+                columns.Bound("Amount").Title(@Resource["Amount"]).Width(100);
+                columns.Bound("ClosingBalance").Title(@Resource["ClosingBalance"]).Width(100);
+                columns.Bound("OpeningQuantity").Title(@Resource["OpeningQuantity"]).Width(100);
+                columns.Bound("EarningQuantity").Title(@Resource["EarningQuantity"]).Width(100);
+                columns.Bound("DeductionQuantity").Title(@Resource["DeductionQuantity"]).Width(100);
+                columns.Bound("Quantity").Title(@Resource["Quantity"]).Width(100);
+
+            })
+            .HtmlAttributes(new { style = "height: 550px;" })
+            .Sortable()
+            .Pageable(pageable => pageable
+                .Refresh(true)
+                .PageSizes(true)
+                .ButtonCount(5))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Read(read => read.Action("GetPayrollTraansactions", "PayrollTransaction", new { area = "pay" }))
+                .PageSize(20)
+            )
+        )*@
+    @*@(Html.Kendo().Grid(Model).Name("payrollTransaction")
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                .Read(read => read.Action("GetPayrollTraansactions", "PayrollTransaction", new { area = "pay"})))
+                .Columns(columns =>
+                {
+                    if (Model != null)
+                    {
+                        foreach (System.Data.DataColumn column in Model.Columns)
+                        {
+                            if (column.ColumnName != "DataView" && column.ColumnName != "RowVersion" && column.ColumnName != "Row" && column.ColumnName != "IsNew" && column.ColumnName != "IsEdit")
+                            {
+                                columns.Bound(column.DataType, column.ColumnName);
+                            }
+                        }
+                    }
+                })
+                .Pageable()
+                .Sortable()
+                .Scrollable()
+                .Filterable()
+        )*@
+
+    @*@(Html.Kendo().Grid<BreResultViewModel>().Name("payrollTransaction")
+                 .ToolBar(toolbar =>
+                     {
+                         toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Payroll Transaction</button>");
+                     })
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                .Read(read => read.Action("GetPayrollTraansactions", "PayrollTransaction", new { area = "pay" })))
+                .Columns(columns =>
+                {
+                    if (Model != null)
+                    {
+                        foreach (System.Data.DataColumn column in Model.Columns)
+                        {
+                            if (column.ColumnName == "EmployeeName" ||
+                            column.ColumnName == "EmployeeNo" ||
+                            column.ColumnName == "IqamahNo" ||
+                            column.ColumnName == "JobName" ||
+                            column.ColumnName == "OrganizationName" ||
+                            column.ColumnName == "ElementType" ||
+                            column.ColumnName == "ElementName" ||
+                            column.ColumnName == "ElementCategory" ||
+                            column.ColumnName == "ElementClassification" ||
+                            column.ColumnName == "EffectiveDate" ||
+                            column.ColumnName == "OpeningBalance" ||
+                            column.ColumnName == "EarningAmount" ||
+                            column.ColumnName == "DeductionAmount" ||
+                            column.ColumnName == "Amount" ||
+                            column.ColumnName == "ClosingBalance" ||
+                            column.ColumnName == "OpeningQuantity" ||
+                            column.ColumnName == "EarningQuantity" ||
+                            column.ColumnName == "DeductionQuantity" ||
+                            column.ColumnName == "Quantity"
+                            )
+                            {
+                                columns.Bound(column.DataType, column.ColumnName);
+                            }
+                        }
+                    }
+                })
+                .Pageable()
+                .Sortable()
+                .Scrollable()
+                .Filterable()
+        )*@
+</div>
+<script>
+    function OnCreate() {
+        url = "/pay/PayrollTransaction/CreatePayrollTransaction";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["EarningAmount"])', Width: 800, Height: 650 });
+    }
+
+    function OnEdit(id) {
+        url = "/pay/PayrollTransaction/EditPayrollTransaction?transactionId=" + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["EditPayrollTransaction"])', Width: 800, Height: 650 });
+    }
+    function Refresh() { GetPayrollTransData();}
+
+    function OnDelete(id) {
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        url = "/pay/PayrollTransaction/DeletePayrollTransaction?NoteId=" + id;
+        kendo.confirm("@SharedResource["Areyousurethatyouwanttoproceed?"]").then(function () {
+            $.ajax({
+                type: "POST",
+                url: url,
+                success: function (data) {
+                    
+                    kendo.alert("@SharedResource["DeletedSuccessfully"]");
+                    GetPayrollTransData();
+                   // $("#kgrdpayrollTransaction").data("kendoGrid").dataSource.read();
+                },
+                dataType: "json",
+            });
+        }, function () {
+
+        });
+    }
+</script>

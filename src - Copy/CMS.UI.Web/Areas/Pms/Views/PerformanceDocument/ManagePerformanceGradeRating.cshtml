@@ -1,0 +1,217 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceDocumentController> Resource
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+
+@{
+    ViewData["Title"] = "Manage Performance Grade Rating";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model PerformanceDocumentViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    #DocumentStatus {
+        color: black;
+    }
+</style>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        HideLoader($("#global-overlay"));
+           $("#GradeId").kendoDropDownList({
+            dataTextField: "GradeName",
+            dataValueField: "Id",
+            //filter: "contains",
+	        optionLabel:'@ApplicationConstant.PlaceHolder_SelectOption',
+            //change: OnPerformnaceSelection,
+            value:'@Model.GradeId',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/PMS/PerformanceDocument/ReadGradeList",
+                    }
+                }
+            }
+           });
+
+        $("#RatingId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+	        optionLabel:'@ApplicationConstant.PlaceHolder_SelectOption',
+            value:'@Model.RatingId',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/PMS/PerformanceDocument/ReadPerformanceGradeRatingList?perRatingId=@Model.PerformanceRatingId",
+                    }
+                }
+            }
+        });
+    });
+
+    function Close() {
+      
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnSave(evt) {
+
+        var bonus = $(document.getElementById("BonusPercentage")).val();
+        var incre = $(document.getElementById("IncrementPercentage")).val();
+        if (bonus != "" && incre != "") {
+            if ($("#GradeId").val() == "") {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("@Resource["GradeRequired"]");
+                window.scrollTo(0, 0);
+                evt.preventDefault();
+                return false;
+            } else if ($("#RatingId").val() == "") {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("@Resource["RatingSourceRequired"]");
+                window.scrollTo(0, 0);
+                evt.preventDefault();
+                return false;
+            } else if (parseInt(bonus) < 0) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("@Resource["BonusPercentageError"]");
+                window.scrollTo(0, 0);
+                evt.preventDefault();
+                return false;
+            } else if (parseInt(incre) < 0) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("@Resource["IncrementPercentageError"]");
+                window.scrollTo(0, 0);
+                evt.preventDefault();
+                return false;
+            }
+            else {
+                $(".text-danger").removeClass("validation-summary-errors");
+                $(".text-danger").addClass("validation-summary-valid");
+                ShowLoader($('#perGradeRating'));
+            }
+        }
+    }
+
+     var onAjaxSuccess = function (res) {
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                window.parent.ShowNotification("@SharedResource["CreatedSuccessfully"]", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                window.parent.ShowNotification("@SharedResource["EditedSuccessfully"]", "success");
+            }
+            HideLoader($('#perGradeRating'));
+            Close();
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName: 'OnAfterPerGradeRatingCreate' });
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+            HideLoader($('#perGradeRating'));
+        }
+    };
+
+</script>
+
+<div class="row" style="margin-left:15px;" id="perGradeRating">
+
+    <form asp-controller="PerformanceDocument" asp-action="ManagePerformanceGradeRating" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12">@Resource["Grade"] <span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().DropDownListFor(x=>x.GradeId)
+            .DataTextField("GradeName")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("ReadGradeList", "PerformanceDocument", new { @area = "Pms" });
+                });
+            })
+            .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+            .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+        )*@
+
+                <input asp-for="GradeId" id="GradeId" class="form-control" style="width:80%" />
+            </div>
+
+            <div class="col-12">@Resource["Rating"] <span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().DropDownListFor(x=>x.RatingId)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("ReadPerformanceGradeRatingList", "PerformanceDocument", new { @area = "Pms", perRatingId = Model.PerformanceRatingId });
+                });
+            })
+            .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+            .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+        )*@
+
+                <input asp-for="RatingId" id="RatingId" class="form-control" style="width:80%" />
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="BonusPercentage" type="number" class="form-control" placeholder="@Resource["BonusPercentage"]" autocomplete="off" required="required" style="width:80%" />
+                    <label for="BonusPercentage">@Resource["BonusPercentage"] <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="IncrementPercentage" type="number" class="form-control" placeholder="@Resource["IncrementPercentage"]" autocomplete="off" required="required" style="width:80%" />
+                    <label for="IncrementPercentage">@Resource["IncrementPercentage"] <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10" style="text-align:right;padding-right:40px;">
+                <button type="button" class="btn btn-light" onclick="Close();">@SharedResource["Close"]</button>
+                <input type="submit" class="btn btn-primary" value="@SharedResource["Save"]" id="submitBtn" onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.ParentNoteId)
+        @Html.HiddenFor(x => x.PerformanceRatingId)
+    </form>
+</div>
+
+

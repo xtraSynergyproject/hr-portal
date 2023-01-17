@@ -1,0 +1,375 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.ProjectController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model TeamWorkloadViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<style>
+    .listViewDoc {
+        border: none;
+        border-radius: 6px;
+        overflow-x: hidden;
+    }
+
+    input.largerCheckbox {
+        width: 15px;
+        height: 20px;
+        background-color: #2196F3;
+    }
+
+    .board {
+        border: none;
+        overflow-x: scroll;
+        display: flex;
+    }
+
+    .card_task {
+        border-color: #209EB8;
+    }
+
+    .newtask {
+        background-color: black;
+        color: #fff;
+    }
+
+    .tasklist {
+        background-color: #209EB8;
+        color: #fff;
+        border-radius: 0px 0px 3px 3px;
+    }
+
+    .taskname {
+        /*color: #1D6EF4;*/
+        color: black;
+    }
+
+    .drp-user-photo {
+        height: 50px;
+        width: 50px;
+        border-radius: 30px;
+    }
+
+    #board > .k-listview-content {
+        display: flex;
+    }
+
+    .k-listview-content {
+        overflow: unset;
+    }
+
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+    }
+
+    .scrollbtn {
+        background-color: #4E4D4D;
+        color: white;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 2px;
+    }
+
+    .k-treeview-lines {
+        overflow-x: scroll;
+        width: 100%;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+
+        GetPTDData();
+        LoadPartailView1("/pjm/ProjectTask/ProjectDetailsFilter?hideProject=true", 'ProjectFilter');
+        HideLoader($("#global-overlay"));
+    });
+
+    var columnDefs = [
+
+        {
+            field: "Title",
+            headerName:"@SharedResource["Subject"]"
+        },
+        {
+            field: "ServiceStage",
+            headerName:"@Resource["ServiceStage"]"
+        },
+        {
+            field: "ProjectName",
+            headerName:"@SharedResource["Project"]"
+        },
+        {
+            field: "UserName",
+            headerName:"@SharedResource["Assignee"]"
+        },
+         {
+            field: "OwnerName",
+            headerName:"@SharedResource["Owner"]"
+        },
+        {
+            field: "Priority",
+            headerName:"@SharedResource["Priority"]"
+        },
+        {
+            field: "NtsStatus",
+            headerName:"@SharedResource["TaskStatus"]"
+        },
+        {
+            field: "Start",
+            headerName: "@SharedResource["PlanStartDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear(),
+                    hr = '' + d.getHours(),
+                    mins = '' + d.getMinutes();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+                if (hr.length < 2)
+                    hr = '0' + hr;
+                if (mins.length < 2)
+                    mins = '0' + mins;
+
+                return [day, month, year].join('.')+" "+[hr,mins].join(':');
+            }
+        },
+        {
+            field: "End",
+            headerName: "@SharedResource["PlanDueDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear(),
+                    hr = '' + d.getHours(),
+                    mins = '' + d.getMinutes();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+                if (hr.length < 2)
+                    hr = '0' + hr;
+                if (mins.length < 2)
+                    mins = '0' + mins;
+
+                return [day, month, year].join('.')+" "+[hr,mins].join(':');
+            }
+        },
+        {
+            field: "ActualStartdate",
+            headerName: "@SharedResource["ActualStartDate"]",
+            cellRenderer: params => {
+                if (params.value != null && params.value != '') {
+                    var date = new Date(params.value);
+                    var d = new Date(date),
+                        month = '' + (d.getMonth() + 1),
+                        day = '' + d.getDate(),
+                        year = d.getFullYear(),
+                        hr = '' + d.getHours(),
+                        mins= '' + d.getMinutes();
+
+                    if (month.length < 2)
+                        month = '0' + month;
+                    if (day.length < 2)
+                        day = '0' + day;
+                    if (hr.length < 2)
+                        hr = '0' + hr;
+                    if (mins.length < 2)
+                        mins = '0' + mins;
+
+                    return [day, month, year].join('.')+" "+[hr,mins].join(':');
+                } else {
+                    return '';
+                }
+
+            }
+        },
+        {
+            field: "ActualEndDate",
+            headerName: "@SharedResource["ActualEndDate"]",
+            cellRenderer: params => {
+                if (params.value != null && params.value != '') {
+                    var date = new Date(params.value);
+                    var d = new Date(date),
+                        month = '' + (d.getMonth() + 1),
+                        day = '' + d.getDate(),
+                        year = d.getFullYear(),
+                        hr = '' + d.getHours(),
+                        mins = '' + d.getMinutes();
+
+                    if (month.length < 2)
+                        month = '0' + month;
+                    if (day.length < 2)
+                        day = '0' + day;
+                    if (hr.length < 2)
+                        hr = '0' + hr;
+                    if (mins.length < 2)
+                        mins = '0' + mins;
+
+                    return [day, month, year].join('.')+" "+[hr,mins].join(':');
+                } else {
+                    return '';
+                }
+
+            }
+        },
+
+    ];
+
+    function GetPTDData(urlnew) {
+        var url = "";
+        if (urlnew != "" && urlnew != null) {
+            url = urlnew;
+        } else {
+            url = "/PJM/ProjectTask/ReadProjectTaskGridViewData?projectId=" + '@Model.Id';
+        }
+        document.getElementById("kgdPTD").innerHTML = "";
+        gridConfig(
+            "kgdPTD",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function onSearch() {
+
+        //var search = {
+        //    //projectIds: $("#ProjectFiltersIds").data("kendoMultiSelect").value(),
+        //    recieverids: $("#Receiver").data("kendoMultiSelect").value(),
+        //    senderIds: $("#Sender").data("kendoMultiSelect").value(),
+        //    statusIds: $("#Status").data("kendoMultiSelect").value(),
+        //    column: $("#Column").data("kendoDropDownList").value(),
+        //    dateRange: $("#DateType").data("kendoDropDownList").value(),
+        //    fromDate: kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+        //    toDate: kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+        //};
+        //$("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+
+        var recieverids = $("#Receiver").data("kendoMultiSelect").value();
+        var senderIds = $("#Sender").data("kendoMultiSelect").value();
+        var statusIds = $("#Status").data("kendoMultiSelect").value();
+        var column = $("#Column").data("kendoDropDownList").value();
+        var dateRange = $("#DateType").data("kendoDropDownList").value();
+        var fromDate = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+        var toDate = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+
+        var newurl = "/PJM/ProjectTask/ReadProjectTaskGridViewData?projectId=" + '@Model.Id' + "&recieverids=" + recieverids + "&senderIds=" + senderIds +
+            "&statusIds=" + statusIds + "&column=" + column + "&dateRange=" + dateRange + "&fromDate=" + fromDate + "&toDate=" + toDate;
+        GetPTDData(newurl);
+
+        HideLoader($("#global-overlay"));
+    }
+
+    function onReset() {
+        recieverids = null;
+        senderIds = null;
+        statusIds = null;
+        column = null;
+        dateRange = null;
+        fromDate = null;
+        toDate = null;
+        window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectDetailsFilter?hideProject=true&stage=true", 'ProjectFilter');
+        //$("#kgdProjectGridView").data("kendoGrid").dataSource.read();
+        GetPTDData();
+        HideLoader($("#global-overlay"));
+    }
+
+</script>
+
+<div class="row hr-pad-top-10">
+
+    @*<div class="col-md-6">
+            <h4>
+                Project Task By Date
+            </h4>
+        </div>*@
+</div>
+
+
+<div id="ProjectFilter">
+
+</div>
+
+<div id="divgridview" class="row">
+    <div class="col-sm-12">
+        <div id="kgdPTD" style="width:100%;height:550px" class="ag-theme-alpine"></div>
+
+        @*@(Html.Kendo().Grid<ProjectGanttTaskViewModel>()
+                .Name("kgdPTD")
+                .Columns(columns =>
+                {
+                    //        columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+                    columns.Bound(p => p.OwnerName).Title(@SharedResource["From"]).Width(150);
+                    columns.Bound(p => p.Title).Title(@SharedResource["Subject"]).Width(150);
+                    columns.Bound(p => p.Start).Title(@SharedResource["StartDate"]).Format("{0:dd MMM yyyy}").Width(200);
+                    columns.Bound(p => p.UserName).Title(@SharedResource["To"]).Width(150);
+                    columns.Bound(p => p.ServiceStage).Title(@SharedResource["Stage"]).Width(150);
+                    columns.Bound(p => p.ProjectName).Title(@SharedResource["Project"]).Width(150);
+                    columns.Bound(p => p.End).Title(@SharedResource["DueDate"]).Format("{0:dd MMM yyyy}").Width(200);
+                    columns.Bound(p => p.Priority).Title(@SharedResource["Priority"]).Width(150);
+                    columns.Bound(p => p.NtsStatus).Title(@SharedResource["Status"]).Width(150);
+                })
+                .ToolBar(toolbar =>
+                {
+                    //toolbar.Excel();
+                    //toolbar.Pdf();
+                    toolbar.Search().Text(@SharedResource["Search"]);
+                })
+                //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+                //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+                .ColumnMenu(col=>col.Filterable(false))
+                .Height(700)
+                .Editable()
+                .Pageable()
+                .Sortable()
+                .Navigatable()
+                .Resizable(r=>r.Columns(true))
+                .Reorderable(r => r.Columns(true))
+                .Groupable(g=>g.ShowFooter(false))
+                .Filterable()
+                .Scrollable()
+                //.Events(events => events.DataBound("onDataBound"))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                    .PageSize(20)
+                    .AutoSync(true)
+                    .ServerOperation(false)
+                    //.Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                    })
+                    //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+                    //.Create("DetailProducts_Create", "Grid")
+                    .Read("ReadProjectTaskGridViewData", "ProjectTask", new { @area = "PJM", projectId = Model.Id })
+                    .Group(g=>g.Add(s=>s.Start))
+                //.Update("DetailProducts_Update", "Grid")
+                //.Destroy("DetailProducts_Destroy", "Grid")
+                )
+            )*@
+
+    </div>
+</div>
+
+
+

@@ -1,0 +1,412 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model DashboardMasterViewModel
+@{
+    ViewData["Title"] = "Report Item";
+    Layout = null;
+}
+
+<style type="text/css">
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #fafbfd;
+    }
+
+    .grid-stack {
+        background: #fafbfd;
+    }
+
+    .grid-stack-item-content {
+        background-color: #fff;
+        box-shadow: 0 2px 2px -1px rgb(152 162 179 / 30%), 0 1px 5px -2px rgb(152 162 179 / 30%);
+        border: 1px solid #d3dae6;
+        border-radius: 4px;
+    }
+
+    .btn-outline-primary {
+        border-color: #6fa9cf;
+        color: #1d7cbc;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;
+    }
+
+
+        .btn-outline-primary:hover {
+            border-color: #6fa9cf;
+            top: -2px;
+            background-color: #e5f0f7;
+            color: #1d7cbc;
+        }
+
+            .btn-outline-primary:hover .button-text {
+                text-decoration: underline;
+            }
+
+    .button-text {
+        margin-left: 5px;
+        font-size: medium;
+    }
+
+
+
+    .btn-primary {
+        background-color: #006bb4;
+        border-color: #006bb4;
+        color: #fff;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;
+    }
+
+        .btn-primary:hover {
+            background-color: #0060a2;
+            top: -2px;
+        }
+
+            .btn-primary:hover .button-text {
+                text-decoration: underline;
+            }
+
+
+    ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        background-color: #F5F5F5;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        background-color: #F5F5F5;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #AAA;
+        border-radius: 10px;
+        background-image: -webkit-linear-gradient(90deg, rgba(0, 0, 0, .2) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, .2) 50%, rgba(0, 0, 0, .2) 75%, transparent 75%, transparent)
+    }
+
+    #listview_filter {
+        width: 100%;
+        border:none;
+    }
+    .k-listview-content {
+        display: flex;
+        flex-wrap: wrap;
+        padding-left: 35px;
+    }
+    .filter-box {
+        border: 1px solid lightgray;
+        background: lightgray;
+        margin-right:10px;
+        margin-bottom:15px;
+    }
+    .col-4{
+        max-width:32%;
+    }
+</style>
+<div>
+    <div class="row" style="margin-top:10px!important;margin:0px;">
+        <div class="col-8">
+            <div>
+                @*<a href="/Portal/IIPPHQ/Index" id="back-button" class="btn btn-outline-primary shadow-sm" style="width:50px"><i class="fas fa-long-arrow-alt-left"></i></a>*@
+                <span id="buttons">
+                    <button type='button' class='btn btn-primary shadow-sm' onclick='onCreateWidget()'>
+                        <span class="fas fa-area-chart"></span>
+                        <span class="button-text">Add Filter</span>
+                    </button>
+                    
+                </span>
+            </div>
+        </div>
+        <div class="col-2"> 
+                <button type='button' class='btn btn-primary shadow-sm' onclick='saveGrid()' style="float: right; width: 150px;right:-60px">
+                    <span class="button-body">
+                        <span class="fal fa-save"></span>
+                        <span class="button-text">Save Report</span>
+                    </span>
+                </button>           
+        </div>
+        <div class="col-2">
+            <button type='button' class='btn btn-outline-primary shadow-sm' onclick='onBackButton()' style="float: right; width: 150px;">
+                <span class="button-body">
+                    <i class="fas fa-long-arrow-alt-left"></i>
+                    <span class="button-text">Back</span>
+                </span>
+            </button>
+        </div>
+
+
+    </div>
+</div>
+<br />
+<div id="accordion" class="accordion" role="tabpanel" aria-multiselectable="true">
+    <div class="card" style="border-bottom:1px solid lightgray !important">
+        <div class="card-header" role="tab" id="heading1">
+            <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                <h4>Filters</h4>
+            </a>
+        </div>
+        <div id="collapse1" class="collapse show" role="tabpanel" aria-labelledby="heading1">
+            <div class="card-block">
+                <div style='padding:10px;'>
+                    <div class="row form-group">
+                        <div id="listview_filter"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row" style="margin:0px;">
+    <div class="col-12">
+        <div>
+            <button type='button' class='btn btn-outline-primary shadow-sm' onclick='OnSerach()' style="float: right; width: 150px;">
+                <span class="button-body">
+                    <span class="fal fa-search"></span>
+                    <span class="button-text">Search</span>
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="grid-stack" style="margin-top:10px;"></div>
+
+<script id="filter-template" type="text/kendo-ui-template">
+    <div class="col-4 filter-box">
+        <label>#=measuresField# - #=ChartName#</label>
+        <span class='fas fa-cog item-edit' id='tree-gridstack' data-idvalue='#=Id#' style='position:absolute; top:10px; right:5px;cursor: pointer;font-size:12px;'></span>
+    </div>
+</script>
+<script type="text/javascript">
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-gridstack',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var id = $trigger.data('idvalue');
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                            onEditWidget(id);
+                                        break;
+                                    case 'delete':
+                                            onDelete(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+    var dataSourceFilter = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: "/Cms/IIPPHQ/ReadDashboardItemlistData?parentId=@Model.ParentNoteId",
+            }
+        },
+    });
+
+    $("#listview_filter").kendoListView({
+        dataSource: dataSourceFilter,
+        template: kendo.template($("#filter-template").html())
+    });
+    $(document).ready(function () {
+        @*if ("@Model.layoutMetadata" != "{}" && "@Model.layoutMetadata" != "[]") {
+            ShowLoader($('#cms-content'));
+        }*@
+    });
+    @*function onEditButton() {
+        LoadPartailView('@Url.Action("EditReportItem", "IIPPHQ", new { @area = "Cms" })?id=@ViewBag.Id&isEditable=true', $('#cms-content'));
+
+    }
+    function onCancelButton() {
+        LoadPartailView('@Url.Action("EditReportItem", "IIPPHQ", new { @area = "Cms" })?id=@ViewBag.Id&isEditable=false', $('#cms-content'));
+    }*@
+    function onBackButton() {
+        window.location.reload();
+    }
+    var grid_stack = GridStack.init({ minRow: 1, cellHeight: '7rem'});
+    grid_stack.load();
+
+    function onCreateWidget() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("ReportDashboardItem", "IIPPHQ", new { @area="Cms"})?parentId=@Model.ParentNoteId&dataAction=Create';
+        win.OpenWindow({ Title: 'Report Item', Width: 1000, Height: 600 });
+
+    }
+
+    function onEditWidget(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("ReportDashboardItem", "IIPPHQ", new { @area="Cms"})?id='+id+'&dataAction=Edit';
+        win.OpenWindow({ Title: 'Report Item', Width: 1000, Height: 600 });
+
+    }
+    function createdElement(Prms) {
+        $("#listview_filter").data("kendoListView").dataSource.read();
+        //var elementId = Prms.id;
+        //var lib = Prms.library;
+        //var chartid = Prms.name.replaceAll(" ", "");
+        //grid_stack.addWidget({ id: elementId, name: chartid, library: lib, heading: Prms.name, w: 2, content: "<div style='padding:20px'><span class='fas fa-cog item-edit' id='tree-gridstack' data-idvalue='" + elementId + "' data-type='chart' data-library='" + lib +"' style='position:absolute; top:5px; right:30px;cursor: pointer;'></span><h4 style='text-align: center'>" + Prms.name + "</h4><div id=" + chartid + "></div></div>" });
+        // $.ajax({
+        //    type: "GET",
+        //     url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + elementId,
+        //    success: function (response) {
+        //        if (response != "" && response != null) {
+        //            eval(response);
+        //        }
+        //    },
+        //    error: function (response) {
+        //        alert("error");
+        //    },
+        //});
+    }
+    function onDelete(id) {
+        kendo.confirm("Are you sure that you want to delete?").then(function () {
+            confirmDelete(id);
+        }, function () {
+
+        });
+    }
+    function confirmDelete(id) {
+        var wid = $('[gs-id="'+id+'"]');
+        grid_stack.removeWidget(wid[0]);
+        $.ajax({
+            url:'@Url.Action("DeleteNote", "NtsNote", new { @area= "Cms" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                ShowNotification("Deleted Successfully", "success");
+                $("#listview_filter").data("kendoListView").dataSource.read();
+            }
+        });
+    }
+
+    function saveGrid() {
+        ShowLoader($('#cms-content'));
+        layoutMetadata = grid_stack.save();
+        for (var i = 0; i < layoutMetadata.length; i++) {
+            if (layoutMetadata[i].name != undefined && layoutMetadata[i].name != null) {
+                layoutMetadata[i].content = "<div style='padding:20px'><h4 style='text-align: center'>" + layoutMetadata[i].heading + "</h4><div id=" + layoutMetadata[i].name + "></div></div>";
+            }            
+        }
+        metadata = JSON.stringify(layoutMetadata);
+        var pid = "@Model.ParentNoteId";
+        $.ajax({
+            url: '@Url.Action("ReportDashboardlayoutMetaData", "IIPPHQ")',
+            type: 'POST',
+            data: { data: metadata , id : pid},
+            success: function (response) {
+                ShowNotification("Saved Successfully", "success");
+                HideLoader($('#cms-content'));
+            },
+            error: function (response) {
+                HideLoader($('#cms-content'));
+            },
+        });
+
+    }
+
+    function loadGrid() {
+        var metadata = @Html.Raw(Model.layoutMetadata);
+        grid_stack.load(metadata, true);
+        for (var i = 0; i < metadata.length; i++) {
+            var id = metadata[i].id;
+            var name = metadata[i].name;            
+            if (name != undefined || name != null) {
+                $.ajax({
+                    type: "GET",
+                    url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + id,
+                    success: function (response) {
+                        if (response != "" && response != null) {
+                            eval(response);
+                            if (i == metadata.length) {
+                                HideLoader($('#cms-content'));
+                            }
+                        }
+                    },
+                    error: function (response) {
+                        HideLoader($('#cms-content'));
+                        alert("error");
+
+                    },
+                });
+            }
+        }
+        HideLoader($('#cms-content'));
+
+    }
+    
+    function OnSerach() {                
+        var list = dataSourceFilter.data();
+        for (var i = 0; i < list.length; i++) {
+            var id = list[i].Id;
+            var elementId = list[i].Id;
+            var chartid = list[i].NoteSubject.replaceAll(" ", "");                      
+            if (document.getElementById(chartid) == undefined || document.getElementById(chartid) == null) {
+                grid_stack.addWidget({ id: elementId, name: chartid, heading: list[i].NoteSubject, w: 4, h: 4, content: "<div style='padding:20px'><h4 style='text-align: center'>" + list[i].NoteSubject + "</h4><div id=" + chartid + "></div></div>" });
+                $.ajax({
+                    type: "GET",
+                    url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + id,
+                    success: function(response) {
+                        if (response != "" && response != null) {
+                            eval(response);
+                        }
+                    },
+                    error: function(response) {
+                        //HideLoader($('#cms-content'));
+                        //alert("error");
+
+                    },
+                });
+            }
+            else {
+                 var wid = $('[gs-id="'+elementId+'"]');
+                grid_stack.removeWidget(wid[0]); 
+                grid_stack.addWidget({ id: elementId, name: chartid, heading: list[i].NoteSubject, w: 4, h: 4, content: "<div style='padding:20px'><h4 style='text-align: center'>" + list[i].NoteSubject + "</h4><div id=" + chartid + "></div></div>" });
+                $.ajax({
+                    type: "GET",
+                    url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + id,
+                    success: function(response) {
+                        if (response != "" && response != null) {
+                            eval(response);
+                        }
+                    },
+                    error: function(response) {
+                        //HideLoader($('#cms-content'));
+                        //alert("error");
+
+                    },
+                });
+            }
+            
+        }
+    }
+</script>
+
+
+
+
+
+
+
+
+
+

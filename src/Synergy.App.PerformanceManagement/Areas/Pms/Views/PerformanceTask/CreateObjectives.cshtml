@@ -1,0 +1,284 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceTaskController> Resource
+@using Synergy.App.ViewModel
+@using Synergy.App.Common
+
+@{
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+@model ApplicationViewModel
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        HideLoader($("#global-overlay"));
+        //
+        if ('@ViewBag.Success' == "True") {
+           // closeNav();
+          // $("#grid").data("kendoGrid").dataSource.read();
+         }
+
+         $("#Sender").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+	        optionLabel:'@SharedResource["Select"]',
+            change: onChangeSender,
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/PMS/PerformanceTask/GetSubordinatesIdNameList",
+                    }
+                }
+            }
+         });
+
+         $("#ProjectFiltersIds").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+	    optionLabel:'@SharedResource["Select"]',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/PMS/PerformanceTask/GetPerformanceList",
+                    }
+                }
+            }
+         });
+
+
+$("#mdlTaskStagesType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+	    optionLabel:'@SharedResource["Select"]',
+            change: onChangeTaskStagesType,
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Home/GetEnumIdNameList?enumType=PerformanceStageEnum",
+                    }
+                }
+            }
+});
+
+        if ('@ViewBag.UserId'!= null) {
+            $("#Sender").data("kendoDropDownList").value('@ViewBag.UserId');
+        }
+
+    });
+
+    function closeNav() {
+
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'OnCloseCreateObjectives'});
+        return false;
+    }
+
+    function OnSave(e) {
+        debugger;
+        // alert(totalweightage)
+        ShowLoader($('#divCreateObjectives'));
+
+        if ($("#ProjectFiltersIds").val() == "") {
+            HideLoader($('#divCreateObjectives'));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Performance Document is Required");
+            e.preventDefault();
+            return false;
+        } else if ($("#mdlTaskStagesType").val() == "") {
+            HideLoader($('#divCreateObjectives'));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Type is Required");
+            e.preventDefault();
+            return false;
+
+        } else if ($("#Sender").val() == "") {
+            HideLoader($('#divCreateObjectives'));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("User is Required");
+            e.preventDefault();
+            return false;
+
+        } else {
+            HideLoader($('#divCreateObjectives'));
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+            var parent = $("#ProjectFiltersIds").val();
+            var codetype = $("#mdlTaskStagesType").val();
+            var user = $("#Sender").val();
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName: 'OnCloseCreateObjectives', Prms: { code: codetype, parentId: parent, owner : user} });
+            return false;
+        }
+    }
+
+    function ShowLoader(target) {
+        // target.loadingOverlay();
+        kendo.ui.progress(target, true);
+    }
+    function HideLoader(target) {
+        //target.loadingOverlay('remove');
+        kendo.ui.progress(target, false);
+    }
+    function onChangeTaskStagesType() {
+        //var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        //var statusvalue = multiselectTaskStatus.value();
+        //var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        //var assignedvalue = multiselectTaskAssigned.value();
+        //var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        //var stagevalue = multiselectTaskStages.value();
+        //var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+        //var stagetypevalue = multiselectTaskStagesType.value();
+        //alert(stagetypevalue);
+        @*var search = {
+            performanceId: '@Model.Id',
+            performanceIds: stagevalue,
+            statusIds: statusvalue,
+            recieverids: assignedvalue,
+            type: stagetypevalue
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);*@
+
+    }
+    function onChangeSender() {
+        var sender = $("#Sender").data("kendoDropDownList").value();
+        var search = {
+            ownerId: sender,
+        };
+
+         $("#ProjectFiltersIds").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+	    optionLabel:'@SharedResource["Select"]',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/PMS/PerformanceTask/GetPerformanceList?ownerId="+sender,
+                    }
+                }
+            }
+         });
+      //  $("#ProjectFiltersIds").data("kendoDropDownList").dataSource.read(search);
+    }
+</script>
+
+<style>
+    .cms-bulkinterview-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+</style>
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <div id="divCreateObjectives">
+        <div class="container">
+            <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+            <div class="row">
+                <div class="col-12">
+                    <label class="col-form-label">@SharedResource["User"]<span class="required">*</span><br></label>
+                </div>
+                <div class="col-12">
+                    @*@(Html.Kendo().DropDownList().Name("Sender")
+                         .DataSource(source =>
+                         {
+                             source.Read(read =>
+                             {
+                                 read.Action("GetSubordinatesIdNameList", "PerformanceTask", new { area = "Pms" });
+                             });
+                         })
+                         //.AutoClose(false)
+                         //.Placeholder("Search User")
+                         .OptionLabel("" + SharedResource["Select"] + "")
+                         .Filter("contains")
+                         .DataTextField("Name")
+                         .DataValueField("Id")
+                         .Events(e => e.Change("onChangeSender"))
+                         .HtmlAttributes(new { @class = "hr-xx-large search-control" })
+        )*@
+                    <input id="Sender" class="hr-xx-large search-control" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <label class="col-form-label">@Resource["PerformanceDocument"]<span class="required">*</span><br></label>
+                </div>
+                <div class="col-12">
+                    @*@(Html.Kendo().DropDownList().Name("ProjectFiltersIds")
+                         .DataSource(source =>
+                         {
+                             source.Read(read =>
+                             {
+                                 read.Action("GetPerformanceList", "PerformanceTask", new { @area = "Pms" });
+                             });
+                         })
+                        //.AutoClose(false)
+                        // .Placeholder("Search Performance Document")
+                        .OptionLabel("" + SharedResource["Select"] + "")
+                        .Filter("contains")
+                         .DataTextField("Name")
+                         .DataValueField("Id")
+                         .HtmlAttributes(new { @class = "hr-xx-large search-control" })
+        )*@
+                    <input id="ProjectFiltersIds" class="hr-xx-large search-control" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <label class="col-form-label">@Resource["Type"]<span class="required">*</span><br></label>
+                </div>
+                <div class="col-12">
+                    @*@(Html.Kendo().DropDownList().Name("mdlTaskStagesType")
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     //read.Action("GetPerformanceStageIdNameList", "Performance", new {area = "Pms", performanceId = Model.Id });
+                     read.Action("GetEnumIdNameList", "Home", new { area = "", enumType = "PerformanceStageEnum" });
+                 });
+             })
+             //.AutoClose(false)
+             //.Placeholder("Search Type")
+             .OptionLabel("" + SharedResource["Select"] + "")
+             .Filter("contains")
+                         .DataTextField("Name")
+                         .DataValueField("Id")
+                         .Events(e => e.Change("onChangeTaskStagesType"))
+                         .HtmlAttributes(new { @class = "hr-xx-large search-control" })
+        )*@
+
+                    <input id="mdlTaskStagesType" class="hr-xx-large search-control" />
+                </div>
+            </div>
+            
+            <div class="cms-footer">
+
+                <input type="button" class="btn btn-light" value="@SharedResource["Close"]" onclick="closeNav()" />
+                <input type="submit" class="btn btn-primary" value="@SharedResource["Save"]" onclick="OnSave(event)" />
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,396 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@model POItemsViewModel
+@{
+    //ViewData["Title"] = ViewBag.PageName;
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        var requisitionId;
+
+      $('#POItemsGrid1').hide();
+
+      $("#Requisition").kendoDropDownList({
+            dataTextField: "RequisitionParticular",
+             dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+
+             filter: "contains",
+             autoBind: false,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetRequisitionList",
+                    }
+                }
+            }
+         });
+
+        getPOItemsListData();
+        $.contextMenu({
+            selector: '#tree-menuItems',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                var id = $trigger.data('idvalue');
+                var status = $trigger.data('status');
+                var noteId = $trigger.data('noteid');
+                var poId = $trigger.data('poId');
+
+                switch (0) {
+                    case 0:
+
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        Delete(poId);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Delete", icon: "fas fa-trash" },
+                            }
+                        };
+                }
+            }
+        });
+
+        $("#POItemsGrid1").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: false,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/IMS/InventoryManagement/GetRequisistionItemsByRequisitionId?requisitionIds" + requisitionId,
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                onItemEditing: function (e) {
+                    debugger;
+                    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                        //
+                        e.grid.updateItem();
+                    }
+                },
+                updateItem: function (item) {
+                    debugger;
+                },
+                //deleteItem: function (item) {
+                //    onDeleteItem(item.NoteId);
+                //}
+            },
+            fields: [
+                { name: "Select", type: "checkbox", width: 60, },
+                {
+                    name: "ItemName",
+                    title: "Item Name",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "ItemQuantity",
+                    title: "Req Qty",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "ApprovedQuantity",
+                    title: "Approved Qty",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "POQuantity",
+                    title: "PO Qty",
+                    type: "text",
+                    editing: true
+                },
+                {
+                    name: "PurchaseRate",
+                    title: "Purchase Rate",
+                    type: "text",
+                    editing: true
+                },
+                {
+                    name: "SalesRate",
+                    title: "Sales Rate",
+                    type: "text",
+                    editing: true
+                },
+                {
+                    type: "control", deleteButton: false,
+                },
+            ]
+        })
+    });
+
+
+    function IsConfirmedChanged(e)
+    {
+        if ($('input[id=IsConfirmed]:checked') == false) {
+            e.preventDefault();
+            $("#btnSave").prop('disabled', true);
+        }
+        else
+        {
+            $("#btnSave").prop('disabled', false);
+        }
+    }
+
+    var selectedDataItems = [];
+    function pushPopinArray(arr) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].Select == true) {
+                selectedDataItems.push(arr[i].Id);
+            }
+        }
+    }
+
+    function SaveData(e) {
+        var selectedDataItems = [];
+        debugger;
+        var entityGrid = $("#POItemsGrid1").data("JSGrid");
+        if (entityGrid._editingRow != null) {
+            entityGrid.updateItem();
+        }
+        //pushPopinArray(entityGrid.data);
+        for (var i = 0; i < entityGrid.data.length; i++) {
+            if (entityGrid.data[i].Select == true) {
+                selectedDataItems.push(entityGrid.data[i]);
+                if ($('input[name=AllowMoreThanApprovedQuantity]:checked') == false) {
+                    if (parseFloat(entityGrid.data[i].ApprovedQuantity) < parseFloat(entityGrid.data[i].POQuantity)) {
+                        ShowNotification("[" + entityGrid.data[i].ItemName + "] Total PO Quantity is exceeding Approved Quantity [" + entityGrid.data[i].ApprovedQuantity + "]", "error");
+                        $(".text-danger").removeClass("validation-summary-valid");
+                        $(".text-danger").addClass("validation-summary-errors");
+                        e.preventDefault();
+                        return false
+                        break;
+
+                    }
+                    if ((parseFloat(entityGrid.data[i].ExistingPOQuantity) + parseFloat(entityGrid.data[i].POQuantity)) > parseFloat(entityGrid.data[i].ApprovedQuantity)) {
+                        ShowNotification("[" + entityGrid.data[i].ItemName + "] Current PO Quantity and existing PO Quantity is exceeding Approved Quantity [" + entityGrid.data[i].ApprovedQuantity + "]", "error");
+                        $(".text-danger").removeClass("validation-summary-valid");
+                        $(".text-danger").addClass("validation-summary-errors");
+                        e.preventDefault();
+                        return false
+                        break;
+
+                    }
+                }
+
+            }
+        }
+       // console.log(selectedDataItems);
+
+        $("#POItemsData").val(JSON.stringify(selectedDataItems));
+         $("#POId").val();
+    }
+
+
+    //function Delete(id) {
+    //    var portalId = $('#GlobalPortalId').val();
+    //    var win = GetMainWindow();
+    //    win.iframeOpenUrl = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=Edit&dataAction=Edit&templateCodes=IMS_CUSTOMER_CONTACT&portalId=' + portalId + '&recordId=' + noteId;
+    //    win.OpenWindow({ Title: 'Edit Contact Person', Width: 1000, Height: 700 });
+    //    return false;
+    //}
+
+    function OnAfterNoteCreate(note) {
+        getContactPersonGridListData();
+    }
+    var columnDefs1 = [
+        {
+            field: "ItemName",
+            headerName: "Item Name"
+        },
+        {
+            field: "ReqCode",
+            headerName: "Req Code"
+        },
+        {
+            field: "POQuantity",
+            headerName: "PO Quantity"
+        },
+        {
+            field: "PurchaseRate",
+            headerName: "Purchase Rate",
+        },
+        {
+            field: "TotalAmount",
+            headerName: "Amount",
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuItems' data-idvalue='" + params.data.Id + "' data-status=\"" + params.data.NoteStatusCode + "\" data-poId='" + params.data.POId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    function getPOItemsListData() {
+        document.getElementById("POItemsGrid").innerHTML = "";
+        /*?Customer = " + $("#Customer").data("kendoDropDownList").value() + " & ProposalSource=" + $("#ProposalSource").data("kendoDropDownList").value() + " & WorkFlowStatus=$('input[WorkFlowStatus]:checked').val()" + " & FromDate=" + $("#FromDate").val() + " & ToDate=" + $("#ToDate").val(),*/
+        gridConfig(
+            "POItemsGrid",
+            "/IMS/InventoryManagement/ReadPOItemsData?poId=@Model.POId",
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function Delete(poId) {
+
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            $.ajax({
+
+                url: '/ims/InventoryMaster/DeletePOItem?poId=' + poId,
+                type: "POST",
+                contentType: "application/json",
+                dataType: "JSON",
+                success: function (response) {
+
+                    ShowNotification("Deleted Successfully", "success");
+                    /// OnServicePlusItemCreate();
+                    getPOItemsListData();
+                    //onAfterCategoryCreate();
+                }
+            });
+        }, function () {
+
+        });
+    }
+
+    function OnSearch() {
+        debugger;
+        requisitionId = $("#Requisition").data("kendoDropDownList").value();
+        $('#POItemsGrid1').show();
+        $("#POItemsGrid1").jsGrid("loadData", { requisitionIds: requisitionId });
+    }
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            closeNav()
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+
+
+    function closeNav() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+</script>
+
+
+<div style="width: 100%;" class="p-3">
+    <fieldset class="fieldset">
+        <legend class="fs-legend">PO Items</legend>
+
+        <div id="POItemsGrid" style="width: 100%;height:260px" class="ag-theme-alpine"></div>
+    </fieldset>
+
+
+    @if (Model.ServiceStatusCode == "SERVICE_STATUS_DRAFT")
+    {
+<fieldset class="fieldset">
+    <legend class="fs-legend">Search Requisition</legend>
+
+    <div class="col-8">
+        <input type="text" id="Requisition" class="form-control" />
+    </div>
+    <div class="col-2" style="float:right">
+        <input type="button" class="btn btn-primary" value="Get" style="margin:5px;" onclick="OnSearch();" />
+    </div>
+</fieldset>
+    
+    <div class="row" style="margin:10px;margin-bottom:60px;">
+
+        <form asp-controller="InventoryManagement" asp-action="ManagePOItems" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+              data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+              data-ajax="true" data-ajax-method="POST" style="min-width:100%">
+            <div class="text-danger" asp-validation-summary="All"></div>
+            <fieldset class="fieldset">
+                <legend class="fs-legend">
+                    Item Details
+                </legend>
+                    <div id="POItemsGrid1" style="width: 100%;" class="ag-theme-alpine"></div>
+                    @*</fieldset>*@
+                    <div class="col-12">
+                        <div class="row pad-10">
+                            <div class="row col-5">
+                                <input type="checkbox" style="margin-top: 5px;" asp-for="AllowMoreThanApprovedQuantity" /><label> Allow more PO quantity than approved quantity.</label>
+                            </div>
+                            <div class="row col-4">
+                                <input type="checkbox" id="IsConfirmed" style="margin-top: 5px;" onchange="IsConfirmedChanged(event)" /><label> Are you sure?</label>
+                            </div>
+                            <div class="col-3" style="float:right;">
+                                <input id="btnSave" type="submit" class="btn btn-primary" value="Save" style="margin:5px;" onclick="SaveData(event)" disabled />
+                                <input type="button" class="btn btn-danger" value="Close" style="margin:5px;" onclick="closeNav()" />
+                            </div>
+
+                        </div>
+                    </div>
+                </fieldset>
+            
+
+                    @Html.HiddenFor(x => x.DataAction)
+                    @*@Html.HiddenFor(x => x.ServiceId)*@
+                    @Html.HiddenFor(x => x.UdfNoteTableId)
+                    @Html.HiddenFor(x => x.POItemsData)
+                    @Html.HiddenFor(x => x.POId)
+</form>
+    </div>
+}
+    </div>
+
+@*<div class="card pad-10" style="padding-top:0px;">
+
+
+
+            </div>
+        </div>
+        <fieldset>
+
+
+        </fieldset>
+        <fieldset>
+            <legend style="margin-bottom:0px;">Search Requisition</legend>
+            <div class="card pad-10" style="padding-top:0px;">
+
+                <div class="row" style="padding:10px">
+
+                    <div class="col-12">
+
+
+                        <input type="text" id="Requisition" class="form-control" />
+                    </div>
+                </div>
+
+            </div>
+        </fieldset>
+    </div>*@
+

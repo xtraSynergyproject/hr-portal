@@ -1,0 +1,125 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext
+
+@{
+    ViewData["Title"] = "FB User Data";
+    Layout = null;
+    //Layout = "~/Areas/Core/Views/Shared/Themes/HR/_Layout.cshtml";
+}
+
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .k-listview{
+        border: none;
+    }
+
+    .imgStyle {
+        height: 45%;
+        border-radius: 10%;
+        width: 100%;
+    }
+
+</style>
+
+<script>
+
+    var userData;
+
+    $(document).ready(function () {
+
+        getData();
+
+        $('#search-term').on('keyup', function () {
+            var search = $.trim($(this).val());
+            console.log(search);
+            if (search != "") {
+                userData.filter({ field: "profile_url", operator: "contains", value: search });
+            }
+            else {
+                debugger;
+                userData.filter({});
+            }
+            return;
+        });
+                  
+        document.getElementsByClassName("k-listview")[0].style.backgroundColor= "unset";
+        document.getElementsByClassName("k-listview")[0].style.color= "unset";
+        
+    });
+
+
+
+    function getData() {
+        document.getElementById("UserslistView").innerHTML = "";
+        userData = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/BusinessAnalytics/GetAllFacebookUsers",
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#UserslistView").kendoListView({
+            dataSource: userData,
+            layout: "grid",
+            grid: {
+                cols: 5,
+                gutter: 18
+            },
+            template: kendo.template($("#usertemplate").html())
+        });
+    }
+
+
+    function myTrimfn(url)
+    {
+        var x = url.split("/");
+        var y = x.slice(-1)[0];
+        return y;
+    }
+
+    function myTrimfn2(str) {
+        str = str.substring(0, 40) + " ...";
+        return str;
+    }
+
+    function userDetails(url) {
+        LoadPartailView('/Cms/BusinessAnalytics/FBUserDetails?profileId=' + url, $('#cms-content'));
+    }
+
+
+</script>
+
+<div>
+    <input type="search" id="search-term" class="form-control" placeholder="Search" aria-label="Search" style="width:90%; margin:15px 15px;" />
+</div>
+
+<div class="row" id="UserslistView" style="height: 100%; margin-bottom: 25px;margin-left:15px;"></div>
+
+<script type="text/x-kendo-tmpl" id="usertemplate">
+    <div class="card shadow" style="width: 14rem;padding:15px;border-radius: 15px; height: 90%;">
+        @*<img class="card-img-top imgStyle" src="#:data.profile_pic_url#" alt="Card image cap" />*@
+        <p class="card-title" margin-top: 10px;"><span style="font-size: 1.5vw;">#= myTrimfn(data.profile_url)#</span></p>
+
+        <p class="card-text" style="font-size:0.8vw;height:100px;">
+            <b>Info :</b>  <span>#if(data.join_date.length > 40) {# <span data-toggle="tooltip" data-placement="bottom" title="#:data.join_date#">#= myTrimfn2(data.join_date)#</span> #} else {# #:data.join_date# #}#</span><br>
+            @*<b>Additional Info :</b> <span>#if(data.info.length > 40) {# <span data-toggle="tooltip" data-placement="bottom" title="#:data.join_date#">#= myTrimfn2(data.join_date)#</span> #} else {# #:data.join_date# #}#</span><br>*@            
+            <b>Friends :</b> <span>#:data.no_of_friends# <br></span>
+        </p>
+        <div class="row" style="bottom: 10px;position: absolute;">
+            <div class="col-3">
+                <a class="btn btn-outline-info" href="#:data.profile_url#" target="_blank" data-toggle="tooltip" data-placement="bottom" title="#:data.profile_url#" ><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+            <div class="col-9">
+                <a onclick="userDetails('#:profile_url#')" class="btn btn-primary" style="color: white;">User Details</a>
+            </div>
+        </div>
+
+
+    </div>
+</script>

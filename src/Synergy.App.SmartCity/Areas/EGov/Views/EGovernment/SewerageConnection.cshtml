@@ -1,0 +1,250 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+
+@{
+    ViewData["Title"] = "Sewerage Connection";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .pad {
+        padding: 20px 20px 0px 20px;
+    }
+
+    .booknow {
+        text-align: center;
+    }
+
+    .searchdiv {
+        border: 1px solid grey;
+        border-radius: 10px;
+        margin: 15px 0px 15px 0px;
+        padding-bottom: 20px;
+        background: #fff;
+    }
+
+    tr:nth-child(even) {
+        background-color: #fff !important;
+    }
+
+    .k-calendar .k-content .k-link {
+        background-color: #87db87;
+    }
+
+    .k-calendar .k-content .k-state-disabled .k-link {
+        background-color: #fb5454;
+    }
+
+    .k-textbox-container {
+        width: 12.75rem;
+    }
+
+    .form-check-label {
+        color: #000 !important;
+    }
+</style>
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+        document.getElementById('global-overlay').style.display = "none";
+
+        $("#ConnectionRequiredFor").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",            
+            dataSource:
+            {
+            transport:
+                {
+                read:
+                    {
+                        url: "/CMS/LOV/GetLOVIdNameList?lovType=SEWERAGE_CONNECTION_FOR",
+                    }
+                }
+            }
+        });
+
+
+    });
+
+
+    function OnSubmit(evt) {
+        
+        var win = GetMainWindow();
+        portalId = win.parent.$("#GlobalPortalId").val();
+
+        var type = $('input[name="binBooking"]:checked').val();
+
+        var conNo = $('#ConsumerNo').val();
+        var conreqFor = $('#ConnectionRequiredFor').val();
+        if (type == "Existing" && conNo != null && conNo != "") {
+
+            $.ajax({
+                url: '@Url.Action("GetExistingDetails", "EGovernment", new { @area="EGov"})?consumerNo=' + conNo + '&type=Sewerage',
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+
+                    if (result.success) {
+                        var data = result.data;
+
+                        //var subject = 'Community Hall Booking from ' + fromdate + ' to ' + todate;
+                        //var prms = encodeURIComponent('subject=' + subject);
+                        var udfs = encodeURIComponent('sewerageConsumerNumber=' + data.SewerageConsumerNumber + '&NameOfApplicant=' + data.NameOfApplicant + '&FatherNameParentage=' + data.FatherNameParentage + '&MobileNumber=' + data.MobileNumber + '&WardNo=' + data.WardNo + '&EMail=' + data.EMail + '&Address=' + data.Address + '&SewerageConnectionRequiredFor=' + data.SewerageConnectionRequiredFor + '&TradeName=' + data.TradeName + '&OrganizationName=' + data.OrganizationName + '&PropertyNo=' + data.PropertyNo + '&NoOfConnectionsRequired=' + data.NoOfConnectionsRequired + '&TypeOfBuilding=' + data.TypeOfBuilding + '&TradeLicenseNumber=' + data.TradeLicenseNumber + '&TradeOwnerPartnerName=' + data.TradeOwnerPartnerName);
+                        var roudfs = encodeURIComponent('sewerageConsumerNumber=true&NameOfApplicant=true&FatherNameParentage=true&SewerageConnectionRequiredFor=true&OrganizationName=true&PropertyNo=true&NoOfConnectionsRequired=true&TypeOfBuilding=true&TradeLicenseNumber=true&TradeName=true&TradeOwnerPartnerName=true');
+                        var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=ExistingSewerageConnection&portalId=' + portalId + '&udfs=' + udfs + '&roudfs=' + roudfs;
+
+                        win.iframeOpenUrl = url;
+                        win.OpenWindow({ Title: "Sewerage Connection", Width: 1200, Height: 700, Reload: true });
+                        return false;
+                    }
+                    else {
+                        document.getElementById('global-overlay').style.display = "none";
+                        ShowNotification("Enter Valid Consumer No", "error");
+                        evt.preventDefault();
+                        return false;
+                    }
+                },
+                error: function (ert) {
+                    ShowNotification(ert, "error");
+                }
+            });
+        }
+        else if (type == "New" && conreqFor != "") {
+
+            var udfs = encodeURIComponent('SewerageConnectionRequiredFor=' + conreqFor);
+            var roudfs = encodeURIComponent('SewerageConnectionRequiredFor=true');
+
+            var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=NEW_SEWERAGE_CONNECTION_REQUEST&portalId=' + portalId + '&udfs=' + udfs + '&roudfs=' + roudfs;
+
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: "New Sewerage Connection", Width: 1200, Height: 700, Reload: true });
+            return false;
+        }
+        else if (type == "New" && conreqFor == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Select Connection For");
+            evt.preventDefault();
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Enter Consumer No");
+            evt.preventDefault();
+            return false;
+        }
+
+
+    }
+
+
+    function OnAfterServiceCreate() {
+        document.getElementById('global-overlay').style.display = "none";
+        var win = GetMainWindow();
+        win.CloseWindow();
+        win.parent.ShowNotification("Booking Completed Successfully", "success");
+        return false;
+    }
+
+    function onChange(myRadio) {
+        
+        if (myRadio.value == "Existing") {
+            document.getElementById('consumerNumber').style.display = "block"; 
+            document.getElementById('sewerageConnection').style.display = "none";
+        } else {
+            document.getElementById('consumerNumber').style.display = "none";
+            document.getElementById('sewerageConnection').style.display = "block";
+        }
+    }
+
+
+</script>
+
+<div class="row-12" style="margin-left:15px;" id="existingBinBooking">
+
+    <form asp-controller="Calendar" asp-action="ManageCalendarHoliday" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+
+        <div class="col-12">
+            <div class="row">
+                <div class="col-3"></div>
+                <div class="col-6">
+                    <div class="row searchdiv">
+                        <div class="col-12" style="padding:20px;">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="binBooking" id="newBinBooking" value="New" onclick="onChange(this);" checked>
+                                        <label class="form-check-label" for="newBinBooking">
+                                            New Sewerage Connection
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="binBooking" id="existingUser" value="Existing" onclick="onChange(this);">
+                                        <label class="form-check-label" for="existingUser">
+                                            Existing Sewerage Connection
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <div class="col-12">
+                            <div id="consumerNumber" style="display:none;">
+                                <div>Consumer No <span class="required">*</span></div>
+                                <div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <input type="text" class="form-control" id="ConsumerNo" required="required" style="width:80%" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="sewerageConnection">
+                                <div>Sewerage Connection For <span class="required">*</span></div>
+                                <div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div id="ConnectionRequiredFor" style="width:80%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                       
+                        <div class="col-12" style="text-align:center;padding:10px;padding-top:20px;">
+                            <input type="submit" class="btn btn-primary" value="Next" onclick="OnSubmit(event);" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3"></div>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
+

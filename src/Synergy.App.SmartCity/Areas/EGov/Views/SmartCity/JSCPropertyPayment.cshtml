@@ -1,0 +1,271 @@
+﻿@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext;
+@model JSCPropertySelfAssessmentViewModel;
+@{
+    ViewData["Title"] = "Payment Detail";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+
+    .form-horizontal .form-group {
+        margin-left: 100px;
+    }
+</style>
+
+<script>
+    //$(function () {
+
+    //    $('#singlePayment').kendoRadioButton({
+    //        label: "Single Payment",
+
+    //    })
+    //    $('#doublePayment').kendoRadioButton({
+    //        label: "Double Payment"
+    //    })
+
+
+    //});
+
+
+
+
+    var columnDefsPropertyPaymentGrid = [
+
+        {
+            field: "DdnNo",
+            headerName: "DDN Number",
+            minWidth: 150,
+        },
+        {
+            field: "Year",
+            headerName: "Year",
+            minWidth: 150,
+        },
+
+        {
+            field: "Amount",
+            headerName: "Amount",
+            minWidth: 150,
+        },
+        {
+            field: "PaymentDate",
+            headerName: "Payment Date ",
+            minWidth: 150,
+        },
+        {
+            field: "PaymentFrom",
+            headerName: "Payment From",
+            minWidth: 150,
+        },
+        ,
+        {
+            field: "PaymentTo",
+            headerName: "Payment To",
+            minWidth: 150,
+        },
+
+    ];
+
+    function ViewPropertyPayment() {
+
+
+
+        var formurl = "/EGov/SmartCity/configerform";
+
+        $.ajax({
+            type: 'Get',
+            url: formurl,
+            data: {
+                "Amount": '@Model.TotalAmount', "DdnNo": '@Model.DdnNo', "Asssessmentid": '@Model.Id', "PaidAmount": '@Model.TotalAmount'
+            },
+            dataType: "json",
+            success: function () {
+
+                alert("ok");
+                ReloadSinglepayment();
+
+
+            }
+        });
+
+
+    }
+
+
+
+
+    function ReloadSinglepayment() {
+
+       var urlForViewPropertyPayment = "/EGov/SmartCity/GetPropertyPaymentDetails";
+        $("#myViewPropertyPaymentDivForDouble").hide();
+        $("#myViewPropertyPaymentDiv").show();
+        gridConfig(
+            "ViewPropertyPaymentGrid",
+            urlForViewPropertyPayment,
+            columnDefsPropertyPaymentGrid,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10
+        );
+
+    }
+
+    function Reloaddoublepaymentgrid() {
+        var urlForViewPropertyPayment = "/EGov/SmartCity/GetPropertyPaymentDetails";
+        $("#myViewPropertyPaymentDiv").hide();
+        $("#myViewPropertyPaymentDivForDouble").show();
+        gridConfig(
+            "ViewPropertyPaymentGridForDouble",
+            urlForViewPropertyPayment,
+            columnDefsPropertyPaymentGrid,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10
+        );
+
+    }
+
+    function ViewPaymentForDouble() {
+
+        var formurl = "/EGov/SmartCity/configerform";
+
+        $.ajax({
+            type: 'Get',
+            url: formurl,
+            data: {
+                "Amount": '@Model.TotalAmount', "DdnNo": '@Model.DdnNo', "Asssessmentid": '@Model.Id'
+            },
+            dataType: "json",
+            success: function () {
+
+                alert("ok");
+                Reloaddoublepaymentgrid();
+
+
+            }
+        });
+
+    }
+
+     function OnPay() {
+
+        $('#payConfirmModal').modal('show');
+    }
+
+    function OnPaymentConfirm() {
+        $('#payment-body').html('Please wait while we are redirecting to payment gateway...');
+        $('#totAmount').html("");
+        OnPayment("abce1234brfg", "@Model.TotalAmount", "@_userContext.UserId", "abce1234brfg");
+        return false;
+    }
+    function OnPayment(tableId, amount,assigneeUserId,paymentIds) {
+
+        ShowLoader($('#container'));
+        var returnUrl = "/Portal/JammuSmartCityCustomer/PaymentReceipt";
+        $.ajax({
+            type: "POST",
+            url: "/EGov/SmartCity/OnlinePaymentJSC",
+            data: { 'noteTableId': tableId, 'amount': amount, 'ntsType': '@NtsTypeEnum.Note', 'assigneeUserId': assigneeUserId, 'returnUrl': returnUrl, 'paymentIds': paymentIds },
+            success: function (res) {
+
+                if (res.success) {
+                    if (res.requestURL === null || res.requestURL === '' || res.requestURL === undefined) {
+                        HideLoader($('#container'));
+                        alert('Payment gateway not found');
+                        return false;
+                    }
+                    else {
+                        window.top.location.href = res.requestURL;
+                    }
+
+                } else {
+                    ShowNotification(res.error, "error");
+                    HideLoader($('#container'));
+                }
+            },
+            dataType: "json",
+        });
+    }
+</script>
+
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            
+            <div class="row pad-20">
+                <div class="col-lg-4 col-md-4 col-sm-12 offset-4">
+
+                    <div class="row">
+                        <div class="offset-4">
+                            Select Payment Type
+                        </div>
+                    </div>
+
+                    <br />
+
+
+
+                </div>
+                <div class="text-center col-lg-6 col-md-6 col-sm-12 offset-3 row form-label">
+                    <div class="col-lg-6 col-md-6 col-sm-12 form-label text-center">
+                        Single Payment&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="Payment" id="singlePayment" onclick="ViewPropertyPayment()" />
+
+
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 form-label text-center">
+
+                        Double Payment&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="Payment" id="doublePayment" onclick="ViewPaymentForDouble()" />
+
+                    </div>
+
+                </div>
+            </div>
+            <div id="myViewPropertyPaymentDiv" class="row pad-20" >
+                <div class="row">
+                    <div class="col-6"><button class="btn btn-primary" onclick="OnPay();" style="background: linear-gradient(#ff5722, #f39900) !important;border-color:#ff7f50 !important;">Pay Now</button></div>
+
+                </div>
+                <div class="row">
+                    <div id="ViewPropertyPaymentGrid" style="width: 100%;height:350px" class="ag-theme-alpine">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="myViewPropertyPaymentDivForDouble" class="row pad-20">
+                    <div id="ViewPropertyPaymentGridForDouble" style="width: 100%;height:350px" class="ag-theme-alpine">
+                    </div>
+            </div>
+        </div>  
+   </div>
+
+</div>
+<div class="modal fade" id="payConfirmModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="exampleModalLabel">Ready To Pay?</h6>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body payment-body" id="totAmount"><span style="color:#FF7F50">Total Amount :</span> <span id="totalAmount">5000</span></div>
+            <div class="modal-body payment-body" id="payment-body">Are you sure you want to proceed to payment gateway to pay the amount?</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" style="background: linear-gradient(#ff5722, #f39900) !important;border-color:#ff7f50 !important" onclick="return OnPaymentConfirm();">Proceed To Pay</button>
+            </div>
+        </div>
+    </div>
+</div>

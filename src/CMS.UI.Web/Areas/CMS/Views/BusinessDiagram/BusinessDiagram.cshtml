@@ -1,0 +1,623 @@
+﻿@using Synergy.App.ViewModel;
+@using Kendo.Mvc.UI;
+@using Synergy.App.Common;
+@model ProgramDashboardViewModel
+
+@{
+    ViewBag.Title = "";
+    Layout = ViewBag.Layout;
+    //Layout = null;
+}
+
+<script type="text/javascript" src="~/lib/joint.js/lodash.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/backbone.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/joint.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/config/selection.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/dagre.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/graphlib.core.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/config/halo.js"></script>
+
+
+<div class="splitter-container">
+    @if(ViewBag.lo !="Popup"){
+
+    <div class="left">
+        <div class="" style=" padding: 0;">
+            <span style="font-size:12px;padding:5px">* Hover on box for more functionalities</span>
+            <br />
+
+            @*<button id="btnAdd" class="btn btn-primary" onclick="loadDiagram('1cc0a0b4-cc40-4ce5-a7c3-6f3a1f43d787')">diagram</button>*@
+
+            <button id="panelbar" class="accordion  header-bar">Standard Shapes</button>
+            <div class="panel" style="height:400px;overflow:scroll">
+                <div id="stencil" style="background-color: #e2e6ef"></div>
+            </div>
+            <br />
+            <div style="height:600px;overflow:scroll; margin-left:5px;">
+                <div id="documentTypeTreeView" class="demo treeview"></div>
+
+                @*@(Html.Kendo().TreeView()
+            .Name("documentTypeTreeView").HtmlAttributes( new {@class="treeview"})
+            .Events(e=>e.Select("OnSelectTemplate"))
+            .DataTextField("Name")
+            .TemplateId("ct-tv-template")
+            .DataSource(dataSource => dataSource
+                .Read(read => read
+                    .Action("GetNtsTemplateTreeList", "Template",new { @area="Cms"})
+                )
+            )
+        )*@
+            </div>
+
+            <script id="ct-tv-template" type="text/kendo-ui-template">
+                <span style="width:100%">   #: item.DisplayName #</span>
+                <span data-id="#:item.id#" data-template-type="#:item.TemplateType#" data-type="#:item.Type#" data-portal-name="#:item.Name#" data-parent-id="#:item.ParentId#" class="tree-menu" data-level="#:item.Level#"><i class="fa fa-ellipsis-h"></i></span>
+            </script>
+        </div>
+    </div>
+    }
+    <div class="right pad-l-t-15" id="template-content">
+        <div class="" id="dcontent">
+            <div class="row">
+
+                <div class="col-10">
+                    <div class="row" style="margin:5px;">
+                        <!--<div class="column" style="margin-left:1px;margin-right:5px;margin-top:10px">
+                        <div id="titleLabel" style="margin-right:5px;margin-top: 10px;">
+                            <span id="businessTitleLabel" style="margin-right:5px">Business Diagram</span>-->
+                        @*<span id="edit_title"  onclick="onTitleEdit()" class="fad fa-edit"></span>*@
+                        <!--</div>
+        <div id="titleText" style="display:none">
+            <input id="businessTitleText" type="text" />
+        </div>
+    </div>-->
+                        <div class="column" style="margin-left:5px;margin-top: 5px;">
+                            <button title="back" id="bckbtn" style="display:none" class="btn btn-primary" onclick="onbackButton()">
+                                <span class="fas fa-arrow-left" style="cursor:pointer;"></span>
+                            </button>
+                        </div>
+
+                        <div class="column" style="margin-left:5px;">
+                            <label for="sx">Zoom</label>
+                            <input id="sx" type="range" value="1.00" step="0.1" min="0.1" max="1.5" autocomplete="off" />
+                        </div>
+
+                        <div class="column" style="margin-left:5px;">
+                            <label for="width">Width</label>
+                            <input id="width" type="range" value="3000" step="500" min="3000" max="30000" autocomplete="off" />
+                        </div>
+
+                        <div class="column" style="margin-left:5px;">
+                            <label for="height">height</label> <input id="height" type="range" value="2000" step="500" min="2000" max="200000" autocomplete="off" />
+                        </div>
+
+
+
+                        <div class="column" style="margin-left:5px;margin-top: 5px;">
+
+                            @*@(Html.Kendo().DropDownList().Name("levelFilter")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetLOVIdNameList", "LOV", new { @area = "Cms", lovType = "DIAGRAM_LEVEL" });
+                        });
+                    })
+                   .Events(e=>e.Change("onLevelChangeFilter"))
+                    //.Filter(FilterType.Contains)
+                    .OptionLabel("--- Level Filter ---")
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .HtmlAttributes(new { @class = "form-control", @style = "width:100%;" })
+       )*@
+
+                        </div>
+
+
+
+                        <div class="column" style="margin-left:5px;margin-top: 5px;">
+                            <button title="Remove Level Filter" id="removeFilter" style="display:none" class="btn btn-primary" onclick="removeLevelFilter()">
+                                <span class="fas fa-undo" style="cursor:pointer;"></span>
+                            </button>
+                        </div>
+
+                        <div class="column" style="margin-left:5px;margin-top: 5px;">
+                            <button title="Adjust Layout" class="btn btn-primary" onclick="graphLayout()"><span style="font-size:20px" class="fad fa-project-diagram "></span></button>
+                        </div>
+                        <div class="column" style="margin-left:5px;margin-top: 5px;">
+                            <button title="Refresh Diagram" class="btn btn-primary" onclick="onRefreshDiagram()"><span style="font-size:20px" class="fad fa-sync "></span></button>
+                        </div>
+
+
+
+                        <div class="column" style="margin-left:5px;margin-top: 5px;">
+                            <button title="Save Diagram" class="btn btn-primary" onclick="manageBusiness()"><span style="font-size:20px" class="fad fa-save"></span></button>
+                        </div>
+                        <div class="column" style="margin-left:5px;margin-top: 5px;">
+                            <button title="Close Diagram" class="btn btn-primary" onclick="closeDiagram()"><span style="color:red;font-size:20px" class="fas  fa-times"></span></button>
+                        </div>
+
+
+                        @*  *@
+
+                    </div>
+                    <div style="text-align:center"><span id="businessTitleLabel" style="font-size:20px;font-weight:600">Business Diagram</span></div>
+                    <div style=" height: 600px; overflow-x: scroll; overflow-y: scroll;">  <div id="paper"></div></div>
+                </div>
+                <div class="col">
+                    <div>Click on standard shape to change properties</div>
+                    <div id="prop" style="padding:10px;background-color:#a8beef;display:none">
+                        <span style="font-weight:600;font-size:20px"> Presentation</span>
+                        <hr />
+                        <div class="">
+                            <label class="col-form-label">
+                                Level
+                            </label>
+                            <div>
+                                @*@(Html.Kendo().DropDownList().Name("level")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetLOVIdNameList", "LOV", new { @area = "Cms", lovType = "DIAGRAM_LEVEL" });
+                        });
+                    })
+                   .Events(e=>e.Change("onLevelChange"))
+                    //.Filter(FilterType.Contains)
+                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .HtmlAttributes(new { @class = "form-control", @style = "width:100%;" })
+       )*@
+                            </div>
+                        </div>
+                        <div class="row" style=" margin-left: 0px; margin-bottom: 2px;">
+                            <div class="column">
+                                <label class="col-form-label">
+                                    Fill
+                                </label>
+                                <div>
+                                    @(Html.Kendo().ColorPicker()
+          .Name("nfill")
+          .Events(e=>e.Change("onNodeFill"))
+          .Value("#FFFFFF"))
+                                </div>
+                            </div>
+                            <div class="column" style="width:50px"></div>
+                            <div class="column">
+                                <label class="col-form-label">
+                                    Outline
+                                </label>
+                                <div>
+                                    @(Html.Kendo().ColorPicker()
+          .Name("noutline")
+           .Events(e => e.Change("onNodeOutline"))
+          .Value("#000000") )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <label class="col-form-label">
+                                Border Thickness
+                            </label>
+                            <div>
+                                <input id="borderThickness" onchange="onborderThickness()" type="range" value="1" step="1" min="1" max="30" autocomplete="off" />
+
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row" style=" margin-left: 0px; margin-bottom: 2px;">
+                            <span>width </span>
+                            <div>
+                                @*@(Html.Kendo().NumericTextBox().Events(e=>e.Change("onWidthHeightChange").Spin("onWidthHeightChange")).Name("nwidth").Value(180).HtmlAttributes(new {  @style = "width:70%;" }))*@
+                                <input  type="text" onchange="onWidthHeightChange" class="form-control" placeholder="nwidth" style="width:70%" />
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row" style=" margin-left: 0px; margin-bottom: 2px;">
+                            <span>height </span>
+                            <div>
+                                @*@(Html.Kendo().NumericTextBox().Events(e => e.Change("onWidthHeightChange").Spin("onWidthHeightChange")).Name("nheight").Value(180).HtmlAttributes(new {  @style = "width:70%;" }))*@
+                                <input type="text" onchange="onWidthHeightChange" class="form-control" placeholder="nheight" style="width:70%" />
+                            </div>
+                        </div>
+                        <span style="font-weight:600;font-size:20px"> Text</span>
+                        <hr />
+                        <div class="">
+                            <label class="col-form-label">
+                                Display Text
+                            </label>
+                            <div>
+                                @*@(Html.Kendo().TextBox().Events(e=>e.Change("onTextChange")).Value("").Name("ndisplaytext").HtmlAttributes(new {  @style = "width:100%;" }))*@
+                                <input type="text" onchange="onTextChange" class="form-control" name="ndisplaytext" style="width:100%" />
+
+                            </div>
+                        </div>
+                        <div class="row" style=" margin-left: 0px; margin-bottom: 2px;">
+                            <div class="column">
+                                <div class="">
+                                    <label class="col-form-label">
+                                        Font Size: <label style="font-weight:600" id="font-size"></label>
+                                    </label>
+                                    <div>
+                                        <input id="tfontsize" onchange="changeFontSize()" type="range" value="14" step="1" min="5" max="80" autocomplete="off" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="column" style="width:30px;">
+                            </div>
+                            <div class="column">
+                                <div class="">
+                                    <label class="col-form-label">
+                                        Text Color
+                                    </label>
+                                    <div>
+                                        @(Html.Kendo().ColorPicker()
+        .Events(e=>e.Change("onChangeTextColor"))
+          .Name("tcolor")
+          .Value("#000000")
+    )
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <br />
+                        <button class="btn btn-primary" onclick="onUpdate()">Update</button>
+                        <input id="tempId" hidden="hidden" type="text" value='@ViewBag.TempId' />
+                        <input id="lo" hidden="hidden" type="text" value='@ViewBag.lo' />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="menu" style="background-color:#f2e9e4;width:200px">
+    <ul id="menulist" class="menu-options" style="padding: 0;">
+        <li class="menu-option">Back</li>
+        <li class="menu-option">Reload</li>
+        <li class="menu-option">Save</li>
+        <li class="menu-option">Save As</li>
+        <li class="menu-option">Inspect</li>
+    </ul>
+</div>
+
+<style>
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .menu .menu-options .menu-option {
+        padding: 0;
+        font-weight: 500;
+        z-index: 1;
+        font-size: 14px;
+        padding: 10px 40px 10px 20px;
+        cursor: pointer;
+        border-bottom: solid;
+        border-color: lightgrey;
+    }
+    /* body {
+            font-family: "Roboto", san-serif;
+        }*/
+
+    .center {
+        text-align: center;
+    }
+
+    .menu {
+        width: 120px;
+        z-index: 1;
+        box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
+        position: fixed;
+        display: none;
+        transition: 0.2s display ease-in;
+    }
+
+        .menu .menu-options {
+            list-style: none;
+            padding: 10px 0;
+            z-index: 1;
+            margin: unset;
+        }
+
+            .menu .menu-options .menu-option {
+                font-weight: 500;
+                z-index: 1;
+                font-size: 14px;
+                padding: 10px 40px 10px 20px;
+                cursor: pointer;
+                border-bottom: solid;
+                border-color: lightgrey;
+            }
+
+                .menu .menu-options .menu-option:hover {
+                    background: rgba(0, 0, 0, 0.2);
+                }
+
+    button {
+        background: grey;
+        border: none;
+    }
+
+        button .next {
+            color: green;
+        }
+
+        button[disabled=false]:hover .next {
+            color: red;
+            animation: move 0.5s;
+            animation-iteration-count: 2;
+        }
+
+    @@keyframes move {
+        from {
+            transform: translate(0%);
+        }
+
+        50% {
+            transform: translate(-40%);
+        }
+
+        to {
+            transform: transform(0%);
+        }
+    }
+
+    #paper {
+        background: #ffffff;
+    }
+
+    #stencil {
+        background: #ece2e3;
+    }
+
+    hr {
+        margin-bottom: 0px;
+    }
+
+    input, label {
+        display: block;
+    }
+
+    .accordion {
+        background-color: #17a2b8;
+        color: white;
+        cursor: pointer;
+        padding-left: 25px;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 17px;
+        transition: 0.4s;
+        font-weight: bold;
+        width: 100%;
+    }
+
+    /*  .active, .accordion:hover {
+                background-color: #17a2b8;
+            }
+
+            .accordion:after {
+                content: '\02EF';
+                color: white;
+                font-weight: bold;
+                float: right;
+                margin-left: 5px;
+                font-size: 74px;
+                margin-top: -78px;
+            }*/
+
+    .accordion2 {
+        background-color: #17a2b8;
+        color: white;
+        cursor: pointer;
+        padding-left: 25px;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 17px;
+        transition: 0.4s;
+        font-weight: bold;
+        width: 100%;
+    }
+
+        .active, .accordion2:hover {
+            background-color: #17a2b8;
+        }
+
+    /*        .accordion2:after {
+                content: '\02EF';
+                color: white;
+                font-weight: bold;
+                float: right;
+                margin-left: 5px;
+                font-size: 74px;
+                margin-top: -78px;
+            }
+
+        .active:after {
+            content: "\02F0";
+            color: white;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+            font-size: 74px;
+            margin-top: -78px;
+        }*/
+
+    .panel {
+        padding: 0 18px;
+        background-color: white;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease-out;
+    }
+
+    .diagram-tree-menu {
+        padding: 4px;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        line-height: 19px;
+        margin-left: 10px;
+        font-size: medium;
+        padding-left: 5px;
+        visibility: hidden;
+        cursor: pointer;
+    }
+
+
+        .diagram-tree-menu:hover {
+            background-color: silver;
+        }
+
+    .treeview .k-state-hover:hover .diagram-tree-menu {
+        visibility: visible;
+    }
+
+    .k-in {
+        width: 100%
+    }
+</style>
+<script>
+    $('#documentTypeTreeView')
+        .jstree({
+            'core': {
+                'data': function (node, cb) {
+                    if (node.id === "#") {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/cms/template/GetNtsTemplateTreeList",
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                        //cb([{ "text": "Root", "id": "1", "children": true }]);
+                    }
+                    else {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/cms/template/GetNtsTemplateTreeList?id=" + node.id,
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    $(function () {
+        $.contextMenu({
+            selector: '.jstree-anchor',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                //var id = $trigger.data('id');
+                //var type = $trigger.data('type');
+                //var selectParentId = $trigger.data('parentId');
+                //var name = $trigger.data('portalName');
+                //var templateType = $trigger.data('templateType');
+                
+                var id = $trigger.attr('data_id');
+                var type = $trigger.attr('data_type');
+                var selectParentId = $trigger.attr('data_parentId');
+
+                switch (type) {
+                    case 'Category':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                        createNTSTemplate(id);
+                                        break;
+                                    case 'open':
+                                        editNtsCategory(id);
+                                        break;
+                                    case 'import':
+                                        importTemplate(id, selectParentId);
+
+                                        //return false;
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Template", icon: "fas fa-plus" },
+                                "open": { name: "Manage Category", icon: "fas fa-chart-area" },
+                                "import": { name: "Import Template", icon: "fas fa-upload" }
+                            }
+                        };
+                    case 'Template':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'open':
+                                        loadDiagram(id);
+                                        break;
+                                    case 'edit':
+                                        editNTSTemplate(id);
+                                        break;
+                                    case 'deletePage':
+                                        OnDelete(id);
+                                        break;
+                                    case 'Export':
+
+                                        Export(id);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "open": { name: "Open Diagram", icon: "fas fa-project-diagram" },
+                                "edit": { name: "Edit Template", icon: "fas fa-edit" },
+                                "deletePage": { name: "Delete Template", icon: "fas fa-trash-alt" },
+                                "Export": { name: "Export Template", icon: "fas fa-download" }
+                            }
+                        };
+                    default:
+                        return {
+                            callback: function (key, options) {
+                                //alert(parentId);
+                                //alert(parentType);
+                                switch (key) {
+                                    case 'add':
+                                        createNtsCategory(id);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-plus" },
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+</script>
+<script src="~/js/CMS/businessDiagram.js"></script>

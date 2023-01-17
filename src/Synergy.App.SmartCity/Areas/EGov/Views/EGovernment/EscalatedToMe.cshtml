@@ -1,0 +1,359 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model StepTaskEscalationDataViewModel
+
+@{
+    ViewData["Title"] = "EscalatedToMe";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+<style>
+    #body-row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    #sidebar-container {
+        min-height: 100vh;
+        background-color: rgb(216 228 251);
+        padding: 0;
+    }
+
+    /* Sidebar sizes when expanded and expanded */
+    .sidebar-expanded {
+        width: 270px;
+    }
+
+    .sidebar-collapsed {
+        width: 30px;
+    }
+
+    /* Menu item*/
+    #sidebar-container .list-group a {
+        height: 50px;
+        color: white;
+    }
+
+    /* Submenu item*/
+    #sidebar-container .list-group .sidebar-submenu a {
+        height: 45px;
+        padding-left: 30px;
+    }
+
+    .sidebar-submenu {
+        font-size: 0.9rem;
+    }
+
+    /* Separators */
+    .sidebar-separator-title {
+        background-color: #333;
+        height: 35px;
+    }
+
+    .sidebar-separator {
+        background-color: #333;
+        height: 25px;
+    }
+
+    .logo-separator {
+        background-color: #333;
+        height: 60px;
+    }
+
+    /* Closed submenu icon */
+    #sidebar-container .list-group .list-group-item[aria-expanded="false"] .submenu-icon::after {
+        content: " \f0d7";
+        font-family: FontAwesome;
+        display: inline;
+        text-align: right;
+        padding-left: 10px;
+    }
+    /* Opened submenu icon */
+    #sidebar-container .list-group .list-group-item[aria-expanded="true"] .submenu-icon::after {
+        content: " \f0da";
+        font-family: FontAwesome;
+        display: inline;
+        text-align: right;
+        padding-left: 10px;
+    }
+</style>
+<style>
+    .jstree-default .jstree-open > .jstree-ocl:before {
+        content: none !important;
+        color: #fff;
+    }
+    /*.jstree-default .jstree-leaf > .jstree-ocl {
+         background-position: 0px 0px;
+    }*/
+    /*.list-group-messages .list-group-item {
+         padding-top: 0rem !important;
+         padding-bottom: 0rem !important;
+    }*/
+    .required {
+        color: red;
+    }
+
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 84.5vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+
+
+
+
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+
+
+    .Overdue {
+        background-color: #ffc107;
+        color: #fff;
+    }
+
+    .Completed {
+        background-color: #13b713;
+        color: #fff;
+    }
+    .cell-completed {
+        background-color: #13b713;
+    }
+
+    .cell-pending {
+        background-color: #007bff;
+    }
+
+    .cell-info {
+        background-color: #17a2b8;
+    }
+    .group-item-title {
+        font-size: 14px !important;
+    }
+    /*Portal End*/
+</style>
+
+<script>
+    $(document).ready(function () {
+
+        @*var dataSource1 = new kendo.data.DataSource({
+            transport: {
+                read: {
+                   // url: "/Nts/ReadNtsEmailList?serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes",
+                    url: "/Nts/ReadNtsEmailList?serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes&emailType=@EmailTypeEnum.Inbox",
+
+                    dataType: "json",
+                }
+            },
+            filterable: true,
+            pageSize: 10
+        });*@
+        var url1 = "/EGov/EGovernment/GetTaskListWithEscalationData?portalNames='@ViewBag.PortalNames'";
+
+        inboxGrid(url1);
+
+    });
+
+    $("#grid").on('cellendedit', function (event) {
+      //  debugger;
+        $('#grid').jqxGrid('setcolumnproperty', 'EscalationComment', 'editable', false);
+        var args = event.args;
+        var id = args.row.Id;
+        var cellValue = args.value;
+        if (cellValue != "" && cellValue != undefined) {
+            $.ajax({
+                async: true,
+                type: "POST",
+                url: "/EGov/EGovernment/AddCommentToEscalatedData?id=" + id + "&comment=" + cellValue,
+                dataType: "json",
+                success: function (json) {
+                    cb(json);
+                },
+
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert("Comment Not Saved");
+                    console.log(thrownError);
+                }
+            });
+        }
+
+
+    });
+
+   function OpenService(id, templateCode,tid,ttype) {
+
+        var portalId =  $("#GlobalPortalId").val();
+       var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + id + '&targetId=' + tid + '&targetType=' + ttype;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function OnView() {
+        var portalId = '@ViewBag.PortalId';
+        var url = '/Cms/NtsForm?ntsId=51723883-2a49-44ae-a7fc-5e42c6d17105&portalId=' + portalId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+
+
+    //  var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(EmailInboxTypeEnum)))';
+   // var statusObj = JSON.parse(status);
+    function inboxGrid(url) {
+
+        var source ={
+            datatype: "json",
+            id: 'TargetId',
+            url: url
+        };
+        var dataAdapter = new $.jqx.dataAdapter(source);
+        $("#grid").jqxGrid(
+            {
+                width: '100%',// getWidth('Grid'),
+                height:'600px',
+                source: dataAdapter,
+                columnsresize: true,
+                showcolumnlines: false,
+                showcolumnheaderlines: false,
+                filterable: true,
+                sortable: true,
+                groupable: true,
+                editable:true,
+                columns: [
+                    { editable: false,datafield: "TemplateName", text: "Service Name", width: "280px" },
+                        {
+                            editable: false, datafield: "ServiceNo", text: "ServiceNo", width: "150px",
+                            cellsrenderer: function (row, column, value) {
+                var datarow = $("#grid").jqxGrid('getrowdata', row);
+                                return "<div class='p-2'><a href=\"javascript:OpenService('" + datarow.NtsServiceId + "','" + datarow.TemplateCode + "')\">" + value + "</a></div>";
+                            }
+                    },
+                    {
+                        editable: false, datafield: "TaskNo", text: "TaskNo", width: "150px",
+                        cellsrenderer: function (row, column, value) {
+                            var datarow = $("#grid").jqxGrid('getrowdata', row);
+                            return "<div class='p-2'><a href=\"javascript:OpenService('" + datarow.TaskId + "','" + datarow.TaskTemplateCode +  "')\">" + value + "</a></div>";
+                        }
+                    },
+
+        {
+            editable: false, datafield: "TaskStatus", text: "Task Status", width: "200px", cellclassname:"Overdue" ,
+            cellsrenderer: function (row, column, value) {
+                return "<div class='p-2'>" + value+"</div>";
+                            }
+
+        },
+        {
+            editable: false, datafield: "StartDate",
+            text: "Start Date", width:"200px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+        },
+        {
+            editable: false,   datafield: "DueDate",
+            text: "Due Date", width:"200px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+                    },
+         {
+             editable: false,  datafield: "EscalatedDate",
+             text: "Escalated Date", width:"200px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+                    },
+                    {
+                        editable: false,  text: 'Comment', columntype: 'textbox', datafield: 'EscalationComment', width: "200px", cellsrenderer: function (row, column, value) {
+                        return "<div class='p-2'><i class='fa fas fa-pencil-alt' onclick='openEdit("+row +")'></i>  " +  value + "</div>";
+                        }
+                    },
+                ]
+            }
+        );
+    }
+
+    function openEdit(row) {
+      //  debugger;
+        //alert(123);
+        $('#grid').jqxGrid('setcolumnproperty', 'EscalationComment', 'editable', true);
+        $("#grid").jqxGrid('begincelledit', row, 'EscalationComment');
+       // $("#grid").jqxGrid('begincelledit', 0, 'EscalationComment');
+    }
+</script>
+
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="page-section">
+                <div class="row no-gutters p-2">
+                    <div class="col-12">
+                        <br />
+                        <h4 style="font-weight:bold"> Tasks Escalated To Me</h4>
+                    </div>
+                    <div class="col-12">
+                        <div id="grid">
+                        </div>
+                    </div>
+                </div>
+             </div>
+        </div>
+    </div>
+</div>
+
+                        @*<div class="row" id="body-row">
+                            <br />
+                            <h4 style="font-weight:bold"> Tasks Escalated To Me</h4>
+                            <div class="col-12">
+                                <div id="grid">
+                                </div>
+                            </div>
+                        </div>*@
+
+
+                        <div id="overlay" class=""></div>
+
+

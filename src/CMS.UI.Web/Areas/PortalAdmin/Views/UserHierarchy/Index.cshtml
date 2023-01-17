@@ -1,0 +1,455 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+
+@{
+    ViewData["Title"] = "User Hierarchy";
+    Layout = null;
+}
+
+
+
+
+
+@model HierarchyMasterViewModel
+
+<script type="text/javascript">
+    function OnHierarchyChange(e) {
+        
+        var hierarchyId = $("#Hierarchy").val();
+        if (hierarchyId == '') {
+            hierarchyId = 0;
+        }
+
+        if ('@ViewBag.layout' == "HR") {
+            var url1 = "/PortalAdmin/UserHierarchy/index?hierarchyId=" + hierarchyId + "&userid=" + '@ViewBag.UserId' + '&layout=HR';
+            LoadPartailView(url1, $('#approvalcreate'));
+        }
+        else {
+            var url = "/PortalAdmin/UserHierarchy/index?hierarchyId=" + hierarchyId;
+            LoadPartailView(url, $('#page-content'));
+
+        }
+
+
+
+    }
+    function OnDataBound2(arg) {
+      //  $(".checkbox").bind("change", function (e) {
+         //   OnRowSelection(e.target);
+        //});
+    }
+    function FilterGrid() {
+        return {
+            hierarchyId: $("#Id").val(),
+          //  userId: $("#UserId").val(),
+        };
+    }
+
+
+
+</script>
+@Html.AntiForgeryToken()
+<div id="appWrapper">
+    <!--<div class="formHeader">-->
+    @*<h4>
+            @ViewBag.Title
+        </h4>*@
+    <!--</div>-->
+    <div class="row no-gutter hr-pad-top-15">
+
+        <div class="col-3">
+            <span class="required">*</span>
+            <label>Hierarchy Name</label>
+        </div>
+        <div class="col-9">
+            @*@(Html.Kendo().DropDownListFor(x => x.Id)
+        .OptionLabel("--Select Hierarchy--")
+         .DataSource(source =>
+         {
+             source.Read(read =>
+             {
+                 read.Action("GetIdNameListByType", "UserHierarchy", new { hierarchyTypeCode = "User" ,@area= "PortalAdmin" });
+             });
+         })
+         .DataTextField("Name")
+         .DataValueField("Id")
+         .Filter(FilterType.Contains)
+         .AutoBind(true)
+         .Events(e => e.Change("OnHierarchyChange"))
+         .HtmlAttributes(new { @class = "hr-xx-large" ,@id= "Hierarchy"}))*@
+
+            <input id="Hierarchy" class="hr-xx-large" />
+
+        </div>
+
+
+    </div>
+    <hr />
+    <div class="row-12">
+        <script>
+
+
+            $("#kgrdUserHierarchy").jsGrid({
+        width: "100%",
+        height: "600px",
+                inserting: false,
+                selecting: true,
+        editing: true,
+                sorting: true,
+                selecting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        deleteConfirm: "Do you really want to delete client?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                return $.ajax({
+                    type: "GET",
+                    url: "/portalAdmin/UserHierarchy/ReadSearchData?userId=@ViewBag.UserId&hierarchyId="+$("#Id").val(),
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+
+            updateItem: function (item) {
+                //return $.ajax({
+                //    type: "POST",
+                //    url: "/cms/Content/UpdateUserPermissionData",
+                //    data: item,
+                //    success: function (result) {
+                //        var grid = $("#kgrdUserPermission").data("JSGrid")
+                //        grid.render();
+                //       // alert("Success", "updated successfully");
+                //    },
+                //});
+            },
+
+        },
+        onItemEditing: function (e) {
+            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                //  
+                e.grid.updateItem();
+            }
+                                },
+
+                fields: [
+                    { name: "Select", type: "checkbox", width: 60, editing: true },
+            { name: "UserName", type: "text", width: 200, editing: false},
+
+             @if(Model.Level1Name.IsNotNullAndNotEmpty())
+            {
+                  @:{ name: 'Level1ApproverOption1UserName', title: '@string.Concat(Model.Level1Name, ": Option 1")', type: "text", width: 200, editing: false},
+             @:{ name: 'Level1ApproverOption2UserName', title: '@string.Concat(Model.Level1Name, ": Option 2")', type: "text", width: 200, editing: false},
+@:{ name: 'Level1ApproverOption3UserName', title: '@string.Concat(Model.Level1Name, ": Option 3")', type: "text", width: 200, editing: false},
+
+            }
+            @if (Model.Level1Name.IsNotNullAndNotEmpty()) {
+                @:{ name: 'Level2ApproverOption1UserName', title: '@string.Concat(Model.Level2Name, ": Option 1")', type: "text", width: 200, editing: false},
+             @:{ name: 'Level2ApproverOption2UserName', title: '@string.Concat(Model.Level2Name, ": Option 2")', type: "text", width: 200, editing: false},
+@:{ name: 'Level2ApproverOption3UserName', title: '@string.Concat(Model.Level2Name, ": Option 3")', type: "text", width: 200, editing: false},
+
+            }
+            @if (Model.Level3Name.IsNotNullAndNotEmpty()) {
+                @:{ name: 'Level3ApproverOption1UserName', title: '@string.Concat(Model.Level3Name, ": Option 1")', type: "text", width: 200, editing: false},
+             @:{ name: 'Level3ApproverOption2UserName', title: '@string.Concat(Model.Level3Name, ": Option 2")', type: "text", width: 200, editing: false},
+@:{ name: 'Level3ApproverOption3UserName', title: '@string.Concat(Model.Level3Name, ": Option 3")', type: "text", width: 200, editing: false},
+
+            }
+            @if (Model.Level4Name.IsNotNullAndNotEmpty()) {
+                @:{ name: 'Level4ApproverOption1UserName', title: '@string.Concat(Model.Level4Name, ": Option 1")', type: "text", width: 200, editing: false},
+             @:{ name: 'Level4ApproverOption2UserName', title: '@string.Concat(Model.Level4Name, ": Option 2")', type: "text", width: 200, editing: false},
+@:{ name: 'Level4ApproverOption3UserName', title: '@string.Concat(Model.Level4Name, ": Option 3")', type: "text", width: 200, editing: false},
+
+            }
+            @if (Model.Level5Name.IsNotNullAndNotEmpty()) {
+                @:{ name: 'Level5ApproverOption1UserName', title: '@string.Concat(Model.Level5Name, ": Option 1")', type: "text", width: 200, editing: false},
+             @:{ name: 'Level5ApproverOption2UserName', title: '@string.Concat(Model.Level5Name, ": Option 2")', type: "text", width: 200, editing: false},
+@:{ name: 'Level5ApproverOption3UserName', title: '@string.Concat(Model.Level5Name, ": Option 3")', type: "text", width: 200, editing: false},
+               
+            }
+            //{ type: "control", deleteButton: false     },
+
+        ]
+                            });
+
+           
+        </script>
+        <button type="submit" class="btn btn-primary" onclick="return OnUpdate();"><i class="fa fa-plus pr-1"></i>Update Hierarchy</button>
+        <div id="kgrdUserHierarchy"></div>
+        @*@(Html.Kendo().Grid<UserHierarchyViewModel>()
+            .Name("kgrdUserHierarchy")
+            .Columns(columns =>
+            {
+                // columns.Template(@"<input class='checkbox' type='checkbox' />").ClientHeaderTemplate(@"<input class='checkboxAll' type='checkbox' />")/*.Lockable(false).Locked(true)*/.Width(50);
+                columns.Select().HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align", id = "selectcand" }).Width(50).Locked(true).Lockable(false);
+
+                columns.Bound(p => p.UserName).Lockable(false).Locked(true).Width(200);
+                // columns.Bound(p => p.LevelNo).Width(100);
+
+                if (Model.Level1Name.IsNotNullAndNotEmpty())
+                {
+                    columns.Bound(c => c.Level1ApproverOption1UserName).Width(200).Title(string.Concat(Model.Level1Name, ": Option 1"));
+                    columns.Bound(c => c.Level1ApproverOption2UserName).Width(200).Title(string.Concat(Model.Level1Name, ": Option 2"));
+                    columns.Bound(c => c.Level1ApproverOption3UserName).Width(200).Title(string.Concat(Model.Level1Name, ": Option 3"));
+                }
+                if (Model.Level1Name.IsNotNullAndNotEmpty())
+                {
+                    columns.Bound(c => c.Level2ApproverOption1UserName).Width(200).Title(string.Concat(Model.Level2Name, ": Option 1"));
+                    columns.Bound(c => c.Level2ApproverOption2UserName).Width(200).Title(string.Concat(Model.Level2Name, ": Option 2"));
+                    columns.Bound(c => c.Level2ApproverOption3UserName).Width(200).Title(string.Concat(Model.Level2Name, ": Option 3"));
+                }
+
+                if (Model.Level3Name.IsNotNullAndNotEmpty())
+                {
+                    columns.Bound(c => c.Level3ApproverOption1UserName).Width(200).Title(string.Concat(Model.Level3Name, ": Option 1"));
+                    columns.Bound(c => c.Level3ApproverOption2UserName).Width(200).Title(string.Concat(Model.Level3Name, ": Option 2"));
+                    columns.Bound(c => c.Level3ApproverOption3UserName).Width(200).Title(string.Concat(Model.Level3Name, ": Option 3"));
+                }
+                if (Model.Level4Name.IsNotNullAndNotEmpty())
+                {
+                    columns.Bound(c => c.Level4ApproverOption1UserName).Width(200).Title(string.Concat(Model.Level4Name, ": Option 1"));
+                    columns.Bound(c => c.Level4ApproverOption2UserName).Width(200).Title(string.Concat(Model.Level4Name, ": Option 2"));
+                    columns.Bound(c => c.Level4ApproverOption3UserName).Width(200).Title(string.Concat(Model.Level4Name, ": Option 3"));
+                }
+
+
+                if (Model.Level5Name.IsNotNullAndNotEmpty())
+                {
+                    columns.Bound(c => c.Level5ApproverOption1UserName).Width(200).Title(string.Concat(Model.Level5Name, ": Option 1"));
+                    columns.Bound(c => c.Level5ApproverOption2UserName).Width(200).Title(string.Concat(Model.Level5Name, ": Option 2"));
+                    columns.Bound(c => c.Level5ApproverOption3UserName).Width(200).Title(string.Concat(Model.Level5Name, ": Option 3"));
+                }
+
+            })
+               .ToolBar(toolbar =>
+               {
+
+                   toolbar.Custom().Text("Update Hierarchy").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnUpdate();" });
+                   toolbar.Excel();
+
+               })
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5))
+            .Resizable(resizable => resizable.Columns(true))
+            .Scrollable(scrollable => scrollable.Enabled(true))
+            .PersistSelection()
+            .Sortable()
+               .Filterable(f => f.Extra(false)
+                                .Operators(o => o.ForString(s => s.Clear()
+                                .Contains("Contains")
+                                .IsEqualTo("Is equal to")
+                                .IsNullOrEmpty("Is Null Or Empty")
+                                .IsNotNullOrEmpty("Is Not Null Or Empty")
+                            )))
+             .Selectable(select => select.Enabled(false).Mode(GridSelectionMode.Multiple))
+            .Events(e => e.DataBound("OnDataBound2"))
+             .Excel(e => e.FileName("UserHierarchy.xlsx").AllPages(true))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Model(model => model.Id(p => p.Id))
+                  .Read(read => read.Action("ReadSearchData", "UserHierarchy",new { userId = ViewBag.UserId,@area= "PortalAdmin" }).Data("FilterGrid"))
+            )
+        )*@
+
+    </div>
+
+    @Html.HiddenFor(x => x.DataAction)
+    @Html.HiddenFor(x => x.Id)
+    @Html.HiddenFor(x => x.PortalId)
+    @Html.HiddenFor(x => x.LegalEntityId)
+
+</div>
+
+<script type="text/javascript">
+      $(document).ready(function () {
+    $("#Hierarchy").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@SharedResource["Select"]",
+            value: '@Model.Id',
+		change:OnHierarchyChange,
+            dataSource:
+            {
+            transport:
+                {
+                read:
+                    {
+                        url: "/PortalAdmin/UserHierarchy/GetIdNameListByType?hierarchyTypeCode=User",
+                    }
+                }
+            }
+        });
+    });
+    //$(".checkboxAll").bind("change", function (e) {
+
+    //    if ($(this).attr('checked')) {
+    //        $('.checkboxAll').removeAttr('checked');
+    //        $('.checkbox').removeAttr('checked');
+    //        $(".checkbox").closest("tr").removeClass("k-state-selected");
+    //    } else {
+    //        $('.checkboxAll').attr('checked', 'checked');
+    //        $('.checkbox').attr('checked', 'checked');
+    //        $(".checkbox").closest("tr").addClass("k-state-selected");
+    //    }
+    //    });
+
+
+    function OnRowSelection(element) {
+
+            $('input.checkbox[type=checkbox]').each(function (e) {
+                if (this.checked) {
+                    $(this).closest("tr").addClass("k-state-selected");
+                }
+            });
+            var isChecked = $(element).prop('checked');
+            if (isChecked) {
+                $(element).prop('checked', true);
+                $(element).closest("tr").addClass("k-state-selected");
+            }
+            else {
+                $(element).prop('checked', false);
+                $(element).closest("tr").removeClass("k-state-selected");
+            }
+            var numChkBoxes = $('#kgrdUserHierarchy input[type=checkbox][class=checkbox]').length;
+            var numChkBoxesChecked = $('#kgrdUserHierarchy tbody input:checkbox:checked').length;
+            if (numChkBoxes == numChkBoxesChecked && numChkBoxes > 0) {
+                $('.checkboxAll').prop('checked', true);
+            }
+            else {
+
+                $('.checkboxAll').prop('checked', false);
+            }
+
+
+
+    }
+    function OnEditSelection(element) {
+        alert($(element).val());
+        var grid = $("#kgrdHierarchyLevel").data("kendoGrid");
+        var isChecked = $(element).val();
+
+        dataItem = grid.dataItem($(element).closest("tr"));
+        dataItem.set("UserId", isChecked);
+    }
+
+    @*function OnSuccess(response) {
+        if (response.success) {
+            if (response.operation=="@DataOperation.Create") {
+                kendo.alert("New User Hierarchy created Successfully");
+            }
+            else if (response.operation=="@DataOperation.Update") {
+                kendo.alert("User Hierarchy updated Successfully");
+            }
+            else if (response.operation=="@DataOperation.Correct") {
+                kendo.alert("User Hierarchy corrected Successfully");
+            }
+            else if (response.operation=="@DataOperation.Delete") {
+                kendo.alert("User Hierarchy deleted Successfully");
+            }
+
+            var url = "/hrs/userhierarchy";
+            if (response.ru != null) {
+                url = decodeURI(response.ru) + "&posId=" + response.posId;
+            }
+            window.location.href = url;
+        }
+        else {
+            ShowErrors(response.errors);
+        }
+    }*@
+    //function OnCancel(e) {
+    //    window.location.href = "/hrs/userhierarchy";
+    //    return true;
+    //}
+    function OnChart(e) {
+        //var posId = $("#PositionId").data("kendoDropDownList").value();
+        var posId = $("#PositionId").val();
+        if (posId == null || posId == 0) {
+            posId = $("#ParentPositionId").val();
+        }
+        var param = this.element.attr("param");
+        url = decodeURI(param) + "&posId=" + posId;
+        window.location.href = url;
+        return true;
+    }
+    var selectedDataItems = [];
+    function pushPopinArray(arr) {
+
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].Select == true) {
+                selectedDataItems.push(arr[i]);
+
+            }
+
+        }
+
+    }
+    function OnUpdate() {
+
+            var hierId = $("#Hierarchy").val();
+
+
+
+
+        var users = '';
+        var grid = $("#kgrdUserHierarchy").data("JSGrid");
+        grid.updateItem();
+        pushPopinArray(grid.data);
+       // var rows = grid.select();
+        //var length = rows.length / 2;
+        //var i = 1;
+        for (var i = 0; i < selectedDataItems.length; i++)
+        {
+            users = users + selectedDataItems[i].UserIds + ',';
+        }
+
+        //rows.each(function (index, row) {
+        //    if (i <= length) {
+        //        var selectedItem = grid.dataItem(row);
+        //        users = users + selectedItem.UserIds + ',';
+        //    }
+        //    i++;
+        //    // selectedItem has EntityVersionId and the rest of your model
+        //});
+            if (hierId == '')
+                alert("Please Select The Hierarchy Name");
+            else if (users == '' || users==',') {
+                alert("Please Select atleast one user from the grid");
+            }
+            else {
+
+                var hierId = $("#Hierarchy").data("kendoDropDownList").value();
+
+               
+                  var win = GetMainWindow();
+                win.iframeOpenUrl = "/PortalAdmin/UserHierarchy/UpdateHierarchy?hierarchyId=" + hierId + "&users=" + users;
+                win.OpenWindow({ Title: 'Update Hierarchy Level', Width: 1100, Height: 600 });
+        return false;
+            }
+    }
+
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+        }
+    function Close(dorefresh, mode) {
+          @*
+        if (dorefresh) {
+
+            $("#kgrdUserHierarchy").data("kendoGrid").dataSource.read();
+            ShowNotification('@ERP.Translation.Message.UpdateSuccess');
+
+        }*@
+    }
+
+</script>
+

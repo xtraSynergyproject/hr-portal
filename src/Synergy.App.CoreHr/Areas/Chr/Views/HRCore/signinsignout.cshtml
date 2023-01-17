@@ -1,0 +1,181 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRCoreController> Resource
+@using Synergy.App.ViewModel
+@using Synergy.App.Common
+
+@using Kendo.Mvc.UI
+
+@{
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    // Layout = null;
+}
+@model PunchingViewModel
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#LocationId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetLocationList",
+                    }
+                }
+            },
+        });
+
+        $("#ddlsignintype").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",            
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=SigninSignoutTypeEnum",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function OnAfterServiceCreate() {
+        function OnAfterServiceCreate(service) {
+            window.parent.$("#TimePermissionGridView").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function OnFilter() {
+        var ddltype = $("#ddlsignintype").data("kendoDropDownList").value();
+        var locationId = $("#LocationId").data("kendoDropDownList").value();
+        var userid = '@Model.UserId';
+        if (locationId == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("@Resource["SelectLocation"]");
+        } else if (ddltype == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("@Resource["SelectSignInType"]");
+        }
+        else {
+            $(".text-danger").addClass("validation-summary-valid");
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").html("");
+            $.ajax(
+                {
+                    type: "POST",
+                    url: "/CHR/HRCore/AddSignSignout",
+                    data: {
+                        Punching: ddltype, //Reading text box values using Jquery
+                        UserID: userid,
+                        locationId: locationId
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            var win = GetMainWindow();
+                            win.CloseWindow();
+                            return false;
+                        }
+                        else {
+                            ShowNotification(data.message, "error");
+                        }
+                    },
+
+                });
+            }
+
+        }
+
+</script>
+
+<style>
+    .cms-bulkinterview-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+</style>
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <div id="">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div>
+            <div class="row">
+                <div class="col-6">
+                    <label class="col-form-label">@Resource["Location"]<span class="required">*</span><br></label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.LocationId)
+                         .DataSource(source =>
+                         {
+                             source.Read(read =>
+                             {
+                                 read.Action("GetLocationList", "HRDirect", new { area = "CHR"});
+                             });
+                         })
+                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                        .Filter("contains")
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .HtmlAttributes(new { @class = "hr-xx-large search-control" })
+                    )*@
+
+                    <input asp-for="LocationId" id="LocationId" class="hr-xx-large search-control" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <label class="col-form-label">@Resource["SignInType"]<span class="required">*</span><br></label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    @*@(Html.Kendo().DropDownList().Name("ddlsignintype")
+                         .DataSource(source =>
+                         {
+                             source.Read(read =>
+                             {
+                                 read.Action("GetEnumIdNameList", "Home", new { area = "", enumType = "SigninSignoutTypeEnum" });
+                             });
+                         })
+                        //.AutoClose(false)
+                        // .Placeholder("Search Performance Document")
+                        .OptionLabel("--Select--")
+                        //.Filter("contains")
+                         .DataTextField("Name")
+                         .DataValueField("Id")
+                         //.Events(e => e.Change("onChangeProjectFiltersIds"))
+                         .HtmlAttributes(new { @class = "hr-xx-large search-control" })
+                        )*@
+
+                    <input id="ddlsignintype" class="hr-xx-large search-control" />
+                </div>
+
+
+            </div>
+            <br />
+            <br /><br />
+            <div class="row">
+                <div class="col-12">
+                    <button class="btn btn-primary" style="height:100%;float:right;" onclick="OnFilter()">@SharedResource["Save"]</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

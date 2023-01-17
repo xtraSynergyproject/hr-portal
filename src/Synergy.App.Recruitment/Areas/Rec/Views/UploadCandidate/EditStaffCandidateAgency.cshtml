@@ -1,0 +1,650 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+
+@{
+    ViewData["Title"] = "Manage Staff Candidate Agency";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model CandidateProfileViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .drp-user .k-dropdown-wrap .k-input {
+        height: 40px;
+    }
+    .stylecontrol{
+        margin-top:10px;
+    }
+</style>
+
+<div style="margin-left:15px;">
+    <form asp-area="Recruitment" asp-controller="UploadCandidate" asp-action="ManageStaffCandidateAgency"
+          data-ajax-begin="CallLoder" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="CallHideLoader" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST"
+          class="form-horizontal" id="myForm">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;" id="validation-summary"></div>
+        <div class="row" style="padding:10px;">
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            @*<span class="required">*</span>*@
+                            CV Send Date
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <label class="control-label">@Model.AppliedDate.ToDefaultDateFormat()</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            Job Advertisement
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <label class="control-label">@Model.JobAdvertisement</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            Candidate Name
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <label class="control-label">@Model.FirstName</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            Passport Number
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <label class="control-label">@Model.PassportNumber</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            Email
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <label class="control-label">@Model.Email</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Nationality
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        @(Html.Kendo().DropDownListFor(model => model.NationalityId)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetIdNameList", "Master", new { @type = "Nationality" });
+                                        });
+                                    })
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Filter(FilterType.Contains)
+
+                                    .HtmlAttributes(new { style="width:80%" })
+                                    .HtmlAttributes(new { @class = "hr-xx-large", style="width:80%" }))
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Contact Number
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <input asp-for="ContactPhoneHome" type="number" min="0" oninput="this.value = !!this.value && Math.abs(this.value) >= 0 ? Math.abs(this.value) : null" class="form-control" autocomplete="off" style="width:80%" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Total Experience
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <input asp-for="TotalWorkExperience" type="number" min="0" oninput="this.value = !!this.value && Math.abs(this.value) >= 0 ? Math.abs(this.value) : null" class="form-control" autocomplete="off" style="width:80%" required />
+                    </div>
+                </div>
+            </div>
+
+            @*<div class="col-12 stylecontrol">
+           <div class="form-group row no-gutters">
+                <div class="col-4">
+                    <label class="control-label">
+                        <span class="required">*</span>Qualification
+                    </label>
+                </div>
+                <div class="col-8">
+                    <input asp-for="Qualification" type="text" class="form-control" autocomplete="off" style="width:80%" required />
+                </div>
+            </div>
+        </div>*@
+            @*<div class="col-12 stylecontrol">
+            <div class="form-group row no-gutters">
+                <div class="col-4">
+                    <label class="control-label">
+                        <span class="required">*</span>Present Employer
+                    </label>
+                </div>
+                <div class="col-8">
+                    <input asp-for="PresentEmployer" type="text" class="form-control" autocomplete="off" style="width:80%" required />
+                </div>
+            </div>
+        </div>*@
+            @*<div class="col-12 stylecontrol">
+            <div class="form-group row no-gutters">
+                <div class="col-4">
+                    <label class="control-label">
+                        <span class="required">*</span>Designation
+                    </label>
+                </div>
+                <div class="col-8">
+                    <input asp-for="Designation" type="text" class="form-control" autocomplete="off" style="width:80%" required />
+                </div>
+            </div>
+        </div>*@
+            @*<div class="col-12 stylecontrol">
+            <div class="form-group row no-gutters">
+                <div class="col-4">
+                    <label class="control-label">
+                        <span class="required">*</span>Present Salary
+                    </label>
+                </div>
+                <div class="col-8">
+                    <input asp-for="PresentSalary" type="number" min="0" oninput="this.value = !!this.value && Math.abs(this.value) >= 0 ? Math.abs(this.value) : null" class="form-control" autocomplete="off" style="width:80%" required />
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 stylecontrol">
+            <div class="form-group row no-gutters">
+                <div class="col-4">
+                    <label class="control-label">
+                        <span class="required">*</span>Expected Salary
+                    </label>
+                </div>
+                <div class="col-8">
+                    <input asp-for="ExpectedSalary" type="number" min="0" oninput="this.value = !!this.value && Math.abs(this.value) >= 0 ? Math.abs(this.value) : null" class="form-control" autocomplete="off" style="width:80%" required />
+                </div>
+            </div>
+        </div>*@
+            @*<div class="col-12 stylecontrol">
+            <div class="form-group row no-gutters">
+                <div class="col-4">
+                    <label class="control-label">
+                        <span class="required">*</span>Notice Period
+                    </label>
+                </div>
+                <div class="col-8">
+                    <input asp-for="NoticePeriod" type="number" min="0" oninput="this.value = !!this.value && Math.abs(this.value) >= 0 ? Math.abs(this.value) : null" class="form-control" autocomplete="off" style="width:80%" required />
+                </div>
+            </div>
+        </div>*@
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Current Location
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <input asp-for="CurrentLocation" type="text" class="form-control" autocomplete="off" style="width:80%" required />
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Permanent Address House/Flat No
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <input asp-for="PermanentAddressHouse" type="text" class="form-control" autocomplete="off" style="width:80%" required />
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Permanent Address Street/Lane
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <input asp-for="PermanentAddressStreet" type="text" class="form-control" autocomplete="off" style="width:80%" required />
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Permanent Address City/District
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <input asp-for="PermanentAddressCity" type="text" class="form-control" autocomplete="off" style="width:80%" required />
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Permanent Address State/Province
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        <input asp-for="PermanentAddressState" type="text" class="form-control" autocomplete="off" style="width:80%" required />
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Permanent Address Country
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        @(Html.Kendo().DropDownListFor(model => model.PermanentAddressCountryId)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetIdNameList", "Master", new { @type = "Country" });
+                                        });
+                                    })
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Filter(FilterType.Contains)
+                                    .HtmlAttributes(new { @class = "hr-xx-large", style="width:80%" }))
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Marital Status
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        @(Html.Kendo().DropDownListFor(model => model.MaritalStatus)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetListOfValueList", "ListOfValue", new { @area = "Recruitment", @type = "LOV_MARITALSTATUS" });
+                                        });
+                                    })
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Filter(FilterType.Contains)
+                                    .HtmlAttributes(new { @class = "hr-xx-large", style="width:80%" }))
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Resume Attachment
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        @(Html.Kendo().Upload().Multiple(false)
+                                .Name("files")
+                                .Async(a => a
+                                .Save("SaveFile", "Document", new { @area = "cms" })
+                                .AutoUpload(true)
+                                )
+                                    .Events(e => e.Success("onFileUploadSuccessCV")
+                                    )
+                                    .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" }).MaxFileSize(52428800))
+                                    .HtmlAttributes(new { @class = "hr-xx-large", @id = "fileCV", style = "width:80%" })
+                            )
+                        @if (Model.ResumeId != null)
+                        {
+                        <a href="/cms/Document/GetFileMongo?fileId=@Model.ResumeId" target="_blank"><i class="fas fa-download" title="Download Resume"></i>Download Resume</a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Passport Attachment
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        @(Html.Kendo().Upload().Multiple(false)
+                                .Name("files")
+                                .Async(a => a
+                                .Save("SaveFile", "Document", new { @area = "cms" })
+                                .AutoUpload(true)
+                                )
+                                    .Events(e => e.Success("onFileUploadSuccessPassport")
+                                    )
+                                    .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" }).MaxFileSize(52428800))
+                                    .HtmlAttributes(new { @class = "hr-xx-large", @id = "filePassport" })
+                            )
+                        @if (Model.PassportAttachmentId != null)
+                        {
+                        <a href="/cms/Document/GetFileMongo?fileId=@Model.PassportAttachmentId" target="_blank"><i class="fas fa-download" title="Download Passport"></i>Download Passport</a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Education Certificate Attachment
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        @(Html.Kendo().Upload().Multiple(false)
+                                .Name("files")
+                                .Async(a => a
+                                .Save("SaveFile", "Document", new { @area = "cms" })
+                                .AutoUpload(true)
+                                )
+                                    .Events(e => e.Success("onFileUploadSuccessAcademic")
+                                    )
+                                    .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" }).MaxFileSize(52428800))
+                                    .HtmlAttributes(new { @class = "hr-xx-large", @id = "fileAcademic" })
+                            )
+                        @if (Model.AcademicCertificateId != null)
+                        {
+                        <a href="/cms/Document/GetFileMongo?fileId=@Model.AcademicCertificateId" target="_blank"><i class="fas fa-download" title="Download Educational Certificate"></i>Download Educational Certificate</a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Experience Letter Attachment
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        @(Html.Kendo().Upload().Multiple(false)
+                                .Name("files")
+                                .Async(a => a
+                                .Save("SaveFile", "Document", new { @area = "cms" })
+                                .AutoUpload(true)
+                                )
+                                    .Events(e => e.Success("onFileUploadSuccessSlip")
+                                    )
+                                    .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" }).MaxFileSize(52428800))
+                                    .HtmlAttributes(new { @class = "hr-xx-large", @id = "fileSlip" })
+                            )
+                        @if (Model.CoverLetterId != null)
+                        {
+                        <a href="/cms/Document/GetFileMongo?fileId=@Model.CoverLetterId" target="_blank"><i class="fas fa-download" title="Download Experience Letter"></i>Download Experience Letter</a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 stylecontrol">
+                <div class="form-group row no-gutters">
+                    <div class="col-4">
+                        <label class="control-label">
+                            <span class="required">*</span>Document Attachment
+                        </label>
+                    </div>
+                    <div class="col-8">
+                        @(Html.Kendo().Upload().Multiple(false)
+                                .Name("files")
+                                .Async(a => a
+                                .Save("SaveFile", "Document", new { @area = "cms" })
+                                .AutoUpload(true)
+                                )
+                                    .Events(e => e.Success("onFileUploadSuccessOther")
+                                    )
+                                    .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" }).MaxFileSize(52428800))
+                                    .HtmlAttributes(new { @class = "hr-xx-large", @id = "fileOther" })
+                            )
+                        @if (Model.OtherCertificateId != null)
+                        {
+                        <a href="/cms/Document/GetFileMongo?fileId=@Model.OtherCertificateId" target="_blank"><i class="fas fa-download" title="Download Document"></i>Download Document</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4"></div>
+            <div class="col-8" style="text-align:left;padding-bottom:10px;">
+                <button type="button" class="btn btn-dark" onclick="onClickClose();">Close</button>
+                <input type="submit" class="btn btn-primary" value="Save" onclick="onClickSave(event);" />
+            </div>
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.ResumeId)
+        @Html.HiddenFor(x => x.PassportAttachmentId)
+        @Html.HiddenFor(x => x.AcademicCertificateId)
+        @Html.HiddenFor(x => x.CoverLetterId)
+        @Html.HiddenFor(x => x.OtherCertificateId)
+    </form>
+</div>
+
+<script>
+
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            HideLoader($('.form-horizontal'));
+            window.parent.ShowNotification("Saved Successfully", "success");
+            onClickClose();
+            /*window.parent.$("#staffGrid").data("kendoGrid").dataSource.read();*/
+        }
+        else {
+            HideLoader($('.form-horizontal'));
+            showError(res.errors.NameExist);
+        }
+    };
+    var showError = function (error) {
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+
+    function CallHideLoader() {
+        HideLoader($('.form-horizontal'));
+    }
+
+    function CallLoder() {
+        ShowLoader($('.form-horizontal'));
+    }
+    function onClickClose() {
+        //window.parent.CloseIframePopup();
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'CloseStaffCandidateAgency' });
+        return false;
+    }
+
+    function onClickSave(evt) {
+
+        if ($("#NationalityId").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Nationality is required");
+
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#PermanentAddressCountryId").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Permanent Address Country is required");
+
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#MaritalStatus").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Marital Status is required");
+
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#ResumeId").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Resume Attachment is required");
+
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#PassportAttachmentId").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Passport Attachment is required");
+
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#AcademicCertificateId").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Education Certificate Attachment is required");
+
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#CoverLetterId").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Experience Letter Attachment is required");
+
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#OtherCertificateId").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Document Attachment is required");
+
+            evt.preventDefault();
+            return false;
+        }
+        else {
+
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+    }
+
+    function onFileUploadSuccessCV(e) {
+        if (e.response.success) {
+            $("#ResumeId").val(e.response.fileId);
+             }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    function onFileUploadSuccessPassport(e) {
+        if (e.response.success) {
+            $("#PassportAttachmentId").val(e.response.fileId);
+             }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    function onFileUploadSuccessAcademic(e) {
+        if (e.response.success) {
+            $("#AcademicCertificateId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    function onFileUploadSuccessSlip(e) {
+        if (e.response.success) {
+            $("#CoverLetterId").val(e.response.fileId);
+             }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    function onFileUploadSuccessOther(e) {
+        if (e.response.success) {
+            $("#OtherCertificateId").val(e.response.fileId);
+             }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+</script>

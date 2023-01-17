@@ -1,0 +1,449 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@{
+    Layout = null;
+}
+@model EGovDashboardViewModel
+@inject IUserContext _userContext;
+
+<style>
+    .divbtn{
+        padding:15px;
+        padding-top:0px;
+    }
+</style>
+
+
+<script>
+
+    $(document).ready(function () {
+
+        //Page
+        var dataSourceP = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/ReadTemplatesList?portalId=@ViewBag.PortalId&templateType=@TemplateTypeEnum.Page",
+                    dataType: "json",
+                }
+            },
+        });
+        $("#pagetemplistView").kendoListView({
+            dataSource: dataSourceP,
+            template: kendo.template($("#template").html())
+        });
+        $("#pagetemplistView").children('.k-listview-content').addClass("row m-1");
+        $("#pagetemplistView").children('.k-listview-content').removeClass("k-listview-content");
+        //Form
+        var dataSourceF = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/ReadTemplatesList?portalId=@ViewBag.PortalId&templateType=@TemplateTypeEnum.Form",
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#formtemplistView").kendoListView({
+            dataSource: dataSourceF,
+            template: kendo.template($("#template").html())
+        });
+        $("#formtemplistView").children('.k-listview-content').addClass("row m-1");
+        $("#formtemplistView").children('.k-listview-content').removeClass("k-listview-content");
+        //Note
+        var dataSourceN = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/ReadTemplatesList?portalId=@ViewBag.PortalId&templateType=@TemplateTypeEnum.Note",
+                    dataType: "json",
+                }
+            },
+        });
+        $("#notetemplistView").kendoListView({
+            dataSource: dataSourceN,
+           // height: 350,
+            //scrollable: "endless",
+            template: kendo.template($("#template").html())
+        });
+        $("#notetemplistView").children('.k-listview-content').addClass("row m-1");
+        $("#notetemplistView").children('.k-listview-content').removeClass("k-listview-content");
+
+        //Task
+        var dataSourceT = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/ReadTemplatesList?portalId=@ViewBag.PortalId&templateType=@TemplateTypeEnum.Task",
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#tasktemplistView").kendoListView({
+            dataSource: dataSourceT,
+            template: kendo.template($("#template").html())
+        });
+        $("#tasktemplistView").children('.k-listview-content').addClass("row m-1");
+        $("#tasktemplistView").children('.k-listview-content').removeClass("k-listview-content");
+        //Service
+        var dataSourceS = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/ReadTemplatesList?portalId=@ViewBag.PortalId&templateType=@TemplateTypeEnum.Service",
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#servicetemplistView").kendoListView({
+            dataSource: dataSourceS,
+            template: kendo.template($("#template").html())
+        });
+        $("#servicetemplistView").children('.k-listview-content').addClass("row m-1");
+        $("#servicetemplistView").children('.k-listview-content').removeClass("k-listview-content");
+        //Custom
+        var dataSourceC = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/ReadTemplatesList?portalId=@ViewBag.PortalId&templateType=@TemplateTypeEnum.Custom",
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#customtemplistView").kendoListView({
+            dataSource: dataSourceC,
+            template: kendo.template($("#template").html())
+        });
+        $("#customtemplistView").children('.k-listview-content').addClass("row m-1");
+        $("#customtemplistView").children('.k-listview-content').removeClass("k-listview-content");
+    });
+
+    function OnAfterCreateTemplate() {
+        $("#pagetemplistView").data("kendoListView").dataSource.read();
+        $("#formtemplistView").data("kendoListView").dataSource.read();
+        $("#notetemplistView").data("kendoListView").dataSource.read();
+        $("#tasktemplistView").data("kendoListView").dataSource.read();
+        $("#servicetemplistView").data("kendoListView").dataSource.read();
+        $("#customtemplistView").data("kendoListView").dataSource.read();
+    }
+
+
+    function OpenTemplate(id) {
+        url = "/cms/Template/Template?templateId=" + id + "&lo=Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Edit Template', Width: 1200, Height: 750 });
+    }
+
+    function CreateTemplate(catId) {
+        url = "/cms/Template/Template?categoryId=" + catId + "&lo=Popup&cbm=OnAfterCreateTemplate";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Template', Width: 1200, Height: 750 });
+    }
+
+    function OpenDiagram(id) {
+        url = "/dms/document/DmsTemplateDiagram?id=" + id + "&isPopup=true";// + "&layout=Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Business Diagram', Width: 1200, Height: 750 });
+    }
+
+    function EditCategory(catId) {
+        url = "/cms/templatecategory/edit?id=" + catId + "&lo=Popup";// + "&layout=Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Edit Template Category', Width: 450, Height: 750 });
+    }
+
+    function CreateCategory(type) {
+        url = "/cms/templatecategory/Create?type=" + type + "&lo=Popup&cbm=OnAfterCreateTemplate";// + "&layout=Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Category', Width: 450, Height: 750 });
+    }
+
+    $(function () {
+        $.contextMenu({
+            selector: '#menu-sertemp',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                debugger;
+                var id = $trigger.data('idvalue');
+
+                switch (0) {
+                    case 0:
+                        return {
+
+                            callback: function (key, options) {
+                                debugger;
+                                switch (key) {
+                                    case 'edit':
+                                        OpenTemplate(id);
+                                        break;
+                                    case 'open':
+                                        OpenDiagram(id);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit Template", icon: "fas fa-edit" },
+                                "open": { name: "Manage Workflow", icon: "fas fa-project-diagram" },
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+
+</script>
+<script id="template" type="text/kendo-ui-template">
+        <div class="col-lg-4 col-md-6 card-div">
+        <div class="card pl-0 pr-0 card-class">
+            <div class="card-header text-center">#:TemplateCategoryName#</div>
+            <div class="card-body" style="height:200px;overflow-y:auto;">
+             # for (var i = 0; i < TemplatesList.length; i++) { #
+                <div class="row">
+                    <div class="col-9">
+                        <a href="javascript:OpenTemplate('#:TemplatesList[i].Id#');">#=TemplatesList[i].DisplayName#</a>
+                    </div>
+                    <div class="col-3">
+                        <div class="dropdown" style="float:right;">
+                            <button type="button" class="btn btn-icon btn-light" data-toggle="dropdown" aria-expanded="false">
+                             <i class="fa fa-ellipsis-v"></i>
+                            </button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                        <div class="dropdown-arrow"></div>
+                            <a href="javascript:OpenDiagram('#:TemplatesList[i].Id#');" class="dropdown-item">View Workflow</a>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            # } #
+            </div>
+            <div class="card-footer">
+                #if('@ViewBag.CanCreateTemplate' == 'True'){#
+                    <a href="javascript:CreateTemplate('#:TemplateCategoryId#');" class="card-footer-item card-footer-item-bordered" title="Add New Template">Add Template</a>
+                #}#
+
+                <a href="javascript:EditCategory('#:TemplateCategoryId#');" class="card-footer-item card-footer-item-bordered" title="Edit Category">Edit Category</a>
+
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="servicetemplate" type="text/kendo-ui-template">
+
+    <div class="card">
+        <div class="card-header bg-secondary" style="color:white">#:TemplateCategoryName#</div>
+        <div class="card-body">
+            # for (var i = 0; i < TemplatesList.length; i++) { #
+            <div class="row">
+                <div class="col-10"><a href="javascript:OpenTemplate('#:TemplatesList[i].Id#');">#=TemplatesList[i].DisplayName#</a></div>
+                @*<div class='col-1 btn-group grid-menu' id='menu-sertemp' data-idvalue='#:TemplatesList[i].Id#'><i class='fas fa-ellipsis-v'></i></div>*@
+                <div class="col-2">
+                        <div class="dropdown" style="float:right;">
+                            <button type="button" class="btn btn-icon btn-light" data-toggle="dropdown" aria-expanded="false">
+                             <i class="fa fa-ellipsis-v"></i>
+                            </button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                        <div class="dropdown-arrow"></div>
+                            <a href="javascript:OpenDiagram('#:TemplatesList[i].Id#');" class="dropdown-item">View Workflow</a>
+                        </div>
+                        </div>
+                    </div>
+            </div>
+        # } #
+        </div>
+    </div>
+
+</script>
+
+
+@*<div class="row">
+        <div class="col-6" style="color:#070f74;font-weight:800;font-size:20px">Templates</div>
+    </div>
+    <br />*@
+
+<div class="card card-fluid">
+    <!-- .card-header -->
+    <div class="card-header">
+        <!-- .nav-tabs -->
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <a class="nav-link show" data-toggle="tab" href="#Page">Page</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#Form">Form</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#Note">Note</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#Task">Task</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#Service">Service</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#Custom">Custom</a>
+            </li>
+
+        </ul><!-- /.nav-tabs -->
+    </div><!-- /.card-header -->
+    <!-- .card-body -->
+    <div class="card-body">
+        <!-- .tab-content -->
+        <div id="myTabContent" class="tab-content">
+            <div class="tab-pane fade" id="Page">
+                @if (ViewBag.CanCreateTemplate)
+                {
+                    <div class="row-12 divbtn">
+                        <button class="btn btn-primary" onclick="CreateCategory('Page');">New Category</button>                      
+                    </div>
+                }
+                <div id="pagetemplistView" class="row no-border"></div>
+                </div>
+            <div class="tab-pane fade" id="Form">
+                @if (ViewBag.CanCreateTemplate)
+                {
+                    <div class="row-12 divbtn">
+                        <button class="btn btn-primary" onclick="CreateCategory('Form');">New Category</button>
+                    </div>
+                }
+                <div id="formtemplistView" class="no-border" style="background-color: transparent;margin-right:10px;"></div>
+            </div>
+            <div class="tab-pane fade" id="Note">
+                @if (ViewBag.CanCreateTemplate)
+                {
+                    <div class="row-12 divbtn">
+                        <button class="btn btn-primary" onclick="CreateCategory('Note');">New Category</button>
+                    </div>
+                }
+                <div id="notetemplistView" class="no-border"></div>
+            </div>
+            <div class="tab-pane fade" id="Task">
+                @if (ViewBag.CanCreateTemplate)
+                {
+                    <div class="row-12 divbtn">
+                        <button class="btn btn-primary" onclick="CreateCategory('Task');">New Category</button>
+                    </div>
+                }
+                <div id="tasktemplistView" class="no-border" style="background-color: transparent;margin-right:10px;"></div>
+            </div>
+            <div class="tab-pane fade active show" id="Service">
+                @if (ViewBag.CanCreateTemplate)
+                {
+                    <div class="row-12 divbtn">
+                        <button class="btn btn-primary" onclick="CreateCategory('Service');">New Category</button>
+                    </div>
+                }
+                <div id="servicetemplistView" class="no-border" style="background-color: transparent;margin-right:10px;"></div>
+            </div>
+            <div class="tab-pane fade" id="Custom">
+                @if (ViewBag.CanCreateTemplate)
+                {
+                    <div class="row-12 divbtn">
+                        <button class="btn btn-primary" onclick="CreateCategory('Custom');">New Category</button>
+                    </div>
+                }
+                <div id="customtemplistView" class="no-border" style="background-color: transparent;margin-right:10px;"></div>
+            </div>
+        </div><!-- /.tab-content -->
+    </div><!-- /.card-body -->
+</div><!-- /.card -->
+@*<div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+                        Page
+                    </a>
+                </h5>
+            </div>
+            <div id="collapse1" class="panel-collapse collapse in">
+                <div class="panel-body">
+                     <div id="pagetemplistView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+                        Form
+                    </a>
+                </h5>
+            </div>
+            <div id="collapse2" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div id="formtemplistView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse3">
+                        Note
+                    </a>
+                </h5>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div id="notetemplistView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse4">
+                        Task
+                    </a>
+                </h5>
+            </div>
+            <div id="collapse4" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div id="tasktemplistView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse5">
+                        Service
+                    </a>
+                </h5>
+            </div>
+            <div id="collapse5" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div id="servicetemplistView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse6">
+                        Custom
+                    </a>
+                </h5>
+            </div>
+            <div id="collapse6" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div id="customtemplistView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+
+
+

@@ -1,0 +1,181 @@
+﻿
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@model AssessmentViewModel
+@{
+    ViewData["Title"] = "Map Questions";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+<style>
+
+    .k-grid td {
+        vertical-align: top;
+    }
+</style>
+<script type="text/javascript">
+
+    function OnMapQuestions() {
+       
+        var ques = '';
+        //var grid = $("#kgrdQuestions").data("JSGrid");
+        //grid.updateItem();
+        //for (var i = 0; i < grid.data.length; i++) {
+        //    if (grid.data[i].Select == true) {
+        //        ques = ques + grid.data[i].Id + ',';
+        //    }
+        //}
+
+        var grid = $("#kgrdQuestions").data("kendoGrid");
+        grid.tbody.find("input:checked").closest("tr").each(function (index) {
+            ques = ques + grid.dataItem(this).Id + ',';
+            //alert(grid.dataItem(this).Id);
+        });
+        if (ques == '' || ques == ',') {
+            alert("Please Select atleast one question from the list");
+        }
+        else {
+            ShowLoader($('#mapquestions'));
+            $.ajax({
+                type: "POST",
+                url: "/TAS/TalentAssessment/MapQuestions",
+                data: { 'assessmentId': '@Model.AssessmentId', 'qIds': ques },
+                success: function (data) {                    
+                    var win = GetMainWindow();
+                    win.ShowNotification("Questions mapped successfully", "success");
+                    $("#kgrdQuestions").data("kendoGrid").dataSource.read({ AssessmentId: '@Model.AssessmentId', AssessmentTypeId: '@Model.AssessmentTypeId' });
+                    var win1 = win.GetParentWindow();
+                    win1.$("#kgrdAssessmentQuestions1").data("kendoGrid").dataSource.read({ AssessmentId: '@Model.AssessmentId' });
+                    //Close();
+                },
+                dataType: "json",
+            });
+        }
+    }
+
+    function OnDataBound() {
+        HideLoader($('#mapquestions'));
+    }
+
+    function Close() {
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName:'AfterMapQuestions'});
+    }
+
+    function OnView(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Tas/TalentAssessment/AssessmentQuestionOption?noteId=" + id;
+        win.OpenWindow({ Title: 'View Options', Width: 1200, Height: 700 });
+
+    }
+
+</script>
+
+
+<div class="row" id="mapquestions">
+    <div class="col-md-12">
+        @*<button type='button' class='btn btn-primary' onclick='OnMapQuestions();'><i class='fa fas fa-plus'></i>&nbsp;Map Questions</button>*@
+        @*<div id="kgrdQuestions"></div>*@
+        @(Html.Kendo().Grid<AssessmentQuestionsViewModel>().Name("kgrdQuestions")
+        .Columns(col =>
+        {
+            col.Select().Width(50);
+            col.Bound(c => c.Topic).Title("Topic").Width(200);
+            col.Bound(c => c.CompetencyLevel).Title("Competency Level").Width(200);
+            col.Bound(c => c.IndicatorName).Title("Indicator Name").Width(200);
+            col.Bound(c => c.Question).Title("Question").Width(250);
+            col.Bound(c => c.QuestionDescription).Title("Question Description").Width(250);
+            col.Bound(c => c.QuestionArabic).Title("Question Arabic").Width(250);
+            col.Bound(c => c.QuestionDescriptionArabic).Title("Question Description Arabic").Width(250);
+            col.Bound(c => c.AssessmentType).Title("Assessment Type").Width(150);
+            col.Bound(c => c.AssessmentType).ClientTemplate("<span onclick='OnView(\"#:NoteId#\")' class='fas fa-eye'> </span>").Title("View Options").Width(180);
+
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Custom().Text("Map Questions").Name("btnMap").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnMapQuestions();" });
+        })
+        .Height(700)
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+        .Resizable(resize => resize.Columns(true))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Read(read => read.Action("ReadUnMappedQuestions", "TalentAssessment", new { Area="TAS", AssessmentId = Model.AssessmentId, AssessmentTypeId = Model.AssessmentTypeId }))
+        .Model(model => model.Id("Id")))
+        .Events(e=>e.DataBound("OnDataBound"))
+        )
+    </div>
+</div>
+
+<script>
+
+
+    @*$("#kgrdQuestions").jsGrid({
+        width: "100%",
+        height: "600px",
+
+        inserting: false,
+        editing: true,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        deleteConfirm: "Do you really want to delete client?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                return $.ajax({
+                    type: "GET",
+                    url: "/tas/TalentAssessment/ReadUnMappedQuestions?AssessmentId=@Model.AssessmentId&AssessmentTypeId=@Model.AssessmentTypeId",
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+
+            updateItem: function (item) {
+              
+            },
+           
+        },
+        onItemEditing: function (e) {
+            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                //  debugger;
+                e.grid.updateItem();
+            }
+                                },
+
+        fields: [
+            { name: "Select", type: "checkbox", editing:true },
+            { name: "Topic", type: "text", editing: false},
+            { name: "CompetencyLevel", type: "text", editing: false},
+            { name: "IndicatorName", type: "text", editing: false },
+            { name: "Question", type: "text", editing: false},
+            { name: "QuestionDescription", type: "text", editing: false },
+            { name: "QuestionArabic", type: "text", editing: false },
+            { name: "QuestionDescriptionArabic", type: "text", editing: false },
+            { name: "AssessmentType", type: "text", editing: false},
+           
+
+        ]
+                            });*@
+
+
+</script>

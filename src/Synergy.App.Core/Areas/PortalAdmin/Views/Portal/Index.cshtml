@@ -1,0 +1,1711 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+    Layout = null;// ViewBag.Layout;
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject IUserContext _userContext
+
+@model PageViewModel
+
+<style>
+    .lang-ctrl-width {
+        width: calc(100% - 50px) !important;
+        display: inline-block;
+    }
+
+    .language-icon {
+        cursor: pointer;
+    }
+
+    .k-switch-label-off, .k-switch-label-on {
+        display: block;
+    }
+
+    .style-myiconimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    /* .nav-tabs > li {
+        float: left;
+        margin-bottom: -1px;
+    }
+
+    .nav > li {
+        position: relative;
+        display: block;
+    }
+        .nav > li > a {
+            position: relative;
+            display: block;
+            padding: 10px 15px;
+        }
+    .nav-tabs > li > a {
+        margin-right: 2px;
+        line-height: 1.42857143;
+        border: 1px solid transparent;
+        border-radius: 4px 4px 0 0;
+    }
+    a {
+        color: #337ab7;
+        text-decoration: none;
+    }
+    a {
+        background-color: transparent;
+    }*/
+    label {
+        display: inline-block;
+        margin-bottom: -1.5rem;
+        color: grey;
+        float: right;
+    }
+
+    .float-container {
+        border: solid 1px #ccc;
+        position: relative;
+    }
+
+        .float-container input {
+            border: none;
+            outline: 0;
+        }
+
+    label {
+        position: absolute;
+    }
+
+    .upload {
+    }
+
+    .upload-div .k-button {
+        border: none !important;
+        background-color: transparent !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 80px !important;
+        background-image: url('../../../../images/logo.png') !important;
+        background-repeat: no-repeat !important;
+        background-position: left !important;
+        position: relative !important;
+        padding: 0px !important;
+    }
+
+        .upload-div .k-button span, .upload-div .k-upload-files, .upload-div .k-upload-status {
+            display: none !important;
+        }
+
+    .upload-div .k-dropzone {
+        border: none !important;
+        background-color: transparent !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    /* .upload-div {
+            border: none !important;
+            background-color: transparent !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-image: url('../../../../images/logo.png') !important;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+        }*/
+
+    .card-header {
+        padding: 2px !important;
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .sidenav {
+        height: 100%; /* 100% Full-height */
+        width: 0; /* 0 width - change this with JavaScript */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Stay on top */
+        top: 0; /* Stay at the top */
+        left: 0;
+        background-color: #fff; /* Black*/
+        border-right: 1px solid silver;
+        overflow-x: hidden; /* Disable horizontal scroll */
+        padding-top: 30px; /* Place content 60px from the top */
+        transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    }
+
+
+
+        /* Position and style the close button (top right corner) */
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            font-size: 30px;
+            font-weight: bold;
+            margin-left: 20px;
+            color: gray;
+            border: none;
+            text-decoration: none;
+        }
+
+            .sidenav .closebtn:hover {
+                color: red;
+            }
+
+    /* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+    #component-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #editor-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Style for switch checkbox*/
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 34px;
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+    /*Editor Type Style  */
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    .product {
+        /*float: left;*/
+        /*position: relative;*/
+        /*width: 111px;*/
+        height: 170px;
+        margin: 0 0px;
+        /*padding: 0;*/
+    }
+
+        .product img {
+            width: 110px;
+            height: 110px;
+        }
+
+        .product .div-icon {
+            width: 110px;
+            height: 110px;
+            background-color: #f8f8f8;
+        }
+
+            .product .div-icon svg {
+                position: relative;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%,-50%);
+            }
+
+        .product h3 {
+            margin: 0;
+            padding: 3px 5px 0 0;
+            max-width: 96px;
+            overflow: hidden;
+            line-height: 1.1em;
+            font-size: .9em;
+            font-weight: normal;
+            text-transform: uppercase;
+            color: #999;
+        }
+
+        .product p {
+            visibility: hidden;
+        }
+
+        .product:hover p {
+            cursor: pointer;
+            visibility: visible;
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            top: 0;
+            margin: 0;
+            padding: 0;
+            line-height: 110px;
+            vertical-align: middle;
+            text-align: center;
+            color: #fff;
+            background-color: rgba(0,0,0,0.75);
+            transition: background .2s linear, color .2s linear;
+            -moz-transition: background .2s linear, color .2s linear;
+            -webkit-transition: background .2s linear, color .2s linear;
+            -o-transition: background .2s linear, color .2s linear;
+        }
+
+    #pagetreelist > .k-toolbar > .k-button-icontext {
+        color: white;
+        background-color: #0062cc;
+    }
+
+
+    .treeheader {
+        font-weight: 500;
+        text-align: center;
+        font-size: medium;
+        background-color: #006699;
+        color: #f2f2f2 !important;
+        border-style: solid;
+        border-width: 1px;
+        border-color: lightgrey;
+        padding: 5px 0px 5px 0px;
+    }
+
+    .treebody {
+        padding: 10px !important;
+        color: black !important;
+    }
+
+    .fancytree-icon {
+        display: none !important;
+    }
+
+    .pagination li:hover {
+        cursor: pointer;
+    }
+
+    /*.page {
+        font-size: 20px;
+        padding: 6px;
+        border: solid;
+        border-width: thin;
+        border-color: lightgrey;
+        margin-bottom: 45px;
+    }*/
+
+    .ancpagination {
+        padding: 20px;
+        border-right: solid;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border-color: lightgrey;
+        border-width: thin;
+    }
+
+    /*Editor Type Style Close */
+</style>
+<script>
+
+    @*function OnLanguageClick()
+    {
+
+        var defaultValue = $("#Title").val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/cms/ResourceLanguage/Create?lo=Popup&cbm=OnPortalPageTitleCallBack&templateType=PortalPage&defaultValue=" + defaultValue + "&templateId=@Model.Id&code=PortalPageTitle";
+        win.OpenWindow({ Title: 'Manage Language', Width: 500, Height: 400 });
+    }
+     function OnMenuLanguageClick()
+    {
+
+        var defaultValue = $("#MenuName").val();
+        var win = GetMainWindow();
+         win.iframeOpenUrl = "/cms/ResourceLanguage/Create?lo=Popup&cbm=OnPortalMenuNameCallBack&templateType=PortalPage&defaultValue=" + defaultValue + "&templateId=@Model.Id&code=PortalPageMenuName";
+        win.OpenWindow({ Title: 'Manage Language', Width: 500, Height: 400 });
+    }*@
+    <!--function OnPortalPageTitleCallBack(Prms)
+    {
+        var english=Prms.item.English;
+        $("#Title").val(english)
+
+    }
+    function OnPortalMenuNameCallBack(Prms) {
+
+        var english = Prms.item.English;
+        $("#MenuName").val(english)
+    }
+    var groupId = 1;
+    var cellId = 1;
+    var componentId = 1;
+    function filterTemplates() {
+        return {
+            type: $("#PageType").data("kendoDropDownList").value()
+        };
+    }
+    function SubModulechange()
+    {
+        var search = FilterMenuGroup();
+        $("#MenuGroupId").data("kendoDropDownList").dataSource.read(search)
+    }
+    function FilterMenuGroup()
+    {
+        return {
+            SubModuleId: $("#SubModuleId").data("kendoDropDownList").value()
+        }
+    }
+
+    function OnPageTypechange(args) {
+         $("#TemplateId").data("kendoDropDownList").dataSource.read({type: $("#PageType").val()});
+        //if (pagetype == "Form") { $("#chkIndexPage").show(); }
+        //else {
+        //    $("#chkIndexPage").hide();
+        //    $("#EnableIndexPage").val("false");
+        //}
+    }
+    function ToggleNewGroup() {
+        $('#new-row-container').toggle('400');
+    }
+    function DiscardDeleteGroup(e) {
+        $(e).parent().hide('slide', { direction: 'right' }, 500);
+    }
+    function ConfirmDeleteGroup(e) {
+        console.log(e);
+        var contentId = e.parentNode.parentNode.parentNode.parentNode.id;
+        var type = e.parentNode.parentNode.parentNode.parentNode.getAttribute('data-page-content-type');
+        //$(e).parent().hide('slide', { direction: 'right' }, 500);
+        $.ajax({
+            type: "GET",
+            url: "/Cms/Content/DeleteContent?id=" + contentId + "&type=" + type,
+            dataType: "json",
+            success: function (response) {
+                $("#" + contentId).remove();
+            },
+        });
+    }
+    function DeleteGroup(e) {
+        var n = $(e).next();
+        if (n.is(':hidden')) {
+            n.show('slide', { direction: 'right' }, 500);
+        } else {
+            n.hide('slide', { direction: 'right' }, 500);
+        }
+    }
+    function OpenSettings(e) {
+        //
+        //var evt = e;
+        //var evt = e.target.id;
+        //console.log(evt);
+        var sid = e.parentNode.parentNode.id;
+        var stype = document.getElementById(sid).getAttribute('data-page-content-type');
+        var pid = document.getElementById(sid).getAttribute('data-page-id');
+        //alert('open settings');
+        //alert("source Id : " + sid + ", Type : " + stype + ", page Id : " + pid);
+        //openNavStyle(sid, stype);
+        editNavStyle(sid, stype,pid);
+    }
+    function OpenPageSettings(e) {
+        //var evt = e;
+        //console.log(evt);
+        var sid = e.parentNode.parentNode.id;
+        var stype = document.getElementById(sid).getAttribute('data-page-content-type');
+        var pid = document.getElementById(sid).getAttribute('id');
+        //alert("source Id : " + sid + ", Type : " + stype + ", page Id : " + pid);
+        //OpenManageSettings(sid, stype);
+        editNavStyle(sid, stype,pid);
+    }
+    function SetPageSettings(id) {
+        //alert(id);
+        var pagename = $('#PageName').val();
+        var pagetitle = $('#PageTitle').val();
+        var pagemenuname = $('#PageMenuName').val();
+        var pagehideinmenu = $('#PageHideInMenu').val();
+        var pageisrootpage = $('#PageIsRootPage').val();
+
+        document.getElementById(id).setAttribute("data-name", pagename);
+        document.getElementById(id).setAttribute("data-title", pagetitle);
+        document.getElementById(id).setAttribute("data-menu-name", pagemenuname);
+        document.getElementById(id).setAttribute("data-hide-menu", pagehideinmenu);
+        document.getElementById(id).setAttribute("data-is-root", pageisrootpModelge);
+
+        //alert(pagename);
+        //alert(pagetitle);
+        //alert(pagemenuname);
+        //alert(pagehideinmenu);
+        //alert(pageisrootpage);
+    }
+    function openNav() {
+        document.getElementById("side-components").style.width = "350px";
+        //  $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+    function openNavEditor() {
+        document.getElementById("mySidenavEditor").style.width = "600px";
+        $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+    function openEditor() {
+        alert("Hello Editor... ");
+    }
+    function OnSelectEditor(id) {
+        alert("Under Development... ");
+    }
+    function OnChangeCustomValidation(e) {
+
+        var validation = this.dataItem(e.item);
+        if (validation.Id == "Email") {
+            $('#txtRegularExpresssion').show();
+            $('#txtCustomValidation').show();
+            $('#txtRegularExpresssion').val('[a-zA-Z0-9_.+-]+@@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+');
+            $('#txtCustomValidation').val('');
+
+        } else if (validation.Id == "Number") {
+            $('#txtRegularExpresssion').show();
+            $('#txtCustomValidation').show();
+            $('#txtRegularExpresssion').val('^[0-9]*$');
+            $('#txtCustomValidation').val('');
+
+        } else if (validation.Id == "Url") {
+            $('#txtRegularExpresssion').show();
+            $('#txtCustomValidation').show();
+            $('#txtRegularExpresssion').val('https?://[a-zA-Z0-9-.]+.[a-zA-Z]{2,}');
+            $('#txtCustomValidation').val('');
+
+        } else if (validation.Id == "Custom") {
+            $('#txtRegularExpresssion').show();
+            $('#txtCustomValidation').show();
+            $('#txtRegularExpresssion').val('');
+            $('#txtCustomValidation').val('');
+        } else {
+            $('#txtRegularExpresssion').val('');
+            $('#txtCustomValidation').val('');
+            $('#txtRegularExpresssion').hide();
+            $('#txtCustomValidation').hide();
+
+        }
+    }
+    /* Set the width of the side navigation to 0 */
+    function closeNav(sideNav) {
+        document.getElementById(sideNav).style.width = "0";
+        // $("#overlay").removeClass("overlay");
+    }
+
+    function closeNavEditor() {
+        document.getElementById("mySidenavEditor").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+    var builder;
+    //$(document).ready(function () {
+         @*$.ajax({
+            type: "GET",
+             url: "/Cms/Content/GetPageJsonForm?pageId=@Model.Id",
+            success: function (response) {
+
+                if (response != "" && response != null) {
+                    var obj = JSON.parse(response);
+                    builder = new Formio.FormBuilder(document.getElementById("builder"), obj);
+                }
+                else {
+                    builder = new Formio.FormBuilder(document.getElementById("builder"), {
+                        "display": "form",
+                        "components": []
+                    });
+                }
+
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });*@
+        //InitializeContePlaceHolder();
+
+        //$('#txtMandatoryCustomValidation').hide();
+        //$('#txtRegularExpresssion').hide();
+        //$('#txtCustomValidation').hide();
+
+        //$('#chkFieldMandatory').on('change', function () {
+        //    // From the other examples
+        //    if (this.checked) {
+        //        //alert("checked");
+        //        $('#txtMandatoryCustomValidation').show();
+        //    } else {
+        //        //alert("not checked");
+        //        $('#txtMandatoryCustomValidation').hide();
+        //    }
+        //});
+    //});
+    function AddNewGroup(type) {
+        var gseq = groupId++;
+        var gid = GenerateGuid();
+        var groupRef = document.getElementById(type).firstElementChild;
+        var grp = groupRef.cloneNode(true);
+        var gn = $(grp).find('#group-name');
+        gn.html(type + ' ' + (gseq));
+        gn.attr("id", 'grp-name-' + gid);
+        grp.setAttribute("id", gid);
+        var seq = groupRef.getAttribute('data-sequence');
+        seq = eval(seq) + 1;
+        groupRef.setAttribute("data-sequence", seq);
+        grp.setAttribute("data-sequence", seq);
+        document.getElementById("groups").appendChild(grp);
+        $('.column', $('#' + gid)).each(function () {
+            $(this).attr("id", GenerateGuid());
+            $(this).attr("data-parent-id", gid);
+        });
+    }
+    function AddComponent(type, target) {
+        switch (type) {
+            case "RichText":
+                AddRichText(type, target);
+                break;
+            default:
+        }
+    }
+    function AddRichText(type, target) {
+        var t = $(target);
+        var cellId = GenerateGuid();
+        var cellRef = document.getElementById('dummy-' + type).firstElementChild;
+        var cell = cellRef.cloneNode(true);
+        var cn = $(cell).find('#comp-name');
+        cn.html('Rich Text Box ' + (componentId++));
+        cn.attr("id", 'comp-name-' + (cellId));
+
+        var seq = cellRef.getAttribute('data-sequence');
+        seq = eval(seq) + 1;
+        cellRef.setAttribute("data-sequence", seq);
+        cell.setAttribute("data-sequence", seq);
+        cell.setAttribute("data-parent-id", target.parentElement.id);
+        cell.setAttribute("id", cellId);
+
+        var compId = GenerateGuid();
+        var control = $(cell).find('#component');
+        control.attr("id", compId);
+        control.attr("data-component-type", "RichText");
+        control.attr("data-parent-id", cellId);
+        t.before(cell);
+        CreateRichTextBox($('#' + compId));
+    }
+    function CreateRichTextBox(id) {
+        id.kendoEditor({
+            stylesheets: [
+                "../content/shared/styles/editor.css",
+            ],
+            tools: [
+                "bold",
+                "italic",
+                "underline",
+                "justifyLeft",
+                "justifyCenter",
+                "justifyRight",
+                "insertUnorderedList",
+                "createLink",
+                "unlink",
+                "insertImage",
+                "tableWizard",
+                "createTable",
+                "addRowAbove",
+                "addRowBelow",
+                "addColumnLeft",
+                "addColumnRight",
+                "deleteRow",
+                "deleteColumn",
+                "mergeCellsHorizontally",
+                "mergeCellsVertically",
+                "splitCellHorizontally",
+                "splitCellVertically",
+                //"formatting",
+                //{
+                //    name: "fontName",
+                //    items: [
+                //        { text: "Andale Mono", value: "Andale Mono" },
+                //        { text: "Arial", value: "Arial" },
+                //        { text: "Arial Black", value: "Arial Black" },
+                //        { text: "Book Antiqua", value: "Book Antiqua" },
+                //        { text: "Comic Sans MS", value: "Comic Sans MS" },
+                //        { text: "Courier New", value: "Courier New" },
+                //        { text: "Georgia", value: "Georgia" },
+                //        { text: "Helvetica", value: "Helvetica" },
+                //        { text: "Impact", value: "Impact" },
+                //        { text: "Symbol", value: "Symbol" },
+                //        { text: "Tahoma", value: "Tahoma" },
+                //        { text: "Terminal", value: "Terminal" },
+                //        { text: "Times New Roman", value: "Times New Roman" },
+                //        { text: "Trebuchet MS", value: "Trebuchet MS" },
+                //        { text: "Verdana", value: "Verdana" },
+                //    ]
+                //},
+                "fontSize",
+                "foreColor",
+                "backColor",
+            ]
+        });
+    }
+    // $('.splitter-container').SplitterBar();
+    //var splitter = $('.splitter-container').height(200).split({
+    //    orientation: 'vertical',
+    //    limit: 10,
+    //    position: '20%', // if there is no percentage it interpret it as pixels
+    //    onDrag: function (event) {
+    //        console.log(splitter.position());
+    //    }
+    //});
+    //function ReloadTab() {
+
+
+    //    // $('#myModal').modal('show');
+    //    
+    //    
+    //}
+    //function SetTabControls(index, select) {
+    //    var tabStrip = $("#tabstrip").data("kendoTabStrip");
+    //    if (select) {
+    //        tabStrip.select(index);
+    //    }
+    //}
+    //function onTabSelect1(e) {
+    //    SetTabControls($(e.item).index(), false);
+    //}
+    //function OnSelect(e) {
+    //    e.preventDefault();
+
+
+    //}
+   
+
+    //function componentDrag(ev) {
+    //    //alert(ev.target.data('type'));
+    //    ev.dataTransfer.setData("text", ev.target.id);
+    //}
+    //function componentDrop(ev, el) {
+    //    ev.preventDefault();
+    //    var type = ev.dataTransfer.getData("text");
+    //    AddComponent(type, el);
+    //    //ev.target.appendChild(document.getElementById(data));
+    //}
+    //function componentDragOver(ev) {
+    //    ev.preventDefault();
+    //}
+    //function RemovespecailChar()
+    //{
+    //    var txt = $("#pagetitle").val();
+    //    txt = txt.replace(/[^A-Z0-9]/ig, "");
+    //    $("#generatelbl").html(txt);
+    //}
+    @*$("#Title").on('input', function () {
+        if ('@Model.DataAction' == '@DataActionEnum.Create')
+        {
+            var txt = $("#Title").val();
+            txt = txt.replace(/[^A-Z0-9]/ig, "");
+            $("#Name").val(txt);
+        }
+    });*@
+    //$("#Name").on('input', function () {
+    //    var txt = $("#Name").val();
+    //    txt = txt.replace(/[^_A-Z0-9]/ig, "");
+    //    $("#Name").val(txt);
+    //});
+    //function OnRequestEnd_TopLinePriceGrid(e) {
+    //    if (e.type === "update") {
+    //        var grid = $('#kgrdUserPermission').data('kendoGrid');
+    //        grid.dataSource.read();
+    //    }
+    //}
+    //function OnError(e) {
+    //    if (e.errors) {
+    //        var message = "Errors:\n";
+    //        $.each(e.errors, function (key, value) {
+    //            if ('errors' in value) {
+    //                $.each(value.errors, function () {
+    //                    message += this + "\n";
+    //                });
+    //            }
+    //        });
+    //        alert(message);
+    //    }
+    //}
+      @*var onAjaxSuccess = function (res) {
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+            window.parent.$("#contentTreeView").data("kendoTreeView").dataSource.read();
+            var pageId = res.page.Id;
+            LoadPartailView('@Url.Action("EditPage", "Content", new { @area="Cms"})?pageId=' + pageId, $('#page-content'));
+        }
+        else {
+            showError(res.error);
+          }
+          HideLoader($('#page-content'));
+    };*@
+    //var showError = function (error) {
+    //    //#validation-summary-manageform
+    //    $("#validation-summary").html(error);
+    //    $("#validation-summary").css("display", "block")
+    //    HideLoader($('#page-content'));
+    //}
+
+    //function onFileUploadSuccessIcon(e) {
+    //    if (e.response.success) {
+    //        //alert(e.response.fileId);
+    //        //console.log(e);
+    //        //return true;
+    //        $(".style-myiconimage").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+    //        $("#IconFileId").val(e.response.fileId);
+    //    }
+    //    else {
+    //        //var msg = ExtractError(e.response.errors, true);
+    //        //alert(msg);
+    //    }
+    //    return true;
+    //}
+
+    //function onIconDel() {
+
+    //    //        alert("Banner Delete");
+    //    $(".style-myiconimage").attr("src", "/images/200.png");
+    //    $("#IconFileId").val('');
+    //    var faviconupload = $("#files3").data("kendoUpload");
+    //    //console.log(bannerupload);
+    //    faviconupload.clearFile(function (file) { return true; });
+    //}
+
+    @*function OnPageDetails() {
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("PageDetailsIndex", "Content", new { @area="Cms"})?Id=' + '@Model.Id';
+        win.OpenWindow({ Title: 'Page Details', Width: 800, Height: 800 });
+        return false;
+    }*@
+
+
+</script>
+
+<script>
+      function OnCreateMenuGroup() {
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateMenuGroup", "MenuGroup", new { @area="PortalAdmin", source="Portal"})';
+        win.OpenWindow({ Title: 'Create Menu Group', Width: 650, Height: 800 });
+        return false;
+    }
+
+      function OnEditGroup(id) {
+     //   var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+           var win = GetMainWindow();
+          win.iframeOpenUrl = '@Url.Action("EditMenuGroup", "MenuGroup", new { @area="PortalAdmin" })?source=Portal&Id=' + id;
+          win.OpenWindow({ Title: 'Edit Menu Group', Width: 450, Height: 800 });
+        return false;
+    }
+
+    function OnAddPage(id) {
+
+        
+           var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("CreatePage", "Content", new { @area="Cms"})?source=Portal&isPopup=true&menugroupId=' + id + '&portalId=' + '@_userContext.PortalId'+ '&pagePortalId=' + '@_userContext.PortalId' ;
+          win.OpenWindow({ Title: 'Add Page', Width: 1000, Height: 1000 });
+        return false;
+    }
+
+       function OnEditPage(id) {
+        var win = GetMainWindow();
+           win.iframeOpenUrl = '@Url.Action("EditPage", "Content", new { @area="Cms"})?source=Portal&isPopup=true&pageId=' + id + '&pagePortalId=' + '@_userContext.PortalId' ;
+        win.OpenWindow({ Title: 'Add Page', Width: 1000, Height: 1000 });
+        return false;
+    }
+
+      function OnDeletePage(id) {
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDeletepage(id);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDeletepage(id) {
+
+
+        $.ajax({
+            url:'@Url.Action("DeletePage", "Content", new { @area= "Cms" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+
+                ShowNotification("Deleted Successfully", "success");
+                getpageTree();
+               // $("#pagetreelist").data("kendoTreeList").dataSource.read();
+            }
+        });
+
+
+    }
+
+
+    function OnDeleteMenuGroup(id) {
+
+        var flag = confirm('Do you really want to delete the Menu Group?');
+
+        if (flag) {
+            $.ajax({
+                url: '@Url.Action("Delete", "MenuGroup", new { @area="PortalAdmin"})?Id=' + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                       // $("#pagetreelist").data("kendoTreeList").dataSource.read();
+                        getpageTree();
+                        kendo.alert("Menu Group Deleted Successfully");
+                    } else {
+                       // $("#pagetreelist").data("kendoTreeList").dataSource.read();
+                        getpageTree();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    getpageTree();
+                  //  $("#pagetreelist").data("kendoTreeList").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+
+
+     $(function () {
+        $.contextMenu({
+            selector: '#usertree-menu1',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                console.log($trigger);
+                var id = $trigger.data('idvalue');
+                var status = $trigger.data('type');
+
+
+                switch (status) {
+                    case 'MenuGroup':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEditGroup(id);
+                                        break;
+                                    case 'del':
+                                        OnDeleteMenuGroup(id);
+                                        break;
+                                    case 'addPage':
+                                        OnAddPage(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit Menu Group", icon: "fas fa-pencil" },
+                                "del": { name: "Delete Menu Group", icon: "fas fa-trash" },
+                                "addPage": { name: "Add Page", icon: "fas fa-plus" },
+
+
+                            }
+                        };
+                    case 'Page':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEditPage(id);
+                                        break;
+                                    case 'del':
+                                        OnDeletePage(id);
+                                        break;
+
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit Page", icon: "fas fa-pencil" },
+                                "del": { name: "Delete Page", icon: "fas fa-trash" },
+
+
+
+                            }
+                        };
+
+                }
+            }
+        });
+
+     });
+
+
+
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var id = $trigger.data('id');
+                var type = $trigger.data('type');
+                var selectParentId = $trigger.data('parentId');
+                var name = $trigger.data('portalName');
+                var templateType = $trigger.data('templateType');
+                switch (type) {
+                    case 'TemplateCategory':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                        createNTSTemplate(id);
+                                        break;
+                                    case 'open':
+                                        editNtsCategory(id);
+                                        break;
+                                    //case 'import':
+                                    //    importTemplate(id, selectParentId);
+
+                                    //    //return false;
+                                    //    break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Template", icon: "fas fa-plus" },
+                                "open": { name: "Manage Category", icon: "fas fa-chart-area" },
+                              //  "import": { name: "Import Template", icon: "fas fa-upload" }
+                            }
+                        };
+                    case 'Template':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'open':
+                                        loadDiagram(id);
+                                        break;
+                                    case 'edit':
+                                        editNTSTemplate(id);
+                                        break;
+                                    case 'deletePage':
+                                        OnDeleteT(id);
+                                        break;
+                                    //case 'Export':
+
+                                    //    Export(id);
+                                    //    break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "open": { name: "Open Diagram", icon: "fas fa-project-diagram" },
+                                "edit": { name: "Edit Template", icon: "fas fa-edit" },
+                                "deletePage": { name: "Delete Template", icon: "fas fa-trash-alt" },
+                                //"Export": { name: "Export Template", icon: "fas fa-download" }
+                            }
+                        };
+                    default:
+                        return {
+                            callback: function (key, options) {
+                                //alert(parentId);
+                                //alert(parentType);
+                                switch (key) {
+                                    case 'add':
+                                        createNtsCategory(id);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-plus" },
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+
+
+    function TemplateChangeCallback(prms) {
+
+      //  $("#templatetreelist").data("kendoTreeList").dataSource.read();
+
+        gettemplateTree();
+
+    }
+    function TemplateCategoryCallback() {
+      //  $("#templatetreelist").data("kendoTreeList").dataSource.read();
+        gettemplateTree();
+    }
+    function createNTSTemplate(catId) {
+        url = "/cms/Template/Template?categoryId=" + catId + "&lo=Popup&cbm=TemplateChangeCallback&source=portal&portalId=@_userContext.PortalId";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Template', Width: 1200, Height: 650 });
+    }
+
+    function editNTSTemplate(id) {
+        url = "/cms/Template/Template?templateId=" + id + "&lo=Popup&cbm=TemplateChangeCallback";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Edit Template', Width: 1200, Height: 650 });
+    }
+
+    function createNtsCategory(type) {
+        url = "/cms/TemplateCategory/Create?type=" + type + "&lo=Popup&cbm=TemplateCategoryCallback&portalId=@_userContext.PortalId";// + "&layout=Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Catgeory', Width: 600, Height: 600 });
+    }
+
+    function editNtsCategory(id) {
+        url = "/cms/TemplateCategory/Edit?id=" + id + "&lo=Popup&cbm=TemplateCategoryCallback";// + "&layout=Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Edit Catgeory', Width: 600, Height: 600 });
+    }
+
+    function OnDeleteT(id) {
+
+
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDeleteT(id);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDeleteT(id) {
+
+
+        $.ajax({
+
+            url: '/cms/Template/DeleteTemplate?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+
+                ShowNotification("Deleted Successfully", "success");
+               // $("#templatetreelist").data("kendoTreeList").dataSource.read();
+                gettemplateTree();
+            }
+        });
+
+
+    }
+
+    function loadDiagram(id) {
+        //url = "/cms/BusinessDiagram/BusinessDiagram?id=" + id + "&lo=Popup";// + "&layout=Popup";
+        url = "/dms/document/DmsTemplateDiagram?id=" + id + "&isPopup=true";// + "&layout=Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Business Diagram', Width: 1400, Height: 1100 });
+    }
+
+</script>
+
+<div class="row card-header pad-20 no-gutters">
+    @*<div class="col-sm-1">
+            <button type="button" class="btn" style="width: 68%; height: 94%; border: 1px solid transparent; border-color: #dee2e6; background-color: #fff;" onclick="openNavForIcon()">
+                @if (Model.DataAction == DataActionEnum.Edit && Model.IconCss != "" && Model.IconCss != null)
+                {
+                    <i class="@Model.IconCss" style="font-size:35px;color:@Model.IconColor" id="pageicon" data-type="@Model.IconCss"></i>
+                }
+                else
+                {
+                    <i class="fal fa-file" style="font-size:35px" id="pageicon" data-type="fal fa-file"></i>
+                }
+
+            </button>
+        </div>*@
+    @*<div class="float-container col-sm-6" style="margin-left:-21px;">
+            <input type="text" class="form-control" id="pagetitle" value="@Model.Title" />
+            <label id="generatelbl" class="float-right" for="pagetitle" style="position:unset;padding-right:5px;padding-top:3px;font-size:small;">@Model.Name</label>
+        </div>*@
+    <div class="col-sm-11">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item"><a data-toggle="tab" href="#pages" class="nav-link active" role="tab" aria-controls="general" aria-selected="true"><i class="fas fa-pencil-paintbrush" style="margin-left:15px;" @*onclick="LoadPartailView('@Url.Action("Pages", "Portal", new { @area = "PortalAdmin" })');"*@></i><br />Page</a></li>
+            <li class="nav-item"><a data-toggle="tab" href="#templates" class="nav-link" aria-controls="permissions" aria-selected="false" @*onclick="LoadPartailView('@Url.Action("Templates", "Portal", new { @area = "PortalAdmin" })');"*@><i class="fas fa-key" style="margin-left:32px;"></i><br />Template</a></li>
+        </ul>
+
+    </div>
+</div>
+
+<div class="tab-content">
+    <div id="pages" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+
+        <div class="row">
+            <div class="col-md-12">
+                <button class="btn btn-primary" onclick="OnCreateMenuGroup()" title="Add Menu Group"> + Add Menu Group</button>
+                <br />
+                <table id="pagetreelist" style="width:100%">
+                    <colgroup>
+                        <col width="10">
+                        <col width="50">
+                        <col width="200">
+                        <col width="200">
+                        <col width="200">
+                        <col width="200">
+                        <col width="200">
+
+
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th class="treeheader"><div id="Id"></div></th>
+                            <th class="treeheader"><div id="Action">Action</div></th>
+                            <th class="treeheader"><div id="Name">Name</div></th>
+                            <th class="treeheader"><div id="ModuleName">ModuleName</div></th>
+                            <th class="treeheader"><div id="SubModuleName">SubModuleName</div></th>
+                            <th class="treeheader"><div id="PageTypeName">Page Type</div></th>
+                            <th class="treeheader"><div id="TemplateName">TemplateName</div></th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+
+
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                        </tr>
+                    </tbody>
+                </table>
+               
+                @*@(Html.Kendo().TreeList<PageViewModel>()
+                    .Name("pagetreelist")
+                     .Toolbar(toolbar => toolbar.Custom().Name("Add").Text(" + Add Menu Group").Click("OnCreateMenuGroup"))
+
+                            .Columns(columns =>
+                            {
+                                columns.Add().Field(e => e.Id).Title("Action").Template("<div class='btn-group grid-menu' id='usertree-menu1' data-idvalue=\"#:Id#\" data-type=\"#:Type#\"><i class='fas fa-ellipsis-v'></i></div>").Width(250);
+                                columns.Add().Field(e => e.Name).Width(250);
+                                columns.Add().Field(e => e.ModuleName).Width(250);
+                                columns.Add().Field(e => e.SubModuleName).Width(250);
+                                columns.Add().Field(e => e.PageTypeName).Title("Page Type").Template("#if(PageTypeName!='0'){# <div >#=PageTypeName# </div> #}#").Width(250);
+                                columns.Add().Field(e => e.TemplateName).Width(250);
+                                //columns.Add().Field(e => e.SubModuleName).Width(160);
+                            })
+                            .Editable(e => e.Mode("popup"))
+                        .Filterable()
+                        .Sortable()
+                        .DataSource(dataSource => dataSource
+                        // .Create(create => create.Action("CreateMenuGroup", "MenuGroup", new { @area = "PortalAdmin" }))
+                        .Read(read => read.Action("ReadPageData", "Portal", new { @area= "PortalAdmin" }))
+                .ServerOperation(false)
+                .Model(m => {
+                    m.Id(f => f.Id);
+                    m.ParentId(f => f.ParentId);
+                    m.Expanded(true);
+                    m.Field(f => f.Name);
+                    // m.Field(f => f.SubModuleName);
+                })
+            )
+            .Height(540)
+            .Pageable(p => p.PageSize(15)
+                            .PageSizes(true)
+            )
+        )*@
+
+
+            </div>
+        </div>
+    </div>
+    <div id="templates" class="tab-pane " role="tabpanel" aria-labelledby="permissions-tab">
+        <div class="row">
+            <div class="col-md-12">
+                <table id="templatetreelist" style="width:100%">
+                    <colgroup>
+                        <col width="10">
+                        <col width="50">
+                        <col width="200">
+                        <col width="200">
+
+
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th class="treeheader"><div id="Id"></div></th>
+                            <th class="treeheader"><div id="Action">Action</div></th>
+                            <th class="treeheader"><div id="DisplayName">DisplayName</div></th>
+                            <th class="treeheader"><div id="TemplateCode">TemplateCode</div></th>
+
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+
+
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <script>
+                    function getpageTree() {
+                        
+                        $("#pagetreelist").fancytree({
+                            extensions: ["table"],
+                            source: $.ajax({
+                                url: "/PortalAdmin/Portal/ReadPageData",
+                                dataType: "json"
+                            }),
+                            lazyLoad: function (event, data) {
+                                var node = data.node;
+                                // Issue an Ajax request to load child nodes
+                                data.result = {
+                                    url: "/PortalAdmin/Portal/ReadPageData",
+                                    data: { id: node.key }
+                                }
+
+                            },
+                            renderNode: function (event, data) {
+                                // Optionally tweak data.node.span
+                                // 
+                                //var node = data.node;
+                                //  node.renderTitle();
+                                var node = data.node,
+                                    $tdList = $(node.tr).find(">td");
+                                // (index #0 is rendered by fancytree by adding the checkbox)
+                                //  $tdList.eq(0).text(node.data.NoteSubject).addClass("alignRight");
+                                // (index #2 is rendered by fancytree)
+                                //if(Type=='Question'){#<div><i class='fa fas fa-pencil' onclick='onEditSalaryInfo(\"#:NoteId#\")'></i></div>#}
+
+                                $tdList.eq(1).html("<div class='btn-group grid-menu' id='usertree-menu1' data-idvalue='" + node.data.Id + "' data-type='" + node.data.Type + "'  ><i class='fas fa-ellipsis-v'></i></div>");
+                                // $tdList.eq(1).text(node.data.ServiceNo);
+                                $tdList.eq(2).text(node.data.Name);
+                                $tdList.eq(3).text(node.data.ModuleName);
+                                $tdList.eq(4).text(node.data.SubModuleName);
+                                if (node.data.PageTypeName != '0') {
+                                    $tdList.eq(5).text(node.data.PageTypeName);
+                                }
+                                else {
+                                    $tdList.eq(5).text("");
+                                }
+
+                                $tdList.eq(6).text(node.data.TemplateName);
+
+                            },
+                            dblclick: function (event, data) {
+                                var node = data.node;
+                            },
+                            contextMenu: {
+                                menu: function (data) {
+                                    
+                                    return {
+                                    }
+                                },
+                                actions: function (node, action, options) {
+                                }
+                            }
+                        });
+
+                    }
+
+                    function gettemplateTree() {
+                        
+                        $("#templatetreelist").fancytree({
+                            extensions: ["table"],
+                            source: $.ajax({
+                                url: "/PortalAdmin/Portal/ReadTempaltesData",
+                                dataType: "json"
+                            }),
+                            lazyLoad: function (event, data) {
+                                var node = data.node;
+                                // Issue an Ajax request to load child nodes
+                                data.result = {
+                                    url: "/PortalAdmin/Portal/ReadTempaltesData",
+                                    data: { id: node.key }
+                                }
+
+                            },
+                            renderNode: function (event, data) {
+                                // Optionally tweak data.node.span
+                                // 
+                                //var node = data.node;
+                                //  node.renderTitle();
+                                var node = data.node,
+                                    $tdList = $(node.tr).find(">td");
+                                // (index #0 is rendered by fancytree by adding the checkbox)
+                                //  $tdList.eq(0).text(node.data.NoteSubject).addClass("alignRight");
+                                // (index #2 is rendered by fancytree)
+                                //if(Type=='Question'){#<div><i class='fa fas fa-pencil' onclick='onEditSalaryInfo(\"#:NoteId#\")'></i></div>#}
+
+                                $tdList.eq(1).html("<div class='btn-group grid-menu' id='tree-menu' data-id='" + node.data.id + "' data-type='" + node.data.Type + "' data-template-type='" + node.data.TemplateType + "' data-portal-name='" + node.data.Name + "' data-parent-id='" + node.data.ParentId + "'  ><i class='fas fa-ellipsis-v'></i></div>");
+                                // $tdList.eq(1).text(node.data.ServiceNo);
+                                $tdList.eq(2).text(node.data.DisplayName);
+                                $tdList.eq(3).text(node.data.TemplateCode);
+
+                            },
+                            dblclick: function (event, data) {
+                                var node = data.node;
+                            },
+                            contextMenu: {
+                                menu: function (data) {
+                                    
+                                    return {
+                                    }
+                                },
+                                actions: function (node, action, options) {
+                                }
+                            }
+                        });
+
+                    }
+
+
+                    $(function () {
+                        getpageTree();
+                        gettemplateTree();
+                        setTimeout(function () {
+                            
+                            $('#pagetreelist').after('<div id="nav1" class="page"></div>');
+                            var rowsShown = 10;
+                            var rowsTotal = $('#pagetreelist tbody tr').length;
+                            var numPages = rowsTotal / rowsShown;
+                            for (i = 0; i < numPages; i++) {
+                                var pageNum = i + 1;
+                                $('#nav1').append('<a class="ancpagination" href="#" rel="' + i + '">' + pageNum + '</a> ');
+                            }
+                            $('#pagetreelist tbody tr').hide();
+                            $('#pagetreelist tbody tr').slice(0, rowsShown).show();
+                            $('#nav1 a:first').addClass('active');
+                            $('#nav1 a').bind('click', function () {
+
+                                $('#nav1 a').removeClass('active');
+                                $(this).addClass('active');
+                                var currPage = $(this).attr('rel');
+                                var startItem = currPage * rowsShown;
+                                var endItem = startItem + rowsShown;
+                                $('#pagetreelist tbody tr').css('opacity', '0.0').hide().slice(startItem, endItem).
+                                    css('display', 'table-row').animate({ opacity: 1 }, 300);
+                            });
+
+                            $('#templatetreelist').after('<div id="nav2" class="page"></div>');
+                            var rowsShown = 10;
+                            var rowsTotal = $('#templatetreelist tbody tr').length;
+                            var numPages = rowsTotal / rowsShown;
+                            for (i = 0; i < numPages; i++) {
+                                var pageNum = i + 1;
+                                $('#nav2').append('<a class="ancpagination" href="#" rel="' + i + '">' + pageNum + '</a> ');
+                            }
+                            $('#templatetreelist tbody tr').hide();
+                            $('#templatetreelist tbody tr').slice(0, rowsShown).show();
+                            $('#nav2 a:first').addClass('active');
+                            $('#nav2 a').bind('click', function () {
+
+                                $('#nav2 a').removeClass('active');
+                                $(this).addClass('active');
+                                var currPage = $(this).attr('rel');
+                                var startItem = currPage * rowsShown;
+                                var endItem = startItem + rowsShown;
+                                $('#templatetreelist tbody tr').css('opacity', '0.0').hide().slice(startItem, endItem).
+                                    css('display', 'table-row').animate({ opacity: 1 }, 300);
+                            });
+                      
+
+
+                    }, 3000);
+
+
+
+                                        // getPagination('#treetable');
+                                    });
+                </script>
+                @*@(Html.Kendo().TreeList<TreeViewViewModel>()
+            .Name("templatetreelist")
+            .Columns(columns =>
+            {
+                //  columns.Add().Field(e => e.TemplateCategoryName).Width(250);
+                columns.Add().Field(e => e.id).Title("Action").Template("<div class='btn-group grid-menu' data-id=\"#:id#\" data-template-type=\"#:TemplateType#\" data-type=\"#:Type#\" data-portal-name=\"#:Name#\" data-parent-id=\"#:ParentId#\" id='tree-menu'><i class='fas fa-ellipsis-v'></i></div>").Width(80);
+
+                columns.Add().Field(e => e.DisplayName).Width(160);
+                columns.Add().Field(e => e.TemplateCode).Width(160);
+            })
+            .Filterable()
+            .Sortable()
+            .DataSource(dataSource => dataSource
+                .Read(read => read.Action("ReadTempaltesData", "Portal", new { @area= "PortalAdmin" }))
+                .ServerOperation(false)
+                .Model(m => {
+                    m.Id(f => f.id);
+                    m.ParentId(f => f.ParentId);
+                    m.Expanded(false);
+                })
+            )
+            .Height(540)
+            .Pageable(p => p.PageSize(15)
+                            .PageSizes(true)
+            )
+        )*@
+
+
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+
+
+
+<div id="page-icon-div">
+    <div id="mySidenavPageIcon" class="sidenav">
+        <h1 class="cms-panel-header-name">Page Icon</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavIcon()" title="Close">&times;</a>
+        <hr />
+        <div id="page-icon" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    @*$(document).ready(function () {
+         LoadPartailView('@Url.Action("ManagePermissions", "Content", new { @area="Cms"})?pageId=@Model.Id&pageType=@Model.PageType', $('#permissions'));
+    });*@
+
+    function OnSave(Statetype,evt) {
+
+        ShowLoader($('#page-content'));
+       // $("#Title").val($("#pagetitle").val());
+       // $("#Name").val($("#generatelbl").html());
+        $("#state").val(Statetype);
+        if ($("#Title").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Title is required");
+            HideLoader($('#page-content'));
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#ModuleId").val() == "")
+        {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Module is required");
+            evt.preventDefault();
+            HideLoader($('#page-content'));
+            return false;
+
+        }
+        else if ($("#SubModuleId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Sub Module is required");
+            HideLoader($('#page-content'));
+            return false;
+        }
+        else if ($("#MenuGroupId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Menu Group is required");
+            evt.preventDefault();
+            HideLoader($('#page-content'));
+            return false;
+
+        }
+        else if ($("#PageType").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Page Type is required");
+            evt.preventDefault();
+            HideLoader($('#page-content'));
+            return false;
+
+        }
+        else if ($("#TemplateId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Template is required");
+            evt.preventDefault();
+            HideLoader($('#page-content'));
+            return false;
+
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+
+        }
+
+    }
+
+    function openNavForIcon() {
+        //alert("test");
+        document.getElementById("mySidenavPageIcon").style.width = "450px";
+        LoadPartailView('@Url.Action("SelectPageIcon", "Content", new { @area="Cms"})?iconCss=' + $("#pageicon").attr("data-type") + "&iconColor=" + $("#pageicon").css("color"), $('#page-icon'));
+        $("#overlay").addClass("overlay");
+
+    }
+    function closeNavIcon() {
+        document.getElementById("mySidenavPageIcon").style.width = "0";
+        $("#overlay").removeClass("overlay");
+    }
+    function OnIconPropertySubmit(iconname, iconcolor) {
+
+        $("#IconCss").val(iconname);
+        $("#IconColor").val(iconcolor);
+        $("#pageicon").attr("data-type", iconname);
+        $("#pageicon").removeAttr("class");
+        $("#pageicon").addClass(iconname);
+        $("#pageicon").css("color", iconcolor);
+        document.getElementById("mySidenavPageIcon").style.width = "0";
+        $("#overlay").removeClass("overlay");
+    }
+    @*function Permission() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("PagePermission", "PagePermission", new { @area="Cms"})?portalId=@Model.PortalId&pageId=@Model.Id';
+        win.OpenWindow({ Title: 'Permission', Width: 450, Height: 950, Position:'Right' });
+        return false;
+    }*@
+     // function that gathers IDs of checked nodes
+    function checkedNodeIds(nodes, checkedNodes) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].checked) {
+                checkedNodes.push(nodes[i].id);
+            }
+
+            if (nodes[i].hasChildren) {
+                checkedNodeIds(nodes[i].children.view(), checkedNodes);
+            }
+        }
+    }
+
+    // show checked node IDs on datasource change
+    function onCheck() {
+        var checkedNodes = [],
+            treeView = $("#treeview").data("kendoTreeView"),
+            message;
+
+        checkedNodeIds(treeView.dataSource.view(), checkedNodes);
+
+        if (checkedNodes.length > 0) {
+            message = "IDs of checked nodes: " + checkedNodes.join(",");
+        } else {
+            message = "No nodes checked.";
+        }
+        $("#result").html(message);
+    }
+
+    function ExtractError(err, exludeLi) {
+        var msg = "";
+        $.each(err, function (key, value) {
+
+            $.each(value, function (key1, value1) {
+                $.each(value1, function (key2, value2) {
+                    if (exludeLi) {
+                        msg += value2 + "\n";
+                    }
+                    else {
+                        msg += "<li>" + value2 + "</li>";
+                    }
+
+                });
+
+            });
+        });
+        return msg;
+    }
+
+
+</script>
+
+

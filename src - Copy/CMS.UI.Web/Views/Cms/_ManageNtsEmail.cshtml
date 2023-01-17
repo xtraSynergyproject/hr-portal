@@ -1,0 +1,1111 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+     Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+@inject CMS.Common.IUserContext _userContext
+@model EmailTaskViewModel
+<style>
+
+    table.k-editor {
+        width: 100% !important;
+        display: table !important;
+        vertical-align: top !important;
+        table-layout: fixed !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        height: 100px !important;
+        border-bottom-color: #dee2e6;
+        border-top-color: white;
+        border-right-color: white;
+        border-left-color: white;
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }
+
+
+    .k-upload {
+        width: 100%;
+    }
+
+    .k-editable-area{
+        background-color:white;
+    }
+
+    .SYN-Main-wrapper {
+        width: 700px;
+        height: auto;
+        padding: 0;
+        margin: 20px auto;
+        box-shadow: 4px 4px 10px #CBD0CE;
+        border-radius: 6px;
+    }
+
+    .SYN-upload-row {
+        width: 96%;
+        padding: 0;
+        margin: 4px auto;
+        background-color: #10B0ED;
+        border-radius: 6px;
+    }
+
+    .SYN-ico-pdf {
+        width: 96%;
+       /* padding: 20px;*/
+        margin: 0 auto;
+    }
+
+    .SYN-ico-action {
+       /* padding: 26px 4px;*/
+        margin: 4px;
+        float: left;
+    }
+
+    .SYN-ico-action-eye {
+        /*padding: 10px 4px;*/
+       margin: 4px;
+        float: left;
+        color: blue;
+        cursor: pointer;
+    }
+
+    .SYN-ico-action-down {
+        /* padding: 10px 4px;*/
+        margin: 4px;
+        float: left;
+        color: greenyellow;
+        cursor: pointer;
+    }
+
+    .SYN-ico-action-del {
+        /*    padding: 10px 4px;*/
+        margin: 4px;
+        float: left;
+        color: red;
+        cursor: pointer;
+    }
+
+    .SYN-tag-field {
+        padding: 0;
+        margin: 0;
+        font-size: 14px;
+        color: #939598;
+    }
+
+    .SYN-txt-field {
+        padding: 0;
+        margin: 0;
+    }
+
+    .SYN-row-gap {
+        padding: 0;
+      /*  margin: 12px 0;*/
+    }
+
+    .SYN-dummy-row {
+        width: 96%;
+        padding: 4px;
+        margin: 4px auto;
+    }
+
+    .SYN-list-box {
+        width: 75%;
+        padding: 0;
+       /* margin: 4px auto;*/
+        background-color: #ffffff;
+        border-radius: 6px;
+        /*  border: 1px solid #C4C4C4;*/
+       /* border-bottom-color: rgb(196, 196, 196);
+        border-bottom-style: solid;
+        border-bottom-width: 1px*/
+    }
+
+    .SYN-sub-docName {
+        padding: 2px 0 2px 0;
+        font-size: 14px;
+    }
+
+    .SYN-sub-white-txt {
+        padding: 2px 0 2px 12px;
+        font-size: 14px;
+    }
+
+    .SYN-inn-title-row {
+        width: 96%;
+        padding: 0;
+        margin: 4px auto;
+        background-color: #353535;
+        border-radius: 6px;
+        color: #fff;
+    }
+
+    .SYN-ico-close {
+        width: 96%;
+        padding: 6px;
+        margin: 6px auto;
+        height: auto;
+    }
+
+    .SYN-ico-expand {
+        width: 96%;
+        padding: 6px;
+        margin: 6px auto;
+        height: auto;
+    }
+
+    .SYN-inn-row {
+        width: 96%;
+        padding: 0;
+        margin: 4px auto;
+    }
+
+    .SYN-sub-title {
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .SYN-white-text {
+        font-weight: 500;
+        font-size: 16px;
+        color: #fff;
+    }
+
+    .SYN-main-title {
+        font-weight: 500;
+        font-size: 16px;
+        padding: 16px 0;
+    }
+
+    .k-button {
+        border-color: #353535;
+        color: #fff;
+        background-color: #353535;
+    }
+
+    .k-upload .k-dropzone {
+        border-color: #dee2e6;
+        color: #bababa;
+        background-color: #10B0ED;
+    }
+
+        .k-upload .k-dropzone .k-dropzone-hint, .k-upload .k-dropzone .k-upload-status {
+            color: #ffff;
+        }
+
+    #subject{
+        padding-top:100px;
+    }
+
+    .viewmode{
+        background-color:white;
+        font-size:20px;
+    }
+    .attachment-icon{
+        color:black;
+    }
+    .avatar-myProfile {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+    #AttachmentlistView {
+        border-color: white !important;
+        margin-left: 10px;
+    }
+
+    .from > .k-dropdown-wrap {
+        color: black;
+        border-width: 0px !important;
+        border-radius: 0px !important;
+        border-color: transparent !important;
+        background-color: transparent !important;
+        padding-top: 5px !important;
+    }
+
+      /*  .from > .k-dropdown-wrap:hover, .userlegal > .k-dropdown-wrap:focus {
+            color: white !important;
+        }*/
+</style>
+
+<script>
+
+    $(document).ready(function () {
+        $('.content').richText();
+        if ('@Model.To' != null || '@Model.To' != "") {
+            $('#ToEmail').val('@Model.To');
+        }
+
+       // var value = $("#TaskDescription").val();
+       //value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+     //   var bodytext = value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+      //  bodytext = bodytext.replace(/&lt;/, "<").replace(/&gt;/, ">");
+       // $("#viewbodydesc").html(bodytext)
+
+
+        $("#From").kendoDropDownList({
+            dataTextField: "EmailText",
+            dataValueField: "SmtpUserId",
+		    value: "@Model.From",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/GeFromUsers",
+                    }
+                }
+            }
+        });
+
+          var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/GetTaskAttachmentList?taskId=@Model.TaskId",
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#AttachmentlistView").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#template").html())
+        });
+     //   uploadFile();
+    });
+
+
+    function uploadFile() {
+        $("#iconFile").dmUploader({ //
+            url: '/Cms/SaveTaskAttachment?referenceTypeId=@Model.TaskId&referenceTypeCode= @ReferenceTypeEnum.NTS_Task',
+            multiple: false,
+          //  extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $(".style-myiconimage").attr("src", "/cms/Document/GetImageMongo?id=" + data.fileId);
+                $("#IconFileId").val(data.fileId);
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }
+
+
+    function validatetoemail(id)
+    {
+
+        const re = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        var x = document.getElementById(id).value;
+        var y = x.split("<");
+        if (y.length > 1) {
+            var z = y[1].split(">");
+            x = z[0];
+        }
+       return re.test(x);
+
+    }
+
+    function getvaluesto() {
+        var x = document.getElementById("ToEmail").value;
+        var y = x.split("<");
+        if (y.length > 1) {
+            var z = y[1].split(">");
+            x = z[0];
+        }
+        return x;
+    }
+
+    function validateemail(id) {
+
+        const re = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        var flag = true;
+        var x = document.getElementById(id).value;
+        if (x != "" && x != null) {
+            var emails = x.split(",");
+
+            for (var i = 0; i < emails.length; i++) {
+                if (emails[i] != "") {
+                    var y = emails[i].split("<");
+                    var email = emails[i];
+                    if (y.length > 1) {
+                        var z = y[1].split(">");
+                        email = z[0];
+                    }
+
+                    flag = re.test(email);
+                    if (flag == false) {
+                        return flag;
+                    }
+                }
+
+            }
+        }
+
+        return flag;
+
+    }
+    function getvaluesccBcc(id) {
+        var text = "";
+        var x = document.getElementById(id).value;
+        if (x != "" && x != null) {
+            var emails = x.split(",");
+
+            for (var i = 0; i < emails.length; i++) {
+                if (emails[i] != "") {
+                    var y = emails[i].split("<");
+                    var email = emails[i];
+                    if (y.length > 1) {
+                        var z = y[1].split(">");
+                        email = z[0];
+                    }
+                    text = text + email + ";";
+                }
+            }
+        }
+        return text;
+    }
+
+    function onAdditionalData() {
+        return {
+            text: $("#ToEmail").val()
+        };
+    }
+
+    function onAdditionalData1() {
+        return {
+            text: $("#CcEmail").val()
+        };
+    }
+
+    function onAdditionalData2() {
+        return {
+            text: $("#BccEmail").val()
+        };
+    }
+
+    function selectToEmail(e) {
+
+        var item = this.dataItem(e.item.index());
+        if (item == null) {
+
+        }
+        else {
+            $('#AssignedToUserId').val(item.Id);
+        }
+
+    }
+
+    function selectCcEmail(e) {
+
+        var item = this.dataItem(e.item.index());
+        //$('#CC').val(item.Id);
+      //  $('#CC').val(this.text);
+    }
+
+    function selectBccEmail(e) {
+        //
+        var item = this.dataItem(e.item.index());
+        //$('#BCC').val(item.Id);
+        $('#BCC').val(this.text);
+    }
+
+    function AddAttachment(e)
+{
+        url = '@Url.Action("AddEmailAttachment", "Cms", new { @area= "" })?TaskId=@Model.TaskId&IsAddAttachmentEnabled=@Model.IsAddAttachmentEnabled';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Email Attachment', Width: 900, Height: 600 });
+    return false;
+    }
+
+    function SaveAsDraft(e) {
+        debugger
+        var validto = validatetoemail("ToEmail");
+        var validcc = validateemail("CcEmail");
+        var validbcc = validateemail("BccEmail");
+        if (validto == false) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Please Enter Valid email");
+            e.preventDefault();
+            return false;
+        }
+        if (validcc == false) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Please Enter Valid email");
+            e.preventDefault();
+            return false;
+        }
+        if (validbcc == false) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Please Enter Valid email");
+            e.preventDefault();
+            return false;
+        }
+        else {
+            $("#TaskStatusCode").val('TASK_STATUS_DRAFT');
+          //  var cc = document.getElementById("CcEmail").value;
+            var cc = getvaluesccBcc("CcEmail");
+            $('#CC').val(cc);
+            //var bcc = document.getElementById("BccEmail").value;
+            var bcc = getvaluesccBcc("BccEmail");
+            $('#BCC').val(bcc);
+          //  var to = document.getElementById("ToEmail").value;
+            var to = getvaluesto();
+            $('#To').val(to);
+            ShowLoader($('.emaildata'));
+           // return true;
+        }
+
+    }
+
+
+
+
+
+    function OnSave(e) {
+        //debugger
+        var validto = validatetoemail("ToEmail");
+        var validcc = validateemail("CcEmail");
+        var validbcc = validateemail("BccEmail");
+        if (validto == false) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Please Enter Valid email");
+            e.preventDefault();
+            return false;
+        }
+        if (validcc == false) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Please Enter Valid email");
+            e.preventDefault();
+            return false;
+        }
+        if (validbcc == false) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("vaModelidation-summary-errors");
+            $(".text-danger").html("Please Enter Valid email");
+            e.preventDefault();
+            return false;
+        }
+
+            $("#TaskStatusCode").val('TASK_STATUS_INPROGRESS');
+        //  var cc = document.getElementById("CcEmail").value;
+        var cc = getvaluesccBcc("CcEmail");
+        $('#CC').val(cc);
+        //var bcc = document.getElementById("BccEmail").value;
+        var bcc = getvaluesccBcc("BccEmail");
+        $('#BCC').val(bcc);
+        //  var to = document.getElementById("ToEmail").value;
+        var to = getvaluesto();
+        $('#To').val(to);
+
+        ShowLoader($('.emaildata'));
+
+        return true;
+    }
+
+    var onAjaxSuccess = function (res) {
+        HideLoader($('.emaildata'));
+        if (res.success) {
+
+            ShowNotification("Saved Successfully", "success");
+
+                var win = GetMainWindow();
+            win.CloseWindow({ MethodName: 'CallBack'});
+
+
+        }
+        else {
+         showError(res.error);
+        }
+    };
+
+
+    function ReloadAttch() {
+        //alert("test");
+        $("#AttachmentlistView").data("kendoListView").dataSource.read();
+    }
+
+     function onDownload(id) {
+        url = '/cms/Document/GetFileMongo?fileId=' + id;
+        window.open(url, '_blank');
+        return false;
+    }
+
+      function ViewAttachment(id)
+    {
+          url = '@Url.Action("ViewAttachment", "Cms", new { @area= "" })?fileId=' + id;
+          var win = GetMainWindow();
+          win.iframeOpenUrl = url;
+          win.OpenWindow({ Title: 'View Attachment', Width: 1200, Height: 600 });
+    }
+    function onDeleteClick(fileId) {
+        if (confirm('Are you sure you want to delete the selected file?')) {
+            $.ajax({
+                type: "POST",
+                url: '/cms/DeleteAttachment',
+                data: { id: fileId },
+                success: function (data) {
+                    $("#AttachmentlistView").data("kendoListView").dataSource.read();
+                    window.parent.FillAttachmentCount();
+                },
+                dataType: "json",
+            });
+        }
+
+        return false;
+    }
+
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            //setLocalFileIds(e.response.fileId);
+            $("#AttachmentlistView").data("kendoListView").dataSource.read();
+
+        }
+        else {
+            var msg = ExtractError(e.response.errors, true);
+        }
+        return true;
+
+    }
+</script>
+
+
+<div style="margin-top: 5px;width: 100%;background-color:white">
+    @if (ViewBag.Mode == "Create" || ViewBag.Mode == "Edit")
+    {
+        <div class="row emaildata" @*id="emaildata"*@>
+            <form asp-controller="Cms" asp-action="ManageNtsEmail" method="post"
+                  data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+                  data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+                  data-ajax="true" data-ajax-method="POST"
+                  class="form-horizontal">
+                <div id="validation-summary-managepage" style="margin-left:50px" class="text-danger" asp-validation-summary="All"><br /><br /></div>
+                <div class="col-12">
+                    @Html.HiddenFor(x => x.AssignedToUserId)
+                    @Html.HiddenFor(x => x.CC)
+                    @Html.HiddenFor(x => x.BCC)
+                    @Html.HiddenFor(x => x.To)
+
+                    <div class="col-sm-12" @*style="text-align:right;"*@>
+                        <button type="submit" class="btn" style="background-color: orange;color:white;" onclick="SaveAsDraft(event)">Save as Draft</button>
+                        <button type="submit" class="btn btn-primary" onclick="OnSave(event)"><i class="far fa-paper-plane"></i> Send</button>
+                        &nbsp;&nbsp;<span> From :  </span>
+                        @*@(Html.Kendo().DropDownListFor(x=>x.From)
+                        .DataTextField("EmailText")
+                        .DataValueField("SmtpUserId")
+
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GeFromUsers", "Cms", new { @area = "" });
+                            });
+                        })
+
+                        .HtmlAttributes(new { @class = "from", @style = "width:50%;margin-top:-11px" })
+                        )*@
+                        <input asp-for="From" id="From" class="from" style="width: 50%; margin-top: -11px;" />
+                    </div>
+
+                    <div style="padding:15px">
+                        <span style="margin-right:36px">To :</span>
+
+                        @(Html.Kendo().AutoComplete()
+          .Name("ToEmail")
+          .DataTextField("EmailText")//.Events(ev => ev.Select("selectToEmail"))
+          .Filter("contains")//.Separator(",")
+          .MinLength(3)
+         // .Value(Model.To.ToString())
+          .HtmlAttributes(new { style = "width:94%" }).TemplateId("EmailTextTemplate")
+          .DataSource(source => {
+              source
+                  .Read(read =>
+                  {
+                      read.Action("GetUserEmail", "Cms", new { @area = "" })
+                      .Data("onAdditionalData");
+                  })
+                  .ServerFiltering(true);
+          })
+    )
+                    </div>
+
+                    <div style="padding:15px">
+
+                        <span style="margin-right:35px">Cc :</span>
+
+                        @(Html.Kendo().AutoComplete()
+          .Name("CcEmail")
+          .DataTextField("EmailText")//.Events(ev => ev.Select("selectCcEmail"))
+          .Filter("contains")
+          .MinLength(3).Separator(",").TemplateId("EmailTextTemplate")
+          .HtmlAttributes(new { style = "width:94%" })
+          .DataSource(source => {
+              source
+                  .Read(read =>
+                  {
+                      read.Action("GetUserEmail", "Cms")
+                      .Data("onAdditionalData1");
+                  })
+                  .ServerFiltering(true);
+          })
+    )
+                    </div>
+
+                    <div style="padding:15px">
+                        <span style="margin-right:29px">Bcc :</span>
+                        @(Html.Kendo().AutoComplete()
+          .Name("BccEmail")
+          .DataTextField("EmailText")//.Events(ev => ev.Select("selectBccEmail"))
+          .Filter("contains").Separator(",")
+          .MinLength(3).TemplateId("EmailTextTemplate")
+          .HtmlAttributes(new { style = "width:94%" })
+          .DataSource(source => {
+              source
+                  .Read(read =>
+                  {
+                      read.Action("GetUserEmail", "Cms")
+                      .Data("onAdditionalData2");
+                  })
+                  .ServerFiltering(true);
+          })
+    )
+
+                    </div>
+                    <script type="text/x-kendo-tmpl" id="EmailTextTemplate">
+                        <span>"#:data.Name#" < #:data.Email# > </span>
+                    </script>
+
+                    <div style="padding:15px">
+                        <span style="margin-right:6px" id="subject">Subject :</span>
+                        @(Html.Kendo().TextAreaFor(x => x.TaskSubject).HtmlAttributes(new { @style = "width:94%;border-color:#ced4da" }))
+                        @*@(Html.TextAreaFor(x=>x.TaskSubject,new {@style= "width:100%;border-color:#ced4da" }))*@
+                    </div>
+
+                    <div style="padding:0px !important">
+                        <div>
+                            @*Body :*@ <br /><br />
+                        </div>
+                        @*@(Html.Kendo().EditorFor(x=>x.TaskDescription)
+           .HtmlAttributes(new { style = "width: 100%; height:300px; border-left-color: white;border-right-color:white !important; border-top-color:rgb(222, 226, 230); border-bottom-color:rgb(222, 226, 230);" })
+        )*@
+
+                        @*@(Html.Kendo().EditorFor(x => x.TaskDescription).Value(Html.Raw(Model.TaskDescription.HtmlDecode()).ToString())
+        .HtmlAttributes(new { style = "width: 100%;", aria_label = "editor" })
+        .StyleSheets(css => css.Add(Url.Content("~/css/editorStyles.css"))
+        )
+        .Tools(tools => tools
+        .Clear()
+        .Formatting()
+        .Bold().Italic().Underline().Strikethrough()
+        .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+        .InsertUnorderedList().InsertOrderedList()
+        //.Outdent().Indent()
+        .CreateLink().Unlink()
+        //.TableEditing()
+        .ViewHtml()
+        .FontName()
+        .FontSize()
+        .ForeColor().BackColor()
+
+        )
+                            )*@
+
+                        <div class="page-wrapper box-content">
+                            <textarea class="content" asp-for="TaskDescription" id="TaskDescription"></textarea>
+                        </div>
+                    </div>
+
+
+                    <div style="padding:15px">
+                        <span style="margin-right:6px">Add Attachment </span>
+                        <span class="attachment-icon far fa-paperclip"></span>
+                    </div>
+
+                    <div style="padding:15px">
+                        <div class="SYN-upload-row">
+                            <div class="row">
+                                @*@(Html.Kendo().Upload().Multiple(false)
+            .Name("files")
+            .Async(a => a
+            .Save("SaveTaskAttachment", "Cms", new { @Area="", @referenceTypeId=Model.TaskId, @referenceTypeCode= ReferenceTypeEnum.NTS_Task })
+            .AutoUpload(true)
+            )
+                .Events(e => e.Success("onFileUploadSuccess")
+                )
+
+                .HtmlAttributes(new { @class = "hr-large" })
+        )*@
+
+                                @*<div class="row">
+        <div class="col">
+            <div id="iconFile" class="dm-uploader">
+                <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                <div class="btn btn-primary btn-block ">
+                    <span>Open the file Browser</span>
+                    <input type="file" title='Click to add Files' />
+                </div>
+            </div>
+
+        </div>*@
+                                @*if multiple use this*@
+
+                                @*<div class="col">
+            <div class="card h-100">
+                <div class="card-header">
+                    File List
+                </div>
+                <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                    <li id="nofiles" class="text-muted text-center empty">No files uploaded.</li>
+                </ul>
+            </div>
+        </div>*@
+                                @*if multiple use this*@
+
+                                @{
+                                    await Html.RenderPartialAsync("~/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.IconFileId), Value = Model.IconFileId });
+                                }
+                            @*</div>*@
+                                @*<div class="col-2 col-sm-5 col-md-7 col-lg-7 col-xl-7"><button class="btn btn-dark" type="button">Select Files</button></div>
+        <div class="col-4 col-sm-5 col-md-5 col-lg-5 col-xl-5"><label class="col-form-label SYN-white-text">Drop your files here to upload</label></div>*@
+                            </div>
+
+
+                        </div>
+                        <div class="SYN-inn-row">
+                            <div class="row">
+                                <div class="col-auto col-xl-12"><label class="col-form-label SYN-sub-title">Attachments List</label></div>
+                            </div>
+                        </div>
+                        <div id="AttachmentlistView"></div>
+                        @*@(Html.Kendo().ListView<FileViewModel>()
+            .Name("AttachmentlistView")
+            .TagName("div")
+            .ClientTemplateId("template")
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Read(read => read.Action("GetTaskAttachmentList", "Cms",new { @Area = "", @taskId = Model.TaskId }))
+                    .PageSize(21)
+                )
+
+            )*@
+                        <script type="text/x-kendo-tmpl" id="template">
+            <div class="SYN-list-box" @*style="padding:10px"*@>
+                 <div class="row">
+                     @*<div class="col-2 col-sm-2 col-md-3 col-lg-3 col-xl-3">*@
+                     <div class="col-2">
+              #if(data.FileExtension==".pdf")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-pdf.png"></div> #}
+            else if(data.FileExtension==".jpg" || data.FileExtension==".jpeg" || data.FileExtension==".gif" || data.FileExtension==".png" || data.FileExtension==".PNG")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-image32.png"></div> #}
+            else if(data.FileExtension==".doc" || data.FileExtension==".docx")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-word-doc.png"></div>#}
+            else if(data.FileExtension==".txt")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-document.png"></div>#}
+            else
+            {#   <div class="SYN-ico-pdf"><img src="/images/ico-document.png"></div>#}#
+
+                     </div>
+                     @*<div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">*@
+                     <div class="col-4">
+                         <div class="row">
+                             <div class="col"><label class="col-form-label SYN-txt-field SYN-row-gap">#:FileName#<br></label></div>
+                         </div>
+                         <div class="row">
+                             <div class="col-6"><label class="col-form-label SYN-tag-field">#:CreatedDateDisplay#<br></label></div>
+                             <div class="col-6"><label class="col-form-label SYN-tag-field">#:Size#<br></label></div>
+                         </div>
+                     </div>
+                     @*<div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">*@
+                     <div class="col-4">
+                        @*<img class="SYN-ico-action" src="assets/img/ico-view.png">
+                            <img class="SYN-ico-action" src="assets/img/ico-download.png">
+                            <img class="SYN-ico-action" src="assets/img/ico-delete.png">*@
+                            <div class="SYN-ico-action-eye"><i class='fal fa-eye' title="View" onclick="ViewAttachment('#=Id#')" ></i></div>
+                            <div class="SYN-ico-action-down"><i class='fal fa-download' title="Download" onclick="onDownload('#=Id#')" ></i></div>
+                            <div class="SYN-ico-action-del"><i class='fal fa-trash-alt' title="Delete" onclick="onDeleteClick('#=Id#')"></i></div>
+                    </div>
+                 </div>
+             </div>
+                        </script>
+                    </div>
+
+                </div>
+
+
+               
+                @Html.HiddenFor(x => x.Json)
+                @Html.HiddenFor(x => x.Id)
+                @Html.HiddenFor(x => x.TaskId)
+                @Html.HiddenFor(x => x.TaskTableId)
+                @Html.HiddenFor(x => x.TaskNo)
+                @Html.HiddenFor(x => x.TaskStatusCode)
+                @Html.HiddenFor(x => x.UdfNoteTableId)
+                @Html.HiddenFor(x => x.TemplateId)
+                @Html.HiddenFor(x => x.UdfTemplateId)
+                @Html.HiddenFor(x => x.UdfTableMetadataId)
+                @Html.HiddenFor(x => x.UdfNoteId)
+                @Html.HiddenFor(x => x.TemplateCode)
+                @Html.HiddenFor(x => x.PageId)
+                @Html.HiddenFor(x => x.DataAction)
+                @Html.HiddenFor(x => x.RecordId)
+                @Html.HiddenFor(x => x.PortalName)
+                @Html.HiddenFor(x => x.CreateReturnType)
+                @Html.HiddenFor(x => x.EditReturnType)
+                @Html.HiddenFor(x => x.RejectionReason)
+                @Html.HiddenFor(x => x.CompleteReason)
+                @Html.HiddenFor(x => x.CloseComment)
+                @Html.HiddenFor(x => x.TaskSequenceOrder)
+                @Html.HiddenFor(x => x.ParentServiceId)
+                @Html.HiddenFor(x => x.ParentTaskId)
+                @Html.HiddenFor(x => x.ActiveUserType)
+                @Html.HiddenFor(x => x.ActiveUserId)
+                @Html.HiddenFor(x => x.TableMetadataId)
+                @Html.HiddenFor(x => x.RequestedByUserId)
+                @Html.HiddenFor(x => x.OwnerUserId)
+                @Html.HiddenFor(x => x.OwnerUserEmail)
+                @Html.HiddenFor(x => x.LayoutMode)
+                @Html.HiddenFor(x => x.ReturnUrl)
+                @Html.HiddenFor(x => x.CustomUrl)
+                @Html.HiddenFor(x => x.PopupCallbackMethod)
+                @Html.HiddenFor(x => x.IsSubjectMandatory)
+                @Html.HiddenFor(x => x.AllowPastStartDate)
+                @Html.HiddenFor(x => x.StartDate)
+                @Html.HiddenFor(x => x.TaskPriorityId)
+                @Html.HiddenFor(x => x.AssignedToTypeId)
+                @Html.HiddenFor(x => x.AssignedToTypeCode)
+                @Html.HiddenFor(x => x.ReferenceId)
+                @Html.HiddenFor(x => x.ReferenceType)
+            </form>
+        </div>
+    }
+    else if (ViewBag.Mode == "View")
+    {
+        <div class="row viewmode" style="padding:20px">
+
+            <div class="row col-12">
+                <div class="row col-12 viewmode" style="padding:10px;font-size:30px;">
+                    <div class="col-1"></div>
+                    <div class="col-11">
+                        <span style="margin-right:6px;color:black" id="subject">
+                            @(Html.DisplayFor(x=>x.TaskSubject,new {@style= "width:100%" }))
+                        </span>
+                    </div>
+                    </div>
+                    <div class="row col-12" style="padding:10px">
+                        <div class="col-1">
+                            @if (Model.PhotoId != null)
+                            {
+                                <img class="avatar-myProfile" src="/cms/Document/GetImageMongo?id=@Model.PhotoId" onerror='OnPhotoError(this);' />
+                            }
+                            else
+                            {
+                                <img class="avatar-myProfile" style="background-color:gray;" src="/images/profile.jpg" />
+                            }
+                        </div>
+                        <div class="col-11">
+                            <div>
+                                <span style="margin-right:36px;color:black">From :</span>
+                                <span>
+                                    @(Html.DisplayFor(x=>x.From,new {@style= "width:100%;border-color:#ced4da"}))
+                                </span>
+                            </div>
+                            <div>
+                                <span style="margin-right:36px;color:black">To :</span>
+                                <span style="padding-left: 24px;">
+                                    @(Html.DisplayFor(x=>x.To,new {@style= "width:100%;border-color:#ced4da"})) &nbsp;&nbsp;<span class="duedate-popup-card"><i class="fas fa-caret-down" onclick="viewmaildetails();"></i></span>
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+
+
+
+
+                    <div class="row col-12" style="padding:10px;">
+                        <div class="col-1"></div>
+                        
+                        <div class="col-11" style="border-top: dotted thin lightgray;">
+                            <div class="viewmode" style="color:black">
+                                Body :
+                            </div>
+                            <div style="height: 400px;">
+                                <div id="viewbodydesc" style="padding: 15px;overflow-y: scroll; height:400px;">
+                                    @*@Model.TaskDescription*@
+                                    @Html.Raw(Model.TaskDescription)
+                                  
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                    <div class="row col-12" style="padding:10px">
+                        <div class="col-1"></div>
+                        <div class="col-11">
+                            <div class="viewmode" style="color:black">
+                                Attachments List
+                            </div>
+                            <div id="AttachmentlistView"></div>
+                            @*@(Html.Kendo().ListView<FileViewModel>()
+        .Name("AttachmentlistView")
+        .TagName("div")
+        .ClientTemplateId("template")
+        .DataSource(dataSource => dataSource
+                .Ajax()
+                .Read(read => read.Action("GetTaskAttachmentList", "Cms",new { @Area = "", @taskId = Model.TaskId}))
+                .PageSize(21)
+            )
+
+        )*@
+                        </div>
+                            <script type="text/x-kendo-tmpl" id="template">
+            <div class="SYN-list-box" style="padding:10px">
+                 <div class="row">
+                     <div class="col-2 col-sm-2 col-md-3 col-lg-3 col-xl-3">
+              #if(data.FileExtension==".pdf")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-pdf.png"></div> #}
+            else if(data.FileExtension==".jpg" || data.FileExtension==".jpeg" || data.FileExtension==".gif" || data.FileExtension==".png" || data.FileExtension==".PNG")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-image32.png"></div> #}
+            else if(data.FileExtension==".doc" || data.FileExtension==".docx")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-word-doc.png"></div>#}
+            else if(data.FileExtension==".txt")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-document.png"></div>#}
+            else
+            {#   <div class="SYN-ico-pdf"><img src="/images/ico-document.png"></div>#}#
+
+                     </div>
+                     <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+                         <div class="row">
+                             <div class="col"><label class="col-form-label SYN-txt-field SYN-row-gap">#:FileName#<br></label></div>
+                         </div>
+                         <div class="row">
+                             <div class="col-6"><label class="col-form-label SYN-tag-field">#:CreatedDateDisplay#<br></label></div>
+                             <div class="col-6"><label class="col-form-label SYN-tag-field">#:Size#<br></label></div>
+                         </div>
+                     </div>
+                     <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                        @*<img class="SYN-ico-action" src="assets/img/ico-view.png">
+                            <img class="SYN-ico-action" src="assets/img/ico-download.png">
+                            <img class="SYN-ico-action" src="assets/img/ico-delete.png">*@
+                            <div class="SYN-ico-action-eye"><i class='fal fa-eye' title="View" onclick="ViewAttachment('#=Id#')" ></i></div>
+                            <div class="SYN-ico-action-down"><i class='fal fa-download' title="Download" onclick="onDownload('#=Id#')" ></i></div>
+                            <div class="SYN-ico-action-del"><i class='fal fa-trash-alt' title="Delete" onclick="onDeleteClick('#=Id#')"></i></div>
+                    </div>
+                 </div>
+             </div>
+                            </script>
+                        </div>
+
+                    </div>
+
+        </div>
+        @*<div class="row" style="display:none">
+                <div style="padding:10px" class="viewmode">
+
+                <span style="margin-right:35px;color:black">Cc :</span>
+
+                @(Html.DisplayFor(x=>x.CC,new {@style= "width:100%;border-color:#ced4da" }))
+            </div>
+
+            <div style="padding:10px" class="viewmode">
+                <span style="margin-right:29px;color:black">Bcc :</span>
+                @(Html.DisplayFor(x=>x.BCC,new {@style= "width:100%;border-color:#ced4da" }))
+
+            </div>
+            </div>*@
+       
+    }
+
+</div>
+
+<script>
+    function OnPhotoError(obj) {
+        obj.onerror = null;
+        obj.src = '/images/profile.jpg';
+    }
+
+     $('.duedate-popup-card').webuiPopover('destroy').webuiPopover({
+        width: 330,
+        height: 220,
+        trigger: 'hover',
+        placement: 'auto',
+        delay: {
+            show: null,
+            hide: 300
+        },
+        content:  '<div class="row">'+
+            '<div class="col-12">'+
+                '<span class="text-label">From: </span>'+
+                '<span class="text-title">@Model.From</span>'+
+            '</div>'+
+            '<div class="col-12">' +
+     '   <span class="text-label">To:</span>' +
+      '  <span class="text-title">@Model.To</span>' +
+    '</div>' +
+    '<div class="col-12">' +
+        '<span class="text-label">CC:</span><span class="text-title">@Model.CC</span>' +
+    '</div>' +
+    '<div class="col-12">' +
+        '<span class="text-label">BCC:</span><span class="text-title">@Model.BCC</span>' +
+    '</div>' +
+    '<div class="col-12">' +
+        '<span class="text-label">Subject:</span><span class="text-title">@Model.TaskSubject</span>' +
+    '</div>' +
+'</div>',
+      });
+</script>
+
+<style>
+    .text-label{
+        font-size:18px;
+        font-weight:500;
+    }
+    .text-title {
+        font-size: 18px;
+        font-weight: 200;
+    }
+</style>

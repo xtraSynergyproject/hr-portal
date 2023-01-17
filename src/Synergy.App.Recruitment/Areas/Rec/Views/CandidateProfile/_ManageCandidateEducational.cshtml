@@ -1,0 +1,415 @@
+﻿@using CMS.UI.ViewModel
+@using CMS.Common
+
+@{
+    ViewData["Title"] = "Manage Candidate Educational";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model CandidateEducationalViewModel
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+    .cms-managecandedu-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+</style>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+    <form asp-controller="CandidateProfile" asp-action="ManageCandidateEducational" method="post" class="form-horizontal">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="qualification">Qualification <span class="required">*</span></label>
+                    </div>
+                    @(Html.Kendo().DropDownListFor(x=>x.QualificationId)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                .Filter(FilterType.Contains)
+                                .Events(e => e.Change("OnChange").DataBound("OnQualBound"))
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetListOfValueList", "ListOfValue", new { @area = "Recruitment", @type = "LOV_QUALIFICATION" });
+                                    });
+                                })
+                                .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                                //.Value()
+                                .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+                    )
+
+                </div>
+            </div>
+
+            <div class="col-12 pad-10" id="otherqual" style="display:none;">
+                <div class="form-label-group">
+                    <input asp-for="OtherQualification" type="text" class="form-control" placeholder="Other Qualification" autocomplete="off" style="width:80%;" />
+                    <label for="OtherQualification">Other Qualification <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="specialization">Specialization <span class="required">*</span></label>
+                    </div>
+                    @(Html.Kendo().DropDownListFor(x=>x.SpecializationId)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                 .Filter(FilterType.Contains)
+                                .Events(e => e.Change("OnChange").DataBound("OnSpecBound"))
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetListOfValueList", "ListOfValue", new { @area = "Recruitment", @type = "LOV_SPECIALIZATION" });
+                                    });
+                                })
+                                .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                                //.Value()
+                                .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+                    )
+
+                </div>
+            </div>
+
+            <div class="col-12 pad-10" id="otherspec" style="display:none;">
+                <div class="form-label-group">
+                    <input asp-for="OtherSpecialization" type="text" class="form-control" placeholder="Other Specialization" autocomplete="off" style="width:80%;" />
+                    <label for="OtherSpecialization">Other Specialization <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="educationtype">Type <span class="required">*</span></label>
+                    </div>
+                    @(Html.Kendo().DropDownListFor(x=>x.EducationType)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                .Filter(FilterType.Contains)
+                                .Events(e => e.Change("OnChange").DataBound("OnEduTypeBound"))
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetListOfValueList", "ListOfValue", new { @area = "Recruitment", @type = "LOV_EDUCATIONTYPE" });
+                                    });
+                                })
+                                .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                                //.Value()
+                                .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+                    )
+
+                </div>
+            </div>
+
+            <div class="col-12 pad-10" id="otheredu" style="display:none;">
+                <div class="form-label-group">
+                    <input asp-for="OtherEducationType" type="text" class="form-control" placeholder="Other Type" autocomplete="off" style="width:80%;"/>
+                    <label for="OtherEducationType">Other Type <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Institute" type="text" class="form-control" placeholder="Institute" autocomplete="off" style="width:80%;" required="required"/>
+                    <label for="Institute">Institute <span class="required">*</span></label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="country">Country <span class="required">*</span></label>
+                    </div>
+                    @(Html.Kendo().DropDownListFor(x=>x.CountryId)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                 .Filter(FilterType.Contains)
+                                //.Events(e => e.Change("OnPageTypechange"))
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetIdNameList", "Master", new { @area = "Recruitment", @type = "Country" });
+                                    });
+                                })
+                                .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                                //.Value()
+                                .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+                    )
+
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Duration" type="text" class="form-control" placeholder="Duration" autocomplete="off" style="width:80%;" required="required"/>
+                    <label for="Duration">Duration <span class="required">*</span></label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                @*Passing Year
+        <div style="padding-top:10px;">
+            @(Html.Kendo().DatePickerFor(x=>x.PassingYear).Format("dd MMM yyyy"))
+        </div>*@
+                <div class="form-label-group">
+                    <input asp-for="PassingYear" type="text" min="0" maxlength="4" pattern="[0-9]*" onkeydown = "return (!((event.keyCode>=65 && event.keyCode <= 95) || event.keyCode >= 106 || (event.keyCode >= 48 && event.keyCode <= 57 && isNaN(event.key))) && event.keyCode!=32);" class="form-control" placeholder="PassingYear" autocomplete="off" style="width:80%;" required="required" />
+                    <label for="PassingYear">Passing Year <span class="required">*</span></label>
+                </div>
+                
+                </div>
+                <div class="col-12 pad-10">
+                    <div class="form-label-group">
+                        <input asp-for="Marks" type="number" min="0" maxlength="2" step="any" class="form-control" placeholder="Marks" autocomplete="off" style="width:80%;" required="required" />
+                        <label for="Marks">% Marks <span class="required">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    Attachment
+                    <div style="padding-top:10px;width:80%">
+                        @(Html.Kendo().Upload().Multiple(false)
+                        .Name("files")
+                        .Async(a => a
+                        .Save("SaveFile", "Document", new { @area = "cms" })
+                        .AutoUpload(true)
+                        )
+                        .Events(e => e.Success("onFileUploadSuccess")
+                        )
+                            .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png",".pdf",".doc",".docx" }).MaxFileSize(2097152))
+                            .HtmlAttributes(new { @class = "hr-xx-large" })
+                    )
+                        @*<button type="button" class="btn btn-light" title="Delete Profile" onclick="onProfileDel();"><i class='fa fas fa-trash'></i></button>*@
+                        @if (Model.AttachmentId != null)
+                        {
+                            @*<a href="/cms/content/getbackgroundimage?id=@Model.AttachmentId" target="_blank">Attachment</a>*@
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.AttachmentId" target="_blank">Attachment</a>
+                        }
+                    </div>
+                </div>
+                <div class="col-12 pad-15">
+                    &nbsp;
+                </div>
+
+                <div class="cms-slidebar-footer">
+                    <input type="button" class="btn btn-light" value="Close" onclick="closeNavCandEdu()" />
+                    <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave(event)" />
+                </div>
+
+            </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.QualificationType)
+        @Html.HiddenFor(x => x.AttachmentId)
+        @Html.HiddenFor(x => x.CandidateProfileId)
+    </form>
+</div>
+
+<script type="text/javascript">    
+
+    $(document).ready(function () {
+                
+        if ('@ViewBag.Success' == "True") {
+          //  
+            //alert("Success");
+            if ('@Model.QualificationType' == '@QualificationTypeEnum.Educational') {
+               // window.parent.parent.$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+            } else if ('@Model.QualificationType' == '@QualificationTypeEnum.Certifications') {
+              //  window.parent.parent.$("#kgrdCandidateCertifications").data("kendoGrid").dataSource.read();
+            } else if ('@Model.QualificationType' == '@QualificationTypeEnum.Trainings') {
+              //  window.parent.parent.$("#kgrdCandidateTrainings").data("kendoGrid").dataSource.read();
+            }
+            closeNavCandEdu();
+            //OnChange();
+        }
+        
+    });
+
+    function closeNavCandEdu() {
+        //window.parent.CloseIframePopup();
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'RefreshCED' });
+        return false;
+    }
+
+    function OnChange() {
+        var qual = $("#QualificationId").data('kendoDropDownList').text();
+        var spec = $("#SpecializationId").data('kendoDropDownList').text();
+        var edu = $("#EducationType").data('kendoDropDownList').text();       
+        
+        if (qual == "Other") {
+            document.getElementById("otherqual").style.display = "block"; 
+            document.getElementById("OtherQualification").setAttribute("required", "required");
+        } else {
+            document.getElementById("OtherQualification").value = "";
+            document.getElementById("otherqual").style.display = "none";
+            document.getElementById("OtherQualification").removeAttribute("required");
+        }
+        if (spec == "Other") {
+            document.getElementById("otherspec").style.display = "block";
+            document.getElementById("OtherSpecialization").setAttribute("required", "required");
+        } else {
+            document.getElementById("otherspec").style.display = "none";
+            document.getElementById("OtherSpecialization").value = "";
+            document.getElementById("OtherSpecialization").removeAttribute("required");
+        }
+        if (edu == "Other") {
+            document.getElementById("otheredu").style.display = "block";
+            document.getElementById("OtherEducationType").setAttribute("required", "required");
+        } else {
+            document.getElementById("otheredu").style.display = "none";
+            document.getElementById("OtherEducationType").value = "";
+            document.getElementById("OtherEducationType").removeAttribute("required");
+        }        
+    }
+
+    function OnQualBound() {
+        var qual = $("#QualificationId").data('kendoDropDownList').text();
+        
+        
+        if (qual == "Other") {
+            document.getElementById("otherqual").style.display = "block";
+            document.getElementById("OtherQualification").setAttribute("required", "required");
+        } else {
+            document.getElementById("OtherQualification").value = "";
+            document.getElementById("otherqual").style.display = "none";
+            document.getElementById("OtherQualification").removeAttribute("required");
+        }        
+    }
+    function OnSpecBound() {
+       
+        var spec = $("#SpecializationId").data('kendoDropDownList').text();
+        
+        
+       
+        if (spec == "Other") {
+            document.getElementById("otherspec").style.display = "block";
+            document.getElementById("OtherSpecialization").setAttribute("required", "required");
+        } else {
+            document.getElementById("otherspec").style.display = "none";
+            document.getElementById("OtherSpecialization").value = "";
+            document.getElementById("OtherSpecialization").removeAttribute("required");
+        }
+       
+    }
+    function OnEduTypeBound() {
+        
+        var edu = $("#EducationType").data('kendoDropDownList').text();
+        
+       
+        if (edu == "Other") {
+            document.getElementById("otheredu").style.display = "block";
+            document.getElementById("OtherEducationType").setAttribute("required", "required");
+        } else {
+            document.getElementById("otheredu").style.display = "none";
+            document.getElementById("OtherEducationType").value = "";
+            document.getElementById("OtherEducationType").removeAttribute("required");
+        }
+    }
+
+    function OnSave(evt) {
+        if ($("#QualificationId").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Qualification is required");
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#SpecializationId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Specialization is required");
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#EducationType").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Type is required");
+            evt.preventDefault();
+            return false; 
+        }
+        else if ($("#CountryId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Country is required");
+            evt.preventDefault();
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+    }
+    function onFileUploadSuccess(e) {
+        //alert(e.response.fileId);
+        // 
+        if (e.response.success) {
+            $("#AttachmentId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    $('#Marks').keyup(function () {
+        if ($(this).val() > 100) {
+            kendo.alert("Value should not greater than 100");
+            $(this).val('100');
+        }
+    });
+
+    function onProfileDel() {
+        // 
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").open();
+
+        if ( $("#PhotoId").val()!='') {
+         //   
+            kendo.confirm("Are you sure that you want to proceed?").then(function () {
+                confirmDelete();
+            }, function () {
+
+            });
+        }
+
+    }
+
+    function confirmDelete() {
+     //   
+        //        alert("Banner Delete");
+        $(".avatar-myProfile").attr("src", "/images/200.png");
+        $("#PhotoId").val('');
+        var logoupload = $("#files").data("kendoUpload");
+        //console.log(logoupload);
+        logoupload.clearFile(function (file) { return true; });
+    }
+</script>
+

@@ -1,0 +1,583 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+@model CustomTemplateViewModel
+
+@{
+    ViewData["Title"] = ViewBag.PageTitle;
+    Layout = null;
+}
+<script>
+    function onFileUploadSuccess(e) {
+        if (e) {
+            $("#ImageId").val(e.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    var onAjaxSuccess = function (res) {
+
+
+
+        if (res.success) {
+            $("#LOVForm")[0].reset();
+            if ("@Model.IsLOVIamgeEnabled" == "True") {
+             //var upload = $("#files").data("kendoUpload");
+            // upload.removeAllFiles();
+                $("#iconFile").dmUploader("reset");
+            }
+            getLOVData();
+            //  $("#kgridLOV").data("kendoGrid").dataSource.read();
+            kendo.alert("ListOfValue Added Successfully.");
+
+         }
+        else {
+            showError1(res.error);
+         }
+
+
+    };
+    var showError1 = function (error) {
+        //#validation-summary-manageform
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block");
+
+    }
+    function OnDataBound()
+    {
+        var grid = $("#kgridLOV").data("kendoGrid");
+        var columnWidths = [];
+
+        $.each(grid.columns, function (i, col) {
+            if (grid.table[0].rows.length>0)
+            {
+                var colItem = {
+                    field: col.field,
+                    width: grid.table[0].rows[0].cells[i].offsetWidth
+                };
+                columnWidths.push(colItem);
+            }
+
+            for (var i = 0; i < columnWidths.length;i++)
+            {
+                if (columnWidths[i].field == "Name")
+                {
+                    $("#divname").css("width", columnWidths[i].width);
+                }
+                else if (columnWidths[i].field == "Code") {
+                    $("#divcode").css("width", columnWidths[i].width);
+                }
+                else if (columnWidths[i].field == "Description") {
+                    $("#divdesc").css("width", columnWidths[i].width);
+                }
+                else if (columnWidths[i].field == "ParentId") {
+                    $("#divparent").css("width", columnWidths[i].width);
+                }
+                else if (columnWidths[i].field == "Status") {
+                    $("#divparent").css("width", columnWidths[i].width);
+                }
+                else if (columnWidths[i].field == "ImageId") {
+                    $("#divimg").css("width", columnWidths[i].width);
+                }
+                else  {
+                    $("#divaction").css("width", columnWidths[i].width);
+                }
+            }
+        });
+
+        //alert(JSON.stringify(columnWidths));
+    }
+        function OnDeleteListOfValue(e) {
+        var flag = confirm('Do you really want to delete the ListOfValue?');
+        //alert("..Delete");
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "LOV", new { @area= "Cms" })?Id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                        kendo.alert("ListOfValue Deleted Successfully.");
+                    } else {
+                        $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+
+    function closeNavMemberGroup()
+    {
+        if ("@Model.IsLOVIamgeEnabled" == "True") {
+         //   var upload = $("#files").data("kendoUpload");
+           // upload.removeAllFiles();
+            $("#iconFile").dmUploader("reset");
+        }
+
+        $("#LOVForm")[0].reset();
+        $("#createtools").hide();
+        $("#createbtn").show();
+    }
+
+      function OnCreate() {
+
+
+          $("#LOVForm")[0].reset();
+          $("#createtools").show();
+          $("#createbtn").hide();
+    }
+    function OnEdit(id, name, code, parentId, imageId, status, description) {
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+       // 
+        $("#Id").val(id);
+        $("#DataAction").val('@DataActionEnum.Edit');
+        $("#Name").val(name);
+        $("#Code").val(code);
+        if ("@Model.IsLOVParentEnabled" == "True")
+        {
+            $("#ParentId").data("kendoDropDownList").value(parentId);
+        }
+        if ("@Model.IsLOVIamgeEnabled" == "True") {
+            $("#ImageId").val(imageId);
+        }
+        if ("@Model.IsLOVStatusEnabled" == "True") {
+            $("#Status").data("kendoDropDownList").value(status);
+        }
+         if ("@Model.IsLOVDescriptionEnabled"=="True") {
+             $("#Description").val(description);
+        }
+        $("#createtools").show();
+        $("#createbtn").hide();
+        return false;
+    }
+
+     $(document).ready(function () {
+
+
+
+          $("#Status").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "EnumId",
+            optionLabel: "--Select "+ @Model.LOVStatusLabel+"--",
+            value:'@Model.Status.ToString()',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StatusEnum",
+                    }
+                }
+            }
+         });
+
+         $("#ParentId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "-- Select"+ @Model.LOVParentLabel+"--",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetAllListOfValue",
+                    }
+                }
+            }
+         });
+
+        // uploadFile();
+
+     });
+
+    //function uploadFile() {
+    //    $("#iconFile").dmUploader({ //
+    //        url: '/Cms/Document/SaveFile',
+    //        multiple: false,
+    //        extFilter: ["jpg", "jpeg", "png", "gif"],
+    //        maxFileSize: 3000000, // 3 Megs 
+    //        onDragEnter: function () {
+    //            // Happens when dragging something over the DnD area
+    //            this.addClass('active');
+    //        },
+    //        onDragLeave: function () {
+    //            this.removeClass('active');
+    //        },
+    //        onInit: function () {
+    //        },
+    //        onComplete: function () {
+    //        },
+    //        onNewFile: function (id, file) {
+    //            ui_multi_add_file(id, file);
+    //        },
+    //        onBeforeUpload: function (id) {
+    //            ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+    //            ui_multi_update_file_progress(id, 0, '', true);
+    //        },
+    //        onUploadCanceled: function (id) {
+    //            ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+    //            ui_multi_update_file_progress(id, 0, 'warning', false);
+    //        },
+    //        onUploadProgress: function (id, percent) {
+    //            ui_multi_update_file_progress(id, percent);
+    //        },
+    //        onUploadSuccess: function (id, data) {
+    //            $("#ImageId").val(data.fileId);
+
+    //            ui_multi_update_file_status(id, 'success', 'Upload Complete');
+    //            ui_multi_update_file_progress(id, 100, 'success', false);
+    //        },
+    //        onUploadError: function (id, xhr, status, message) {
+    //            ui_multi_update_file_status(id, 'danger', message);
+    //            ui_multi_update_file_progress(id, 0, 'danger', false);
+    //        },
+    //        onFallbackMode: function () {
+    //        },
+    //        onFileSizeError: function (file) {
+    //        }
+    //    });
+    //}
+</script>
+
+
+<div>
+    <h4>@ViewBag.PageTitle</h4>
+
+    <hr />
+    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+    <div class="row">
+        <div class="col-12">
+            <div class="k-toolbar k-grid-toolbar" id="createtools" style="display:none;">
+                <form asp-controller="LOV" asp-action="ManageLOV" class="form-horizontal"
+                      data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+                      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+                      data-ajax="true" data-ajax-method="POST" id="LOVForm">
+
+
+                    <div class="row" style="padding:10px;">
+
+                        <div  id="divaction">
+                            <button type="button" class="btn btn-danger" onclick="closeNavMemberGroup();" >Close</button>
+                            <input type="submit" class="btn btn-primary" value="Save" id="submitBtn"  />
+                        </div>
+
+                        <div id="divname" style="width:250px;padding:5px">
+                           
+                            <input name="Name" id="Name" type="text" class="form-control" placeholder="Enter Name" autocomplete="off" required="required" />
+                        </div>
+
+
+
+
+                        <div id="divcode" style="width:250px;padding:5px">
+                           
+                            <input name="Code" id="Code" type="text" class="form-control" placeholder="Enter Code" autocomplete="off" required="required" />
+                        </div>
+
+
+                        @if (Model.IsLOVDescriptionEnabled)
+                        {
+
+                            <div id="divdesc" style="width:200px;padding:5px">
+                              
+                                <input name="Description" id="Description" type="text" class="form-control" placeholder="Enter Description" autocomplete="off" />
+                            </div>
+
+
+                        }
+                        @if (Model.IsLOVParentEnabled)
+                        {
+
+                    <div id="divparent" style="width:200px;padding:5px">
+
+                        @*@(Html.Kendo().DropDownList()
+             .Name("ParentId")
+        .DataTextField("Name")
+                     .DataValueField("Id")
+                       .DataSource(source =>
+                       {
+                           source.Read(read =>
+                           {
+                           read.Action("GetAllListOfValue", "LOV");
+                       });
+          })
+           .OptionLabel("-- Select"+ Model.LOVParentLabel+"--")
+          .HtmlAttributes(new { @class = "form-control"})
+         )*@
+                        <input  id="ParentId" class="form-control" />
+                    </div>
+
+                        }
+                        @if (Model.IsLOVIamgeEnabled)
+                        {
+
+                    <div id="divimg" style="width:200px">
+
+                        @*@(Html.Kendo().Upload().Multiple(false)
+            .Name("files")
+            .Async(a => a
+            .Save("SaveFile", "Document", new { @area = "cms" })
+            .AutoUpload(true)
+            )
+            .Events(e => e.Success("onFileUploadSuccess")
+            )
+                .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" }).MaxFileSize(2097152))
+                .HtmlAttributes(new { @class = "hr-xx-large" })
+        )*@
+
+                        @*<div class="row">
+        <div class="col">
+            <div id="iconFile" class="dm-uploader">
+                <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                <div class="btn btn-primary btn-block ">
+                    <span>Open the file Browser</span>
+                    <input type="file" title='Click to add Files' />
+                </div>
+            </div>
+
+        </div>*@
+                        @*if multiple use this*@
+
+                        @*<div class="col">
+            <div class="card h-100">
+                <div class="card-header">
+                    File List
+                </div>
+                <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                    <li id="nofiles" class="text-muted text-center empty">No files uploaded.</li>
+                </ul>
+            </div>
+        </div>*@
+                        @*if multiple use this*@
+
+                        @{
+                    await Html.RenderPartialAsync("~/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { CallbackMethod = "onFileUploadSuccess" });
+                        }
+                    </div>
+
+                    @*</div>*@
+
+                        }
+
+                        @if (Model.IsLOVStatusEnabled)
+                        {
+                    <div id="divstatus" style="width:200px;padding:5px">
+
+
+
+                        @*@(Html.Kendo().DropDownListFor(x=>x.Status)
+        .DataTextField("Name")
+        .DataValueField("EnumId")
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "StatusEnum" });
+            });
+        })
+
+        .OptionLabel("--Select "+ @Model.LOVStatusLabel+"--")
+        .HtmlAttributes(new { @class = "form-control"})
+        )*@
+                        <input asp-for="Status" id="Status" class = "form-control" />
+                    </div>
+
+
+                        }
+
+
+                    </div>
+                    @Html.HiddenFor(x => x.DataAction)
+                    <input name="ImageId" id="ImageId" type="hidden" class="form-control" value="" />
+                    <input name="Id" id="Id" type="hidden" class="form-control" value="" />
+                    <input name="LOVType" id="LOVType" type="hidden" class="form-control" value="@Model.LOVTypeId" />
+                </form>
+            </div>
+            <div class="k-toolbar k-grid-toolbar" id="createbtn">
+                <button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Create</button>
+            </div>
+              
+            </div>
+
+        <div class="col-12">
+
+            
+            <div id="kgridLOV" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            @*@(Html.Kendo().Grid<dynamic>
+         ()
+         .Name($"kgridLOV")
+         .Columns(columns =>
+         {
+             var c = columns.Command(command =>
+             {
+                 command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon", title = "Edit" });
+
+             }).Width(120);
+             columns.Bound("Id").Visible(false).Width(200);
+             columns.Bound("Name").Width(200);
+             columns.Bound("Code").Title(Model.LOVCodeLabel).Width(200);
+             //}
+             if (Model.IsLOVDescriptionEnabled)
+             {
+                 columns.Bound("Description").Title(Model.LOVDescriptionLabel).Width(150);
+             }
+             if (Model.IsLOVParentEnabled)
+             {
+                 columns.Bound("ParentName").Title(Model.LOVParentLabel).Width(150);
+             }
+             if (Model.IsLOVIamgeEnabled)
+             {
+                 columns.Bound("ImageId").Title(Model.LOVImageLabel).ClientTemplate("#if(ImageId!=null){#<img style='border-radius:50%;' width='40' height='40' src='/Cms/document/getimagemongo?id=#:ImageId#' onerror='OnPhotoError(this);' > #}#").Width(150);
+             }
+             if (Model.IsLOVStatusEnabled)
+             {
+                 columns.Bound("Status").ClientTemplate("#if(Status==1){#Active#}else{#Inactive#}#").Title(Model.LOVStatusLabel).Width(120);
+             }
+
+         })
+         .Events(e => e.DataBound("OnDataBound"))
+        // .Resizable(resizable => resizable.Columns(true))
+         .Scrollable(x => x.Enabled(true))
+         .Sortable(srt => srt.Enabled(true))
+         .Selectable(select => select.Enabled(false))
+         .Filterable(f => f.Extra(false))
+         .Pageable(pageable => pageable
+         .Refresh(true)
+
+         .PageSizes(true)
+         .ButtonCount(5))
+         //.AutoBind(true)
+         .DataSource(
+         dataSource => dataSource
+         .Ajax()
+         .PageSize(10)
+
+
+         .Read(read => read.Action("ReadData", "LOV", new { lovTypeId = Model.LOVTypeId }))
+
+         )
+
+         )*@
+        </div>
+        </div>
+</div>
+<script>
+
+     var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+    var columnDefs = [
+      
+           {
+            field: "Name",
+           },
+           {
+               field: "Code",
+
+           },
+            @if (Model.IsLOVDescriptionEnabled) {
+                @:{ field: "Description", headerName: "@Model.LOVDescriptionLabel", width:150},
+
+            }
+    @if (Model.IsLOVParentEnabled) {
+         @:{ field: "ParentName", headerName: "@Model.LOVParentLabel", width:150},
+
+    }
+    @if (Model.IsLOVIamgeEnabled) {
+        @:{field: "ImageId", headerName: "@Model.LOVImageLabel", width:150,cellRenderer: params => {
+                @:return "if(" + params.value +"!=null){<img style='border-radius:50%;' width='40' height='40' src='/Cms/document/getimagemongo?id="+ params.value +"' onerror='OnPhotoError(this);' > }"
+            @:}},
+    }
+    @if (Model.IsLOVStatusEnabled) {
+        @:{field: "Status",headerName:"@Model.LOVImageLabel",width:120,cellRenderer: params => {
+                @:return "if(" + params.value + "==1){Active#}else{Inactive}";
+            @:}},     
+    }
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-lovBin' data-idvalue='" + params.data + "' data-status=\"0\" data-name='" + params.data.Name + "' data-code='" + params.data.Code + "' data-parentId='" + params.data.ParentId + "' data-imageId='" + params.data.ImageId + "' data-status='" + params.data.Status + "' data-description='" + params.data.Description + "'><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    $(function () {
+
+        getLOVData();
+
+       // $.contextMenu('update');
+      //  $('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-lovBin',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var name = $trigger.data('name');
+                var code = $trigger.data('code');
+                var parentId = $trigger.data('parentId');
+                var imageId = $trigger.data('imageId');
+                var status = $trigger.data('status');
+                var description = $trigger.data('description');
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEdit(id, name, code, parentId, imageId, status, description);
+                                        break;
+
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+    function getLOVData() {
+        document.getElementById("kgridLOV").innerHTML = "";
+        gridConfig(
+            "kgridLOV",
+            "/cms/LOV/ReadData1?lovTypeId=@Model.LOVTypeId ",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>

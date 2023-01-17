@@ -1,0 +1,290 @@
+﻿@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model BLSVisaAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Appointment Receipt";
+    Layout = null;
+}
+
+<style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    td {
+        padding: 10px;
+        /*border: 1px solid black;*/
+    }
+
+    .blstdbgcolor {
+        background-color: #F7F7F7;
+    }
+
+    .textcenter {
+        text-align: center;
+    }
+
+    .textright {
+        text-align: right;
+    }
+
+    .blspadding {
+        padding: 10px;
+    }
+
+    .avatar-myProfile {
+        border-radius: 10%;
+        height: 120px;
+        width: 120px;
+    }
+
+    .blsqrcode {
+        border: 1px solid black;
+        height: 120px;
+        width: 120px;
+    }
+
+    .blsbarcode {
+        height: 80px;
+        width: 250px;
+    }
+
+    #map {
+        height: 180px;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        /*var map = L.map('map').setView([51.505, -0.09], 13);*/
+/*        var map = L.map('map');*/
+        //var map = L.map('map', {
+        //    center: [51.505, -0.09],
+        //    zoom: 13
+        //});
+        var lat = '@Model.LocationLatitude';
+        var long = '@Model.LocationLongitude';
+        var locname = '@Model.LocationName';
+        if (lat != '' && long != '') {
+            var map = L.map('map').setView([lat, long], 13);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            L.marker([lat, long]).addTo(map)
+                .bindPopup(locname)
+                .openPopup();
+
+        } else {
+
+        }
+
+
+
+    });
+    function onPrintReport() {
+        //alert("Print Report");
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/Cms/FastReport?rptName=BLS_VisaAppointmentReport&lo=@LayoutModeEnum.Popup&rptUrl=bls/query/GetAppointmentReceipt/@Model.ServiceId/@ViewBag.UserId';
+        /*& rptUrl=Cms / query / GetCSCBirthCertificateReport ? serviceId = '+serviceId*/
+        win.OpenWindow({ Title: 'Appointment Receipt', Width: 700, Height: 800 });
+		return false;
+    }
+    function onEmailReport() {
+        //alert("Email Report");
+    }
+</script>
+
+<div class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="row">
+                <div class="col-12 textcenter">
+                    <header class="page-title-bar">
+                        <h4>@ViewData["Title"]</h4>
+                    </header>
+                </div>
+            </div>
+            <div class="row blspadding">
+                <div class="col-12 textcenter">
+                    <button type="button" onclick="onPrintReport();" class="btn btn-primary"><i class="fa-solid fa-print"></i> PRINT</button>
+                    <button type="button" onclick="onEmailReport();" class="btn btn-primary"><i class="fa-solid fa-at"></i> EMAIL</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="row blspadding">
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-3">Appointment Date</div>
+                            <div class="col-3">: @Model.AppointmentDateText</div>
+                        </div>                         
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 textcenter">
+                        <header class="page-title-bar">
+                            <strong>Appointment Confirmation Letter</strong>
+                        </header>
+                    </div>
+                </div>
+                <div class="row blspadding">
+                    <div class="col-6">
+                        @if (Model.ImageId != null)
+                        {
+                            <img class="avatar-myProfile" src="/cms/Document/GetImageMongo?id=@Model.ImageId" onerror='OnPhotoError(this);' />
+                        }
+
+                    </div>
+                    <div class="col-6 textright">
+                        @*<div class="blsqrcode" style="float:right;"></div>*@
+                        @if (Model.QRCodeId != null)
+                        {
+                            <img class="blsqrcode" src="/cms/Document/GetImageMongo?id=@Model.QRCodeId" onerror='OnPhotoError(this);' />
+                        }
+                        else
+                        {
+                            <img class="blsqrcode" style="background-color:gray;" src="~/images/emptyqrcode.jpeg" />
+                        }
+                    </div>
+                </div>
+                <div class="row blspadding">
+                    <div class="col-6">
+
+                    </div>
+                    <div class="col-6 textright">
+                        @*<div class="blsqrcode" style="float:right;"></div>*@
+                        @if (Model.BarCodeId != null)
+                        {
+                            <img class="blsbarcode" src="/cms/Document/GetImageMongo?id=@Model.BarCodeId" onerror='OnPhotoError(this);' />
+                        }
+
+                    </div>
+                </div>
+                <div class="row blspadding">
+                    <div class="col-12">
+                        <p>Dear Applicant,</p>
+                        <p>Greeting from BLS!</p>
+                        <p>Your appointment has been booked with the following details:</p>
+                    </div>
+                </div>
+                <div class="row blspadding">
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-3">Number Of Applicants</div>
+                            <div class="col-6">: @Model.ApplicantsCount</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">Appointment Type</div>
+                            <div class="col-6">: @Model.AppointmentCategoryName</div>
+                        </div>
+                        
+                        
+                    </div>
+                    <div class="col-6 textright">
+                        Ref. No : @Model.ServiceNo
+                    </div>
+                </div>
+                <div class="row blspadding textcenter">
+                    <div class="col-12">
+                        <table>
+                            <tr>
+                                <td colspan="6" class="blstdbgcolor">Appointment Details</td>
+                            </tr>
+                            <tr>
+                                <td>Applicant Name</td>
+                                <td>Mobile Number</td>
+                                <td>Reference Number</td>
+                                <td>Passport Number</td>
+                                <td>Appointment Date and Time</td>                                
+                            </tr>
+                            @foreach(var app in Model.BlsAppointmentList)
+                            {
+                                <tr>
+                                    <td class="blstdbgcolor">@app.GivenName</td>
+                                    <td class="blstdbgcolor">@app.CurrentContactNumberText</td>
+                                    <td class="blstdbgcolor">@app.ServiceNo</td>
+                                    <td class="blstdbgcolor">@app.PassportNumber</td>
+                                    <td class="blstdbgcolor">@app.AppointmentDateSlotText</td>
+                                </tr>
+                            }
+                            
+                        </table>
+                    </div>
+                </div>
+                <div class="row blspadding">
+                    <div class="col-12">
+                        <p><strong>Please be available at the following address 5 Minute before your appointment time.</strong></p>
+                    </div>
+                </div>
+                <div class="row blspadding">
+                    <div class="col-6">
+                        <p>
+                            <strong>
+                                BLS International Services,<br />
+                                @Model.AppointmentAddress
+                            </strong>
+                        </p>
+                        <p>Regards,</p>
+                        <p>
+                            Thank you.<br />
+                            BLS International Services
+                        </p>
+                        <br />
+                    </div>
+                    <div class="col-6" id="divmap">
+                        <div id="map">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row blspadding">
+                    <div class="col-12">
+                        <p>Important Note:</p>
+                        <p>Applicant holding appointment confirmation letter (soft or hard copy) with the details: name/given name and passport number matching passport only will be allowed for submission. Appointment confirmation letter with details different from passport will not be entertained.</p>
+                        <br />
+                        <p><strong>Value Added Services:</strong></p>
+                        <p>Dear Valued Customer, as part of our on-going efforts to enhance your experience, we are offering the following convenience services at our application centres. The services are optional and can be availed at any of the BLS Centres:</p>
+                        <p>
+                            1. Form Filling - Assistance to applicants in completing the application forms with 100% compliance of Embassy of India/Consulate General of India requirements.<br />
+                            2. Photocopy - Photo copier facility at our Application Centre to help with copies of documents.<br />
+                            3. Photograph - Photograph services for the convenience of the applicants as per the requirements set by Consulate General of India, Dubai.<br />
+                            4. Print out - Printing of documents from their email for the convenience of the applicants.<br />
+                        <p>
+                            <strong>
+                                Due to COVID-19 hygiene reasons, applicants are advised to arrive direct to BLS Centers along with original Passports.
+                                Form Filling/Typing and photo service are provided at all BLS Centers.
+                            </strong>
+                            <br />
+                            1. This online booking of appointment is FREE OF CHARGE. Applicants are advised
+                            to avoid being misguided by touts/third parties on any charges involved for booking
+                            this appointment.
+                            <br />
+                            The waiting time at center depends on the number of applications submitted
+                            at the counter by an Individual.
+                            <br />
+                            The India Mission (Embassy of India/CGI) is the sole authority for acceptance,
+                            processing & issuance of your Passport and Visa application.
+                            <br />
+                            Payment for services rendered are accepted in AED as CASH only. Please
+                            ensure all receipts are in order, and keep the same until passport/visa is delivered.
+                            <br />
+                            For children below 18 years, both parents along with the applicant to be
+                            present with all three passport in original.
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

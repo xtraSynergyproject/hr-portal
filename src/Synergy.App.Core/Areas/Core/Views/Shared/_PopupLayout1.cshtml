@@ -1,0 +1,948 @@
+﻿
+@inject Synergy.App.Common.IUserContext _userContext
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+
+    <link href="~/editorHtml/css/editor.css" rel="stylesheet"  asp-append-version="true"/>
+    <!-- jquery-->
+    <script src="~/editorHtml/js/jquery.min.js"  asp-append-version="true"></script>
+    <script src="~/editorHtml/js/jquery.hotkeys.js"  asp-append-version="true"></script>
+
+    <!-- bootstrap-->
+    <script src="~/editorHtml/js/popper.min.js"  asp-append-version="true"></script>
+    <script src="~/editorHtml/js/bootstrap.min.js"  asp-append-version="true"></script>
+
+    <!-- builder code-->
+    <script src="~/editorHtml/libs/builder/builder.js"  asp-append-version="true"></script>
+    <!-- undo manager-->
+    <script src="~/editorHtml/libs/builder/undo.js"  asp-append-version="true"></script>
+    <!-- inputs-->
+    <script src="~/editorHtml/libs/builder/inputs.js"  asp-append-version="true"></script>
+
+    <script src="~/js/Encrypt/aes-min.js"></script>
+    <!-- media gallery -->
+    <link href="~/editorHtml/libs/media/media.css" rel="stylesheet"  asp-append-version="true"/>
+    <script>
+        window.mediaPath = 'media';
+    </script>
+    <script src="~/editorHtml/libs/media/media.js" asp-append-version="true"></script>
+    <script src="~/editorHtml/libs/media/ccsearch.js" asp-append-version="true"></script>
+    <script src="~/editorHtml/libs/builder/plugin-media.js" asp-append-version="true"></script>
+
+    <!-- bootstrap colorpicker //uncomment bellow scripts to enable -->
+    <!--
+    <script src="libs/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js"></script>
+    <link href="libs/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <script src="libs/builder/plugin-bootstrap-colorpicker.js"></script>
+    -->
+    <!-- components-->
+    <!-- script src="libs/builder/components-server.js"></script -->
+    <script src="~/editorHtml/libs/builder/components-common.js"  asp-append-version="true"></script>
+    <!-- script src="libs/builder/components-elements.js"></script -->
+    <script src="~/editorHtml/libs/builder/components-bootstrap5.js" asp-append-version="true"></script>
+    <script src="~/editorHtml/libs/builder/components-widgets.js" asp-append-version="true"></script>
+    <script src="~/editorHtml/libs/builder/components-html.js" asp-append-version="true"></script>
+
+    <!-- sections-->
+    <script src="~/editorHtml/libs/builder/sections-bootstrap4.js" asp-append-version="true"></script>
+
+    <!-- blocks-->
+    <script src="~/editorHtml/libs/builder/blocks-bootstrap4.js" asp-append-version="true"></script>
+
+    <!-- plugins -->
+    <!-- code mirror - code editor syntax highlight -->
+    <link href="~/editorHtml/libs/codemirror/lib/codemirror.css" rel="stylesheet"  asp-append-version="true"/>
+    <link href="~/editorHtml/libs/codemirror/theme/material.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/editorHtml/libs/codemirror/lib/codemirror.js" asp-append-version="true"></script>
+    <script src="~/editorHtml/libs/codemirror/lib/xml.js" asp-append-version="true"></script>
+    <script src="~/editorHtml/libs/codemirror/lib/formatting.js" asp-append-version="true"></script>
+    <script src="~/editorHtml/libs/builder/plugin-codemirror.js" asp-append-version="true"></script>
+        <script src="~/js/clipboard.min.js"  asp-append-version="true"></script>
+
+    <!--
+    Tinymce plugin
+    Clone or copy https://github.com/tinymce/tinymce-dist to libs/tinymce-dist
+    -->
+    <!--
+    <script src="libs/tinymce-dist/tinymce.min.js"></script>
+    <script src="libs/builder/plugin-tinymce.js"></script>
+    -->
+    <!--
+    CKEditor plugin
+    Unzip the latest ckeditor release zip from https://github.com/ckeditor/ckeditor4/releases to libs/ckeditor
+    -->
+    <!--
+    <script src="libs/ckeditor/ckeditor.js"></script>
+    <script src="libs/builder/plugin-ckeditor.js"></script>
+    -->
+    <!-- jszip - download page as zip -->
+    <!-- script src="libs/jszip/jszip.min.js"></script>
+    <script src="libs/builder/plugin-jszip.js"></script -->
+    <!-- autocomplete plugin used by autocomplete input-->
+    <script src="~/editorHtml/libs/autocomplete/jquery.autocomplete.js" asp-append-version="true"></script>
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/jszip.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/kendo.all.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/kendo.aspnetmvc.min.js"></script>
+    <link href="~/lib/kendo/dist/css/kendo.bootstrap-v4.min.css" rel="stylesheet" type="text/css"  asp-append-version="true"/>
+    @*<link href="~/css/common.css" rel="stylesheet" />*@
+    <script src="~/js/common.js"  asp-append-version="true"></script>
+    <script type="text/javascript">
+               
+        var globalPopups = GetStack();
+        var globalCallBack = null;
+        var globalWindowSender = null;
+        function IsPopupWindow() {
+            return (window.frameElement !== null && window.frameElement !== undefined && window.frameElement !== '');
+        }
+        if (IsPopupWindow()) {
+            $("<style>")
+                .prop("type", "text/css")
+                .html("\
+                            .clear-padding {\
+                                margin-left: 0px !important;\
+                                padding-top: 0px!important;\
+                                padding-bottom: 0px!important;\
+                            }\
+                            .hide-in-popup {\
+                                display: none;\
+                            }")
+                .appendTo("head");
+        }
+        function OpenWindow(winProp) {
+            var obj = eval(globalPopups.peek());
+            if (winProp.Reload == true) {
+            }
+            else {
+                if (obj === null) {
+                    winProp.Id = 1;
+                    obj = winProp;
+                    globalPopups.push(winProp);
+                }
+                else {
+                    winProp.Id = eval(obj.Id) + 1;
+                    obj = winProp;
+                    globalPopups.push(winProp);
+                }
+            }
+
+            var name = "popup_" + obj.Id;
+            var wnd = $("#" + name).data("kendoWindow");
+            if (wnd) {
+                wnd.setOptions({
+                    width: winProp.Width,
+                    height: winProp.Height,
+                    title: winProp.Title
+                });
+
+                wnd.refresh({ url: iframeOpenUrl });
+                if (globalWindowSender != null) {
+                    kendo.ui.progress(globalWindowSender.sender.element, true);
+                }
+
+            } else {
+                wnd = $("<div id='" + name + "'></div>").kendoWindow({
+                    title: winProp.Title,
+                    width: winProp.Width,
+                    iframe: true,
+                    resizable: true,
+                    actions: ["Maximize", "Close"],
+                    height: winProp.Height,
+                    modal: true,
+                    open: OnWindowOpen,
+                    activate: OnWindowActivate,
+                    close: OnWindowClose,
+                    deactivate: OnWindowDeactivate,
+                    refresh: OnWindowRefresh,
+
+                    visible: true
+                }).data("kendoWindow");
+                if (winProp.Position === 'Right') {
+                    wnd.wrapper.addClass('k-popup-right');
+                }
+                else {
+                    wnd.center();
+                }
+                //  RemoveMultipleOverlays();
+
+            }
+        }
+        function RemoveMultipleOverlays() {
+            $('div.k-overlay').remove();
+        }
+        function CloseWindow(cb) {
+            globalCallBack = cb;
+            var obj = globalPopups.peek();
+            if (obj === null) {
+                return null;
+            }
+            var name = "popup_" + obj.Id;
+            var wnd = $("#" + name).data("kendoWindow");
+            if (wnd != null) {
+                wnd.close();
+            }
+            return false;
+        }
+        function GetMainWindow(win) {
+            if (win === null || win === undefined) {
+                win = window;
+            }
+            if (win.frameElement === null || win.frameElement === undefined) {
+                return win;
+            }
+            return GetMainWindow(win.parent);
+        }
+        function GetWindow() {
+            var obj = globalPopups.peek();
+            if (obj === null) {
+                return null;
+            }
+            var name = "popup_" + obj.Id;
+            var windowElement = $("#" + name);
+            var iframeDomElement = windowElement.children("iframe")[0];
+            var iframeWindowObject = iframeDomElement.contentWindow;
+            return iframeWindowObject;
+        }
+        function GetParentWindow() {
+            var obj = globalPopups.peek(1);
+            if (obj === null) {
+                return window;
+            }
+            var name = "popup_" + obj.Id;
+            var windowElement = $("#" + name);
+            var iframeDomElement = windowElement.children("iframe")[0];
+            var iframeWindowObject = iframeDomElement.contentWindow;
+            return iframeWindowObject;
+        }
+        function OnWindowActivate(e) {
+            var obj = globalPopups.peek();
+            console.log(obj)
+            if (obj === null) {
+                return null;
+            }
+            var name = "popup_" + obj.Id;
+            var wnd = $("#" + name).data("kendoWindow");
+            wnd.refresh({
+                url: iframeOpenUrl,
+                cache: false,
+                type: "GET"
+            });
+            globalWindowSender = e;
+            kendo.ui.progress(e.sender.element, true);
+        }
+        function OnWindowOpen(e) {
+        }
+        function OnWindowClose(e) {
+
+        }
+        function OnWindowRefresh(e) {
+            kendo.ui.progress(e.sender.element, false);
+        }
+        function OnWindowDeactivate(e) {
+            var obj = globalPopups.pop();
+            if (obj === null) {
+                return null;
+            }
+            var name = "popup_" + obj.Id;
+            var wnd = $("#" + name).data("kendoWindow");
+            wnd.content("");
+            wnd.destroy();
+            if (globalCallBack !== null && globalCallBack !== undefined) {
+                win = GetWindow();
+                if (win === null || win === undefined) {
+                    win = window;
+                }
+                win[globalCallBack.MethodName](globalCallBack.Prms);
+                globalCallBack = null;
+            }
+
+        }
+
+
+
+        var iframeOpenUrl = "";
+        var iframePageType = "";
+        var frm;
+
+
+        function OpenIframeModal(url, title, width, height) {
+
+            ShowLoader($('.modal-body'));
+            var iframe = document.createElement('iframe');
+            iframe.setAttribute('url', '');
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('scrolling', 'no');
+            //iframe.setAttribute('width', width);
+            //iframe.setAttribute('height', height);
+            iframe.onload = function () {
+                var h = iframe.contentWindow.document.body.scrollHeight;
+                var w = iframe.contentWindow.document.body.scrollWidth;
+                iframe.style.height = h + 'px';
+                iframe.style.width = w + 'px';
+                var mw = eval(w + 30);
+                if (width > mw) {
+                    mw = width;
+                }
+                if (height > h) {
+                    h = height;
+                }
+                $('.modal-dialog').css({
+                    width: mw + 'px', //probably not needed
+                    height: h + 'px', //probably not needed
+                    'max-height': '90%'
+                });
+                HideLoader($('.modal-body'));
+            };
+            iframe.src = url;
+            document.getElementById('iframeDiv').innerHTML = '';
+            document.getElementById('iframeDiv').appendChild(iframe);
+            //$('#modalIframe').attr('src', '');
+            $('#iframeModal').modal({ show: true });
+            $('#iframeModal').on('shown.bs.modal', function () {
+
+                $('#modalIframe').attr('src', url);
+
+            })
+        };
+
+        function CloseIframeModal(reloadParent) {
+            $('#iframeModal').modal('hide');
+            if (reloadParent) {
+                //window.location.href = window.location.href;
+            }
+        }
+        function ShowLoader(target) {
+            target.loadingOverlay();
+        }
+        function HideLoader(target) {
+            target.loadingOverlay('remove');
+        }
+
+        function ToggleLoader(target) {
+            if (target.hasClass('loading')) {
+                target.loadingOverlay('remove');
+                //target.loadingOverlay('remove', {
+                //    iconClass: 'fa fa-spinner fa-spin'
+                //});
+            } else {
+                target.loadingOverlay();
+                //target.loadingOverlay({
+                //    iconClass: 'fa fa-spinner fa-spin'
+                //});
+
+            };
+        }
+
+
+
+        function OpenIframePopup(w, h, t) {
+            var wnd = $("#kiframepopupwindow").data("kendoWindow");
+            wnd.setOptions({
+                width: GetW(w),
+                height: GetH(h),
+                title: t
+            });
+
+            wnd.center().open();
+            wnd.wrapper.find('.k-window-titlebar').css({
+                'background-color': 'transparent',
+                'border-bottom-style': 'none',
+                'color': 'rgb(193, 151, 42)'
+            });
+        }
+        function CloseIframePopup() {
+            var wnd = $("#kiframepopupwindow").data("kendoWindow");
+            if (wnd != null) {
+                wnd.close();
+            }
+            return false;
+        }
+        function GetW(w) {
+            return $(window).width() > w ? w : $(window).width() - 30;
+        }
+        function GetH(h) {
+            return $(window).height() > h ? h : $(window).height() - 30;
+        }
+        function OnIframeActivate(e) {
+            e.preventDefault();
+            var wnd = $("#kiframepopupwindow").data("kendoWindow");
+            ActiveWindow = this;
+            wnd.refresh({
+                url: iframeOpenUrl,
+                cache: false,
+                type: "GET"
+            });
+        }
+        function OnIframeOpen(e) {
+            kendo.ui.progress(e.sender.element, true);
+            //document.body.style.overflow = "hidden";
+        }
+
+        function OnIframeClose(e) {
+            // document.body.style.overflow = "";
+            if (typeof (OnCloseIframePopupPage) !== "undefined") {
+                OnCloseIframePopupPage();
+            }
+
+            try {
+                var pop1 = window.parent.GetIframePopup();
+                pop1.PopupClose();
+                var url = window.location.href;
+                if (url.includes('&documentId')) {
+                    window.location.href = url.split('&documentId')[0];
+                }
+            } catch (x) {
+
+            }
+        }
+        function OnIframeRefresh(e) {
+            kendo.ui.progress(e.sender.element, false);
+        }
+        function OnIframeDeactivate(e) {
+            var wnd = $("#kiframepopupwindow").data("kendoWindow");
+            wnd.content("");
+        }
+
+        function OpenNtsIframePopup2(w, h, t) {
+            var wnd = $("#Ntskiframepopupwindow2").data("kendoWindow");
+            wnd.setOptions({
+                width: GetW(w),
+                height: GetH(h),
+                title: t
+            });
+            //wnd.content(content);
+            wnd.center().open();
+            wnd.wrapper.find('.k-window-titlebar').css({
+                'background-color': 'transparent',
+                'border-bottom-style': 'none',
+                'color': 'rgb(193, 151, 42)'
+            });
+        }
+        function CloseNtsIframePopup2() {
+            var wnd = $("#Ntskiframepopupwindow2").data("kendoWindow");
+            if (wnd != null) {
+                wnd.close();
+            }
+            return false;
+        }
+        function OnNtsIframeActivate2(e) {
+            e.preventDefault();
+            var wnd = $("#Ntskiframepopupwindow2").data("kendoWindow");
+            ActiveWindow = this;
+            $.ajax({
+                url: iframeOpenUrl,
+                type: 'GET',
+                cache: false,
+                success: function (data) {
+
+                    if (data.msg !== null && data.msg !== undefined && data.msg !== '') {
+                        ShowNotification(data.msg, 'success');
+                    }
+                    if (data.bc !== null && data.bc !== undefined && data.bc !== '') {
+                        SetBreadcrumb(data);
+                    }
+                    if (data.am === true) {
+                        SetAccordianMenu(data.page);
+                    }
+                    if (data.login !== null && data.login !== undefined && data.login !== '') {
+                        window.location.href = data.login;
+                    }
+                    else if (data.viewContent !== null && data.viewContent !== undefined && data.viewContent !== '') {
+                        container.html(data.viewContent);
+                    }
+                    else if (iframePageType === 'Custom') {
+                        LoadCustomFormIo(data, container);
+                    }
+
+                    else {
+                        wnd.content(data.view);
+                        var formio = document.getElementById('formio-container');
+                        if (formio !== null) {
+                            if (iframePageType === 'Page') {
+                                LoadPageFormIo(data, formio);
+                            }
+                            else if (iframePageType === 'Form') {
+                                LoadFormFormIo(data, formio);
+                            }
+                            else if (iframePageType === 'Note') {
+                                LoadFormFormIo(data, formio);
+                            }
+                            else if (iframePageType === 'Task') {
+                                LoadTaskFormIo(data, formio);
+                            }
+                            else if (iframePageType === 'Service') {
+                                LoadFormFormIo(data, formio);
+                            }
+                        }
+                    }
+                },
+                error: function (errData) {
+                    container.html(errData);
+                    HideLoader(container);
+                }
+            });
+
+            //wnd.refresh({
+            //    content: "123",
+            //    cache: false,
+            //    type: "GET"
+            //});
+
+
+            //wnd.content(iframeOpenUrl);
+            //return false;
+        }
+        function OnNtsIframeOpen2(e) {
+            kendo.ui.progress(e.sender.element, true);
+            //document.body.style.overflow = "hidden";
+        }
+
+        function OnNtsIframeClose2(e) {
+            if (globalNtsPopupCallbackMethod != null) {
+                window[globalNtsPopupCallbackMethod](globalNtsPopupCallbackMethodParam);
+                globalNtsPopupCallbackMethod = null;
+                globalNtsPopupCallbackMethodParam = null;
+            }
+
+
+        }
+        function OnNtsIframeRefresh2(e) {
+            kendo.ui.progress(e.sender.element, false);
+        }
+        function OnNtsIframeDeactivate2(e) {
+            var wnd = $("#Ntskiframepopupwindow2").data("kendoWindow");
+            wnd.content("");
+        }
+
+
+        function OpenNtsIframePopup(w, h, t) {
+            var wnd = $("#Ntskiframepopupwindow").data("kendoWindow");
+            wnd.setOptions({
+                width: GetW(w),
+                height: GetH(h),
+                title: t
+            });
+            //wnd.content(content);
+            wnd.center().open();
+            wnd.wrapper.find('.k-window-titlebar').css({
+                'background-color': 'transparent',
+                'border-bottom-style': 'none',
+                'color': 'rgb(193, 151, 42)'
+            });
+        }
+        function CloseNtsIframePopup() {
+            var wnd = $("#Ntskiframepopupwindow").data("kendoWindow");
+            if (wnd != null) {
+                wnd.close();
+            }
+            return false;
+        }
+
+        function OnNtsIframeActivate(e) {
+            e.preventDefault();
+            var wnd = $("#Ntskiframepopupwindow").data("kendoWindow");
+            ActiveWindow = this;
+            $.ajax({
+                url: iframeOpenUrl,
+                type: 'GET',
+                cache: false,
+                success: function (data) {
+                    if (data.msg !== null && data.msg !== undefined && data.msg !== '') {
+                        ShowNotification(data.msg, 'success');
+                    }
+                    if (data.bc !== null && data.bc !== undefined && data.bc !== '') {
+                        SetBreadcrumb(data);
+                    }
+                    if (data.am === true) {
+                        SetAccordianMenu(data.page);
+                    }
+                    if (data.login !== null && data.login !== undefined && data.login !== '') {
+                        window.location.href = data.login;
+                    }
+                    else if (data.viewContent !== null && data.viewContent !== undefined && data.viewContent !== '') {
+                        container.html(data.viewContent);
+                    }
+                    else if (iframePageType === 'Custom') {
+                        LoadCustomFormIo(data, container);
+                    }
+                    else {
+                        wnd.content(data.view);
+                        var formio = document.getElementById('formio-container');
+                        if (formio !== null) {
+                            if (iframePageType === 'Page') {
+                                LoadPageFormIo(data, formio);
+                            }
+                            else if (iframePageType === 'Form') {
+                                LoadFormFormIo(data, formio);
+                            }
+                            else if (iframePageType === 'Note') {
+                                LoadFormFormIo(data, formio);
+                            }
+                            else if (iframePageType === 'Task') {
+                                LoadTaskFormIo(data, formio);
+                            }
+                            else if (iframePageType === 'Service') {
+                                LoadFormFormIo(data, formio);
+                            }
+                        }
+                    }
+                },
+                error: function (errData) {
+                    container.html(errData);
+                    HideLoader(container);
+                }
+            });
+
+            //wnd.refresh({
+            //    content: "123",
+            //    cache: false,
+            //    type: "GET"
+            //});
+
+
+            //wnd.content(iframeOpenUrl);
+            //return false;
+        }
+        function OnNtsIframeOpen(e) {
+            kendo.ui.progress(e.sender.element, true);
+            //document.body.style.overflow = "hidden";
+        }
+        var globalNtsPopupCallbackMethod;
+        var globalNtsPopupCallbackMethodParam;
+        function OnNtsIframeClose(e) {
+            if (globalNtsPopupCallbackMethod != null) {
+                window[globalNtsPopupCallbackMethod](globalNtsPopupCallbackMethodParam);
+                globalNtsPopupCallbackMethod = null;
+                globalNtsPopupCallbackMethodParam = null;
+            }
+
+
+        }
+        function OnNtsIframeRefresh(e) {
+            kendo.ui.progress(e.sender.element, false);
+        }
+        function OnNtsIframeDeactivate(e) {
+            var wnd = $("#Ntskiframepopupwindow").data("kendoWindow");
+            wnd.content("");
+        }
+
+
+
+        function OnIframeClose2(e) {
+            try {
+                var pop2 = window.parent.GetIframePopup();
+                pop2.PopupClose2();
+            } catch (x) {
+
+            }
+        }
+        function OpenIframePopup2(w, h, t) {
+            var wnd = $("#kiframepopupwindow2").data("kendoWindow");
+            wnd.setOptions({
+                width: GetW(w),
+                height: GetH(h),
+                title: t
+            });
+            wnd.center().open();
+            wnd.wrapper.find('.k-window-titlebar').css({
+                'background-color': 'transparent',
+                'border-bottom-style': 'none',
+                'color': 'rgb(193, 151, 42)'
+            });
+
+        }
+        function CloseIframePopup2() {
+            var wnd = $("#kiframepopupwindow2").data("kendoWindow");
+            if (wnd != null) {
+                wnd.close();
+            }
+            return false;
+        }
+        function OnIframeActivate2(e) {
+            e.preventDefault();
+            var wnd = $("#kiframepopupwindow2").data("kendoWindow");
+            ActiveWindow = this;
+            wnd.refresh({
+                url: iframeOpenUrl,
+                cache: false,
+                type: "GET"
+            });
+        }
+        function OnIframeOpen2(e) {
+            kendo.ui.progress(e.sender.element, true);
+        }
+        function OnIframeRefresh2(e) {
+            kendo.ui.progress(e.sender.element, false);
+        }
+        function OnIframeDeactivate2(e) {
+            var wnd = $("#kiframepopupwindow2").data("kendoWindow");
+            wnd.content("");
+        }
+        function GetIframePopup2() {
+            var windowElement = $("#kiframepopupwindow2");
+            var iframeDomElement = windowElement.children("iframe")[0];
+            var iframeWindowObject = iframeDomElement.contentWindow;
+            return iframeWindowObject;
+        }
+        function GetNtsIframePopup() {
+            var windowElement = $("#Ntskiframepopupwindow");
+            var iframeDomElement = windowElement.children("iframe")[0];
+            var iframeWindowObject = iframeDomElement.contentWindow;
+            return iframeWindowObject;
+        }
+
+        function GetNtsIframePopup2() {
+            var windowElement = $("#Ntskiframepopupwindow2");
+            var iframeDomElement = windowElement.children("iframe")[0];
+            var iframeWindowObject = iframeDomElement.contentWindow;
+            return iframeWindowObject;
+        }
+
+
+        function EncryptParams(prm) {
+            var key = CryptoJS.enc.Utf8.parse('8080808080808080');
+            var iv = CryptoJS.enc.Utf8.parse('8080808080808080');
+            var ecp = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(prm), key,
+                {
+                    keySize: 128 / 8,
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+            return ecp;
+        }
+
+
+
+    </script>
+</head>
+
+<body id="page-top">
+    <!-- Iframe Window-->
+    @*@(Html.Kendo().Window().Name("kiframepopupwindow")
+        .Title("Window_TitlePopupWindow")
+        .Visible(false)
+
+        .Modal(true)
+        .Iframe(true)
+        //.ContentSettings(x => x.Cache(false))
+        .Draggable(true)
+        .Content("")
+.Actions(actions => actions.Maximize().Close())
+
+.Width(200)
+.Height(350)
+.Events(e => e.Activate("OnIframeActivate").Open("OnIframeOpen").Close("OnIframeClose").Refresh("OnIframeRefresh").Deactivate("OnIframeDeactivate"))
+    )
+    @(Html.Kendo().Window().Name("Ntskiframepopupwindow")
+        .Title("Window")
+        .Visible(false)
+
+        .Modal(true)
+        //.Iframe(true)
+        //.ContentSettings(x => x.Cache(false))
+        .Draggable(true)
+        .Content("")
+.Actions(actions => actions.Maximize().Close())
+
+.Width(200)
+.Height(350)
+.Events(e => e.Activate("OnNtsIframeActivate").Open("OnNtsIframeOpen").Close("OnNtsIframeClose").Refresh("OnNtsIframeRefresh").Deactivate("OnNtsIframeDeactivate"))
+    )
+    @(Html.Kendo().Window().Name("Ntskiframepopupwindow2")
+        .Title("Window")
+        .Visible(false)
+
+        .Modal(true)
+        //.Iframe(true)
+        //.ContentSettings(x => x.Cache(false))
+        .Draggable(true)
+        .Content("")
+.Actions(actions => actions.Maximize().Close())
+
+.Width(200)
+.Height(350)
+.Events(e => e.Activate("OnNtsIframeActivate2").Open("OnNtsIframeOpen2").Close("OnNtsIframeClose2").Refresh("OnNtsIframeRefresh2").Deactivate("OnNtsIframeDeactivate2"))
+    )
+    @(Html.Kendo().Window().Name("kiframepopupwindow2")
+        .Title("Window_TitlePopupWindow")
+        .Visible(false)
+        .Modal(true)
+        .Iframe(true)
+        //.ContentSettings(x => x.Cache(false))
+        .Draggable(true)
+        .Content("")
+
+        .Width(200)
+.Height(350)
+.Actions(actions => actions.Maximize().Close())
+.Events(e => e.Activate("OnIframeActivate2").Open("OnIframeOpen2").Close("OnIframeClose2").Refresh("OnIframeRefresh2").Deactivate("OnIframeDeactivate2"))
+    )*@
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        @RenderBody()
+        <div id="global-overlay" class="global-overlay">
+            <div class="global-overlay-loader">
+
+            </div>
+        </div>
+        @Html.Hidden("Url")
+    </div>
+</body>
+
+</html>
+<script type="text/javascript">
+     @{
+            string baseurl = ApplicationConstant.AppSettings.ApplicationBaseUrl(Configuration);
+
+        }
+    $(document).ready(function()
+    {
+	//if url has #no-right-panel set one panel demo
+	if (window.location.hash.indexOf("no-right-panel") != -1)
+	{
+		$("#vvveb-builder").addClass("no-right-panel");
+		$(".component-properties-tab").show();
+		Vvveb.Components.componentPropertiesElement = "#left-panel .component-properties";
+	} else
+	{
+		$(".component-properties-tab").hide();
+	}
+
+
+        @*if (@ViewBag.Websites != null ) {*@
+            @*Vvveb.Builder.init('/cms/editor/render?id=@ViewBag.Websites[0].NoteId', function () {
+                //run code after page/iframe is loaded
+            });*@
+        //}
+        //else {
+            Vvveb.Builder.init('/editorHtml/demo/blank-page/dummy.html', function () {
+          });
+        //}
+        $("#save-btn").hide();
+        $("#save-as-btn").hide();
+        $("#gallery-as-btn").hide();
+        $("#glink-as-btn").hide();
+
+	Vvveb.Gui.init();
+	//Vvveb.FileManager.init();
+	Vvveb.SectionList.init();
+	//Vvveb.FileManager.addPages(
+	//[
+ //           { name: "narrow-jumbotron", title: "Jumbotron", url: "/editorHtml/demo/narrow-jumbotron/index.html", file: "/editorHtml/demo/narrow-jumbotron/index.html", assets: ['/editorHtml/demo/narrow-jumbotron/narrow-jumbotron.css']},
+ //           { name: "album", title: "Album", url: "/editorHtml/demo/album/index.html", file: "/editorHtml/demo/album/index.html", folder: "content", assets: ['/editorHtml/demo/album/album.css']},
+ //           { name: "blog", title: "Blog", url: "/editorHtml/demo/blog/index.html", file: "/editorHtml/demo/blog/index.html", folder: "content", assets: ['/editorHtml/demo/blog/blog.css']},
+ //           { name: "carousel", title: "Carousel", url: "/editorHtml/demo/carousel/index.html", file: "/editorHtml/demo/carousel/index.html", folder: "content", assets: ['/editorHtml/demo/carousel/carousel.css']},
+ //           { name: "offcanvas", title: "Offcanvas", url: "/editorHtml/demo/offcanvas/index.html", file: "/editorHtml/demo/offcanvas/index.html", folder: "content", assets: ['/editorHtml/demo/offcanvas/offcanvas.css','/editorHtml/demo/offcanvas/offcanvas.js']},
+ //           { name: "pricing", title: "Pricing", url: "/editorHtml/demo/pricing/index.html", file: "/editorHtml/demo/pricing/index.html", folder: "ecommerce", assets: ['/editorHtml/demo/pricing/pricing.css']},
+ //           { name: "product", title: "Product", url: "/editorHtml/demo/product/index.html", file: "/editorHtml/demo/product/index.html", folder: "ecommerce", assets: ['/editorHtml/demo/product/product.css']},
+
+	//]);
+
+	 //Vvveb.FileManager.loadPage("narrow-jumbotron");
+	 Vvveb.Breadcrumb.init();
+});
+    function onSave() {
+
+        kendo.ui.progress($('#vvveb-builder'), true);
+        var content = $('#iframe1').contents().find("#HtmlContent").html();
+        var style = $('#iframe1').contents().find("#vvvebjs-styles").html();
+        var id = $('#iframe1').contents().find("#NoteId")[0].value;
+        var url = "@Url.Action("ManageSynergyWebsite", "Editor", new { @area = "Cms" })";
+        var model = { HtmlContent: content, NoteId: id, Style: style };
+        if (id != null && id != "" && id != undefined) {
+            $.post(url, model, function (res) {
+                if (res.success) {
+                    kendo.ui.progress($('#vvveb-builder'), false);
+                    alert("success");
+
+                }
+                else {
+                    kendo.ui.progress($('#vvveb-builder'), false);
+                    alert(res.error);
+                }
+            });
+        }
+
+    }
+    function OnSaveAs() {
+        kendo.ui.progress($('#vvveb-builder'), true);
+        var content = $('#iframe1').contents().find("#HtmlContent").html();
+        var style = $('#iframe1').contents().find("#vvvebjs-styles").html();
+        var url = "@Url.Action("ManageSynergyWebsite", "Editor", new { @area = "Cms" })";
+        var model = { HtmlContent: content,Style:style};
+        $.post(url, model, function(res){
+            if (res.success) {
+                kendo.ui.progress($('#vvveb-builder'), false);
+                alert("success");
+            }
+            else {
+                kendo.ui.progress($('#vvveb-builder'), false);
+                alert("failed");
+            }
+        });
+    }
+    function onManageTemplate() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("manage", "Editor", new { @area= "Cms" })';
+        win.OpenWindow({ Title: 'Create Page', Width: 500, Height: 400});
+        return false;
+    }
+    function onOpenGallery() {
+        var id = $('#iframe1').contents().find("#NoteId")[0].value;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("gallery", "Editor", new { @area= "Cms" })?id='+id;
+        win.OpenWindow({ Title: 'Image Gallery', Width: 925, Height: 700});
+        return false;
+    }
+    function onGenerateLink() {
+        @* 
+        var id = $('#iframe1').contents().find("#NoteId")[0].value;
+        var url = "@baseurl" + "cms/editor/render?enc=" + EncryptParams('id=' + id);*@
+        //navigator.clipboard.writeText(url);
+    }
+    var clipboard = new ClipboardJS('#glink-as-btn', {
+        text: function () {
+            var id = $('#iframe1').contents().find("#NoteId")[0].value;
+            var url = "@baseurl" + "cms/editor/render?enc=" + EncryptParams('id=' + id);
+            alert("Link Copied.")
+            return url;
+        },
+    });
+    function OnWebsiteClick(id, template, name) {
+        $("li[data-page]").removeClass('active');
+        $("li[data-page='" + name + "']").addClass('active');
+        if (template == 'True') {
+            $("#save-btn").hide();
+            $("#save-as-btn").show();
+            $("#gallery-as-btn").show();
+            $("#glink-as-btn").hide();
+        }
+        else {
+            $("#save-btn").show();
+            $("#save-as-btn").show();
+            $("#gallery-as-btn").show();
+            $("#glink-as-btn").show();
+        }
+        kendo.ui.progress($('#vvveb-builder'), true);
+
+        Vvveb.Builder.init('/cms/editor/render?id='+id, function () {
+            //run code after page/iframe is loaded
+            setTimeout(
+                function () {
+                    //do something special
+                    kendo.ui.progress($('#vvveb-builder'), false);
+                }, 2000);
+
+
+        });
+    }
+
+</script>

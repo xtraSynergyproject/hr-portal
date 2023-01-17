@@ -1,0 +1,172 @@
+﻿@using Synergy.App.Common;
+@using Synergy.App.ViewModel
+@using Synergy.App.Business
+
+
+
+@{
+    ViewData["Title"] = "Module";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model Synergy.App.ViewModel.MedFitCertificateViewModel
+
+
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+    .avatar-mysign {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+</style>
+
+
+
+
+<div class="row" style="padding:40px;">
+    <form asp-controller="RecruitmentMaster" asp-action="ManageMedicalFitnessCertificate" method="post" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+
+        <div class="col-12 pad-10">
+            <center><h4>Medical Fitness Certificate Details</h4></center>
+            <div class="form-label-group">
+                <input asp-for="FatherName" type="text" class="form-control" placeholder="Enter Father Name" autocomplete="off" style="width:100%" />
+                <label for="FatherName">Father Name</label>
+            </div>
+        </div>
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+
+                <input asp-for="Village" type="text" class="form-control" placeholder="Enter Village" autocomplete="off" style="width:100%" />
+
+                <label for="Village">Village</label>
+            </div>
+        </div>
+
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+                <input asp-for="District" type="text" class="form-control" placeholder="Enter District" autocomplete="off" style="width:100%" />
+                <label for="District">District</label>
+            </div>
+        </div>
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+                <input asp-for="State" type="text" class="form-control" placeholder="Enter State" autocomplete="off" style="width:100%" />
+                <label for="State">State</label>
+            </div>
+        </div>
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+                <input asp-for="PinCode" type="number" class="form-control" placeholder="Enter PinCode" autocomplete="off" style="width:100%" />
+                <label for="District">PinCode</label>
+            </div>
+        </div>
+
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+
+                <textarea asp-for="Purpose" placeholder="Purpose" rows="3" class="form-control" style="width:100%"></textarea>
+                <label for="Purpose">Purpose</label>
+            </div>
+        </div>
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+                <input asp-for="MedicalOfficerName" type="text" class="form-control" placeholder="Enter District" autocomplete="off" style="width:100%" />
+                <label for="District">MedicalOfficerName</label>
+            </div>
+        </div>
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+                <input asp-for="RegistrationNumber" type="text" class="form-control" placeholder="Enter State" autocomplete="off" style="width:100%" />
+                <label for="State">RegistrationNumber</label>
+            </div>
+        </div>
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+                @{
+                await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.MedicalOfficerSignature), Value = Model.MedicalOfficerSignature, CallbackMethod = "onFileUploadSuccess" });
+                }
+            </div>
+        </div>
+        <div class="cms-slidebar-footer">
+            <input type="submit" class="btn btn-primary" value="Save"  />
+            <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">Close</button>
+
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.SignatureId)
+        @Html.HiddenFor(x => x.ApplicationId)
+    </form>
+</div>
+
+
+<script type="text/javascript">
+               var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("SavedSuccessfully", "success");
+            }
+          
+            closeNavMemberGroup();
+            OnView()
+
+            //window.parent.GetCandidateExperiencebyCountry();
+
+        }
+        else {
+
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+
+        }
+    };
+     function OnView() {
+       
+        var appId = '@Model.ApplicationId';
+        var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("ViewMedicalFitnessCertificate", "RecruitmentMaster", new { @area= "Rec" })?appId=' + appId;
+        win.OpenWindow({ Title: 'View Medical Fitness Certificate', Width: 1000, Height: 1000 });
+        return false;
+
+    }
+    $(document).ready(function () {
+
+
+    });
+            function onFileUploadSuccess(e) {
+                if (e.response.success) {
+
+                    $(".avatar-mysign").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+                    $("#MedicalOfficerSignature").val(e.response.fileId);
+                }
+                else {
+
+                }
+                return true;
+            }
+
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+
+
+</script>

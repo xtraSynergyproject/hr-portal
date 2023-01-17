@@ -1,0 +1,136 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@model FormTemplateViewModel;
+@{
+    //Layout = string.Concat("~/Views/Shared/Themes/", Model.Page.Portal.Theme.ToString(), "/_Layout.cshtml");
+    Layout = ViewBag.Layout;
+    
+}
+<style>
+     @Model.Page.Css
+    canvas {
+        box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 20%), 0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%);
+        border-radius: 4px;
+    }
+
+    h4 {
+        font-size: larger;
+        color: black;
+        font-weight: bold;
+        text-align: center;
+    }
+</style>
+<script>
+    function SaveData() {
+        var isValid = frm.checkValidity(frm.submission.data);
+        if (isValid) {
+            $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+            return true;
+        }
+        else {
+            frm.submit();
+        }
+        return false;
+    }
+    var onAjaxSuccess = function (res) {
+        if (res.success) {            
+            ShowNotification(res.msg, 'success');
+            if (res.mode === 'Popup') {
+                var win = GetMainWindow();
+                var cb = null;
+                if (res.cbm !== null && res.cbm !== undefined && res.cbm !== '') {
+                    cb = { MethodName: res.cbm, Prms: res.vm };
+                }
+                win.CloseWindow(cb);
+                return false;
+            }
+            var container = $('#cms-content');
+            container.html(res.view);
+            var formio = document.getElementById('formio-container');
+            LoadFormFormIo(res, formio);
+            }
+        else {
+            showFormError(res.error);
+        }
+    };
+    var showFormError = function (error) {
+        $("#validation-summary-manageform").html(error);
+        $("#validation-summary-manageform").css("display", "block")
+    }
+    function closeNavMemberGroup()
+    {
+         if ('@Convert.ToString(Model.LayoutMode)' === 'Popup')
+        {
+            var win = GetMainWindow();
+            win.CloseWindow();
+            return false;
+        }
+        var id = '@Model.Page.Id';
+        var type = '@Model.Page.PageType.ToString()';
+        var source = '@RequestSourceEnum.Main.ToString()';
+        var action = '@DataActionEnum.None.ToString()';
+        LoadPageById(id, type, source, action,'','','','','');
+    }
+</script>
+
+<form asp-controller="Cms" asp-action="ManageForm" asp-area="" method="post" class="form-horizontal"
+      data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+      data-ajax="true" data-ajax-method="POST">
+    <div class="pad-15">
+        <div id="validation-summary-manageform" class="text-danger pt-2 pb-2" asp-validation-summary="All"></div>
+        <div id="formio-container"></div>
+        @Html.HiddenFor(x => x.Json)
+        @Html.HiddenFor(x => x.DataJson)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.TemplateId)
+        @Html.HiddenFor(x => x.PageId)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.RecordId)
+        @Html.HiddenFor(x => x.PortalName)
+        @Html.HiddenFor(x => x.CreateReturnType)
+        @Html.HiddenFor(x => x.EditReturnType)
+        @Html.HiddenFor(x => x.LayoutMode)
+        @Html.HiddenFor(x => x.PopupCallbackMethod)
+        @Html.HiddenFor(x => x.LegalEntityId)
+        @Html.HiddenFor(x => x.CompanyId)
+    </div>
+    <div class="cms-footer">
+        <div class="col-sm-12" style="text-align:right;">
+            @if (Model.EnableSaveButton)
+            {
+                <button type="submit" class="btn btn-primary" onclick="return SaveData();">@Model.SaveButtonText.ToDefaultSaveButtonText()</button>
+            }
+            @if (Model.EnableBackButton)
+            {
+                <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">@Model.BackButtonText.ToDefaultBackButtonText()</button>
+            }
+
+        </div>
+    </div>
+</form>
+<script>
+    function FillFormIo(json, datajson) {
+        debugger
+        var formio = $('#formio-container').html();
+        if (formio != undefined) {
+            var formio = document.getElementById('formio-container');
+            //window.parent.
+                LoadFormIo({ uiJson: json, dataJson: datajson }, formio);
+        }
+    }
+    $(document).ready(function () {
+        var json = $('#Json').val();
+        var datajson = $('#DataJson').val();
+        FillFormIo(json, datajson);
+    });
+
+    @Html.Raw(Model.ChartItems);
+</script>
+
+
+
+
+
+

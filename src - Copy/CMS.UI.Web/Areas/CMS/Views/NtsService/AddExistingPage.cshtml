@@ -1,0 +1,177 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "UserEntityPermission";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@model UserEntityPermissionViewModel
+
+
+<style>
+</style>
+<div class="row" style="margin:15px;margin-bottom:60px;">
+
+
+    <div class="row col-12 pad-10">
+        <div class="col-3">
+            Category <span class="required">*</span>
+        </div>
+            <div class="col-9">
+
+                <input id="CategoryId" style="width:100%" />
+            </div>
+        </div>
+    <div class="row col-12 pad-10">
+        <div class="col-3">
+            Book <span class="required">*</span>
+        </div>
+        <div class="col-9">
+            <input id="BookId"  style="width:100%"/>
+        </div>
+    </div>
+    <div class="row col-12 pad-10">
+        <div class="col-3">
+            Page <span class="required">*</span>
+        </div>
+        <div class="col-9">
+            <input id="PageId"  style="width:100%"/>
+
+
+        </div>
+    </div>
+
+
+    <div class="cms-slidebar-footer">
+        <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">Close</button>
+        <input type="button" class="btn btn-primary" value="Save" id="submitBtn" onclick="MapBookPages()" />
+    </div>
+
+
+
+</div>
+<script>
+
+    $(document).ready(function () {
+
+
+        $("#CategoryId").kendoDropDownList({
+            dataTextField: "CategoryName",
+            dataValueField: "Id",
+            dataSource: {
+                transport: {
+                    serverFiltering: true,
+                    read: {
+                        url: "/cms/NtsService/GetCategoryById?categoryId=@ViewBag.CategoryId",
+                        dataType: "json"
+                    }
+                },
+            },
+            change: function (e)
+            {
+                debugger;
+                var catId = $("#CategoryId").data("kendoDropDownList").value();
+                $("#BookId").data("kendoDropDownList").dataSource.read({ categoryId: catId})
+            },
+            optionLabel: "Select Category...",
+            value: '@ViewBag.CategoryId',
+
+
+            filter: '@FilterType.Contains',
+        }).data("kendoDropDownList");
+        @*$("#CategoryId").data("kendoDropDownList").value('@ViewBag.CategoryId');*@
+
+        $("#BookId").kendoDropDownList({
+            dataTextField: "BookName",
+            dataValueField: "Id",
+
+            change: function (e) {
+                debugger;
+                var categoryId = $("#BookId").data("kendoDropDownList").value();
+                $("#PageId").data("kendoDropDownList").dataSource.read({ bookId: categoryId,actualPages:'@ViewBag.ActualPages' })
+            },
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/cms/NtsService/GetBookByCategoryId",
+                        data: { categoryId: $("#CategoryId").val()},
+                        dataType: "json"
+                    }
+                },
+            },
+             autoBind:false,
+            optionLabel: "Select Book..",
+            value: '@ViewBag.BookId',
+            filter: '@FilterType.Contains',
+        }).data("kendoDropDownList");
+        @*$("#BookId").data("kendoDropDownList").value('@ViewBag.BookId');*@
+        $("#PageId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/cms/NtsService/GetAllPages" ,
+                        data: { bookId: $("#BookId").val(),actualPages:'@ViewBag.ActualPages' },
+                        dataType: "json"
+                    }
+                },
+            },
+            autoBind: false,
+            optionLabel: "Select Page...",
+
+
+            filter: '@FilterType.Contains',
+        }).data("kendoDropDownList");
+
+
+    });
+
+
+
+
+
+
+
+
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+
+
+
+    function MapBookPages() {
+
+        $.ajax({
+            url: '/cms/NtsService/CreateBookPageMapping?bookId=@ViewBag.BookId&pageId=' + $("#PageId").data("kendoDropDownList").value()+"&sequenceOrder=@ViewBag.SequenceOrder",
+            type: "POST",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                debugger;
+                if (response.success)
+                {
+                    ShowNotification("Saved Successfully");
+                    var win = GetMainWindow();
+                    win.CloseWindow({ MethodName: "OnAfterServiceCreate" });
+                    //$("#contentTreeView").data("fancytree").dataSource.read();
+                     
+                }
+
+            }
+        });
+
+    }
+
+
+
+</script>

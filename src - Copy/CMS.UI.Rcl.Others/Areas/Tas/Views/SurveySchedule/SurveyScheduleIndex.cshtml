@@ -1,0 +1,234 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<script>
+    $(document).ready(function () {
+        $.contextMenu({
+            selector: '#tree-menu-surveyschedule',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                /*                console.log($trigger);*/
+                var id = $trigger.data('idvalue');
+                var noteid = $trigger.data('noteid');
+                var status = $trigger.data('notestatuscode');
+                var surveyId = $trigger.data('surveyId');
+
+                console.log(status);
+                switch (0) {
+                    case 0:
+                        debugger;
+                        var Items;
+                        if (status == "NOTE_STATUS_DRAFT") {
+                            Items = {
+                                "openSurveySchedule": { name: "Schedule Survey", icon: "fas fa-edit" },
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                //"viewDetails": { name: "ViewDetails", icon: "fas fa-edit" },
+
+                            };
+                        }
+                        else if (status == "NOTE_STATUS_INPROGRESS") {
+                            Items = {
+                                //"openSurveySchedule": { name: "Open Survey Schedule", icon: "fas fa-edit" },
+                                //"edit": { name: "Edit", icon: "fas fa-edit" },
+                                "viewDetails": { name: "ViewDetails", icon: "fas fa-edit" },
+                                "editVersion": { name: "Edit", icon: "fas fa-edit" },
+
+                            };
+                        }
+                        //else {
+                        //    Items = {
+                        //        /*"salesOrder": { name: "Sales Order", icon: "fas fa-edit" },*/
+                        //    }
+                        //}
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'openSurveySchedule':
+                                        OpenSurveySchedule(id, true);
+                                        break;
+
+                                    case 'edit':
+                                        EditSurveySchedule(id);
+                                        break;
+                                    case 'editVersion':
+                                        EditSurveyScheduleVersion(id,true, true);
+                                        break;
+                                    case 'viewDetails':
+                                        ViewDetails(id);
+                                        break;
+
+
+                                    default:
+                                }
+                            },
+                            items: Items
+                        };
+
+
+                }
+            }
+        });
+     });
+
+
+    function OnSearch(e) {
+    /*alert("Search");*/
+        var search = SearchFilter();
+        $("#kgrdSurveySchedule").data("kendoGrid").dataSource.read(search);
+    }
+
+    function AddSurveySchedule(e) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("UpdateSurveySchedule", "SurveySchedule", new { @area= "TAS" })';
+        win.OpenWindow({ Title: 'Create Survey Schedule', Width: 1000, Height: 800 });
+    }
+    function EditSurveySchedule(surveyScheduleId) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/TAS/SurveySchedule/UpdateSurveySchedule?id=' + surveyScheduleId;
+        win.OpenWindow({ Title: 'Edit Survey Schedule', Width: 1000, Height: 800 });
+    }
+    function OpenSurveySchedule(surveyScheduleId,flag) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/TAS/SurveySchedule/UpdateSurveySchedule?id=' + surveyScheduleId +'&isOpenSurveySchedule='+flag;
+        win.OpenWindow({ Title: 'Open Survey Schedule', Width: 1000, Height: 800 });
+    }
+    function EditSurveyScheduleVersion(surveyScheduleId,flag,isversion){
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/TAS/SurveySchedule/UpdateSurveySchedule?id=' + surveyScheduleId + '&isOpenSurveySchedule=' + flag +'&isVersion='+isversion;
+        win.OpenWindow({ Title: 'Update Survey Schedule', Width: 1000, Height: 800 });
+    }
+    function OnAfterNoteCreate(note) {
+        $("#kgrdSurveySchedule").data("kendoGrid").dataSource.read();
+    }
+
+    function SearchFilter() {
+        var surveyid = $("#SurveyId").data("kendoDropDownList").value();
+        /*var statusid = $("#NoteStatus").data("kendoDropDownList").value();*/
+        return {
+            surveyId: surveyid,
+            /*status: statusid,*/
+        };
+    }
+    function ViewDetails(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/TAS/SurveySchedule/ViewDetails?id=' + id;
+        win.OpenWindow({ Title: 'View Survey Details', Width: 1500, Height: 800 });
+    }
+</script>
+<div>
+
+    <h4>Survey Schedule Search Criteria</h4>
+    <div class="card ">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row col-12" style="padding:5px;">
+            <div class="col-6" style="padding-bottom:10px;">
+                <label>Survey</label>
+                @(Html.Kendo().DropDownList().Name("SurveyId")
+             .HtmlAttributes(new { @class="form-control" })
+             .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+             .DataTextField("AssessmentName")
+             .DataValueField("Id")
+             .Filter(FilterType.Contains)
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("GetAssessmentIdNameList", "SurveySchedule", new { @area = "Tas" });
+                 });
+             })
+        )
+            </div>
+            @*<div class="col-3" style="padding-bottom:10px;">
+            <label>Item Category</label>
+            <input id="ItemCategory" class="form-control" />
+        </div>
+        <div class="col-3" style="padding-bottom:10px;">
+            <label>Item Sub Category</label>
+            <input id="ItemSubCategory" class="form-control" />
+        </div>*@
+            @*<div class="col-3" style="padding-bottom:10px;">
+            <label>Status</label>
+            @(Html.Kendo().DropDownList().Name("NoteStatus")
+             .HtmlAttributes(new { @class="form-control" })
+             .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+             .DataTextField("Name")
+             .DataValueField("Id")
+             .Filter(FilterType.Contains)
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("GetListOfValueList", "LOV", new { @area = "Cms", type = "LOV_NOTE_STATUS" });
+                 });
+             })
+        )
+        </div>*@
+
+            <div class="col-6" style="text-align:right;padding-top:25px;padding-bottom:10px;">
+                <input type="button" class="btn btn-primary" value="Search" style="margin:5px;" onclick="OnSearch()" />
+                <input type="button" class="btn btn-warning" value="Add Survey Schedule" style="margin:5px;color:white" onclick="AddSurveySchedule()" />
+            </div>
+
+        </div>
+        @*<div class="row col-12" style="padding:5px;">
+
+            <div class="col-12" style="text-align:right;">
+                <input type="button" class="btn btn-primary" value="Search" style="margin:5px;" onclick="OnSearch()" />
+                <input type="button" class="btn btn-warning" value="Add Survey Schedule" style="margin:5px;color:white" onclick="AddSurveySchedule()" />
+            </div>
+
+        </div>*@
+    </div>
+    <div class="row">
+        <h4 style="padding:15px;">Survey Schedule List</h4>
+        <div class="col-12">
+            @*<input type="button" class="btn btn-warning" value="Add Item" style="margin:5px;color:white" onclick="AddItem()" />*@
+            @*<div id="ItemGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>*@
+            @(Html.Kendo().Grid<SurveyScheduleViewModel>
+    ().Name("kgrdSurveySchedule")
+    .Columns(col =>
+    {
+        col.Bound(c=> c.SurveyScheduleName);
+        col.Bound(c => c.SurveyScheduleDescription);
+        col.Bound(c => c.SurveyExpiryDate).Format(ApplicationConstant.DateAndTime.DefaultDateFormat);
+        col.Bound(c => c.PreferredLanguageName).Title("Preferred Language");
+        col.Bound(c => c.SurveyName);
+        col.Bound(c => c.SurveyStatusName);
+        col.Bound(c => c.Id).ClientTemplate("<div class='btn-group grid-menu' id='tree-menu-surveyschedule' data-idvalue=\"#:Id#\" data-noteid=\"#:NoteId#\"  data-notestatuscode=\"#:NoteStatusCode#\" data-surveyId=\"#:NoteId#\"><i class='fas fa-ellipsis-v'></i></div>").Width(150).Title("Action");
+    })
+    //.ToolBar(toolbar =>
+    //{
+    //    toolbar.Custom().Text("Create New Assessment").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateAssessment();" });
+    //})
+    .Scrollable(x => x.Enabled(true))
+    .Sortable(srt => srt.Enabled(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+    .Resizable(resize => resize.Columns(true))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("ReadSurveyScheduleData", "SurveySchedule", new { Area="TAS"}))
+    .Model(model => model.Id("Id")))
+    )
+        </div>
+    </div>
+
+</div>

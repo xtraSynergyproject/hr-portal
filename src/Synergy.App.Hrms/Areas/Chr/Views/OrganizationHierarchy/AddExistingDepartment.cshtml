@@ -1,0 +1,213 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+
+@{
+    ViewData["Title"] = "Manage Performance Document Stage";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model OrganizationChartViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+<style>
+    #users-list .k-item {
+        width: 100%;
+        background-color: #fff;
+        padding-top: 3px;
+        padding-bottom: 3px;
+        border-bottom: 1px solid #f2f2f2;
+        border-collapse: collapse;
+    }
+
+        #users-list .k-item:hover {
+            background-color: rgb(182,189,202);
+        }
+
+    #users-list .k-state-selected, #SwitchToUserId-list .k-state-selected:hover {
+        background-color: #1984c8;
+        border-color: #1984c8;
+    }
+</style>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        @*$("#Id").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/CHR/OrganizationHierarchy/GetNonExistingDepartmentlist?hierarchy=" + '@Model.HierarchyId' +"&parentId="+'@Model.ParentId',
+                    }
+                }
+            }
+        });*@
+                $("#Id").kendoDropDownList({
+           // template: '<span class="order-id">#= OrderID #</span> #= ShipName #, #= ShipCountry #',
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            virtual: {
+                itemHeight: 26,
+                valueMapper: function (options) {
+                    $.ajax({
+                        url: "/Chr/OrganizationHierarchy/GetSwitchOrgValueMapper?hierarchyId='+'@Model.HierarchyId'+'&parentId='+'@Model.ParentId",
+                        type: "GET",
+                        dataType: "json",
+                        data: convertValues(options.value),
+                        success: function (data) {
+                            options.success(data);
+                        }
+                    })
+                }
+            },
+            height: 260,
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: function (options) {
+
+                        console.log(options.data)
+                        $.ajax({
+                            url: '/CHR/OrganizationHierarchy/GetOrganizationVirtualData?hierarchyId='+'@Model.HierarchyId'+'&parentId='+'@Model.ParentId',
+                                        dataType: 'json',
+                                        type: 'GET',
+                                        data: ConvertOptions(options.data),
+                                        success: function (result) {
+                                            options.success(result);
+                                        }
+                                    })
+                                }
+                            },
+
+                schema: {
+                    model: {
+                        fields: {
+                            Id: { type: "string" },
+                            Name: { type: "string" }
+                        }
+                    },
+                    data: "Data",
+                    total: "Total"
+                },
+                pageSize: 40,
+                serverPaging: true,
+                serverFiltering: true,
+
+            }
+        });
+    });
+       var filter;
+    function ConvertOptions(data) {
+        if (data != null) {
+            if (data['filter'] != null && data['filter'] != undefined && data['filter'].filters != null && data['filter'].filters != undefined && data['filter'].filters.length>0)
+            {
+                filter = data['filter'].filters[0].value;
+                data['filters'] = data['filter'].filters[0].value;
+            }
+            return data;
+        }
+    }
+    function convertValues(value) {
+
+        var data = {};
+        data["value"] = value;
+        data["filters"] = filter;
+        return data;
+    }
+    function Close() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName:"OnAfterCreate"});
+        return false;
+    }
+
+
+
+    function onAdd() {
+
+        var value = $("#Id").data("kendoDropDownList").value();
+       // alert(value);
+        if (value == "" || value == null) {
+            @*kendo.alert("@Resource["SelectUser"]");*@
+            kendo.alert("Please Select Department")
+            return false;
+        }
+        else {
+            ShowLoader($('.viewdata'));
+             $.ajax({
+            type: 'POST',
+                 url: "/chr/OrganizationHierarchy/AddExistingDepartmentPost?parentDepartmentId=" + '@Model.ParentId' + "&departmentId=" + value,
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+                 success: function (res) {
+                    // alert(res.success);
+                HideLoader($('.viewdata'));
+                if (res.success) {
+                    @*window.parent.ShowNotification("@Resource["UserMappedSuccessfully"]", "success");*@
+                    Close();
+                }
+                else {
+                    window.parent.ShowNotification(res.message, "error");
+                }
+
+            }
+
+        });
+        }
+
+    }
+
+
+
+</script>
+
+<div class="row viewdata" style="margin-left:15px;">
+    <div class="col-12" style="font-size:20px;">
+        <span>Parent Department - </span>  @Html.DisplayFor(x => x.OrganizationName, new { @style = "font-size:20px;color:black;" })
+    </div>
+    <br />
+    <br />
+    <div class="col-12">
+        <span style="font-size:16px;">Existing Departments</span>
+        @*@(Html.Kendo().DropDownListFor(x=>x.Id)
+                                    .OptionLabel("---Select Department---")
+                                    .Filter(FilterType.Contains)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .HtmlAttributes(new { @class ="drp-user",@style= "width: 80%;" })
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetNonExistingDepartmentlist", "OrganizationHierarchy", new { @area = "CHR", hierarchy = Model.HierarchyId, parentId = Model.ParentId });
+                                        });
+                                    })
+             )*@
+
+        <input asp-for="Id" id="Id" class ="drp-user" style= "width: 80%;"/>
+
+    </div>
+
+    <br />
+    <br />
+    <div class="col-12">
+        <button class="k-button k-button-icontext k-grid-btnAdd k-primary" onclick="onAdd()" @*style="float:right;"*@><i class="fas fa-plus"></i>Add Department</button>
+    </div>
+
+    @Html.HiddenFor(c => c.ParentId)
+
+</div>
+

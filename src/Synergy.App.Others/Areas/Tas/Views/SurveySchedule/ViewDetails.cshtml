@@ -1,0 +1,167 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+
+@model SurveyScheduleViewModel
+<script>
+    function OnGenerateSurveyDetails() {
+        ShowLoader($('#progress'));
+        $.ajax({
+            type: "POST",
+            url: "/TAS/SurveySchedule/GenerateSurveyDetails",
+            data: { "SurveyScheduleId": '@Model.Id' },
+            success: function (response) {
+                HideLoader($('#progress'));
+                if (response.success) {
+                    kendo.alert("Data generated sucessfully");
+                }
+            },
+            error: function ()
+            {
+                HideLoader($('#progress'));
+            },
+            dataType: "json"
+        });
+    }
+    function onDataBound(e) {
+
+
+
+        var grid = $("#kgrdSurveySchedule").data("kendoGrid");
+
+       {
+            grid.showColumn("SurveyUserEmail");
+        }
+
+    }
+    function ViewSurveyResult(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/TAS/SurveySchedule/ViewSurveyResult?id=' + id;
+        win.OpenWindow({ Title: 'View Survey result', Width: 1400, Height: 800 });
+    }
+
+      var ColumnDefs = [
+        {
+              field: "SurveyUserName",
+              headerName:"Survey User Name"
+        },
+        {
+            field: "SurveyUserEmail",
+            headerName: "Survey User Email"
+          },
+          {
+              field: "SurveyLink",
+              headerName: "Survey Link"
+          },
+          {
+              field: "SurveyCode",
+              headerName: "Survey Code"
+          },
+
+          {
+              field: "SurveyExpiryDate",
+              headerName: "Expiry Date"
+          },
+
+          {
+              field: "SurveyStartDate",
+              headerName: "Start Date"
+          },
+
+          {
+              field: "SurveyEndDate",
+              headerName: "End Date",
+              cellRenderer: params => {
+                  var date = new Date(params.value);
+                  return date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear() + "  " + date.toLocaleTimeString();
+              }
+          },
+
+        {
+            headerName: "Result",
+            field: "SurveyUserEmail",
+            cellRenderer: params => {
+                if (params.data.SurveyEndDate != null) {
+                  return  "<a target='_self' class='hover' style='cursor:pointer;color:dodgerblue;' onclick='ViewSurveyResult(\""+params.data.SurveyResultId+"\")'>View Result</a>"
+                }
+               // return "<div class='btn-group grid-menu' id='tree-pageSetting' data-idvalue='" + params.value + "' data-portalid='" + params.data.PreferencePortalId + "' data-pageid='" + params.data.DefaultLandingPageId + "' data-status=\"0\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    function getGridData() {
+        document.getElementById("ItemGrid").innerHTML = "";
+        gridConfig(
+            "ItemGrid",
+            "/TAS/SurveySchedule/ReadSurveyViewDetails?id=@Model.Id",
+            ColumnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    $(function () {
+
+
+        getGridData();
+    });
+
+</script>
+<div class="row" id="progress">
+    <h4 style="padding:15px;">Survey Details</h4>
+    <div class="col-12">
+        <input type="button" class="btn btn-warning" value="Generate Survey Data" style="margin:5px;color:white" onclick="OnGenerateSurveyDetails()" />
+        @*<input type="button" class="btn btn-warning" value="Add Item" style="margin:5px;color:white" onclick="AddItem()" />*@
+        <div id="ItemGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<SurveyScheduleViewModel>
+    ().Name("kgrdSurveySchedule")
+    .Columns(col =>
+    {
+        col.Bound(c=> c.SurveyUserName).Title("User Name");
+        col.Bound(c => c.SurveyUserEmail).Title("User Email");
+        col.Bound(c => c.SurveyLink).Title("Survey Link");
+        col.Bound(c => c.SurveyCode).Title("Survey Code");
+        col.Bound(c => c.SurveyExpiryDate).Title("Expiry Date").Format(ApplicationConstant.DateAndTime.DefaultDateFormat);
+        col.Bound(c => c.SurveyStartDate).Title("Start Date").Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat);
+        col.Bound(c => c.SurveyEndDate).Title("End Date").Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat);
+        col.Bound(p => p.SurveyUserEmail).Title("Result").Width(170).ClientTemplate("#if(SurveyEndDate!=null){#<a target='_self' class='hover' style='cursor:pointer;color:dodgerblue;' onclick=\"ViewSurveyResult('#=SurveyResultId#')\" >View Result</a>#}#");
+    })
+    //.ToolBar(toolbar =>
+    //{
+    //    toolbar.Custom().Text("Create New Assessment").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateAssessment();" });
+    //})
+    .Events(e => e.DataBound("onDataBound"))
+    .Scrollable(x => x.Enabled(true))
+    .Sortable(srt => srt.Enabled(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+    .Resizable(resize => resize.Columns(true))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(100)
+    .Read(read => read.Action("ReadSurveyViewDetails", "SurveySchedule", new { Area="TAS", id = Model.Id }))
+    .Model(model => model.Id("Id")))
+    )*@
+    </div>
+</div>
+

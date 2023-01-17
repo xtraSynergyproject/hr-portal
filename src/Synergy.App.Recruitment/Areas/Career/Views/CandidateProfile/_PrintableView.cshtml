@@ -1,0 +1,3080 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@using Newtonsoft.Json;
+
+@model CandidateProfileViewModel
+@{
+    ViewData["Title"] = "Candidate Profile";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+
+}
+<link type="text/css" rel="stylesheet" href="~/css/Rec/recruitment.css" asp-append-version="true" />
+<style>
+    .btn-cancel {
+        color: #ffffff;
+    }
+
+        .btn-cancel:hover {
+            color: #ffffff;
+        }
+
+    .col-form-label {
+        font-weight: bold;
+        margin-left: -5px;
+    }
+
+    .col-sm-6 {
+        font-size: 14px;
+    }
+
+    .navbar {
+        display: none;
+    }
+
+    .no-space {
+        font-size: 14px;
+    }
+
+    .col-label {
+        margin-left: -15px;
+    }
+
+    .col-value {
+        padding-left: 15px;
+        font-size: 14px;
+    }
+
+    .col-label-cont {
+        margin-left: -5px;
+    }
+
+    .span-col-label {
+        font-weight: bold;
+    }
+
+    .k-grid tbody tr td {
+        vertical-align: top;
+    }
+
+    .col-xl-9 {
+        max-width: 100%;
+    }
+
+    .col-xl-3 {
+        max-width: 100%;
+    }
+
+    a {
+        /* size: 10px; */
+        font-size: 15px;
+    }
+
+    .info3:hover + .tooltiptext {
+        visibility: visible;
+    }
+</style>
+
+<div>
+    <form asp-controller="CandidateProfile" asp-action="ManageCandidateProfile" method="post" class="form-horizontal">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="pad-10">
+            <div class="row pop-tstrip">
+                <div class="col-9 col-sm-10 col-lg-11 col-xl-10">
+                    <h5 class="popTitle" id="candidateTitle">Candidate Profile</h5>
+                    @*<h5 class="popTitle" id="employmentTitle">Employment Information</h5>*@
+                    @*<h5 class="popTitle" id="qualificationTitle">Qualification &amp; Others</h5>*@
+                </div>
+                <div class="col-3 col-sm-2 col-lg-1 col-xl-2">
+                    @*<h5>
+                            <i class="fa fa-arrows-alt ico-action ico-spacing"></i>&nbsp;&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" class="ico-action ico-spacing">
+                                <path d="M16.3394 9.32245C16.7434 8.94589 16.7657 8.31312 16.3891 7.90911C16.0126 7.50509 15.3798 7.48283 14.9758 7.85938L12.0497 10.5866L9.32245 7.66048C8.94589 7.25647 8.31312 7.23421 7.90911 7.61076C7.50509 7.98731 7.48283 8.62008 7.85938 9.0241L10.5866 11.9502L7.66048 14.6775C7.25647 15.054 7.23421 15.6868 7.61076 16.0908C7.98731 16.4948 8.62008 16.5171 9.0241 16.1405L11.9502 13.4133L14.6775 16.3394C15.054 16.7434 15.6868 16.7657 16.0908 16.3891C16.4948 16.0126 16.5171 15.3798 16.1405 14.9758L13.4133 12.0497L16.3394 9.32245Z" fill="currentColor"></path>
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12ZM12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" fill="currentColor"></path>
+                            </svg>
+                        </h5>*@
+                    @*<input type="submit" class="btn btn-primary" value="Save" />
+                        <input type="button" class="btn btn-link btn-cancel" value="Cancel" onclick="onCancel()" />*@
+                </div>
+            </div>
+            @*<div class="row aft-title-spacing">*@
+            <div class="col-xl-3 image-col" style="padding-top:20px;">
+                @if (Model.PhotoId != null)
+                {
+                    <img class="profile-img" src="/cms/Document/GetImageMongo?id=@Model.PhotoId" style="text-align: center;" />
+                }
+                else
+                {
+                    <img class="profile-img" src="/images/profile.jpg" style="text-align: center;">
+                }
+                @*<h5>
+                        @if (Model.FirstName!=null)
+                        {
+
+                        <span>@(Model.FirstName+" "+Model.MiddleName+" "+Model.LastName)</span>
+                        }
+                        else
+                        {
+                    <span>Chandra Shekar Gour</span>
+                            }
+                            </h5>*@
+
+
+                @*<h6 class="des-title"></h6>*@
+                @if (ViewBag.type != null)
+                {
+                    <div class="row">
+                        <div class="col-sm-6 col-md-6 col-lg-6" style="text-align:left">
+                            <label style="font-size:14px;font-weight:bold">Application No :</label><span>&nbsp;@Html.DisplayFor(x => x.ApplicationNo)</span>
+                        </div>
+                        @if (Model.BatchName != null || Model.WorkerBatch != null)
+                        {
+                            <div class="col-sm-6 col-md-6 col-lg-6" style="text-align:right">
+                                <label style="font-size:14px;font-weight:bold">Batch :</label><span>
+                                    &nbsp;@if (Model.WorkerBatch != null)
+                                    {@Html.DisplayFor(x => x.WorkerBatch)}
+                                else
+                                {@Html.DisplayFor(x => x.BatchName)}
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="row">
+                        <div class="col blnk-space"></div>
+                    </div>
+                }
+                @*<label id="candidateTab" class="Qlink-title" onclick="onCandidateInfo();" style="cursor:pointer;">Personal Information</label>
+                    <label id="employmentTab" class="Qlinks" onclick="onEmploymentInfo();" style="cursor:pointer;">Employment Info</label>
+                    <label id="qualificationTab" class="Qlinks" onclick="onQualificationInfo();" style="cursor:pointer;">Qualification &amp; Others</label>
+                    <label id="printViewTab" class="Qlinks" style="cursor:pointer;">Printable View</label>*@
+            </div>
+            <div id="divCandidateInfo" class="col-xl-9" style="border-radius: 6;border-left-width: 2;">
+                <div class="Qlink-title-mbody">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            <h5 class="title-block">1. Personal Information</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-12 col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Title<br>
+                        </label>
+                        @Html.DisplayFor(x => x.TitleName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            First Name<br>
+                        </label>
+                        @Html.DisplayFor(x => x.FirstName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Middle Name<br>
+                        </label>
+                        @Html.DisplayFor(x => x.MiddleName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Last Name<br>
+                        </label>
+                        @Html.DisplayFor(x => x.LastName)
+                    </div>
+
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Age<br>
+                        </label>
+                        @Html.DisplayFor(x => x.Age)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Birth Date<br>
+                        </label>
+                        @Html.DisplayFor(x => x.BirthDate)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            City/Country of Birth<br>
+                        </label>
+                        @Html.DisplayFor(x => x.BirthPlace)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Nationality<br>
+                        </label>
+                        @Html.DisplayFor(x => x.NationalityName)
+                    </div>
+
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Blood Group<br></label>
+                        @Html.DisplayFor(x => x.BloodGroup)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Gender</label><br />
+                        @Html.DisplayFor(x => x.GenderName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Marital Status<br>
+                        </label>
+                        @Html.DisplayFor(x => x.MaritalStatusName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Number of Children<br></label>
+                        @Html.DisplayFor(x => x.NoOfChildren)
+                    </div>
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Passport Number</label><br />
+                        @Html.DisplayFor(x => x.PassportNumber)
+
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Issuing Country<br>
+                        </label>
+                        @Html.DisplayFor(x => x.PassportIssueCountryName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Expiry Date<br></label>
+                        @Html.DisplayFor(x => x.PassportExpiryDate)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Qatar ID<br></label>
+                        @Html.DisplayFor(x => x.QatarId)
+                    </div>
+                </div>
+
+                <div class="row data-row-space">
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Visa Country<br>
+                        </label>
+                        @Html.DisplayFor(x => x.VisaCountryName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Visa Type<br>
+                        </label>
+                        @Html.DisplayFor(x => x.VisaTypeName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Visa Expiry<br></label>
+                        @Html.DisplayFor(x => x.VisaExpiry)
+                    </div>
+
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Other Visa Type</label><br />
+                        @Html.DisplayFor(x => x.OtherVisaType)
+                    </div>
+                </div>
+
+                <div class="row data-row-space">
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Other Country Visa<br>
+                        </label>
+                        @Html.DisplayFor(x => x.OtherCountryVisaName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">
+                            Visa Type<br>
+                        </label>
+                        @Html.DisplayFor(x => x.OtherCountryVisaTypeName)
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+                        <label class="col-form-label">Other Country Visa Expiry<br></label>
+                        @Html.DisplayFor(x => x.OtherCountryVisaExpiry)
+                    </div>
+
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-3">
+
+                    </div>
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-1 col-sm-1 col-md-6 col-lg-3 col-xl-3">
+                        <div class="checkbox-div">
+                            @*@(Html.Kendo().CheckBoxFor(x=>x.IsMostRecentCV).Label("").Enable(false))*@
+                            <input type="checkbox" asp-for="IsMostRecentCV" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label @*class="col-form-label"*@>Most recent C.V<br /></label><br />
+                        @if (Model.ResumeId != null)
+                        {
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.ResumeId" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.ResumeId');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+
+                    </div>
+                </div>
+
+                @*<div class="row data-row-space">
+                        <div class="col-9 col-sm-5 col-md-6 col-lg-3 col-xl-3"><label class="col-form-label">Docs Checklist Completed<br></label></div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-sm-3 col-md-3 col-lg-2 col-xl-2">
+                                    <div class="form-check">
+                                        @(Html.Kendo().RadioButton().Name("IsDocsChecklistCompletedYes").HtmlAttributes(new { @name = "IsDocsChecklistCompleted" }).Label("Yes").Enable(false))
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 col-md-3 col-xl-2">
+                                    <div class="form-check">
+                                        @(Html.Kendo().RadioButton().Name("IsDocsChecklistCompletedNo").HtmlAttributes(new { @name = "IsDocsChecklistCompleted" }).Label("No").Enable(false))
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>*@
+                <div class="row data-row-space">
+                    <div class="col-1 col-sm-1 col-md-6 col-lg-3 col-xl-3">
+                        <div class="checkbox-div">
+                            @*@(Html.Kendo().CheckBoxFor(x=>x.IsCopyofQID).Label("").Enable(false))*@
+                            <input type="checkbox" asp-for="IsCopyofQID" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label @*class="col-form-label"*@>Copy of ID<br /></label><br />
+                        @if (Model.QIDAttachmentId != null)
+                        {
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.QIDAttachmentId" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.QIDAttachmentId');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.QIDAttachmentId2 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.QIDAttachmentId2" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.QIDAttachmentId2');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.QIDAttachmentId3 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.QIDAttachmentId3" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.QIDAttachmentId3');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.QIDAttachmentId4 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.QIDAttachmentId4" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.QIDAttachmentId4');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.QIDAttachmentId5 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.QIDAttachmentId5" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.QIDAttachmentId5');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                    </div>
+
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-1 col-sm-1 col-md-6 col-lg-3 col-xl-3">
+                        <div class="checkbox-div">
+                            @*@(Html.Kendo().CheckBoxFor(x=>x.IsCopyofIDPassport).Label("").Enable(false))*@
+                            <input type="checkbox" asp-for="IsCopyofIDPassport" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label @*class="col-form-label"*@>Copy of Passport (all relevant pages including last Qatar visa stamped page)<br /></label><br />
+                        @if (Model.PassportAttachmentId != null)
+                        {
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.PassportAttachmentId" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.PassportAttachmentId');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.PassportAttachmentId2 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.PassportAttachmentId2" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.PassportAttachmentId2');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.PassportAttachmentId3 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.PassportAttachmentId3" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.PassportAttachmentId3');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.PassportAttachmentId4 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.PassportAttachmentId4" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.PassportAttachmentId4');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.PassportAttachmentId5 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.PassportAttachmentId5" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.PassportAttachmentId5');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                    </div>
+
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-1 col-sm-1 col-md-6 col-lg-3 col-xl-3">
+                        <div class="checkbox-div">
+                            @*@(Html.Kendo().CheckBoxFor(x=>x.IsCopyofAcademicCertificates).Label("").Enable(false))*@
+                            <input type="checkbox" asp-for="IsCopyofAcademicCertificates" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label @*class="col-form-label"*@>Copy of Academic Certificates<br /></label><br />
+                        @if (Model.AcademicCertificateId != null)
+                        {
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.AcademicCertificateId" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.AcademicCertificateId');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.AcademicCertificateId2 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.AcademicCertificateId2" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.AcademicCertificateId2');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.AcademicCertificateId3 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.AcademicCertificateId3" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.AcademicCertificateId3');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.AcademicCertificateId4 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.AcademicCertificateId4" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.AcademicCertificateId4');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.AcademicCertificateId5 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.AcademicCertificateId5" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.AcademicCertificateId5');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                    </div>
+
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-1 col-sm-1 col-md-6 col-lg-3 col-xl-3">
+                        <div class="checkbox-div">
+                            @*@(Html.Kendo().CheckBoxFor(x=>x.IsCopyofOtherCertificates).Label("").Enable(false))*@
+                            <input type="checkbox" asp-for="IsCopyofOtherCertificates" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label @*class="col-form-label"*@>Copy of Other Certificates (Experience, training, professional)<br /></label><br />
+                        @if (Model.OtherCertificateId != null)
+                        {
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.OtherCertificateId" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.OtherCertificateId');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.OtherCertificateId2 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.OtherCertificateId2" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.OtherCertificateId2');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.OtherCertificateId3 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.OtherCertificateId3" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.OtherCertificateId3');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.OtherCertificateId4 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.OtherCertificateId4" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.OtherCertificateId4');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                        @if (Model.OtherCertificateId5 != null)
+                        {
+                            <span style="margin-left:10px;margin-right:10px;">|</span>
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.OtherCertificateId5" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.OtherCertificateId5');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                    </div>
+                </div>
+                <div class="row data-row-space">
+                    <div class="col-1 col-sm-1 col-md-6 col-lg-3 col-xl-3">
+                        <div class="checkbox-div">
+                            @*@(Html.Kendo().CheckBoxFor(x=>x.IsMostRecentColorPhoto).Label("").Enable(false))*@
+                            <input type="checkbox" asp-for="IsMostRecentColorPhoto" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label @*class="col-form-label"*@>Most recent color photo<br /></label><br />
+                        @if (Model.PhotoId != null)
+                        {
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.PhotoId" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.PhotoId');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+
+                    </div>
+                </div>
+
+                <div class="row data-row-space">
+                    <div class="col-1 col-sm-1 col-md-6 col-lg-3 col-xl-3">
+                        <div class="checkbox-div">
+                            @*@(Html.Kendo().CheckBoxFor(x=>x.IsLatestOfferLetterSalarySlip).Label("").Enable(false))*@
+                            <input type="checkbox" asp-for="IsLatestOfferLetterSalarySlip" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label @*class="col-form-label"*@>Latest offer letter &amp; Salary slip<br /></label><br />
+                        @if (Model.CoverLetterId != null)
+                        {
+                            <a href="/cms/Document/GetFileMongo?fileId=@Model.CoverLetterId" target="_blank"><i class="fas fa-download" title="Download"></i></a>
+                            <a href="#" onclick="ViewAttachment('@Model.CoverLetterId');" style="margin-left: 10px;"><i class="fas fa-eye" title="Preview"></i></a>
+                        }
+                    </div>
+                </div>
+                <div class="row data-row-space">
+                    <div class="col txt-highlight-box"><label class="col-form-label txt-note">Note:<br>1. Passport should be valid for a minimum six months for processing visa.<br>2. Documents not enclosed with application, to be obtained from individual at the time of interview.</label></div>
+                </div>
+                <div class="Qlink-title-mbody">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            <h5>2. Residence Address</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row Title-strip-orange">
+                            <div class="col-10 col-xl-11">
+                                <h5 class="sub-title-h5"><strong>2.1 Current Residence Address</strong><br></h5>
+                            </div>
+                            <div class="col-2 col-xl-1">@*<i class="fas fa-plus-square"></i>*@</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2 col-md-2 col-lg-3 col-xl-3">
+                                <label class="col-form-label .col-label">
+                                    House/Flat No.<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.CurrentAddressHouse)
+                                </div>
+
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                <label class="col-form-label .col-label">
+                                    Street/Lane<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.CurrentAddressStreet)
+                                </div>
+
+                            </div>
+                            <div class=" col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                <label class="col-form-label .col-label">
+                                    City/District<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.CurrentAddressCity)
+                                </div>
+
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                <label class="col-form-label .col-label">
+                                    State/Province<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.CurrentAddressState)
+                                </div>
+
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                <label class="col-form-label .col-label">
+                                    Country<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.CurrentAddressCountryName)
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row Title-strip-orange">
+                            <div class="col-10 col-xl-11">
+                                <h5 class="sub-title-h5"><strong>2.2 Permanent Address (Home Country)</strong><br></h5>
+                            </div>
+                            <div class="col-2 col-xl-1">@*<i class="fas fa-plus-square"></i>*@</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2 col-md-2 col-lg-3 col-xl-3">
+                                <label class="col-form-label .col-label">
+                                    House/Flat No.<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.PermanentAddressHouse)
+                                </div>
+
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                <label class="col-form-label .col-label">
+                                    Street/Lane<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.PermanentAddressStreet)
+                                </div>
+
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                <label class="col-form-label .col-label">
+                                    City/District<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.PermanentAddressCity)
+                                </div>
+
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                <label class="col-form-label .col-label">
+                                    State/Province<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.PermanentAddressState)
+                                </div>
+
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2 col-xl-2">
+                                <label class="col-form-label .col-label">
+                                    Country<br>
+                                </label>
+                                <div class="row col-value">
+                                    @Html.DisplayFor(x => x.PermanentAddressCountryName)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            <h5>3 Contact Information (please provide country code)<br></h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 col-value">
+                                <label class="col-form-label col-label-cont">
+                                    Permanent Phone No @*Phone(Home Town)*@<br>
+                                </label>
+                                @Html.DisplayFor(x => x.ContactPhoneHome)
+                            </div>
+                            <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 col-value">
+                                <label class="col-form-label col-label-cont">
+                                    Current Phone No @*Phone(Local)*@<br>
+                                </label>
+                                @Html.DisplayFor(x => x.ContactPhoneLocal)
+                            </div>
+                            <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 col-value">
+                                <label class="col-form-label col-label-cont">
+                                    Email Address<br>
+                                </label>
+                                @Html.DisplayFor(x => x.Email)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="divEmploymentInfo" class="col-xl-9" style="border-radius: 6;border-left-width: 2;">
+
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-10 col-md-11 col-xl-11">
+                            <h5>4. Employment History (Start with most recent)<br></h5>
+                        </div>
+                        <div class="col">@*<i class="fas fa-plus-square"></i>*@</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="kgrdCandidateExperience" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateExperienceViewModel>()
+        .Name("kgrdCandidateExperience")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.Employer).Title("Employer").Width(200);
+                columns.Bound(p => p.Location).Title("Location").Width(200);
+                columns.Bound(p => p.JobTitle).Title("Job Title").Width(200);
+                columns.Bound(p => p.From).Title("From").Width(120).Format("{0:dd/MM/yyyy}");
+                columns.Bound(p => p.To).Title("To").Width(120).Format("{0:dd/MM/yyyy}");
+                //columns.Bound(p => p.Duration).Title("Duration").Width(120);
+                columns.Bound(p => p.TotalDuration).Title("Duration").Width(120);
+                columns.Bound(p => p.Responsibilities).Title("Responsibilities").Width(500);
+                columns.Bound(p => p.AttachmentName).Title("Attachment").ClientTemplate("#if(AttachmentName!=null){#<a href='/cms/Document/GetFileMongo?fileId=#:AttachmentId#' target='_blank'>#:AttachmentName#</a>#}#").Width(300);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Scrollable(s=>s.Height("auto"))
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateExperienceData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-10 col-md-11 col-xl-11">
+                            <h5>5. Analysis of Experience<br></h5>
+                        </div>
+                        <div class="col"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row Title-strip-orange">
+                            <div class="col-10 col-md-11 col-xl-11">
+                                <h5 class="sub-title-h5"><strong>5.1 Experience by Country</strong><br></h5>
+                            </div>
+                            <div class="col-2 col-md-1 col-xl-1">@*<i class="fas fa-plus-square"></i>*@</div>
+                        </div>
+                        <div>
+                            <div class="row" style="padding-top:15px;">
+                                <div class="col-12">
+                                    <div id="kgrdCandExpByCountry" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateExperienceByCountryViewModel>()
+        .Name("kgrdCandExpByCountry")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(100);
+                columns.Bound(p => p.CountryName).Title("Country").Width(400);
+                columns.Bound(p => p.NoOfYear).Title("No Of Year").Width(400);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            .Sortable()
+            //.Scrollable()
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandExpByCountryData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row Title-strip-orange">
+                            <div class="col-10 col-md-11 col-xl-11">
+                                <h5 class="sub-title-h5"><strong>5.2 Experience by Job</strong><br></h5>
+                            </div>
+                            <div class="col-2 col-md-1 col-xl-1">@*<i class="fas fa-plus-square"></i>*@</div>
+                        </div>
+                        <div>
+                            <div class="row" style="padding-top:15px;">
+                                <div class="col-12">
+                                    <div id="kgrdCandExpByJob" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateExperienceByJobViewModel>()
+        .Name("kgrdCandExpByJob")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(100);
+                columns.Bound(p => p.JobName).Title("Job Name").Width(400);
+                columns.Bound(p => p.NoOfYear).Title("No Of Year").Width(400);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            .Sortable()
+            //.Scrollable()
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandExpByJobData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row Title-strip-orange">
+                            <div class="col-10 col-md-11 col-xl-11">
+                                <h5 class="sub-title-h5"><strong>5.3 Experience by Nature of Work</strong><br></h5>
+                            </div>
+                            @*<div class="col-2 col-md-1 col-xl-1"><i class="fas fa-plus-square"></i></div>*@
+                        </div>
+                        <div>
+                            <div class="row" style="padding-top:15px;">
+                                <div class="col-12">
+                                    <div id="kgrdCandExpByNature" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateExperienceByNatureViewModel>()
+        .Name("kgrdCandExpByNature")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(100);
+                columns.Bound(p => p.NatureOfWork).Title("Nature Of Work").Width(200);
+                columns.Bound(p => p.NoOfYear).Title("No Of Years").Width(200);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Sortable()
+            //.Scrollable()
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateExpByNatureData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type = ViewBag.type, @appId=Model }))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row Title-strip-orange">
+                            <div class="col-10 col-md-11 col-xl-11">
+                                <h5 class="sub-title-h5"><strong>5.4 Experience by OtherType</strong><br></h5>
+                            </div>
+                            @*<div class="col-2 col-md-1 col-xl-1"><i class="fas fa-plus-square"></i></div>*@
+                        </div>
+                        <div>
+                            <div class="row" style="padding-top:15px;">
+                                <div class="col-12">
+                                    <div id="kgrdCandExpByOther" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateExperienceByOtherViewModel>()
+        .Name("kgrdCandExpByOther")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(100);
+                columns.Bound(p => p.OtherTypeName).Title("OtherType").Width(200);
+                columns.Bound(p => p.NoOfYear).Title("No Of Years").Width(200);
+            })
+
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Sortable()
+            //.Scrollable()
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateExpByOtherList", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type = ViewBag.type, @appId = Model }))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row Title-strip-orange">
+                            <div class="col-10 col-md-11 col-xl-11">
+                                <h5 class="sub-title-h5"><strong>5.5 Experience by Sector &amp; Industry</strong><br></h5>
+                            </div>
+                            @*<div class="col-2 col-md-1 col-xl-1"><i class="fas fa-plus-square"></i></div>*@
+                        </div>
+                        <div>
+                            <div class="row" style="padding-top:15px;">
+                                <div class="col-12">
+                                    <div id="kgrdCandExpBySector" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateExperienceBySectorViewModel>()
+        .Name("kgrdCandExpBySector")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(100);
+                columns.Bound(p => p.SectorName).Title("Sector").Width(200);
+                columns.Bound(p => p.IndustryName).Title("Industry").Width(200);
+                columns.Bound(p => p.CategoryName).Title("Category").Width(200);
+                columns.Bound(p => p.NoOfYear).Title("No Of Years").Width(200);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Sortable()
+            //.Scrollable()
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateExpBySectorList", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            <h5>6. Current Salary Details<br></h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding-left:10px;">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 no-space">
+                                    <span class="txt-13 span-col-label">Net Salary Currency</span>
+                                    <div class="row col-value">
+                                        @Html.DisplayFor(x => x.SalaryCurrencyName)
+                                    </div>
+                                </div>
+                                <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 no-space">
+                                    <span class="text-nowrap txt-13 span-col-label">Net Salary after Income Tax</span>
+                                    <div class="row col-value">
+                                        @Html.DisplayFor(x => x.NetSalary)
+                                    </div>
+                                </div>
+                                <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 no-space">
+                                    <span class="txt-13 span-col-label">Other Allowances</span>
+                                    <div class="row col-value">
+                                        @Html.DisplayFor(x => x.OtherAllowances)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            <h5>7. If not selected for the post, indicate option for another position<br></h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12 no-space">
+                                    @Html.DisplayFor(x => x.OptionForAnotherPosition)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            <h5>8. Time required to join (in days)<br></h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding-left:10px">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 no-space"><span class="txt-13 span-col-label">Days to join<span style="float:right">:</span></span></div>
+                                <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 no-space">
+                                    <label class="txt-13">@Html.DisplayFor(x => x.TimeRequiredToJoin)</label>
+                                </div>
+                            </div>
+                            @if (Model.NoticePeriod != null)
+                            {
+                                <div class="row">
+                                    <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 no-space"><span class="txt-13 span-col-label">Notice Period<span style="float:right">:</span></span></div>
+                                    <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4 no-space">
+                                        <label class="txt-13">@Html.DisplayFor(x => x.NoticePeriod)</label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-sm-11 col-md-11 col-lg-11 col-xl-11">
+                            <h5>9. Give brief on the largest project associated with<br></h5>
+                        </div>
+                        @*<div class="col-2 col-md-1 col-xl-1"><i class="fas fa-plus-square"></i></div>*@
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                    <div id="kgrdCandidateProject" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateProjectViewModel>()
+        .Name("kgrdCandidateProject")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(100);
+                columns.Bound(p => p.Currency).Title("Currency").Width(200);
+                columns.Bound(p => p.Value).Title("Value").Width(200);
+                columns.Bound(p => p.Client).Title("Client").Width(200);
+                columns.Bound(p => p.Consultant).Title("Consultant").Width(200);
+                columns.Bound(p => p.ConstructionPeriodFrom).Title("Period From").Width(120).Format("{0:dd/MM/yyyy}");
+                columns.Bound(p => p.ConstructionPeriodTo).Title("Period To").Width(120).Format("{0:dd/MM/yyyy}");
+                columns.Bound(p => p.Position).Title("Position").Width(200);
+                columns.Bound(p => p.Description).Title("Description").Width(200);
+            })
+
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Scrollable(s => s.Height("auto"))
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateProjectData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            <h5>10. Your Manager’s Job Title &amp; Number of Subordinates<br></h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-lg-12 col-xl-12 no-space">
+                                    @Html.DisplayFor(x => x.ManagerJobTitleAndNoOfSubordinate)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="divQualificationInfo" class="col-xl-9" style="border-radius: 6;border-left-width: 2;">
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-sm-10 col-md-11 col-xl-11">
+                            <h5>11. Educational Qualification (Minimum 1 record is mandatory)<br></h5>
+                        </div>
+                        <div class="col-sm-1 col-md-1"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="kgrdCandidateEducational" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateEducationalViewModel>()
+        .Name("kgrdCandidateEducational")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.QualificationName).Title("Qualification").Width(200);
+                columns.Bound(p => p.SpecializationName).Title("Specialization").Width(200);
+                columns.Bound(p => p.EducationTypeName).Title("Type").Width(200);
+                columns.Bound(p => p.Institute).Title("Institute").Width(200);
+                columns.Bound(p => p.CountryName).Title("Country").Width(200);
+                columns.Bound(p => p.Duration).Title("Duration").Width(200);
+                columns.Bound(p => p.PassingYear).Title("Passing Year").Format("{0:dd MMM yyyy}").Width(200);
+                columns.Bound(p => p.Marks).Title("% Marks").Width(200);
+                columns.Bound(p => p.AttachmentName).Title("Attachment").ClientTemplate("#if(AttachmentName!=null){#<a href='/cms/Document/GetFileMongo?fileId=#:AttachmentId#' target='_blank'>#:AttachmentName#</a>#}#").Width(400);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Scrollable(s => s.Height("auto"))
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ style = "width:100%;" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateEducationalData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-10 col-md-11 col-xl-11">
+                            <h5>12. Certifications<br></h5>
+                        </div>
+                        <div class="col">@*<i class="fas fa-plus-square"></i>*@</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="kgrdCandidateCertifications" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateEducationalViewModel>()
+        .Name("kgrdCandidateCertifications")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.QualificationName).Title("Qualification").Width(200);
+                columns.Bound(p => p.SpecializationName).Title("Specialization").Width(200);
+                columns.Bound(p => p.EducationTypeName).Title("Type").Width(200);
+                columns.Bound(p => p.Institute).Title("Institute").Width(200);
+                columns.Bound(p => p.CountryName).Title("Country").Width(200);
+                columns.Bound(p => p.Duration).Title("Duration").Width(200);
+                columns.Bound(p => p.PassingYear).Title("Passing Year").Format("{0:dd MMM yyyy}").Width(200);
+                columns.Bound(p => p.Marks).Title("% Marks").Width(200);
+                columns.Bound(p => p.AttachmentName).Title("Attachment").ClientTemplate("#if(AttachmentName!=null){#<a href='/cms/Document/GetFileMongo?fileId=#:AttachmentId#' target='_blank'>#:AttachmentName#</a>#}#").Width(400);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Scrollable(s => s.Height("auto"))
+            .HtmlAttributes(new {/* style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateCertificationsData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-10 col-md-11 col-xl-11">
+                            <h5>13. Trainings<br></h5>
+                        </div>
+                        <div class="col">@*<i class="fas fa-plus-square"></i>*@</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="kgrdCandidateTrainings" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateEducationalViewModel>()
+        .Name("kgrdCandidateTrainings")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.QualificationName).Title("Qualification").Width(200);
+                columns.Bound(p => p.SpecializationName).Title("Specialization").Width(200);
+                columns.Bound(p => p.EducationTypeName).Title("Type").Width(200);
+                columns.Bound(p => p.Institute).Title("Institute").Width(200);
+                columns.Bound(p => p.CountryName).Title("Country").Width(200);
+                columns.Bound(p => p.Duration).Title("Duration").Width(200);
+                columns.Bound(p => p.PassingYear).Title("Passing Year").Format("{0:dd MMM yyyy}").Width(200);
+                columns.Bound(p => p.Marks).Title("% Marks").Width(200);
+                columns.Bound(p => p.AttachmentName).Title("Attachment").ClientTemplate("#if(AttachmentName!=null){#<a href='/cms/Document/GetFileMongo?fileId=#:AttachmentId#' target='_blank'>#:AttachmentName#</a>#}#").Width(400);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Scrollable(s => s.Height("auto"))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateTrainingsData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-sm-10 col-md-11 col-xl-11">
+                            <h5>14. Computer Proficiency<br></h5>
+                        </div>
+                        <div class="col-sm-1 col-xl-1"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="kgrdCandidateComputer" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateComputerProficiencyViewModel>()
+        .Name("kgrdCandidateComputer")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(120);
+                columns.Bound(p => p.Program).Title("Application/Program").Width(200);
+                columns.Bound(p => p.ProficiencyLevelName).Title("Proficiency Level").Width(200);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Sortable()
+            //.Scrollable()
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateComputerProfData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-10 col-md-11 col-xl-11">
+                            <h5>15. Languages<br></h5>
+                        </div>
+                        <div class="col-2 col-md-1 col-xl-1"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="kgrdCandidateLanguage" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateLanguageProficiencyViewModel>()
+        .Name("kgrdCandidateLanguage")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(120);
+                columns.Bound(p => p.LanguageName).Title("Language Name").Width(200);
+                columns.Bound(p => p.ProficiencyLevelName).Title("Proficiency Level").Width(200);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Sortable()
+            //.Scrollable()
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateLanguageProfData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-10 col-md-11 col-xl-11">
+                            <h5>16. Driving License<br></h5>
+                        </div>
+                        @*<div class="col-2 col-md-1 col-xl-1"><i class="fas fa-plus-square"></i></div>*@
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="kgrdCandDrivingLicense" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateDrivingLicenseViewModel>()
+        .Name("kgrdCandDrivingLicense")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(100);
+                columns.Bound(p => p.CountryName).Title("Country Name").Width(200);
+                columns.Bound(p => p.LicenseTypeName).Title("License Type").Width(200);
+                columns.Bound(p => p.IssueDate).Title("Issued Date").Width(120).Format("{0:dd/MM/yyyy}");
+                columns.Bound(p => p.ValidUpTo).Title("Valid Up To").Width(120).Format("{0:dd/MM/yyyy}");
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Sortable()
+            //.Scrollable()
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandidateDrivingLicenseData", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            <h5>17. Additional Information, if any (Awards, Appreciations, etc.,)<br></h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-lg-12 col-xl-12 no-space">
+                                    @Html.DisplayFor(x => x.AdditionalInformation)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-10 col-md-11 col-xl-11">
+                            <h5>18. References<br></h5>
+                        </div>
+                        <div class="col-2 col-md-1 col-xl-1"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="kgrdCandReference" style="width: 100%;height:250px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<CandidateReferencesViewModel>()
+        .Name("kgrdCandrefer")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.SequenceOrder).Title("Sl. No.").Width(100);
+                columns.Bound(p => p.Name).Title("Name").Width(200);
+                columns.Bound(p => p.Position).Title("Position").Width(200);
+                columns.Bound(p => p.Company).Title("Company").Width(200);
+                columns.Bound(p => p.Phone).Title("Phone").Width(200);
+                columns.Bound(p => p.Email).Title("Email").Width(200);
+            })
+            .Editable(editable => editable.Mode(GridEditMode.PopUp))
+            //.Pageable()
+            .Sortable()
+            //.Scrollable()
+            .Selectable(select => select.Enabled(false))
+            .HtmlAttributes(new { /*style = "height:300px;"*/ })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(20)
+                .Model(model => model.Id(p => p.Id))
+                .Read(read => read.Action("ReadCandRefer", "CandidateProfile",new { @area= "Recruitment", @candidateProfileId=Model.Id, @type=ViewBag.type}))
+
+            )
+        )*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (ViewBag.type == "application")
+                {
+                    <div class="Qlink-title-mbody card-space">
+                        <div class="row">
+                            <div class="col-10 col-md-11 col-xl-11">
+                                <h5>19. Job Criteria<br></h5>
+                            </div>
+                            <div class="col-2 col-md-1 col-xl-1"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        @if (Model.Criterias != null)
+                                        {
+
+                                            foreach (var item in Model.Criterias)
+                                            {
+                                                <div class="row form-group">
+                                                    <div class="col-md-6">
+                                                        <label style="font-size:14px;"> @item.Criteria </label><span style="float:right">:</span>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label style="font-size:14px;"> @item.CriteriaValue</label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="Qlink-title-mbody card-space">
+                        <div class="row">
+                            <div class="col-10 col-md-11 col-xl-11">
+                                <h5>20. Skills<br></h5>
+                            </div>
+                            <div class="col-2 col-md-1 col-xl-1"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        @if (Model.Skills != null)
+                                        {
+                                            foreach (var item in Model.Skills)
+                                            {
+                                                <div class="row form-group">
+                                                    <div class="col-md-6">
+                                                        <label style="font-size:14px;"> @item.Criteria</label><span style="float:right">:</span>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label style="font-size:14px;"> @item.CriteriaValue</label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="Qlink-title-mbody card-space">
+                        <div class="row">
+                            <div class="col-10 col-md-11 col-xl-11">
+                                <h5>21. Other Information<br></h5>
+                            </div>
+                            <div class="col-2 col-md-1 col-xl-1"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        @if (Model.OtherInformations != null)
+                                        {
+                                            foreach (var item in Model.OtherInformations)
+                                            {
+                                                <div class="row form-group">
+                                                    <div class="col-md-6">
+                                                        <label style="font-size:14px;"> @item.Criteria</label><span style="float:right">:</span>
+                                                    </div>
+                                                    <div class="col-md-6">
+
+                                                        <label style="font-size:14px;">
+                                                            @if (@item.CriteriaValue == null)
+                                                            {@item.Value}
+                                                        else
+                                                        {@item.CriteriaValue}
+                                                        </label>
+
+                                                        @if (@item.Description != null)
+                                                        {
+
+                                                            <i class="fa fa-info-circle" title=@item.Description></i>
+
+
+
+
+                                                        }
+
+                                                    </div>
+
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+                }
+
+
+                <div class="Qlink-title-mbody card-space">
+                    <div class="row">
+                        <div class="col-xl-11">
+                            @if (ViewBag.type == "application")
+                            {<h5>22. Self Declaration<br></h5>
+                            }
+                            else
+                            {@*<h5>19. Self Declaration<br></h5>*@}
+                        </div>
+                    </div>
+                </div>
+                @if (ViewBag.type == "application")
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="col-xl-12 no-space"><span class="txt-13">I hereby declare that the particulars given are correct and true to be the best my knowledge and belief and no attempt has been made by me to conceal or withhold pertinent information, which you are at liberty to verify at any time. I also understand that any misrepresentation of facts in the application is sufficient cause for termination of my service, if appointed.</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="col-xl-6 no-space">
+                                            <span class="txt-13" style="font-weight:bold">Date</span>
+                                            @Html.DisplayFor(x => x.SignatureDate)
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div>
+                                            <div class="col-xl-6 no-space">
+                                                <span class="txt-13" style="font-weight:bold">Signature</span>
+                                                @Html.DisplayFor(x => x.Signature)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <br />
+                <div class="row" style="float:right;">
+                    @*<input type="button" class="btn btn-secondary" value="Close" onclick="closeNav()" />*@
+                </div>
+                <br />
+            </div>
+
+        </div>
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.PhotoId)
+        @Html.HiddenFor(x => x.PassportAttachmentId)
+        @Html.HiddenFor(x => x.AcademicCertificateId)
+        @Html.HiddenFor(x => x.OtherCertificateId)
+        @Html.HiddenFor(x => x.ResumeId)
+        @Html.HiddenFor(x => x.CoverLetterId)
+    </form>
+    <br />
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //onCandidateInfo();
+        GetCandidateEmploymentHistory();
+
+        GetCandidateExperiencebyCountry();
+
+        GetCandidateExperiencebyJob();
+
+        GetCandidateExperiencebyNature();
+
+        GetCandidateExperiencebyOther();
+
+        GetCandidateExperiencebySector();
+
+        GetCandidateExperiencebyProject();
+
+
+        GetCandidateEducationalQualification();
+
+
+        GetCandidateCertifications();
+
+        GetCandidateTrainings();
+
+        GetCandidateComputerProf();
+
+        GetCandidateDrivingLicense();
+
+        GetCandidateLanguageProf();
+
+        GetCandidateReference();
+
+    });
+    var columnDefsCandRefer = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinCandRefer' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Name",
+            field: "Name",
+
+        },
+        {
+            headerName: "Position",
+            field: "Position",
+
+        },
+        {
+            headerName: "Company",
+            field: "Company",
+
+        },
+        {
+            headerName: "Phone",
+            field: "Phone",
+
+        },
+        {
+            headerName: "Email",
+            field: "Email",
+
+        }
+    ];
+    function GetCandidateReference() {
+
+        document.getElementById("kgrdCandReference").innerHTML = "";
+        gridConfig(
+            "kgrdCandReference",
+            "/Career/CandidateProfile/ReadCandRefer?candidateProfileId=" + '@Model.Id',
+            columnDefsCandRefer,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsLanguage = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinCandLangProf' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Language Name",
+            field: "LanguageName",
+
+        },
+        {
+            headerName: "Proficiency Level Name",
+            field: "ProficiencyLevelName",
+
+        }
+    ];
+    function GetCandidateLanguageProf() {
+        document.getElementById("kgrdCandidateLanguage").innerHTML = "";
+        gridConfig(
+            "kgrdCandidateLanguage",
+            "/Career/CandidateProfile/ReadCandidateLanguageProfData?candidateProfileId=" + '@Model.Id',
+            columnDefsLanguage,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsTrainings = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinTrainings' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            field: "QualificationName",
+            headerName: "Qualification",
+        },
+        {
+            field: "SpecializationName",
+            headerName: "Specialization",
+
+        },
+        {
+            field: "EducationTypeName",
+            headerName: "Type",
+
+        },
+        {
+            field: "Institute",
+            headerName: "Institute",
+
+        },
+        {
+            field: "CountryName",
+            headerName: "Country",
+
+        },
+        {
+            field: "Duration",
+            headerName: "Duration",
+
+        },
+        {
+            field: "PassingYear",
+            headerName: "Passing Year",
+
+        },
+        {
+            field: "Marks",
+            headerName: "Marks",
+
+        },
+        // {
+        //    field: "Attachment",
+        //    headerName: "Attachment",
+
+        //}
+    ];
+
+    function GetCandidateTrainings() {
+        document.getElementById("kgrdCandidateTrainings").innerHTML = "";
+        gridConfig(
+            "kgrdCandidateTrainings",
+            "/Career/CandidateProfile/ReadCandidateTrainingsData?candidateProfileId=" + '@Model.Id',
+            columnDefsTrainings,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsCertifications = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinCertifications' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            field: "QualificationName",
+            headerName: "Qualification",
+        },
+        {
+            field: "SpecializationName",
+            headerName: "Specialization",
+
+        },
+        {
+            field: "EducationTypeName",
+            headerName: "Type",
+
+        },
+        {
+            field: "Institute",
+            headerName: "Institute",
+
+        },
+        {
+            field: "CountryName",
+            headerName: "Country",
+
+        },
+        {
+            field: "Duration",
+            headerName: "Duration",
+
+        },
+        {
+            field: "PassingYear",
+            headerName: "Passing Year",
+
+        },
+        {
+            field: "Marks",
+            headerName: "Marks",
+
+        },
+        // {
+        //    field: "Attachment",
+        //    headerName: "Attachment",
+
+        //}
+    ];
+
+    function GetCandidateCertifications() {
+        document.getElementById("kgrdCandidateCertifications").innerHTML = "";
+        gridConfig(
+            "kgrdCandidateCertifications",
+            "/Career/CandidateProfile/ReadCandidateCertificationsData?candidateProfileId=" + '@Model.Id',
+            columnDefsCertifications,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsEducational = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinEducationQualification' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            field: "QualificationName",
+            headerName: "Qualification",
+        },
+        {
+            field: "SpecializationName",
+            headerName: "Specialization",
+
+        },
+        {
+            field: "EducationTypeName",
+            headerName: "Type",
+
+        },
+        {
+            field: "Institute",
+            headerName: "Institute",
+
+        },
+        {
+            field: "CountryName",
+            headerName: "Country",
+
+        },
+        {
+            field: "Duration",
+            headerName: "Duration",
+
+        },
+        {
+            field: "PassingYear",
+            headerName: "Passing Year",
+
+        },
+        {
+            field: "Marks",
+            headerName: "Marks",
+
+        },
+        // {
+        //    field: "Attachment",
+        //    headerName: "Attachment",
+
+        //}
+    ];
+
+    function GetCandidateEducationalQualification() {
+        document.getElementById("kgrdCandidateEducational").innerHTML = "";
+        gridConfig(
+            "kgrdCandidateEducational",
+            "/Career/CandidateProfile/ReadCandidateEducationalData?candidateProfileId=" + '@Model.Id',
+            columnDefsEducational,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsComputerProf = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinComputerProf' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+        },
+        {
+            field: "Program",
+            headerName: "Program",
+
+        },
+        {
+            field: "ProficiencyLevelName",
+            headerName: "Proficiency Level Name",
+
+        },
+
+    ];
+
+    function GetCandidateComputerProf() {
+        document.getElementById("kgrdCandidateComputer").innerHTML = "";
+        gridConfig(
+            "kgrdCandidateComputer",
+            "/Career/CandidateProfile/ReadCandidateComputerProfData?candidateProfileId=" + '@Model.Id',
+            columnDefsComputerProf,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsEmploymentHistory = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinExpbyEmploymentHistory' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            field: "Employer",
+            headerName: "Employer",
+        },
+        {
+            field: "Location",
+            headerName: "Location",
+
+        },
+        {
+            field: "JobTitle",
+            headerName: "Job Title",
+
+        },
+        {
+            field: "From",
+            headerName: "From",
+
+        },
+        {
+            field: "To",
+            headerName: "To",
+
+        },
+        {
+            field: "Responsibilities",
+            headerName: "Responsibilities",
+
+        },
+        {
+            field: "Attachment",
+            headerName: "Attachment",
+
+        }
+    ];
+
+    function GetCandidateEmploymentHistory() {
+        document.getElementById("kgrdCandidateExperience").innerHTML = "";
+        gridConfig(
+            "kgrdCandidateExperience",
+            "/Career/CandidateProfile/ReadCandidateExperienceData?candidateProfileId=" + '@Model.Id',
+            columnDefsEmploymentHistory,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsCountry = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinExpbyCountry' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Country Name",
+            field: "CountryName",
+
+        },
+        {
+            headerName: "No Of Year",
+            field: "NoOfYear"
+        }
+
+
+    ];
+    function GetCandidateExperiencebyCountry() {
+        document.getElementById("kgrdCandExpByCountry").innerHTML = "";
+        gridConfig(
+            "kgrdCandExpByCountry",
+            "/Career/CandidateProfile/ReadCandExpByCountryData?candidateProfileId=" + '@Model.Id',
+            columnDefsCountry,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsJob = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinExpbyJob' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Job Name",
+            field: "JobName",
+
+        },
+        {
+            headerName: "No Of Year",
+            field: "NoOfYear"
+        }
+
+
+    ];
+    function GetCandidateExperiencebyJob() {
+        document.getElementById("kgrdCandExpByJob").innerHTML = "";
+        gridConfig(
+            "kgrdCandExpByJob",
+            "/Career/CandidateProfile/ReadCandExpByJobData?candidateProfileId=" + '@Model.Id',
+            columnDefsJob,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsNature = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinExpbyNature' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Nature Of Work",
+            field: "NatureOfWork",
+
+        },
+        {
+            headerName: "No Of Year",
+            field: "NoOfYear"
+        }
+
+
+    ];
+    function GetCandidateExperiencebyNature() {
+        document.getElementById("kgrdCandExpByNature").innerHTML = "";
+        gridConfig(
+            "kgrdCandExpByNature",
+            "/Career/CandidateProfile/ReadCandidateExpByNatureData?candidateProfileId=" + '@Model.Id',
+            columnDefsNature,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsOther = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinExpbyOther' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Other Type Name",
+            field: "OtherTypeName",
+
+        },
+        {
+            headerName: "No Of Year",
+            field: "NoOfYear"
+        }
+
+
+    ];
+    function GetCandidateExperiencebyOther() {
+        document.getElementById("kgrdCandExpByOther").innerHTML = "";
+        gridConfig(
+            "kgrdCandExpByOther",
+            "/Career/CandidateProfile/ReadCandidateExpByOtherList?candidateProfileId=" + '@Model.Id',
+            columnDefsOther,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsSector = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinExpbySector' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Sector Name",
+            field: "SectorName",
+
+        },
+        {
+            headerName: "Industry Name",
+            field: "IndustryName",
+
+        },
+        {
+            headerName: "Category Name",
+            field: "CategoryName",
+
+        },
+        {
+            headerName: "No Of Year",
+            field: "NoOfYear"
+        }
+
+
+    ];
+    function GetCandidateExperiencebySector() {
+        document.getElementById("kgrdCandExpBySector").innerHTML = "";
+        gridConfig(
+            "kgrdCandExpBySector",
+            "/Career/CandidateProfile/ReadCandidateExpBySectorList?candidateProfileId=" + '@Model.Id',
+            columnDefsSector,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsDrivingLicense = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinCandDrivingLicense' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Country Name",
+            field: "CountryName",
+
+        },
+        {
+            headerName: "LicenseType Name",
+            field: "LicenseTypeName",
+
+        },
+        {
+            headerName: "Issue Date",
+            field: "IssueDate",
+
+        },
+        {
+            headerName: "Valid Upto",
+            field: "ValidUpTo"
+        }
+
+
+    ];
+    function GetCandidateDrivingLicense() {
+        document.getElementById("kgrdCandDrivingLicense").innerHTML = "";
+        gridConfig(
+            "kgrdCandDrivingLicense",
+            "/Career/CandidateProfile/ReadCandidateDrivingLicenseData?candidateProfileId=" + '@Model.Id',
+            columnDefsDrivingLicense,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    var columnDefsProject = [
+        //{
+        //    headerName: "",
+        //    field: "Id",
+        //    minWidth: 100,
+        //    cellRenderer: params => {
+        //        return "<div class='btn-group grid-menu' id='tree-menuBinExpbyProject' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+        //    }
+        //},
+        {
+            headerName: "Sl. No.",
+            field: "SequenceOrder",
+
+        },
+        {
+            headerName: "Currency",
+            field: "Currency",
+
+        },
+        {
+            headerName: "Value",
+            field: "Value",
+
+        },
+        {
+            headerName: "Client",
+            field: "Client",
+
+        },
+        {
+            headerName: "Construction Period From",
+            field: "ConstructionPeriodFrom"
+        },
+        {
+            headerName: "Construction Period To",
+            field: "ConstructionPeriodTo",
+
+        },
+        {
+            headerName: "Position",
+            field: "Position",
+
+        },
+        {
+            headerName: "Description",
+            field: "Description",
+
+        },
+
+
+    ];
+    function GetCandidateExperiencebyProject() {
+        document.getElementById("kgrdCandidateProject").innerHTML = "";
+        gridConfig(
+            "kgrdCandidateProject",
+            "/Career/CandidateProfile/ReadCandidateProjectData?candidateProfileId=" + '@Model.Id',
+            columnDefsProject,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+
+    function closeNav() {
+       // window.parent.CloseIframePopup();
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function onCancel(){
+        alert("Cancel");
+    }
+
+    function ViewAttachment(id)
+    {
+        @*iframeOpenUrl = '@Url.Action("ViewAttachment", "Task", new { @area= "Cms" })?fileId=' + id;
+        OpenIframePopup1(1000, 700,'View Attachment');*@
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ViewAttachment", "Task", new { @area= "Cms" })?fileId=' + id;
+        win.OpenWindow({ Title: 'View Attachment', Width: 1000, Height: 700 });
+        return false;
+    }
+
+    function onFileUploadSuccessPassport(e) {
+        if (e.response.success) {
+            $("#PassportAttachmentId").val(e.response.fileId);
+            document.getElementById('IsCopyofIDPassport').checked = true;
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onFileUploadSuccessAcademic(e) {
+        if (e.response.success) {
+            $("#AcademicCertificateId").val(e.response.fileId);
+            document.getElementById('IsCopyofAcademicCertificates').checked = true;
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onFileUploadSuccessOther(e) {
+        if (e.response.success) {
+            $("#OtherCertificateId").val(e.response.fileId);
+            document.getElementById('IsCopyofOtherCertificates').checked = true;
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onFileUploadSuccessCV(e) {
+        if (e.response.success) {
+            $("#ResumeId").val(e.response.fileId);
+            document.getElementById('IsMostRecentCV').checked = true;
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onFileUploadSuccessSlip(e) {
+        if (e.response.success) {
+            $("#CoverLetterId").val(e.response.fileId);
+            document.getElementById('IsLatestOfferLetterSalarySlip').checked = true;
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onFileUploadSuccessPhoto(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".profile-img").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#PhotoId").val(e.response.fileId);
+            document.getElementById('IsMostRecentColorPhoto').checked = true;
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    @*function onCandidateInfo() {
+        $("#divCandidateInfo").show();
+        $("#divEmploymentInfo").hide();
+        $("#divQualificationInfo").hide();
+        $("#candidateTitle").show();
+        $("#employmentTitle").hide();
+        $("#qualificationTitle").hide();
+        $("#candidateTab").attr("class", "Qlink-title");
+        $("#employmentTab").attr("class", "Qlinks");
+        $("#qualificationTab").attr("class", "Qlinks");
+        if ('@Model.DataAction' == '@DataActionEnum.Create') {
+            $("#employmentTab").hide();
+            $("#qualificationTab").hide();
+            $("#printViewTab").hide();
+        } else if('@Model.DataAction' == '@DataActionEnum.Edit'){
+            $("#employmentTab").show();
+            $("#qualificationTab").show();
+            $("#printViewTab").show();
+        }
+    }*@
+    //function onEmploymentInfo() {
+    //    $("#divCandidateInfo").hide();
+    //    $("#divEmploymentInfo").show();
+    //    $("#divQualificationInfo").hide();
+    //    $("#candidateTitle").hide();
+    //    $("#employmentTitle").show();
+    //    $("#qualificationTitle").hide();
+    //    $("#candidateTab").attr("class", "Qlinks");
+    //    $("#employmentTab").attr("class", "Qlink-title");
+    //    $("#qualificationTab").attr("class", "Qlinks");
+    //}
+    //function onQualificationInfo() {
+    //    $("#divCandidateInfo").hide();
+    //    $("#divEmploymentInfo").hide();
+    //    $("#divQualificationInfo").show();
+    //    $("#candidateTitle").hide();
+    //    $("#employmentTitle").hide();
+    //    $("#qualificationTitle").show();
+    //    $("#candidateTab").attr("class", "Qlinks");
+    //    $("#employmentTab").attr("class", "Qlinks");
+    //    $("#qualificationTab").attr("class", "Qlink-title");
+    //}
+
+    function SaveData(e) {
+        debugger
+        var cegrid = $("#kgrdCandidateEducational").data("kendoGrid");
+        var cecount = cegrid.dataSource.data().length;
+        if (cecount > 0) {
+            var cedetail = JSON.stringify(cegrid.dataSource.data());
+            $("#CandidateEducationalData").val(cedetail);
+        } else {
+            alert("No record.");
+            e.preventDefault();
+            return false;
+        }
+
+        var ccgrid = $("#kgrdCandidateCertifications").data("kendoGrid");
+        var cccount = ccgrid.dataSource.data().length;
+        if (cccount > 0) {
+            var ccdetail = JSON.stringify(ccgrid.dataSource.data());
+            $("#CandidateCertificationsData").val(ccdetail);
+        }
+
+        var ctgrid = $("#kgrdCandidateTrainings").data("kendoGrid");
+        var ctcount = ctgrid.dataSource.data().length;
+        if (ctcount > 0) {
+            var ctdetail = JSON.stringify(ctgrid.dataSource.data());
+            $("#CandidateTrainingsData").val(ctdetail);
+        }
+
+        var expgrid = $("#kgrdCandidateExperience").data("kendoGrid");
+        var expcount = expgrid.dataSource.data().length;
+        if (expcount > 0) {
+            var expdetail = JSON.stringify(expgrid.dataSource.data());
+            $("#CandidateExperienceData").val(expdetail);
+        }
+    }
+
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            alert(e.response.fileId);
+            $("#AttachmentId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    function onCEGridSave(arg) {
+        console.log(arg);
+
+    }
+    function onCCGridSave(arg) {
+        console.log(arg);
+
+    }
+    function onCTGridSave(arg) {
+        console.log(arg);
+
+    }
+    function onExpGridSave(arg) {
+        console.log(arg);
+
+    }
+
+    function OnCreateCandLanguage() {
+        //alert("Create Lang");
+        var candId = '@Model.Id';
+        iframeOpenUrl = '@Url.Action("CreateCandidateLanguageProf", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;
+        OpenIframePopup(550,1200,'Manage Language');
+
+    }
+
+    function OnEditCandLanguage(e) {
+        //alert("Edit Lang");
+                e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateLanguageProf", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Language');
+    }
+
+    function OnDeleteCandLanguage(e) {
+        //alert("Delete Lang");
+                e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var flag = confirm('Do you really want to delete ?');
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandidateLanguageProf", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandidateLanguage").data("kendoGrid").dataSource.read();
+                       kendo.alert("Deleted Successfully.");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+
+    function OnCreateCandTrainings() {
+        var candId = '@Model.Id';
+        var quoalType = '@QualificationTypeEnum.Trainings';
+        iframeOpenUrl = '@Url.Action("CreateCandidateEducational", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId + '&qualificationType=' + quoalType;
+        OpenIframePopup(550,1200,'Manage Trainings');
+    }
+    function OnEditCandTrainings(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateEducational", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Trainings');
+    }
+
+    function OnCreateCandCertifications() {
+        var candId = '@Model.Id';
+        var quoalType = '@QualificationTypeEnum.Certifications';
+        iframeOpenUrl = '@Url.Action("CreateCandidateEducational", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId + '&qualificationType=' + quoalType;
+        OpenIframePopup(550, 1200,'Manage Certifications');
+    }
+    function OnEditCandCertifications(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateEducational", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Certifications');
+    }
+    function OnCreateCandEducational() {
+        var candId = '@Model.Id';
+        var quoalType = '@QualificationTypeEnum.Educational';
+        iframeOpenUrl = '@Url.Action("CreateCandidateEducational", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId + '&qualificationType=' + quoalType;
+        OpenIframePopup(550,1200,'Manage Educational');
+    }
+    function OnEditCandEducational(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateEducational", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550,1200,'Manage Educational');
+    }
+    function OnDeleteCandEducational(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //alert(dataItem.id);
+        //console.log(dataItem);
+        //
+        var quoalType = dataItem.QualificationType;
+        //alert(quoalType);
+        var flag = confirm('Do you really want to delete ?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandidateEducational", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        if (quoalType==1) {
+                            $("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                        } else if (quoalType==2) {
+                            $("#kgrdCandidateCertifications").data("kendoGrid").dataSource.read();
+                        } else if (quoalType==3) {
+                            $("#kgrdCandidateTrainings").data("kendoGrid").dataSource.read();
+                        }
+                        kendo.alert("Deleted Successfully.");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+
+    //Candidate Computer
+    function OnCreateCandComputer() {
+        //alert("");
+        var candId = '@Model.Id';
+        iframeOpenUrl = '@Url.Action("CreateCandidateComputerProf", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;
+        OpenIframePopup(550, 1200,'Manage Computer Proficiency');
+    }
+    function OnEditCandComputer(e) {
+        //alert("");
+                e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateComputerProf", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Computer Proficiency');
+    }
+    function OnDeleteCandComputer(e) {
+                e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var flag = confirm('Do you really want to delete ?');
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandidateComputerProf", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandidateComputer").data("kendoGrid").dataSource.read();
+                        kendo.alert("Deleted Successfully.");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+
+    //Candidate Experience
+    function OnCreateCandExperience() {
+        var candId = '@Model.Id';
+
+        iframeOpenUrl = '@Url.Action("CreateCandidateExperience", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;
+        OpenIframePopup(550,1200,'Manage Experience');
+    }
+    function OnEditCandExperience(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateExperience", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Experience');
+    }
+    function OnDeleteCandExperience(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (dataItem.IsLatest == true) {
+            kendo.alert("Cannot delete latest record");
+        }
+        else {
+        //alert(dataItem.id);
+        var flag = confirm('Do you really want to delete ?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandidateExperience", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandidateExperience").data("kendoGrid").dataSource.read();
+                        kendo.alert("Deleted Successfully");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+            }
+        }
+    }
+     function OnCreateCandExpByCountry() {
+        var candId = '@Model.Id';
+       @* var quoalType = '@QualificationTypeEnum.Educational';*@
+        iframeOpenUrl = '@Url.Action("CreateCandExpByCountry", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;@* + '&qualificationType=' + quoalType;*@
+        OpenIframePopup(550,1200,'Manage Experience By Country');
+    }
+
+    function OnEditCandExpByCountry(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandExpByCountry", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Experience By Country');
+    }
+    function OnDeleteCandExpByCountry(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //alert(dataItem.id);
+        var flag = confirm('Do you really want to delete ?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandExpByCountry", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandExpByCountry").data("kendoGrid").dataSource.read();
+                        //$("#kgrdCandidateCertifications").data("kendoGrid").dataSource.read();
+                        //$("#kgrdCandidateTrainings").data("kendoGrid").dataSource.read();
+
+                        kendo.alert("Deleted Successfully.");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+    function OnCreateCandExpByJob() {
+        var candId = '@Model.Id';
+       @* var quoalType = '@QualificationTypeEnum.Educational';*@
+        iframeOpenUrl = '@Url.Action("CreateCandExpByJob", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;@* + '&qualificationType=' + quoalType;*@
+        OpenIframePopup(550,1200,'Manage Experience By Job');
+    }
+
+    function OnEditCandExpByJob(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandExpByJob", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Experience By Job');
+    }
+    function OnDeleteCandExpByJob(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //alert(dataItem.id);
+        var flag = confirm('Do you really want to delete ?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandExpByJob", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandExpByJob").data("kendoGrid").dataSource.read();
+                        //$("#kgrdCandidateCertifications").data("kendoGrid").dataSource.read();
+                        //$("#kgrdCandidateTrainings").data("kendoGrid").dataSource.read();
+
+                        kendo.alert("Deleted Successfully.");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+
+    function OnCreateCandExpByNature() {
+        var candId = '@Model.Id';
+
+        iframeOpenUrl = '@Url.Action("CreateCandidateExpByNature", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;
+        OpenIframePopup(550,1200,'Manage Experience By Nature Of Work');
+    }
+    function OnEditCandExpByNature(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateExpByNature", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Experience By Nature Of Work');
+    }
+    function OnDeleteCandExpByNature(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (dataItem.IsLatest == true) {
+            kendo.alert("Cannot delete latest record");
+        }
+        else {
+        //alert(dataItem.id);
+        var flag = confirm('Do you really want to delete ?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandidateExpByNature", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandExpByNature").data("kendoGrid").dataSource.read();
+                        kendo.alert("Deleted Successfully");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+            }
+        }
+    }
+
+    function OnCreateCandExpBySector() {
+        var candId = '@Model.Id';
+
+        iframeOpenUrl = '@Url.Action("CreateCandidateExpBySector", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;
+        OpenIframePopup(550,1200,'Manage Experience By Sector & Industry');
+    }
+    function OnEditCandExpBySector(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateExpBySector", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Experience By Sector & Industry');
+    }
+    function OnDeleteCandExpBySector(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (dataItem.IsLatest == true) {
+            kendo.alert("Cannot delete latest record");
+        }
+        else {
+        //alert(dataItem.id);
+        var flag = confirm('Do you really want to delete ?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandidateExpBySector", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandExpBySector").data("kendoGrid").dataSource.read();
+                        kendo.alert("Deleted Successfully");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+            }
+        }
+    }
+     function OnCreateCandRefer() {
+        var candId = '@Model.Id';
+       @* var quoalType = '@QualificationTypeEnum.Educational';*@
+        iframeOpenUrl = '@Url.Action("CreateCandrefer", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;@* + '&qualificationType=' + quoalType;*@
+        OpenIframePopup(550,1200,'Manage Candidate References');
+    }
+
+    function OnEditCandRefer(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandRefer", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Candidate References');
+    }
+    function OnDeleteCandRefer(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //alert(dataItem.id);
+        var flag = confirm('Do you really want to delete ?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandRefer", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandrefer").data("kendoGrid").dataSource.read();
+                        //$("#kgrdCandidateCertifications").data("kendoGrid").dataSource.read();
+                        //$("#kgrdCandidateTrainings").data("kendoGrid").dataSource.read();
+
+                        kendo.alert("Deleted Successfully.");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+
+    //Candidate Driving License
+
+    function OnCreateCandDrivingLicense() {
+        var candId = '@Model.Id';
+        iframeOpenUrl = '@Url.Action("CreateCandidateDrivingLicense", "CandidateProfile", new { @area= "Recruitment" })?candidateProfileId=' + candId;
+        OpenIframePopup(550,1200,'Manage Candidate Driving License');
+    }
+    function OnEditCandDrivingLicense(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert("Edit : " + dataItem.Id);
+        iframeOpenUrl = '@Url.Action("EditCandidateDrivingLicense", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.Id;
+        OpenIframePopup(550, 1200,'Manage Candidate Driving License');
+    }
+    function OnDeleteCandDrivingLicense(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (dataItem.IsLatest == true) {
+            kendo.alert("Cannot delete latest record");
+        }
+        else {
+        //alert(dataItem.id);
+        var flag = confirm('Do you really want to delete ?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteCandidateDrivingLicense", "CandidateProfile", new { @area= "Recruitment" })?id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdCandDrivingLicense").data("kendoGrid").dataSource.read();
+                        kendo.alert("Deleted Successfully");
+                    }
+                },
+                error: function (ert) {
+                    //
+                    //$("#kgrdCandidateEducational").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+            }
+        }
+    }
+</script>

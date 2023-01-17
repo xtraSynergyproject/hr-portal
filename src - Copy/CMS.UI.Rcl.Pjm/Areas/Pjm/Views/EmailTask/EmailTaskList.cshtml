@@ -1,0 +1,175 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.EmailTaskController> Resource
+@using Kendo.Mvc.UI;
+@using CMS.UI.ViewModel
+@inject CMS.Common.IUserContext _userContext
+@{
+    ViewBag.Title = @Resource["EmailTaskList"];
+    Layout = null;
+}
+
+<script id="select-email" type="text/x-kendo-template">
+
+@*@(Html.Kendo().RadioButton().Name("select-task").Checked(false).Label("Link")
+//.HtmlAttributes(new { onchange = "OnCheckBox(\"#=Id#\")" })
+)*@
+  <section class="section-preview">
+        <div class="custom-control custom-radio custom-control-inline">
+             <input type="radio" class="custom-control-input" id="select-task" name="select-task">
+             <label class="custom-control-label" for="select-task">Link</label>
+        </div>
+  </section>
+</script>
+<script>
+    function OnRequestStart_TopLinePriceGrid(e) {
+        if (e.type === "update") {
+            showLoader();
+        }
+    }
+    function OnRequestEnd_TopLinePriceGrid(e) {
+        if (e.type === "update") {
+            hideLoader();
+            var grid = $('#treelist').data('kendoTreeList');
+            grid.dataSource.read();
+        }
+    }
+
+    function dragEndEmail(e) {
+        var sid = e.source.Id;
+        var did = e.destination.Id;
+        $.ajax({
+            type: "POST",
+            url: "/pmt/pmthome/ChangeEmailTaskParent?sourceId=" + sid + "&destinationId=" + did,
+            success: function (data) {
+                ShowNotification("@Resource["EmailParentChangedSuccessfully"]");
+                $("#treelist1").data("kendoTreeList").dataSource.read();
+            },
+            dataType: "json",
+        });
+    }
+
+    var selectedEmail = "";
+    function OnCheckBox(id) {
+        selectedEmail = id;
+        var url = "/pjm/EmailTask/ViewProjectWithWBSItem?id=" + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+       win.OpenWindow({ Title: '@Html.Raw(SharedResource["WBSItem"])', Width: 1400, Height: 1200 });
+        return false;
+      
+    }
+
+    function CloseWBSSelect(sid, parentId, type) {
+
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        var tid = selectedEmail;//$("#select-task").data("kendoRadioButton").value();
+        $.ajax({
+            type: "POST",
+            url: "/pjm/emailTask/ManageEmailTask?id=" + tid + "&taskId=" + sid + "&parentId=" + parentId + "&type=" + type,
+            success: function (data) {
+                if (data.success) {
+                    ShowNotification("@SharedResource["Email"] " + type + " @Resource["LinkedSuccessfully"]");
+                    $("#treelist1").data("kendoTreeList").dataSource.read();
+                }
+                else {
+                    ShowNotification("@SharedResource["Email"] " + type + " @Resource["LinkedFailed"]!");
+                }
+            },
+            dataType: "json",
+        });
+    }
+
+    function AddTask(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var portalId = $('#GlobalPortalId').val();
+        //var prms = encodeURIComponent('subject=' + subject + '&description=' + body + '&assignedToUserId=' + taskid);
+        var prms = encodeURIComponent('subject=' + dataItem.Subject + '&description=' + dataItem.Body + '&assignedToUserId=' + '@_userContext.UserId');
+        var udfs = encodeURIComponent('MessageId=' + dataItem.MessageId);
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&pageName=ProjectEmailTask&portalId=' + portalId + '&prms=' + prms + '&udfs=' + udfs;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateTask"])', Width: 1200, Height: 600 });
+        return false;
+    }
+    function ViewTask() {
+
+    }
+
+    @*function getselfinbox() {
+        $("#inboxTreeView").data('kendoTreeView').dataSource.read();
+        LoadPartailView('@Url.Action("SelfEmails", "EmailTask", new { @area = "Pjm",Id= ViewBag.Id })', $('#self'))
+       // $("#kgdProjectGridView").data('kendoGridView').dataSource.read({ config: "company",id:'@ViewBag.Id'});
+    }
+     function getcompanyinbox() {
+         $("#inboxTreeView").data('kendoTreeView').dataSource.read({ config: "company" });
+      LoadPartailView('@Url.Action("CompanyEmails", "EmailTask", new { @area = "Pjm" ,Id= ViewBag.Id})', $('#company'));
+    }
+     function getprojectinbox() {
+        // $("#inboxTreeView").data('kendoTreeView').dataSource.read({ config: "project" });
+       LoadPartailView('@Url.Action("ProjectEmails", "EmailTask", new { @area = "Pjm",Id= ViewBag.Id })', $('#project'));
+    }*@
+</script>
+<style>
+    .employee-photo {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-size: 32px 35px;
+        background-position: center center;
+        vertical-align: middle;
+        line-height: 32px;
+        box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+        margin-left: 5px;
+    }
+
+    .employee-name {
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 32px;
+        padding-left: 3px;
+    }
+</style>
+
+<br />
+<div class="row">
+
+    <div class="row  pad-10 no-gutters">
+        <div class="container card-header" style="padding:10px;">
+            @*<div class="container col-sm-5">*@
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item"><a data-toggle="tab" href="#self" class="nav-link active" role="tab" aria-controls="self" aria-selected="true" onclick="getselfinbox();">@Resource["SelfInbox"]</a></li>
+                <li class="nav-item" id="litaskindex">
+
+                    <a data-toggle="tab" href="#company" class="nav-link" aria-controls="company" aria-selected="false" onclick="getcompanyinbox(); ">@Resource["SystemInbox"]</a>
+                </li>
+                <li class="nav-item" id="litaskscriptpage">
+                    <a data-toggle="tab" href="#project" class="nav-link" aria-controls="project" aria-selected="false" onclick="getprojectinbox();">@Resource["ProjectInbox"]</a>
+                </li>
+
+
+            </ul>
+            <div class="tab-content">
+                <div id="self" class="tab-pane  in active" role="tabpanel" aria-labelledby="self-tab">
+
+
+
+                </div>
+                <div id="company" class="tab-pane " role="tabpanel" aria-labelledby="company-tab">
+
+
+                </div>
+                <div id="project" class="tab-pane " role="tabpanel" aria-labelledby="project-tab">
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+

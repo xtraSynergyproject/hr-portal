@@ -1,0 +1,471 @@
+﻿@using Kendo.Mvc.UI;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Manage Table";
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+    Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@model TableMetadataViewModel
+
+<style>
+    table, th, td {
+        border: 1px solid black;
+    }
+
+    .k-grid-header .k-header {
+        white-space: pre-wrap !important;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#ModuleId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.ModuleId',
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Cms/TableMetadata/GetModuleList",
+                    }
+                }
+            }
+        });
+
+        $("#Schema").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.Schema',
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Cms/TableMetadata/GetSchemaList",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function onGridSave(arg) {
+
+        if (arg.model.ForeignKeyTableId != "") {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/Cms/TableMetadata/GetForeignKeyTableNameById?tableId=" + arg.model.ForeignKeyTableId,
+                success: function (tablename) {
+                    //alert(tablename);
+                    arg.model.ForeignKeyTableName = tablename;
+                },
+            });
+
+        }
+
+        //ForeignKeyColumnName
+        if (arg.model.ForeignKeyColumnId != "") {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/Cms/TableMetadata/GetForeignKeyColumnNameById?columnId=" + arg.model.ForeignKeyColumnId,
+                success: function (columnname) {
+                    arg.model.ForeignKeyColumnName = columnname;
+                },
+            });
+
+        }
+
+        //ForeignKeyDisplayColumnName
+        if (arg.model.ForeignKeyDisplayColumnId != "") {
+            //url: "/Cms/TableMetadata/GetForeignKeyDisplayColumnNameById?discolumnId=" + arg.model.ForeignKeyDisplayColumnId,
+
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/Cms/TableMetadata/GetForeignKeyColumnNameById?columnId=" + arg.model.ForeignKeyDisplayColumnId,
+                success: function (discolumnname) {
+                    arg.model.ForeignKeyDisplayColumnName = discolumnname;
+                },
+            });
+        }
+
+        console.log(arg);
+    }
+    function onForeignKeyTable(e) {
+        //console.log(e);
+        var foreignkeytable = $("#ForeignKeyTableId").data("kendoDropDownList");
+        var value = foreignkeytable.value();
+        var tblname = foreignkeytable.text();
+        var name = $("#Name").val();
+        if (value != null) {
+            $("#ForeignKeyConstraintName").val("FK_" + name + "_" + tblname);
+        } else {
+            $("#ForeignKeyConstraintName").val("FK_" + name);
+        }
+        var column = $("#ForeignKeyColumnId").data("kendoDropDownList");
+        column.dataSource.read({ tableId: value });
+        var discolumn = $("#ForeignKeyDisplayColumnId").data("kendoDropDownList");
+        discolumn.dataSource.read({ tableId: value });
+
+    }
+    function onForeignKeyColumn(e) {
+
+        var foreignkeytable = $("#ForeignKeyTableId").data("kendoDropDownList");
+        var foreignkeycolumn = $("#ForeignKeyColumnId").data("kendoDropDownList");
+        alert(foreignkeytable.value());
+        var tblname = foreignkeytable.text();
+        alert(foreignkeycolumn.value());
+        var colname = foreignkeycolumn.text();
+        var name = $("#Name").val();
+        if (foreignkeytable.value() != null) {
+            if (foreignkeycolumn.value() != null) {
+                $("#ForeignKeyConstraintName").val("FK_" + name + "_" + tblname + "_" + colname);
+            } else {
+                $("#ForeignKeyConstraintName").val("FK_" + name + "_" + tblname);
+            }
+        } else {
+            $("#ForeignKeyConstraintName").val("FK_" + name);
+        }
+
+    }
+
+    function getTableId(e) {
+        return {
+            tableId: null
+        };
+    }
+    function CancelTable() {
+        window.location.href = "/Cms/TableMetadata/Index";
+    }
+
+    function SaveTable(e) {
+
+        //var modulename = $("#ModuleName").data("kendoDropDownList");
+        var modulename = $("#ModuleId").data("kendoDropDownList");
+        if (modulename.value() == "") {
+            alert("Module name is required.");
+            //modulename.focus();
+            modulename.open();
+            e.preventDefault();
+            return false;
+        }
+        var schema = $("#Schema").data("kendoDropDownList");
+        if (schema.value() == "") {
+            alert("Schema is required.");
+            schema.open();
+            e.preventDefault();
+            return false;
+        }
+        var tbldisplayname = $("#DisplayName").val();
+        if (tbldisplayname == "") {
+            $("#DisplayName").focus();
+            e.preventDefault();
+            return false;
+        }
+
+        var tblalias = $("#Alias").val();
+        if (tblalias == "") {
+            $("#Alias").focus();
+            e.preventDefault();
+            return false;
+        }
+
+        var cgrid = $("#kgrdColumnMetadatas").data("kendoGrid");
+        //cgrid.dataSource.read();
+        //var ccount = cgrid.dataSource.total();
+        var ccount = cgrid.dataSource.data().length;
+        //$("#kgrdColumnMetadatas").length
+        if (ccount > 0) {
+            //var detail = JSON.stringify($("#kgrdColumnMetadatas").data().kendoGrid.dataSource.data());
+            var detail = JSON.stringify(cgrid.dataSource.data());
+            $("#ColumnMetaDetails").val(detail);
+        } else {
+            alert("At least one column is required to save the table.");
+            e.preventDefault();
+            return false;
+        }
+    }
+
+
+    //$("#kgrdColumnMetadatas .Name").on('input', function () {
+    //
+    //    alert("ColumnName");
+    //    //var txt = $("#Name").val();
+    //    //var t = capitalizeTheFirstLetterOfEachWord(txt);
+    //    //txt = t.replace(/[^A-Z0-9]/ig, "");
+    //    //$("#Name").val(txt);
+    //});
+
+    //$("#LabelName").on('input', function () {
+    //
+    //    alert("Hello Label Name");
+    //    //var txt = $("#LabelName").val();
+    //    //var t = capitalizeTheFirstLetterOfEachWord(txt);
+    //    //txt = t.replace(/[^A-Z0-9]/ig, "");
+    //    //$("#LabelName").val(txt);
+    //});
+    //$("#LabelName").click(function () {
+    //    alert("Hello LabelName");
+    //});
+
+
+    //$(".input").inlineEdit({
+    //    onChange: function (el, theText, theHtml) {
+    //        alert("input on changes");
+    //    },
+    //    onEdit: function (el) {
+    //        alert("input on edit");
+    //    },
+    //    onNoChange: function (el) {
+    //        alert("input on no changes");
+    //    }
+    //    });
+
+    function onGridChange(arg) {
+
+        alert("Hello Grid Changes");
+    }
+    function AddTableRow() {
+        alert("Row Add");
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+</script>
+<div class="row">
+    <h2>Manage Table</h2>
+</div>
+<div class="pad-20" style="width:100%;">
+    <form asp-controller="TableMetadata" asp-action="ManageTable" method="post" >
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row">
+            <div class="col-12" style="text-align: right;">
+                <button type="button" class="btn btn-light" onclick="CancelTable();">Cancel</button>
+                @*<button type="submit" class="btn btn-success">Save</button>*@
+                <button type="submit" class="btn btn-success" onclick="SaveTable(event);">Save</button>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-4">
+                <div class="form-label-group">
+                    @*@(Html.Kendo().DropDownListFor(model => model.ModuleId)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetModuleList", "TableMetadata", new {@area="Cms"});
+                                            });
+                                        })
+                                        .AutoBind(false)
+                                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        //.Value(Model.EditorCategoryData)
+                                        .Height(100)
+                                        //.Filter(FilterType.Contains)
+                                        .HtmlAttributes(new { @class = "form-control", @style = "padding-top: 20px !important; height: auto !important;" }))*@
+
+                    <input asp-for="ModuleId" id="ModuleId" style="width: 100%" />
+                    <label for="modulename" style="margin-top: -20px !important;">Module Name <span class="required" style="color:red;">*</span></label>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="form-label-group">
+                    @*@(Html.Kendo().DropDownListFor(model => model.Schema)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetSchemaList", "TableMetadata", new {@area="Cms"});
+                                            });
+                                        })
+                                        .AutoBind(false)
+                                        //.OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        //.Value(Model.EditorCategoryData)
+                                        .Height(100)
+                                        //.Filter(FilterType.Contains)
+                                        .HtmlAttributes(new { @class = "form-control",  @style = "padding-top: 20px !important; height: auto !important;" }))*@
+                   
+                    <input asp-for="Schema" id="Schema" style="width: 100%" />
+                    <label for="schema" style="margin-top: -20px !important;">Schema <span class="required" style="color:red;">*</span></label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="form-label-group">
+                    <input type="text" asp-for="DisplayName" class="form-control" placeholder="Table Name (Display Name)" autocomplete="off" required="required" />
+                    <label for="displayname">Table Name (Display Name) <span class="required" style="color:red;">*</span></label>
+                </div>
+                @*@Html.Kendo().TextBoxFor(m => m.DisplayName).HtmlAttributes(new { @class = "form-control hr-xx-large" })*@
+            </div>
+            <div class="col-4">
+                <div class="form-label-group">
+                    <input type="text" asp-for="Name" class="form-control" placeholder="Name" autocomplete="off" required="required" readonly />
+                    <label for="name">Name <span class="required" style="color:red;">*</span></label>
+                </div>
+                @*@Html.Kendo().TextBoxFor(m => m.Name).HtmlAttributes(new { @class = "form-control hr-xx-large" })*@
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="form-label-group">
+                    <input type="text" asp-for="Alias" class="form-control" placeholder="Alias / Short Name" autocomplete="off" required="required" />
+                    <label for="name">Alias / Short Name <span class="required" style="color:red;">*</span></label>
+                </div>
+                @*@Html.Kendo().TextBoxFor(m => m.Alias).HtmlAttributes(new { @class = "form-control hr-xx-large" })*@
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-8">
+                <div class="form-label-group">
+                    <textarea asp-for="Description" class="form-control" rows="3" style="padding-top: 20px !important;"></textarea>
+                    <label for="description" style="margin-top: -20px !important;">Description</label>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            @*@(Html.Kendo().Grid<ColumnMetadataViewModel>(Model.ColumnMetaDetails)
+    .Name("kgrdColumnMetadatas")
+    .Columns(columns =>
+    {
+        columns.Command(command => { command.Edit().Text(" ").UpdateText(" ").CancelText(" "); command.Destroy().IconClass("fa fas fa-trash-alt").Text(" "); }).Width(120);
+        columns.Bound(p => p.Name).Title("Column Name").Width(220);
+        columns.Bound(p => p.LabelName).Title("Label Name").Width(220);
+        columns.Bound(p => p.Alias).Title("Alias/Short Name").Width(220);
+        //columns.Bound(p => p.DataType).Title("Data Type").ClientTemplateId("datatype_template").Width(150);
+        columns.Bound(p => p.DataTypestr).Title("Data Type").ClientTemplateId("datatype_template").Width(150);
+        columns.Bound(p => p.IsDefaultDisplayColumn).Title("Is Default Display Column?").HtmlAttributes(new { @style="text-align:center;"}).Width(150);
+        columns.Bound(p => p.IsNullable).Title("Is Nullable?").HtmlAttributes(new { @style = "text-align:center;" }).Width(150);
+        columns.Bound(p => p.IsForeignKey).Title("Is Foreign Key").HtmlAttributes(new { @style = "text-align:center;" }).Width(150);
+        columns.Bound(p => p.ForeignKeyTableId).Title("Foreign key Table").ClientTemplateId("foreignkeytable_template").Width(250);
+        columns.Bound(p => p.ForeignKeyColumnId).Title("Foreign Key Column").ClientTemplateId("foreignKeyColumn_template").Width(250);
+        columns.Bound(p => p.ForeignKeyDisplayColumnId).Title("Foreign Key Display Column").ClientTemplateId("foreignKeyDisplayColumn_template").Width(220);
+        columns.Bound(p => p.ForeignKeyConstraintName).Title("Foreign Key Constraint Name").Width(250);
+
+    })
+    .ToolBar(toolbar => {
+        toolbar.Create().Text("Add New Column");
+        //toolbar.Save();
+    })
+    //.Events(e=>e.DataBound("onDataBound"))
+    .Events(e => e.Save("onGridSave"))
+    //.Events(e=>e.Change("onGridChange"))
+    .Editable(editable => editable.Mode(GridEditMode.InLine).DisplayDeleteConfirmation(false)
+                        //.ConfirmDelete("Continue to delete this record?")
+                        //.DisplayDeleteConfirmation("Continue to delete this record?")
+                        )
+    .Pageable(pageable => pageable
+                    .Refresh(true)
+                    .PageSizes(true)
+                    .ButtonCount(5))
+    .Sortable(srt => srt.Enabled(false))
+    .Scrollable(scrollable => scrollable.Enabled(true).Height(450))
+    .Resizable(resize => resize.Columns(true))
+    .HtmlAttributes(new { style = "width:98%;" })
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .ServerOperation(false)
+        .PageSize(20)
+    //.Events(events => events.Error("error_handler"))
+    //.Model(model =>
+    //{
+    //    model.Id(p => p.Id);
+    //    model.Field(p => p.Name).Editable(true);
+
+    //})
+    //.Read(read => read.Action("ReadTableColumnMetadatas", "TableMetadata", new { Area = "Cms" }))
+    //.Create(update => update.Action("EditingInline_Create", "Grid"))
+    //.Update(update => update.Action("EditingInline_Update", "Grid"))
+    //.Destroy(update => update.Action("EditingInline_Destroy", "Grid"))
+    )
+    )*@
+
+        </div>
+        @Html.HiddenFor(x => x.TableType)
+        @Html.HiddenFor(x => x.ColumnMetaDetails)
+    </form>
+</div>
+
+<script type="text/javascript">
+    $("#DisplayName").on('input', function () {
+        var txt = $("#DisplayName").val();
+        var txt2 = $("#DisplayName").val();
+        var t = capitalizeTheFirstLetterOfEachWord(txt);
+        txt = t.replace(/[^A-Z0-9]/ig, "");
+        //$("#Name").html(txt);
+        var t2 = getcapitalizeTheFirstLetter(txt2);
+        txt2 = t2.replace(/[^A-Z0-9]/ig, "");
+        $("#Name").val(txt);
+        $("#Alias").val(txt2);
+
+    });
+
+    function capitalizeTheFirstLetterOfEachWord(words) {
+        var separateWord = words.toLowerCase().split(' ');
+        for (var i = 0; i < separateWord.length; i++) {
+            separateWord[i] = separateWord[i].charAt(0).toUpperCase() +
+                separateWord[i].substring(1);
+        }
+        return separateWord.join(' ');
+    }
+
+    function getcapitalizeTheFirstLetter(words) {
+        
+        var separateWord = words.toLowerCase().split(' ');
+        var myword = "";
+        for (var i = 0; i < separateWord.length; i++) {
+            var num = separateWord[i].match(/\d+/);
+            var wrd = separateWord[i].match(/[a-zA-Z]+/);
+            if (num == null) {
+                myword += separateWord[i].charAt(0).toUpperCase();
+            } else {
+                if (wrd != null) {
+                    myword += wrd[0].charAt(0).toUpperCase();
+                }
+                myword += num;
+            }
+        }
+        return myword;
+    }
+
+</script>
+
+<script id="datatype_template" type="text/x-kendo-template">
+    #=data.DataTypestr#
+</script>
+<script id="foreignkeytable_template" type="text/x-kendo-template">
+    #=data.ForeignKeyTableName#
+</script>
+<script id="foreignKeyColumn_template" type="text/x-kendo-template">
+    #=data.ForeignKeyColumnName#
+</script>
+<script id="foreignKeyDisplayColumn_template" type="text/x-kendo-template">
+    #=data.ForeignKeyDisplayColumnName#
+</script>

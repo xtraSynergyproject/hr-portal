@@ -1,0 +1,420 @@
+﻿@inject Synergy.App.Common.IUserContext _userContext
+@using Synergy.App.Common
+@using Synergy.App.ViewModel;
+@{
+    ViewData["Title"] = "My Profile - Overview";
+    Layout = null;// "~/Areas/Core/Views/User/UserProfile.cshtml";
+}
+@model Synergy.App.ViewModel.UserViewModel
+
+<style>
+    .k-listview {
+        background-color: unset !important;
+        margin-left: 0px !important;
+        color:inherit !important;
+    }
+</style>
+
+<script>
+
+     $(document).ready(function () {
+
+         //Draft
+        var dataSourceD = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/User/GetTaskSummary?statusCodes=TASK_STATUS_DRAFT",
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#DraftTaskListView").kendoListView({
+            dataSource: dataSourceD,
+             template: kendo.template($("#tasktemplate").html()),
+
+        });
+        $("#DraftTaskListView").children('.k-listview-content').addClass("row-12 m-1");
+        $("#DraftTaskListView").children('.k-listview-content').removeClass("k-listview-content");
+
+         //Inprogress
+         var dataSourceI = new kendo.data.DataSource({
+             transport: {
+                 read: {
+                     url: "/User/GetTaskSummary?statusCodes=TASK_STATUS_INPROGRESS,TASK_STATUS_OVERDUE",
+                     dataType: "json",
+                 }
+             },
+         });
+
+         $("#InprogressTaskListView").kendoListView({
+             dataSource: dataSourceI,
+             template: kendo.template($("#tasktemplate").html()),
+
+         });
+         $("#InprogressTaskListView").children('.k-listview-content').addClass("row-12 m-1");
+         $("#InprogressTaskListView").children('.k-listview-content').removeClass("k-listview-content");
+
+         //Completed
+         var dataSourceC = new kendo.data.DataSource({
+             transport: {
+                 read: {
+                     url: "/User/GetTaskSummary?statusCodes=TASK_STATUS_COMPLETE",
+                     dataType: "json",
+                 }
+             },
+         });
+
+         $("#CompletedTaskListView").kendoListView({
+             dataSource: dataSourceC,
+             template: kendo.template($("#tasktemplate").html()),
+
+         });
+         $("#CompletedTaskListView").children('.k-listview-content').addClass("row-12 m-1");
+         $("#CompletedTaskListView").children('.k-listview-content').removeClass("k-listview-content");
+
+         //Rejected
+         var dataSourceR = new kendo.data.DataSource({
+             transport: {
+                 read: {
+                     url: "/User/GetTaskSummary?statusCodes=TASK_STATUS_REJECT,TASK_STATUS_CANCEL",
+                     dataType: "json",
+                 }
+             },
+         });
+
+         $("#RejectedTaskListView").kendoListView({
+             dataSource: dataSourceR,
+             template: kendo.template($("#tasktemplate").html()),
+
+         });
+         $("#RejectedTaskListView").children('.k-listview-content').addClass("row-12 m-1");
+         $("#RejectedTaskListView").children('.k-listview-content').removeClass("k-listview-content");
+
+     });
+
+    function OnPhotoError(obj) {
+        obj.onerror = null;
+        obj.src = '/images/profile.jpg';
+    }
+
+    function OnViewTask(Id, tcode) {
+        var portalId = '@Model.PortalId';
+        var url = '/Cms/Page?lo=Popup&pageType=Task&cbm=ReloadIndexPage&source=View&dataAction=View&templateCodes=' + tcode + '&portalId=' + portalId + '&recordId=' + Id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title:  'Manage Task', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function onCommentClick(taskid)
+    {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("TaskComments", "Cms", new { @area = "" })?taskId='+taskid+'&IsAddCommentEnabled=true';
+        win.OpenWindow({ Title: 'Task Comments', Width: 1200, Height: 750 });
+        return false;
+    }
+
+</script>
+
+<script id="tasktemplate" type="text/kendo-ui-template">
+
+    <div class="task-issue">
+                       <!-- .card -->
+                       <div class="card">
+                           <!-- .card-header -->
+                           <div class="card-header">
+                               <div class="task-label-group">
+                                   <span class="task-label #:TitleCSS#"></span>
+                               </div>
+                               <h4 class="card-title">
+                                   <a href="javascript:OnViewTask('#:Id#','#:TemplateCode#');">#:TaskSubject#</a>
+                               </h4>
+                               <h6 class="card-subtitle text-muted">
+                                   <span class="text-muted">#:HoursSpent#</span> / <span class="text-muted">#:TaskSLAValue#</span> <span class="mx-1">·</span> <span class="due-date"><i class="far fa-fw fa-clock"></i> #:DisplayDueDate#</span>
+                               </h6>
+                           </div><!-- /.card-header -->
+                           <!-- .card-body -->
+                           <div class="card-body pt-0">
+                               <!-- .list-group -->
+                               <div class="">
+                                   <!-- .list-group-item -->
+                                   <div class="list-group-item">
+                                       <a class="stretched-link"></a> <!-- .list-group-item-body -->
+                                       <div class="list-group-item-body" style="display:flex">
+                                           <!-- Owner -->
+                                           <figure class="user-avatar user-avatar-sm" title="">
+                                               <img src="/cms/Document/GetImageMongo?id=#:OwnerUserPhotoId#" onerror="OnPhotoError(this);">
+                                           </figure>
+                                           <div style="padding-left:10px;"><h6 class="card-title">
+                                                    <a>#:OwnerUserName#</a>
+                                                </h6> </div>
+
+                                        @*<div class="media align-items-center mb-3">
+                                        <img src="/cms/Document/GetImageMongo?id=#:OwnerUserPhotoId#" onerror="OnPhotoError(this);">
+                                            <div class="media-body">
+                                                <h3 class="card-title">
+                                                    <a href="page-team.html">#:OwnerUserName#</a>
+                                                </h3>
+                                            </div>
+                                        </div>*@
+
+                                           <!-- /Owner -->
+                                       </div><!-- /.list-group-item-body -->
+                                   </div><!-- /.list-group-item -->
+                               </div><!-- /.list-group -->
+                           </div><!-- /.card-body -->
+                           <!-- .card-footer -->
+                           <div class="card-footer">
+                              <a href="javascript:onCommentClick('#:Id#');" class="card-footer-item card-footer-item-bordered text-muted" ><i class="fa-solid fa-message-lines"></i> #:CommentsCount#</a> <a href="javascript:OnViewTask('#:Id#','#:TemplateCode#');" title="View" class="card-footer-item card-footer-item-bordered text-muted"><i class="fa-solid fa-eye"></i></a>
+                            </div><!-- /.card-footer -->
+                       </div><!-- .card -->
+                   </div>
+
+</script>
+@*<script id="tasktemplate" type="text/kendo-ui-template">
+    <div class="task-issue" style="width:100%;">
+                        <!-- .card -->
+                        <div class="card">
+                            <!-- .card-header -->
+                            <div class="card-header">
+                                <h4 class="card-title">
+                                    <a href="">#:TaskSubject#</a>
+                                </h4>
+                                <h6 class="card-subtitle text-muted">
+                                    <span class="text-muted">#:HoursSpent#</span> / <span class="text-muted">#:TaskSLAValue#</span> <span class="mx-1">·</span> <span class="due-date"><i class="far fa-fw fa-clock"></i> #:DisplayDueDate#</span>
+                                </h6>
+                            </div><!-- /.card-header -->
+                            <!-- .card-body -->
+                            <div class="card-body">
+                                <!-- .list-group -->
+                                <div class="list-group">
+                                    <!-- .list-group-item -->
+                                    <div class="list-group-item">
+                                        <!-- .list-group-item-body -->
+                                        <div class="list-group-item-body py-1 text-truncate">
+                                            <a href="" class="tile tile-sm bg-indigo text-white" data-toggle="tooltip" title="Smart Paper Project">SP</a> <span class="text-muted mx-2"><i class="fas fa-long-arrow-alt-right"></i></span> <!-- members -->
+                                            <div class="avatar-group">
+                                                <a href="" class="user-avatar user-avatar-sm" data-toggle="tooltip" title="Johnny Day"><img src="assets/images/avatars/uifaces2.jpg" ></a> <a href="" class="user-avatar user-avatar-sm" data-toggle="tooltip" title="Sarah Bishop"><img src="assets/images/avatars/uifaces3.jpg" ></a> <a href="" class="user-avatar user-avatar-sm" data-toggle="tooltip" title="Craig Hansen"><img src="assets/images/avatars/uifaces5.jpg"></a>
+                                            </div><!-- /members -->
+                                        </div><!-- /.list-group-item-body -->
+                                    </div><!-- /.list-group-item -->
+                                    <!-- .list-group-item -->
+                                    <div class="list-group-item pt-0">
+                                        <a href="" class="stretched-link"></a> <!-- .list-group-item-body -->
+                                        <div class="list-group-item-body">
+                                            <div class="progress progress-xs">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 66.66666666666667%;" aria-valuenow="66.66666666666667" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div><!-- /.list-group-item-body -->
+                                        <!-- .list-group-item-figure -->
+                                        <div class="list-group-item-figure">
+                                            <span class="todos">4/6</span>
+                                        </div><!-- /.list-group-item-figure -->
+                                    </div><!-- /.list-group-item -->
+                                </div><!-- /.list-group -->
+                            </div><!-- /.card-body -->
+                            <!-- .card-footer -->
+                            <div class="card-footer">
+                                <a href="" class="card-footer-item card-footer-item-bordered text-muted"><i class="oi oi-comment-square mr-1"></i> 12</a> <a href="" class="card-footer-item card-footer-item-bordered text-muted"><i class="fa fa-pause"></i></a>
+                            </div><!-- /.card-footer -->
+                        </div><!-- .card -->
+                    </div>
+</script>*@
+
+
+<div class="page-section">
+    <!-- .section-block -->
+    <div class="section-block">
+
+        <div class="board">
+            <!-- .tasks -->
+            <div class="tasks">
+                <!-- .tasks-header -->
+                <div class="task-header">
+                    <h3 class="task-title mr-auto">
+                        Draft <span class="badge">(@Model.DraftCount)</span>
+                    </h3>
+                    @*<div class="dropdown">
+                        <button class="btn btn-light btn-icon"><i class="fa fa-ellipsis-v"></i></button>
+                    </div>*@
+                </div><!-- /.tasks-header -->
+                <!-- .task-body -->
+                <div class="task-body">
+                    <div id="DraftTaskListView" class="row-12 no-border" style="width:100%;"></div>
+                    <!-- .task-issue -->
+                    <!--<div class="task-issue">-->
+                        <!-- .card -->
+                        <!--<div class="card">-->
+                            <!-- .card-header -->
+                            <!--<div class="card-header">
+                                <div class="task-label-group">
+                                    <span class="task-label bg-teal"></span> <span class="task-label bg-green"></span>
+                                </div>
+                                <h4 class="card-title">
+                                    <a href="#" data-toggle="modal" data-target="#modalViewTask">Review</a>
+                                </h4>
+                                <h6 class="card-subtitle text-muted">
+                                    <span class="text-muted">03:11</span> / <span class="text-muted">6:00</span> <span class="mx-1">·</span> <span class="due-date"><i class="far fa-fw fa-clock"></i> Apr 07</span>
+                                </h6>
+                            </div>--><!-- /.card-header -->
+                            <!-- .card-body -->
+                            <!--<div class="card-body pt-0">-->
+                                <!-- .list-group -->
+                                <!--<div class="list-group">-->
+                                    <!-- .list-group-item -->
+                                    <!--<div class="list-group-item" data-toggle="modal" data-target="#modalViewTask">
+                                        <a href="#" class="stretched-link"></a>--> <!-- .list-group-item-body -->
+                                        <!--<div class="list-group-item-body">-->
+                                            <!-- members -->
+                                            <!--<figure class="user-avatar user-avatar-sm" data-toggle="tooltip" title="Johnny Day">
+                                                <img src="assets/images/avatars/uifaces2.jpg" alt="Johnny Day">
+                                            </figure>
+                                            <figure class="user-avatar user-avatar-sm" data-toggle="tooltip" title="Sarah Bishop">
+                                                <img src="assets/images/avatars/uifaces3.jpg" alt="Sarah Bishop">
+                                            </figure>--><!-- /members -->
+                                        <!--</div>--><!-- /.list-group-item-body -->
+                                    <!--</div>--><!-- /.list-group-item -->
+                                <!--</div>--><!-- /.list-group -->
+                            <!--</div>--><!-- /.card-body -->
+                            <!-- .card-footer -->
+                            <!--<div class="card-footer">
+                                <a href="#" class="card-footer-item card-footer-item-bordered text-muted"><i class="fa fa-play text-teal"></i></a>
+                            </div>--><!-- /.card-footer -->
+                        <!--</div>--><!-- .card -->
+                    <!--</div>--><!-- /.task-issue -->
+                    
+                </div><!-- /.task-body -->
+            </div><!-- /.tasks -->
+            <!-- .tasks -->
+            <div class="tasks">
+                <!-- .tasks-header -->
+                <div class="task-header">
+                    <h3 class="task-title mr-auto">
+                        In Progress <span class="badge">(@Model.InprogressCount)</span>
+                    </h3>
+                    @*<div class="dropdown">
+                        <button class="btn btn-light btn-icon"><i class="fa fa-ellipsis-v"></i></button>
+                    </div>*@
+                </div><!-- /.tasks-header -->
+                <!-- .task-body -->
+                <div class="task-body">
+                    <div id="InprogressTaskListView" class="row-12 no-border" style="width:100%;"></div>                    
+                </div><!-- /.task-body -->
+            </div><!-- /.tasks -->
+            <!-- .tasks -->
+            <div class="tasks">
+                <!-- .tasks-header -->
+                <div class="task-header">
+                    <h3 class="task-title mr-auto">
+                        Completed <span class="badge">(@Model.CompletedCount)</span>
+                    </h3>
+                    @*<div class="dropdown">
+                        <button class="btn btn-light btn-icon"><i class="fa fa-ellipsis-v"></i></button>
+                    </div>*@
+                </div><!-- /.tasks-header -->
+                <!-- .task-body -->
+                <div class="task-body">
+                    <div id="CompletedTaskListView" class="row-12 no-border" style="width:100%;"></div>                    
+                </div><!-- /.task-body -->
+            </div><!-- /.tasks -->
+            <!-- .tasks -->
+            <div class="tasks">
+                <!-- .tasks-header -->
+                <div class="task-header">
+                    <h3 class="task-title mr-auto">
+                        Cancelled <span class="badge">(@Model.CancelledCount)</span>
+                    </h3>
+                    @*<div class="dropdown">
+                        <button class="btn btn-light btn-icon"><i class="fa fa-ellipsis-v"></i></button>
+                    </div>*@
+                </div><!-- /.tasks-header -->
+                <!-- .task-body -->
+                <div class="task-body">
+                    <div id="RejectedTaskListView" class="row-12 no-border" style="width:100%;"></div>                    
+                </div><!-- /.task-body -->
+            </div><!-- /.tasks -->
+            
+        </div><!-- /.board -->
+    
+    @*LiveStyle*@
+    <!-- .board -->
+    <!--<div class="board board-list">-->
+    <!-- .tasks -->
+    <!--<div class="tasks">-->
+    <!-- .task-header -->
+    <!--<div class="task-header">
+        <h1 class="task-title mr-auto">
+            On Going Tasks<small class="badge">(@Model.InprogressCount)</small>
+        </h1><select class="custom-select" style="width:160px">
+            <option value=""> Filter project </option>
+            <option value="1"> Looper Admin Theme </option>
+            <option value="2"> Smart Paper </option>
+            <option value="3"> Booking Up </option>
+            <option value="4"> Online Store </option>
+        </select>
+    </div>-->
+    <!-- /.task-header -->
+    <!-- .task-body -->
+    <!--<div class="task-body">-->
+    <!-- .task-issue -->
+    <!--<div id="taskslistView" class="row no-border" style="width:100%;"></div>-->
+    <!--<div class="task-issue">-->
+    <!-- .card -->
+    <!--<div class="card">-->
+    <!-- .card-header -->
+    <!--<div class="card-header">
+        <h4 class="card-title">
+            <a href="#">Make lemonade from scratch</a>
+        </h4>
+        <h6 class="card-subtitle text-muted">
+            <span class="text-muted">16:36</span> / <span class="text-muted">24:00</span> <span class="mx-1">·</span> <span class="due-date"><i class="far fa-fw fa-clock"></i> Apr 02</span>
+        </h6>
+    </div>-->
+    <!-- /.card-header -->
+    <!-- .card-body -->
+    <!--<div class="card-body">-->
+    <!-- .list-group -->
+    <!--<div class="list-group">-->
+    <!-- .list-group-item -->
+    <!--<div class="list-group-item">-->
+    <!-- .list-group-item-body -->
+    <!--<div class="list-group-item-body py-1 text-truncate">
+        <a href="#" class="tile tile-sm bg-indigo text-white" data-toggle="tooltip" title="Smart Paper Project">SP</a> <span class="text-muted mx-2"><i class="fas fa-long-arrow-alt-right"></i></span>-->
+    <!-- members -->
+    <!--<div class="avatar-group">
+        <a href="#" class="user-avatar user-avatar-sm" data-toggle="tooltip" title="Johnny Day"><img src="assets/images/avatars/uifaces2.jpg" alt="Johnny Day"></a> <a href="#" class="user-avatar user-avatar-sm" data-toggle="tooltip" title="Sarah Bishop"><img src="assets/images/avatars/uifaces3.jpg" alt="Sarah Bishop"></a> <a href="#" class="user-avatar user-avatar-sm" data-toggle="tooltip" title="Craig Hansen"><img src="assets/images/avatars/uifaces5.jpg" alt="Craig Hansen"></a>
+    </div>-->
+    <!-- /members -->
+    <!--</div>--><!-- /.list-group-item-body -->
+    <!--</div>--><!-- /.list-group-item -->
+    <!-- .list-group-item -->
+    <!--<div class="list-group-item pt-0">
+        <a href="#" class="stretched-link"></a>-->
+    <!-- .list-group-item-body -->
+    <!--<div class="list-group-item-body">
+        <div class="progress progress-xs">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 66.66666666666667%;" aria-valuenow="66.66666666666667" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>-->
+    <!-- /.list-group-item-body -->
+    <!-- .list-group-item-figure -->
+    <!--<div class="list-group-item-figure">
+        <span class="todos">4/6</span>
+    </div>-->
+    <!-- /.list-group-item-figure -->
+    <!--</div>--><!-- /.list-group-item -->
+    <!--</div>--><!-- /.list-group -->
+    <!--</div>--><!-- /.card-body -->
+    <!-- .card-footer -->
+    <!--<div class="card-footer">
+        <a href="#" class="card-footer-item card-footer-item-bordered text-muted"><i class="oi oi-comment-square mr-1"></i> 12</a> <a href="#" class="card-footer-item card-footer-item-bordered text-muted"><i class="fa fa-pause"></i></a>
+    </div>-->
+    <!-- /.card-footer -->
+    <!--</div>--><!-- .card -->
+    <!--</div>--><!-- /.task-issue -->
+    <!--</div>--><!-- /.task-body -->
+    <!--</div>--><!-- /.tasks -->
+    <!--</div>--><!-- /.board -->
+</div><!-- /.section-block -->
+</div><!-- /.page-section -->

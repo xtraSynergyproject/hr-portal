@@ -1,0 +1,590 @@
+﻿@{
+	ViewData["Title"] = "VDP Report";
+	Layout = null;
+	//Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.BusinessAnalyticsController> Resource
+
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+<style>
+	
+</style>
+<script>
+var gridOptionVDP;
+var myVdpinterval;
+var time_delay = 2000; 
+$(document).ready(function() {	
+    loadVdpDistrict();
+});
+function OnVdpDisConnect() {    
+    $.ajax({
+                url: '@Url.Action("VdpDisconnect", "BusinessAnalytics", new { @area="Cms"})',
+                    type: 'GET',
+                    success: function (result) {
+                       
+                        if (result.success) {    
+                            window.clearInterval(myVdpinterval);
+                            myVdpinterval = null;        
+                            ShowNotification("Successfully Disconnected", "success");
+                        }
+                        else {
+                            ShowNotification("Something went wrong!", "danger");
+                        }
+                    },
+                    error: function (ert) {
+
+                        ShowNotification("Something went wrong!", "danger");
+                    }
+                });
+}
+
+function OnVdpConnect() {
+    var id=$("#vdpDistrict").val();
+     $.ajax({
+                url: '@Url.Action("VdpEvents", "BusinessAnalytics", new { @area="Cms"})?id='+id,
+                    type: 'GET',
+                    success: function (result) {
+                        if (result.success) {
+                            ShowNotification("Connection Establised Successfully", "success");
+                            VdpCubjJsData();
+
+                        }
+                        else {
+                            ShowNotification("Something went wrong!", "danger");
+                        }
+
+                    },
+                    error: function (ert) {
+
+
+                    }
+                });
+}
+function UpdateVdpGrid() {    
+    if ($("#vdpDistrict").val() == undefined) {        
+        window.clearInterval(myVdpinterval);
+        myVdpinterval = null;
+        OnVdpDisConnect();
+        return false;
+    }
+    else {
+        OnRefresh();
+    }
+}
+
+ function loadVdpDistrict() {
+        $("#vdpDistrict").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",            
+            dataSource: {
+                serverFiltering: false,
+                transport: {
+                    read: {
+                        url: "/CMS/BusinessAnalytics/GetVdpDistrictData",
+                    }
+                }
+            }
+        });
+    }
+
+function OnRefresh() {
+    var district=$("#vdpDistrict").data("kendoDropDownList").text();
+     cubejsApi.load({
+            measures: ["VDPData.count"],
+            dimensions: ["VDPData.categoryDataId","VDPData.detConf","VDPData.detTime","VDPData.deviceIP",
+            "VDPData.deviceId","VDPData.deviceName","VDPData.districtId","VDPData.districtName",
+            "VDPData.driverImgPath","VDPData.eventName","VDPData.event_Date","VDPData.fullImgPath",
+            "VDPData.id","VDPData.ipAddress","VDPData.isDrivingWhileOnTheMobile","VDPData.latitude",
+            "VDPData.longitude","VDPData.noHelmet","VDPData.noSeatBelt","VDPData.numberOfRiders","VDPData.plateId",
+            "VDPData.plateImgPath","VDPData.plateNumber","VDPData.rTOCircleNumber","VDPData.recConf",
+            "VDPData.receivedTime","VDPData.redLightViolated","VDPData.remark","VDPData.speed","VDPData.speedViolated",
+            "VDPData.trippleRiding","VDPData.update","VDPData.vehicleColor","VDPData.vehicleRegistrationType","VDPData.violationImgPath"],
+            filters: [{
+              "and": [
+                {
+                  "member": "VDPData.districtName",
+                  "operator": "equals",
+                  "values": [district]
+                }
+              ]
+            }],
+            order: { 'VDPData.event_Date': 'desc' },
+            timezone: 'Asia/Calcutta|Asia/Kolkata'
+        }).then((resultSet) => {   
+                         
+            var datastring = JSON.stringify(resultSet.loadResponse.results[0].data);
+            var oldmesName="VDPData.";
+            var newmesName="VDPData_";
+	        datastring = datastring.replaceAll(oldmesName, newmesName);                
+	        var list = JSON.parse(datastring);
+            var datalist = [];
+            const latestRow =gridOptionVDP.rowData.length > 0 ? gridOptionVDP.rowData[0] : null;
+            if (latestRow != null) {
+                list.forEach(function(item, index) {
+                    if (kendo.parseDate(latestRow.VDPData_event_Date) < kendo.parseDate(item["VDPData_event_Date"])) {
+                        datalist.push(item);
+                    }
+                })
+                gridOptionVDP.api.applyTransaction({
+                    add: datalist,
+                    addIndex: 0,
+                  });
+            }
+            else {
+                gridOptionVDP.api.applyTransaction({
+                    add: list,
+                    addIndex: 0,
+                  });
+            }
+            gridOptionVDP.rowData=list;
+        });
+}
+ var columnDefsVDP = [
+        {
+            field: "VDPData_eventName",
+            headerName: 'EventName',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_eventName != null ? params.data.VDPData_eventName : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_category",
+            headerName: 'Category',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_category != null ? params.data.VDPData_category : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_detConf",
+            headerName: 'Det Conf',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_detConf != null ? params.data.VDPData_detConf : '' + " </div>";
+
+            }
+        },
+        {
+            field: "VDPData_deviceName",
+            headerName: 'Device Name',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_deviceName != null ? params.data.VDPData_deviceName : '' +" </div>";
+            }
+        },
+        {
+            field: "VDPData_deviceId",
+            headerName: 'Device Id',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_deviceId != null ? params.data.VDPData_deviceId : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_deviceIP",
+            headerName: 'Device IP',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_deviceIP != null ? params.data.VDPData_deviceIP : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_fullImgPath",
+            headerName: 'Full ImgPath',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_fullImgPath != null ? params.data.VDPData_fullImgPath : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_plateId",
+            headerName: 'Plate Id',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_plateId != null ? params.data.VDPData_plateId : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_plateImgPath",
+            headerName: 'Plate ImgPath',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_plateImgPath != null ? params.data.VDPData_plateImgPath : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_plateNumber",
+            headerName: 'Plate Number',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_plateNumber != null ? params.data.VDPData_plateNumber : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_violationImgPath",
+            headerName: 'Violation ImgPath',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_violationImgPath != null ? params.data.VDPData_violationImgPath : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_redLightViolated",
+            headerName: 'Red Light Violated',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_redLightViolated != null ? params.data.VDPData_redLightViolated : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_driverImgPath",
+            headerName: 'Driver ImgPath',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_driverImgPath != null ? params.data.VDPData_driverImgPath : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_remark",
+            headerName: 'Remark',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_remark != null ? params.data.VDPData_remark : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_recConf",
+            headerName: 'Rec Conf',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_recConf != null ? params.data.VDPData_recConf : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_receivedTime",
+            headerName: 'Received Time',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_receivedTime != null ? params.data.VDPData_receivedTime : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_vehicleColor",
+            headerName: 'Vehicle Color',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_vehicleColor != null ? params.data.VDPData_vehicleColor : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_categoryDataId",
+            headerName: 'Category Data Id',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_categoryDataId != null ? params.data.VDPData_categoryDataId : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_speed",
+            headerName: 'Speed',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_speed != null ? params.data.VDPData_speed : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_speedViolated",
+            headerName: 'Speed Violated',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_speedViolated != null ? params.data.VDPData_speedViolated : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_categoryData",
+            headerName: 'Category Data',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_categoryData != null ? params.data.VDPData_categoryData : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_vehicleRegistrationType",
+            headerName: 'Vehicle Registration Type',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_vehicleRegistrationType != null ? params.data.VDPData_vehicleRegistrationType : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_vehicleType",
+            headerName: 'Vehicle Type',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_vehicleType != null ? params.data.VDPData_vehicleType : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_vehicleMake",
+            headerName: 'Vehicle Make',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_vehicleMake != null ? params.data.VDPData_vehicleMake : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_plateType",
+            headerName: 'Plate Type',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_plateType != null ? params.data.VDPData_plateType : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_noHelmet",
+            headerName: 'No Helmet',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_noHelmet != null ? params.data.VDPData_noHelmet : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_numberOfRiders",
+            headerName: 'Number Of Riders',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_numberOfRiders != null ? params.data.VDPData_numberOfRiders : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_trippleRiding",
+            headerName: 'Tripple Riding',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_trippleRiding != null ? params.data.VDPData_trippleRiding : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_noSeatBelt",
+            headerName: 'No Seat Belt',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_noSeatBelt != null ? params.data.VDPData_noSeatBelt : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_isDrivingWhileOnTheMobile",
+            headerName: 'Is Driving While On The Mobile',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_isDrivingWhileOnTheMobile != null ? params.data.VDPData_isDrivingWhileOnTheMobile : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_longitude",
+            headerName: 'Longitude',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_longitude != null ? params.data.VDPData_longitude : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_latitude",
+            headerName: 'Latitude',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_latitude != null ? params.data.VDPData_latitude : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_location",
+            headerName: 'Location',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_location != null ? params.data.VDPData_location : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_serialNumber",
+            headerName: 'Serial Number',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_serialNumber != null ? params.data.VDPData_serialNumber : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_districtId",
+            headerName: 'District Id',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_districtId != null ? params.data.VDPData_districtId : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_rTOCircleNumber",
+            headerName: 'RTO Circle Number',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_rTOCircleNumber != null ? params.data.VDPData_rTOCircleNumber : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_districtName",
+            headerName: 'District Name',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_districtName != null ? params.data.VDPData_districtName : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_ipAddress",
+            headerName: 'IP Address',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_ipAddress != null ? params.data.VDPData_ipAddress : '' + " </div>";
+            }
+        },
+        {
+            field: "VDPData_event_Date",
+            headerName: 'Event Date',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.VDPData_event_Date != null ? params.data.VDPData_event_Date : '' + " </div>";
+            }
+        }
+    ];
+function VdpCubjJsData() {  
+     var district=$("#vdpDistrict").data("kendoDropDownList").text();
+     cubejsApi.load({
+            measures: ["VDPData.count"],
+            dimensions: ["VDPData.categoryDataId","VDPData.detConf","VDPData.detTime","VDPData.deviceIP",
+            "VDPData.deviceId","VDPData.deviceName","VDPData.districtId","VDPData.districtName",
+            "VDPData.driverImgPath","VDPData.eventName","VDPData.event_Date","VDPData.fullImgPath",
+            "VDPData.id","VDPData.ipAddress","VDPData.isDrivingWhileOnTheMobile","VDPData.latitude",
+            "VDPData.longitude","VDPData.noHelmet","VDPData.noSeatBelt","VDPData.numberOfRiders","VDPData.plateId",
+            "VDPData.plateImgPath","VDPData.plateNumber","VDPData.rTOCircleNumber","VDPData.recConf",
+            "VDPData.receivedTime","VDPData.redLightViolated","VDPData.remark","VDPData.speed","VDPData.speedViolated",
+            "VDPData.trippleRiding","VDPData.update","VDPData.vehicleColor","VDPData.vehicleRegistrationType","VDPData.violationImgPath"],
+            filters: [{
+              "and": [
+                {
+                  "member": "VDPData.districtName",
+                  "operator": "equals",
+                  "values": [district]
+                }
+              ]
+            }],   
+            order: { 'VDPData.event_Date': 'desc' },
+            timezone: 'Asia/Calcutta|Asia/Kolkata'
+        }).then((resultSet) => { 
+            var datastring = JSON.stringify(resultSet.loadResponse.results[0].data);
+            var oldmesName="VDPData.";
+            var newmesName="VDPData_";
+	        datastring = datastring.replaceAll(oldmesName, newmesName);                
+	        var dataSource = JSON.parse(datastring); 
+            gridOptionVDP = {
+                    defaultColDef: {
+                        editable: false,
+                        sortable: true,
+                        resizable: true,
+                        filter: true,
+                        flex: 1,
+                    },
+                    columnDefs: columnDefsVDP,
+                    rowData: dataSource,
+                    pagination: true,
+                    paginationPageSize: 10,
+
+                };
+	            document.getElementById("VdpReport").innerHTML = "";	            
+	            const eGridDiv = document.querySelector("#VdpReport");
+	            new agGrid.Grid(eGridDiv, gridOptionVDP);
+                if (myVdpinterval ==null || myVdpinterval==undefined) 
+                {
+                    myVdpinterval = window.setInterval(UpdateVdpGrid, time_delay);
+                } 
+            
+            
+        });
+   
+}
+ 
+
+ //   //ShowLoader($('#' + selector));
+ 
+               
+                
+           
+  
+</script>
+<div class="container-fluid hr-pad-top-10">
+	<h4>VDP Report</h4>
+	<hr />
+	
+            <div class="row">
+                <div class="col-2" style="margin-right: -125px;">
+                    <label style=" margin-top: 6px; font-weight: 400;">District</label>
+                </div>
+                <div class="col-3">
+                    <input id="vdpDistrict" style="width: 100%" />
+                </div>
+                <div class="col-4">
+                    <input type="button" class="btn btn-primary" value="Connect" onclick="OnVdpConnect()" />
+                    <input type="button" class="btn btn-primary" value="Disconnect" onclick="OnVdpDisConnect()" />  
+                </div>
+            </div>
+            <hr />
+            <div id="VdpReport" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+</div>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,405 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Upcoming Projects";
+    Layout = null;
+
+}
+<style>
+    .has-search .form-control {
+        padding-left: 2.375rem;
+        /*width: 100%;*/
+    }
+    .has-search .form-control-feedback {
+        position: absolute;
+        z-index: 2;
+        display: block;
+        width: 2.375rem;
+        height: 2.375rem;
+        line-height: 2.375rem;
+        text-align: center;
+        pointer-events: none;
+        color: #aaa;
+    }
+    .my-padding{
+    padding: 20px 20px 5px 20px;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+
+         $("#DeptCategoryId").kendoDropDownList({
+            optionLabel: "-- Select Category --",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=PROJECT_PROPOSAL_CATEGORY",
+                    }
+                }
+            }
+        });
+
+        $("#DeptWardId").kendoDropDownList({
+            optionLabel: "-- Select Ward --",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=EGOV_ELECTORAL_WARD",
+                    }
+                }
+            }
+        });
+
+        $("#CitizenCategoryId").kendoDropDownList({
+            optionLabel: "-- Select Category --",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=PROJECT_PROPOSAL_CATEGORY",
+                    }
+                }
+            }
+        });
+
+        $("#CitizenWardId").kendoDropDownList({
+            optionLabel: "-- Select Ward --",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=EGOV_ELECTORAL_WARD",
+                    }
+                }
+            }
+        });
+    });
+
+    var columnDefs = [
+        {
+            field: "ServiceNo",
+            headerName: "Service No",
+        },
+        {
+            field: "ProjectName",
+            headerName: "Project Title",
+        },
+        {
+            field: "ProjectWardName",
+            headerName: "Project Ward",
+        },
+        {
+            field: "ProjectCategoryName",
+            headerName: "Project Category",
+        },
+        {
+            field: "ProjectDescription",
+            headerName: "Description",
+        },
+        {
+            field: "RequestedBy",
+            headerName: "Requested By",
+        },
+        {
+            field: "RequestedDate",
+            headerName: "Requested Date",
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
+            }
+        },
+        {
+            field: "Status",
+            headerName: "Status",
+        },
+        {
+            field: "Id",
+            headerName: "Action",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuProjectDepartment' data-idvalue='" + params.value + "' data-serviceid='" + params.data.ServiceId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+    $(function () {
+        GetProjectDepartmentData();
+        GetProjectCitizenData();
+        $.contextMenu({
+            selector: '#tree-menuProjectDepartment',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var id = $trigger.data('idvalue');
+                var serviceId = $trigger.data('serviceid');
+/*                var batchId = $trigger.data('payrollbatchid');*/
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'view':
+                                        onViewProjDept(serviceId);
+                                        break;
+                                    case 'edit':
+                                        onEditProjDept(serviceId);
+                                        break;
+                                    case 'delete':
+                                        onDeleteProjDept(id,serviceId);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "view": { name: "View", icon: "fas fa-eye" },
+                                "edit": { name: "Edit", icon: "fas fa-pencil" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+                            }
+                        };
+                }
+            }
+        });
+    });
+    function GetProjectDepartmentData(category, ward) {
+        var categoryId = '';
+        var wardId = '';
+        if (category != null && category!= undefined) {
+            categoryId = category;
+        }
+        if (ward != null && ward != undefined) {
+            wardId = ward;
+        }
+        document.getElementById("kgrdProjectDepartment").innerHTML = "";
+        gridConfig(
+            "kgrdProjectDepartment",
+            "/EGov/EGovernment/ReadUpcomingProjectDepartmentData?categoryId=" + categoryId + "&wardId=" + wardId,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function onViewProjDept(serviceId) {
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterService&source=View&dataAction=View&templateCodes=EGOV_PROJECT_PROPOSAL&portalId=' + portalId + '&recordId=' + serviceId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View', Width: 1200, Height: 600 });
+    }
+    function onEditProjDept(serviceId) {
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterService&source=Versioning&dataAction=Edit&templateCodes=EGOV_PROJECT_PROPOSAL&portalId=' + portalId + '&recordId=' + serviceId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Edit', Width: 1200, Height: 600 });
+    }
+    function onDeleteProjDept(projectId,serviceId) {
+        var flag = confirm('Do you really want to delete ?');
+        if (flag) {
+            $.ajax({
+                url: '@Url.Action("DeleteUpcomingProject", "EGovernment", new { @area= "EGov" })?id=' + projectId + '&serviceId=' + serviceId,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    if (result.success) {
+                    /*kendo.alert("Deleted Successfully.");*/
+                        OnAfterService();
+                    } else {
+
+                    }
+                },
+                error: function (ert) {
+                }
+            });
+            return false;
+        }
+    }
+    function OnAfterService(service) {
+        debugger;
+        onResetDept();
+        onResetCitizen();
+    }
+    function onSearchDept() {
+        var category = $("#DeptCategoryId").data("kendoDropDownList").value();
+        var ward = $("#DeptWardId").data("kendoDropDownList").value();
+        GetProjectDepartmentData(category, ward);
+    }
+    function onResetDept() {
+        $("#DeptCategoryId").data("kendoDropDownList").value(-1);
+        $("#DeptWardId").data("kendoDropDownList").value(-1);
+        GetProjectDepartmentData();
+    }
+    var columnDefsCitizen = [
+        {
+            field: "ServiceNo",
+            headerName: "Service No",
+        },
+        {
+            field: "ProjectName",
+            headerName: "Project Title",
+        },
+        {
+            field: "ProjectWardName",
+            headerName: "Project Ward",
+        },
+        {
+            field: "ProjectCategoryName",
+            headerName: "Project Category",
+        },
+        {
+            field: "ProjectDescription",
+            headerName: "Description",
+        },
+        {
+            field: "RequestedBy",
+            headerName: "Requested By",
+        },
+        {
+            field: "RequestedDate",
+            headerName: "Requested Date",
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
+            }
+        },
+        {
+            field: "Status",
+            headerName: "Status",
+        },
+        {
+            field: "Like",
+            headerName: "Likes",
+        }
+    ];
+    function GetProjectCitizenData(category, ward) {
+        var categoryId = '';
+        var wardId = '';
+        if (category != null && category != undefined) {
+            categoryId = category;
+        }
+        if (ward != null && ward != undefined) {
+            wardId = ward;
+        }
+        document.getElementById("kgrdProjectCitizen").innerHTML = "";
+        gridConfig(
+            "kgrdProjectCitizen",
+            "/EGov/EGovernment/ReadUpcomingProjectCitizenData?categoryId=" + categoryId + "&wardId=" + wardId,
+            columnDefsCitizen,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function onSearchCitizen() {
+        var category = $("#CitizenCategoryId").data("kendoDropDownList").value();
+        var ward = $("#CitizenWardId").data("kendoDropDownList").value();
+        GetProjectCitizenData(category, ward);
+    }
+    function onResetCitizen() {
+        $("#CitizenCategoryId").data("kendoDropDownList").value(-1);
+        $("#CitizenWardId").data("kendoDropDownList").value(-1);
+        GetProjectCitizenData();
+    }
+    $("#mysearch").keyup(function () {
+        var val = $('#mysearch').val();
+    });
+
+    function onServiceUndertaken() {
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var isproposed = false;
+        $.ajax({
+            type: 'GET',
+            url: '/cms/lov/GetLOVDetailsByCode?code=EGOV_PRO_STATUS_PROPOSED',
+            success: function (res) {
+                var udfs = encodeURIComponent('IsProposedByCitizen=' + isproposed + '&ProjectStatus=' + res.Id);
+                var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=EGOV_PROJECT_PROPOSAL&portalId=' + portalId + '&udfs=' + udfs;
+                var win = GetMainWindow();
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Title: 'Create Project', Width: 1200, Height: 600 });
+            }
+        });
+    }
+
+    function OnAfterServiceCreate() {
+        //var category = $("#DeptCategoryId").data("kendoDropDownList").value();
+        //var ward = $("#DeptWardId").data("kendoDropDownList").value();
+        GetProjectDepartmentData(null, null);
+
+        //var category1 = $("#CitizenCategoryId").data("kendoDropDownList").value();
+        //var ward1 = $("#CitizenWardId").data("kendoDropDownList").value();
+        GetProjectCitizenData(null, null);
+
+    }
+
+</script>
+
+<div style="padding-top:20px">
+    <div class="row my-padding" style="background-color: white;">
+        <div class="col-6">
+            <h4 style="color: #000080; text-align: left;font-weight: 600;">
+                Upcoming Projects by Department
+            </h4>
+        </div>
+        <div class="col-6 form-group has-search" style="display:none;">
+            <span class="fa fa-search form-control-feedback"></span>
+            <input id="mysearch" type="text" class="form-control" placeholder="Search">
+        </div>
+        @if (ViewBag.IsUserNeedsWants)
+        {
+            <div class="col-6 form-group has-search" style="text-align:right">
+                <button class="btn btn-primary" onclick="onServiceUndertaken()">Create New Projects Undertaken</button>
+            </div>
+        }
+
+    </div>
+    <div class="row my-padding">
+        <div class="col-12" style="text-align:right;">
+            <input id="DeptCategoryId" class="hr-xx-large" />
+            <input id="DeptWardId" class="hr-xx-large" />
+            <button class="btn btn-primary" id="btnSearchDept" onclick="onSearchDept()">Search</button>
+            <button class="btn btn-info" id="btnResetDept" onclick="onResetDept()">Reset</button>
+        </div>
+
+    </div>
+    <div class="row my-padding">
+        <div id="kgrdProjectDepartment" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </div>
+    <div class="row my-padding" style="background-color: white;">
+        <div class="col-6">
+            <h4 style="color: #000080; text-align: left;font-weight: 600;">
+                Projects Suggested by Citizens
+            </h4>
+        </div>
+    </div>
+    <div class="row my-padding">
+        <div class="col-12" style="text-align:right;">
+            <input id="CitizenCategoryId" class="hr-xx-large" />
+            <input id="CitizenWardId" class="hr-xx-large" />
+            <button class="btn btn-primary" id="btnSearchCitizen" onclick="onSearchCitizen()">Search</button>
+            <button class="btn btn-info" id="btnResetCitizzen" onclick="onResetCitizen()">Reset</button>
+        </div>
+
+    </div>
+    <div class="row my-padding">
+        <div id="kgrdProjectCitizen" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </div>
+</div>
