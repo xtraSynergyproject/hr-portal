@@ -4,8 +4,6 @@ import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Modal from '@mui/material/Modal'
-import Fab from '@mui/material/Fab'
-import Icon from 'src/@core/components/icon'
 
 const modalWrapper = {
   overflow: 'auto',
@@ -52,23 +50,10 @@ function TerminationRequestModal() {
       >
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
-            <Box sx={{ mb: 6 }} className='demo-space-x'>
-              <Typography sx={{ p: 2 }} variant='h4' component='h3'>
-                Termination
-              </Typography>
-
-
-
-
-              
-            </Box>
+            <Typography sx={{ p: 2 }} variant='h4' component='h3'>
+              Termination
+            </Typography>
             <hr />
-
-
-            <Button sx={{borderRadius:"50px"}} variant='contained' component='label'>
-              <Icon icon='mdi:pencil' />
-              <input type='file' hidden />
-            </Button>
 
             <Box sx={{ p: 3 }}>
               <Typography>
@@ -88,8 +73,9 @@ function TerminationRequestModal() {
               </Typography>
             </Box>
             <Box>
+              
               <TextField
-                required
+              required
                 fullWidth
                 sx={{ marginBottom: '8px' }}
                 id='date'
@@ -101,7 +87,7 @@ function TerminationRequestModal() {
                 }}
               />
 
-              <TextField
+<TextField
                 fullWidth
                 sx={{ marginBottom: '8px' }}
                 id='date'
