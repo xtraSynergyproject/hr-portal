@@ -331,15 +331,15 @@ const navigation = () => {
       children: [
         {
           title: 'Helpdesk Dashboard',
-          path: '/pages/faq'
+          path: '/dashboards/help-desk-main/MydashBoard/MydashBoard'
         },
         {
           title: 'My Requests',
-          path: '/pages/help-center'
+          path: '/dashboards/help-desk-main/MyRequest/MyRequest'
         },
         {
           title: 'My Tasks',
-          path: '/pages/'
+          path: '/dashboards/help-desk-main/Mytask/Mytask'
         }
        
         
