@@ -1,0 +1,175 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@{
+    ViewData["Title"] = "Menu Group";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model MenuGroupDetailsViewModel
+
+<style>
+
+    .k-editable-area iframe.k-content {
+        background-color:#fff;
+    }
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .style-myiconimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+</style>
+
+<div class="row" style="margin-left:15px;">
+
+    <form asp-controller="MenuGroupDetails" asp-action="ManageMenuGroupDetails" method="post"
+          class="form-horizontal" id="myForm" data-ajax-success="onAjaxSuccess" data-ajax="true">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+          
+
+
+            <div class="col-12">Slide Number <span class="required">*</span></div>
+            <div class="row col-12 pad-15" style="padding-left: 26px;">
+
+                <input asp-for="SequenceOrder" type="number" class="form-control" placeholder="Enter Slide Number" autocomplete="off" style="width:80%" />
+                @*<label for="SequenceOrder">Enter Sequence Order</label>*@
+            </div>
+
+
+            <div class="col-12">Details <span class="required">*</span></div>
+            <div class="row col-12 pad-15" style="padding-left: 26px;">
+
+                @*@(Html.Kendo().EditorFor(x => x.Details).Encoded(false)
+              .HtmlAttributes(new { style = "width: 100%; height:300px", @required = "required" })
+
+              .Tools(tools => tools
+              .Clear()
+              .Bold().Italic().Underline()
+              .JustifyLeft().JustifyCenter().JustifyRight()
+              .InsertUnorderedList().InsertOrderedList()
+              //.Outdent().Indent()
+              .CreateLink().Unlink()
+              .ViewHtml()
+              //.TableEditing()
+              .ForeColor().BackColor()
+              .FontName()
+              .FontSize()
+          )
+        )*@
+
+                <div class="page-wrapper box-content">
+                    <textarea class="content" asp-for="Details" id="Details"></textarea>
+                </div>
+
+            </div>
+
+            <div class="cms-slidebar-footer" style="position: relative !important;">
+                <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">Close</button>
+                <input type="submit" class="btn btn-primary" style="margin-right: 20px"  value="Save" id="submitBtn"  onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.MenuGroupId)
+    </form>
+</div>
+
+
+<script type="text/javascript">
+    function OnLanguageClick()
+    {
+        var defaultValue = $("#Name").val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/cms/ResourceLanguage/Create?lo=Popup&cbm=OnMenuGroupNameCallBack&templateType=ApplicationCustom&defaultValue=" + defaultValue + "&templateId=@Model.Id&code=MenuGroupName";
+        win.OpenWindow({ Title: 'Manage Language', Width: 500, Height: 400 });
+    }
+    function OnMenuGroupNameCallBack(Prms) {
+        var english = Prms.item.English;
+        $("#Name").val(english)
+        
+    }
+
+    $('.content').richText();
+    function Close() {
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function closeNavMemberGroup() {
+     
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnSave(evt) {
+        
+
+        ShowLoader($('.form-horizontal'));
+    
+    }
+
+    var onAjaxSuccess = function (res) {
+        
+        
+        HideLoader($('.form-horizontal'));
+        if (res.success) {
+
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName: 'OnAfterCreateuser' });
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+        }
+    };
+
+    function onFileUploadSuccessIcon(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-myiconimage").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+            $("#MenuGroupIconFileId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onIconDel() {
+
+        //        alert("Banner Delete");
+        $(".style-myiconimage").attr("src", "/images/200.png");
+        $("#MenuGroupIconFileId").val('');
+        var faviconupload = $("#files3").data("kendoUpload");
+        //console.log(bannerupload);
+        faviconupload.clearFile(function (file) { return true; });
+    }
+</script>

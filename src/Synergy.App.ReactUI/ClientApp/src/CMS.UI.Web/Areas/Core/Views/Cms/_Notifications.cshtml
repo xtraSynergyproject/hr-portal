@@ -1,0 +1,148 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common;
+
+@{
+    Layout = "~/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+
+<script>
+    function TakeAction(nId, refType, refId, tcode)
+    {
+        
+        MarkNotificationAsRead(nId);
+        $("#kgrdNotification").data("kendoGrid").dataSource.read();
+
+        if (refType == '@((int)ReferenceTypeEnum.NTS_Note)' || refType == '@((int)ReferenceTypeEnum.NTS_Task)' || refType == '@((int)ReferenceTypeEnum.NTS_Service)') {
+            var url = '/Cms/Page?lo=Popup&popup=true&source=View&dataAction=View&templateCodes=' + tcode + '&portalId=@ViewBag.PortalId&recordId=' + refId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "View Details", Width: 1200, Height: 600  });
+        return false;
+        }
+        else {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/Cms/NotificationDetails?notificationId=" + nId;
+            win.OpenWindow({ Title: 'Notification Details', Width: 450, Height: 700 });
+            return false;
+        }
+
+
+    }
+
+    $(document).ready(function () {
+
+        getLinkData();
+
+    });
+
+    function MarkNotificationAsRead(id) {
+        $.ajax({
+            url: "/cms/MarkNotificationAsRead?id=" + id,
+            contentType: "application/json",
+            type: "POST",
+            cache: false,
+            success: function (result) {
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // alert(errorThrown);
+            }
+        });
+    }
+    //.Click("OnTakeAction")
+
+    var columnLinkDefs = [
+        {
+            headerName: "Action",
+            field: "Id",
+            cellRenderer: params => {
+                return "<button type='button' class='btn btn-primary' onclick='TakeAction('" + params.data.Id + "');'><i class='fa fas fa-pencil'></i>&nbsp;Click here for more details</button>"
+            }
+        },
+        {
+            headerName: "From",
+            field: "From",
+        },
+        {
+            headerName: "Notification Date",
+            field: "CreatedDate",
+            //cellRenderer: params => {
+            //    return "#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'dd MMM yyyy') #"
+            //}
+        },
+        {
+            headerName: "Subject",
+            field: "Subject",
+        },
+        {
+            headerName: "Read Status",
+            field: "ReadStatus",
+        },
+        {
+            headerName: "Reference No",
+            field: "ReferenceTypeNo",
+        },
+
+    ];
+
+    function getLinkData() {
+        document.getElementById("kgrdNotification").innerHTML = "";
+        gridConfig(
+            "kgrdNotification",
+            "/Cms/ReadNotificationList",
+            columnLinkDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+
+<div class="col-md-12">
+    <div id="kgrdNotification" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+</div>
+
+
+@*<div class="col-md-12">
+    @(Html.Kendo().Grid<NotificationViewModel>().Name("kgrdNotification")
+                        .Columns(col =>
+                        {
+                            col.Bound(p => p.Id).Title("Action").ClientTemplate("<input type='button' class='btn btn-link' onclick='TakeAction(\"#= Id #\",\"#= ReferenceType #\",\"#= ReferenceTypeId #\",\"#= TemplateCode #\")' value='Click here for more details'/>").Width(250);
+
+                            col.Bound(c => c.From).Title("From").Width(180);
+                            col.Bound(c => c.CreatedDate).Title("Notification Date").ClientTemplate("#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'dd MMM yyyy') #").Width(150);
+                            col.Bound(c => c.Subject).Title("Subject").Width(200);
+                            col.Bound(c => c.ReadStatus).Width(180);
+                            col.Bound(c => c.ReferenceTypeNo).Title("Reference No").Width(150);
+                        })
+                        //.ToolBar(toolbar =>
+                        //{
+                        //    toolbar.Custom().Text(" Create").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateCalendarHoliday();" });
+                        //})
+                        .Scrollable(x => x.Enabled(true))
+                        .Sortable(srt => srt.Enabled(true))
+                        .Selectable(select => select.Enabled(false))
+                        .Filterable(f => f.Extra(false)
+                        .Operators(o => o.ForString(s => s.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        )))
+                        .Resizable(resize => resize.Columns(true))
+                        .Pageable(pageable => pageable
+                        .Refresh(true)
+                        .PageSizes(true)
+                        .ButtonCount(5))
+                        .AutoBind(true)
+                        .DataSource(
+                            dataSource => dataSource
+                            .Ajax()
+                            .PageSize(10)
+                            .Read(read => read.Action("ReadNotificationList", "Cms"))
+                            .Model(model => model.Id(p => p.Id)))
+                        )
+
+</div>*@

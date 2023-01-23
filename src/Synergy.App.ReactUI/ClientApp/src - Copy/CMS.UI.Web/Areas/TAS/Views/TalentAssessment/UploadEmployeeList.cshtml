@@ -1,0 +1,800 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@{
+    ViewBag.Title = "Upload Employee List";
+    Layout = null;
+}
+
+
+<style>
+    .k-spreadsheet-scroller {
+        height: 102% !important;
+    }
+
+    .k-button {
+        border-radius: 0;
+        border-color: #d6aa24;
+        color: #000;
+        background-color: #d6aa24;
+        background-position: 50% 50%;
+        font-weight: 700;
+    }
+</style>
+<script>
+
+    function OnBack() {
+        window.location.href = "/assessment/assessment/";
+    }
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#files").closest(".k-upload").find("span").text("Import Images Folder...  ");
+        $("#files1").closest(".k-upload").find("span").text("Import Questionnaire...  ");
+
+
+    });
+
+    function OnSuccess(response) {
+        if (response.success) {
+            $("#ServiceId").val(response.serviceId);
+            $("#QuestionDev").show();
+            //var type = $("#AssessmentType").data("kendoDropDownList").value();
+            //window.location.href = "/assessment/assessment/UploadQuestionnaire?serviceId=" + response.serviceId + "&type=" + type;
+            //window.parent.Close(true, "Create");
+        }
+        else {
+                          var msg = "";
+            for (var i = 0; i < response.errors.length; i++) {
+                msg += response.errors[i] + "<br/>";
+                    }
+                    ShowError(msg);
+           // ShowErrors(response.errors);
+        }
+    }
+
+    function OnCancel(e) {
+        window.parent.Close(false);
+    }
+
+    function getDataSource() {
+        return $("#spreadsheet").data("kendoSpreadsheet").activeSheet().dataSource;
+    }
+    $("#save").click(function () {
+        if (!$(this).hasClass("k-state-disabled")) {
+            getDataSource().sync();
+        }
+    });
+
+    $("#cancel").click(function () {
+        if (!$(this).hasClass("k-state-disabled")) {
+            getDataSource().cancelChanges();
+        }
+    });
+
+        $("#save1").click(function () {
+            if (!$(this).hasClass("k-state-disabled")) {
+                $("#spreadsheet1").data("kendoSpreadsheet").activeSheet().dataSource.sync();
+            }
+        });
+
+        $("#cancel1").click(function () {
+            if (!$(this).hasClass("k-state-disabled")) {
+                $("#spreadsheet1").data("kendoSpreadsheet").activeSheet().dataSource.cancelChanges();
+            }
+        });
+
+
+
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+    }
+    function ShowError(err) {
+        kendo.ui.progress($("#divTemplateGrid"), false);
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        $(".hr-v-summary ul").html(err);
+    }
+
+    function onFileSuccess(e) {
+        $("#divTemplateGrid").hide();
+        if (e.response.success) {
+            $("#FileId").val(e.response.fileId);
+            $(".hr-v-summary").removeClass("validation-summary-errors");
+            $(".hr-v-summary").addClass("validation-summary-valid");
+        } else {
+            var msg = ExtractError(e.response.errors, true);
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            $(".hr-v-summary ul").html(msg);
+            var upload = $("#files").data("kendoUpload");
+            upload.clearAllFiles();
+        }
+    }
+
+        function OnRequestEnd(e) {
+            //if (e.type === "update") {
+            //    var grid = $('#kgrdImportTemplateMaster').data('kendoGrid');
+            //    grid.dataSource.read();
+            //}
+    }
+
+    function OnRequestError(e, status) {
+
+        if (e.errors) {
+            var message = "The following errors have occurred:\n";
+            alert(e.errors)
+            // var message = "Please correct the records that you enter"
+            $.each(e.errors, function (key, value) {
+
+                if (value.errors) {
+                    message += value.errors.join("\n");
+                }
+            });
+
+            alert(message);
+        }
+    }
+    function hideLoader() {
+        document.getElementById('speach-load').style.display = "none";
+    }
+
+    function showLoader() {
+        document.getElementById('speach-load').style.display = "unset";
+        document.getElementById('speech-srch').innerText = "Loading...";
+        $(".main-menu").css("z-index", '2');
+        $(".skitt-ui").css("z-index", '2');
+    }
+
+        function onRead(options) {
+
+            $.ajax({
+                url: '@Url.Action("ReadUserEmployeeList", "TalentAssessment")',
+                dataType: "json",
+                success: function (result) {
+                    options.success(result.Data);
+
+
+                    var range = $("#spreadsheet").data("kendoSpreadsheet").activeSheet().range("A1:A" + result.Data.length + 1);
+                    var enabled = range.enable();
+                    range.enable(!enabled);
+
+
+                },
+                error: function (result) {
+                    options.error(result);
+                }
+            });
+    }
+     function onReadPromo(options) {
+
+            $.ajax({
+                url: '@Url.Action("ReadUserPromoList", "TalentAssessment")',
+                dataType: "json",
+                success: function (result) {
+                    options.success(result.Data);
+
+
+                    //var range = $("#spreadsheet1").data("kendoSpreadsheet").activeSheet().range("A1:A" + result.Data.length + 1);
+                    //var enabled = range.enable();
+                    //range.enable(!enabled);
+
+
+                },
+                error: function (result) {
+                    options.error(result);
+                }
+            });
+    }
+    function onChange(e) {
+        $("#cancel, #save").toggleClass("k-state-disabled", !this.hasChanges());
+        }
+        function onChange1(e) {
+            $("#cancel1, #save1").toggleClass("k-state-disabled", !this.hasChanges());
+        }
+    function onDataBinding(e) {
+        console.log('Data is about to be bound to sheet "' + e.sheet.name() + '".');
+    }
+
+    function onDataBound(e) {
+        console.log('Data has been bound to sheet "' + e.sheet.name() + '".');
+    }
+
+    function onSubmit(e) {
+        ShowLoader($('#appWrapper'));
+        $.ajax({
+            type: "POST",
+            url: "/tas/TalentAssessment/ManageUserEmployeeList",
+            data: e.data,
+            //data: JSON.stringify(e.data),
+            //contentType: "application/json",
+            dataType: "json",
+            success: function (result) {
+                //e.success(result.Updated, "update");
+                //e.success(result.Created, "create");
+                //e.success(result.Destroyed, "destroy");
+                ShowNotification("Data Saved");
+                //kendo.ui.progress(windowWidget.element, false);
+                location.href = location.href;
+                HideLoader($('#appWrapper'));
+            },
+            error: function (xhr, httpStatusMessage, customErrorMessage) {
+                alert(customErrorMessage);
+            }
+        });
+
+        return false;
+    }
+        function onSubmitPromo(e) {
+            ShowLoader($('#appWrapper'));
+
+            $.ajax({
+                type: "POST",
+                url: "/tas/TalentAssessment/ManageUserPromoList",
+                //data: e.data,
+                data: JSON.stringify(e.data),
+                contentType: "application/json",
+                dataType: "json",
+                success: function (result) {
+                    //e.success(result.Updated, "update");
+                    //e.success(result.Created, "create");
+                    //e.success(result.Destroyed, "destroy");
+                    ShowNotification("Data Saved");
+                    //kendo.ui.progress(windowWidget.element, false);
+                    location.href = location.href;
+                    HideLoader($('#appWrapper'));
+                },
+                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                    alert(customErrorMessage);
+                }
+            });
+
+            return false;
+        }
+    function ViewQuestion() {
+        
+    }
+</script>
+<div id="appWrapper">
+    <div class="row hr-pad-top-10">
+        <div class="col-md-6">
+            <h4>
+                @ViewBag.Title
+            </h4>
+        </div>
+        @*<div class="col-md-6" style="text-align:right">
+                @Html.Kendo().Button().Name("back").Content("Back").Icon("check-outline").Events(x => x.Click("OnBack")).HtmlAttributes(new { @class = "k-primary" })
+            </div>*@
+    </div>
+    <hr />
+    <div class="row" style="margin:40px;">
+
+        <div class="box wide">
+            <div class="box-col">
+                <h4>Save data changes</h4>
+                <ul class="options">
+                    <li>
+                        <button class="btn btn-primary" id="save">Save changes</button>
+                        <button class="btn btn-primary" id="cancel">Cancel changes</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        @(Html.Kendo().Spreadsheet()
+        .Name("spreadsheet")
+        .Columns(200)
+        .HtmlAttributes(new { style = "width:100%" })
+        .Toolbar(true)
+        .Sheetsbar(false)
+        //.Events(e => e
+        //    .DataBinding("onDataBinding")
+        //    .DataBound("onDataBound")
+        //)
+        //.Excel(excel => excel
+        //    .ProxyURL(Url.Action("Data_Source_Proxy", "Spreadsheet"))
+        //)
+        //.Pdf(pdf => pdf
+        //    .ProxyURL(Url.Action("Data_Source_Proxy", "Spreadsheet"))
+        //)
+        .Sheets(sheets =>
+        {
+            sheets.Add()
+                .Name("Assessment")
+                .DataSource<UserReportEmployeeViewModel>(ds => ds
+                    .Custom()
+                    .Batch(true)
+                    .Transport(t => t
+                        .Read("onRead")
+                        .Submit("onSubmit")
+                    )
+                    .Events(e => e.Change("onChange"))
+                    .Schema(s => s
+                        .Model(m =>
+                        {
+                            m.Id(p => p.Id);
+                        })))
+
+                                .Columns(columns =>
+                                {
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                })
+                                .Rows(rows =>
+                                {
+                                    rows.Add().Height(20).Cells(cells =>
+                                    {
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("NoteId");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Serial No");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Description");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Image");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Question");
+
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 1");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 2");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 3");
+
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 4");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 5");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 6");
+
+                                        cells.Add()
+.Bold(true)
+.Background("#FFB3BF")
+.TextAlign(SpreadsheetTextAlign.Center)
+.Color("black").Value("Option 7");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 8");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 9");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Option 10");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Right Answer");
+
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Answer Comment");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 1");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 2");
+
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 3");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 4");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 5");
+
+                                        cells.Add()
+                                     .Bold(true)
+                                     .Background("#FFB3BF")
+                                     .TextAlign(SpreadsheetTextAlign.Center)
+                                     .Color("black").Value("Score Option 6");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 7");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 8");
+
+                                        cells.Add()
+                                   .Bold(true)
+                                   .Background("#FFB3BF")
+                                   .TextAlign(SpreadsheetTextAlign.Center)
+                                   .Color("black").Value("Score Option 9");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 10");
+
+                                        cells.Add()
+              .Bold(true)
+              .Background("#FFB3BF")
+              .TextAlign(SpreadsheetTextAlign.Center)
+              .Color("black").Value("Score Option 6");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 7");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 8");
+
+                                        cells.Add()
+                                   .Bold(true)
+                                   .Background("#FFB3BF")
+                                   .TextAlign(SpreadsheetTextAlign.Center)
+                                   .Color("black").Value("Score Option 9");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 10");
+
+                                        cells.Add()
+                           .Bold(true)
+                           .Background("#FFB3BF")
+                           .TextAlign(SpreadsheetTextAlign.Center)
+                           .Color("black").Value("Score Option 8");
+
+                                        cells.Add()
+                                   .Bold(true)
+                                   .Background("#FFB3BF")
+                                   .TextAlign(SpreadsheetTextAlign.Center)
+                                   .Color("black").Value("Score Option 9");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 10");
+
+                                        cells.Add()
+                                     .Bold(true)
+                                     .Background("#FFB3BF")
+                                     .TextAlign(SpreadsheetTextAlign.Center)
+                                     .Color("black").Value("Score Option 10");
+
+                                        cells.Add()
+                           .Bold(true)
+                           .Background("#FFB3BF")
+                           .TextAlign(SpreadsheetTextAlign.Center)
+                           .Color("black").Value("Score Option 8");
+
+                                        cells.Add()
+                                   .Bold(true)
+                                   .Background("#FFB3BF")
+                                   .TextAlign(SpreadsheetTextAlign.Center)
+                                   .Color("black").Value("Score Option 9");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Score Option 10");
+
+                                        cells.Add()
+                                      .Bold(true)
+                                      .Background("#FFB3BF")
+                                      .TextAlign(SpreadsheetTextAlign.Center)
+                                      .Color("black").Value("Score Option 10");
+
+                                        cells.Add()
+                                     .Bold(true)
+                                     .Background("#FFB3BF")
+                                     .TextAlign(SpreadsheetTextAlign.Center)
+                                     .Color("black").Value("Score Option 10");
+
+                                        cells.Add()
+                           .Bold(true)
+                           .Background("#FFB3BF")
+                           .TextAlign(SpreadsheetTextAlign.Center)
+                           .Color("black").Value("Score Option 8");
+
+                                        cells.Add()
+                                   .Bold(true)
+                                   .Background("#FFB3BF")
+                                   .TextAlign(SpreadsheetTextAlign.Center);
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center);
+
+
+                                        cells.Add()
+                                   .Bold(true)
+                                   .Background("#FFB3BF")
+                                   .TextAlign(SpreadsheetTextAlign.Center);
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center);
+
+
+                                        cells.Add()
+                                   .Bold(true)
+                                   .Background("#FFB3BF")
+                                   .TextAlign(SpreadsheetTextAlign.Center);
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center);
+                                    });
+                                });
+        })
+    )
+        @*@(Html.Kendo().Spreadsheet()
+                        .Name("spreadsheet")
+                        .HtmlAttributes(new { style = "width:100%;" })
+            )*@
+    </div>
+
+    <!--<hr />
+        <div class="row" style="margin:40px;">
+
+            <div class="box wide">
+                <div class="box-col">
+                    <h4>Save data changes</h4>
+                    <ul class="options">
+                        <li>
+                            <button class="k-button" id="save1">Save changes</button>
+                            <button class="k-button" id="cancel1">Cancel changes</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            @(Html.Kendo().Spreadsheet()
+        .Name("spreadsheet1").Columns(6)
+        .HtmlAttributes(new { style = "width:100%" })
+        .Toolbar(true)
+        .Sheetsbar(false)
+        //.Events(e => e
+        //    .DataBinding("onDataBinding")
+        //    .DataBound("onDataBound")
+        //)
+        //.Excel(excel => excel
+        //    .ProxyURL(Url.Action("Data_Source_Proxy", "Spreadsheet"))
+        //)
+        //.Pdf(pdf => pdf
+        //    .ProxyURL(Url.Action("Data_Source_Proxy", "Spreadsheet"))
+        //)
+        .Sheets(sheets =>
+        {
+            sheets.Add()
+                .Name("Assessment1")
+                .DataSource<UserPromotionViewModel>(ds => ds
+                    .Custom()
+                    .Batch(true)
+                    .Transport(t => t
+                        .Read("onReadPromo")
+                        .Submit("onSubmitPromo")
+                    )
+                    //.Events(e => e.Change("onChange1"))
+                    .Schema(s => s
+                        .Model(m =>
+                        {
+                            m.Id(p => p.Id);
+                        })))
+
+                                .Columns(columns =>
+                                {
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(200);
+                                    columns.Add().Width(0);
+                                })
+                                .Rows(rows =>
+                                {
+                                    rows.Add().Height(20).Cells(cells =>
+                                    {
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("NoteId");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Serial No");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Description");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Image");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black").Value("Question");
+
+
+
+                                    });
+                                });
+        })
+    )-->
+    @*@(Html.Kendo().Spreadsheet()
+                    .Name("spreadsheet")
+                    .HtmlAttributes(new { style = "width:100%;" })
+        )*@
+    <!--</div>-->
+</div>
+
+
+
+<script id="fileTemplate" type="text/x-kendo-template">
+    <span class='k-progress'></span>
+    <div class='file-wrapper'>
+        <h8 class='file-heading file-name-heading'>Name: #=name#</h8>
+        <strong class="k-upload-status">
+            <button type='button' class='k-upload-action'></button>
+            <button type='button' class='k-upload-action'></button>
+        </strong>
+    </div>
+</script>

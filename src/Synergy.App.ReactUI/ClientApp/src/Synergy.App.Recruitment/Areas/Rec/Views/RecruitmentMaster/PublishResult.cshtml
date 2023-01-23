@@ -1,0 +1,146 @@
+﻿@using Synergy.App.Common;
+@using Synergy.App.ViewModel
+@using Synergy.App.Business
+
+
+
+@{
+    ViewData["Title"] = "Module";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model Synergy.App.ViewModel.AdmitCardViewModel
+
+
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    @@media print {
+        #printPageButton {
+            display: none;
+        }
+
+        #downloadPageButton {
+            display: none;
+        }
+
+        #closeButton {
+            display: none;
+        }
+
+        a[href]:after {
+            content: none !important;
+        }
+
+        @@page {
+            size: auto;
+            margin: 0;
+        }
+    }
+</style>
+
+<script>
+
+
+</script>
+<div class="row" style="Padding:20px">
+    <div class="col-12 pad-10">
+        <div class="form-label-group">
+            <label for="ExamCenter">Exam Center</label><br /><br />
+            <input id="ExamCenter" class="form-control" placeholder="Enter Exam Center" autocomplete="off" style="width:100%" />
+
+        </div>
+    </div><br/><br/>
+    <div class="col-12">
+
+        <div id="ResultGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </div>
+</div>
+
+      
+
+
+        <script type="text/javascript">
+
+  
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+            }
+
+            var columnDefs = [
+
+                {
+                    field: "FirstName",
+                },
+                {
+                    field: "ApplicationNo",
+
+                },
+                {
+                    field: "Result",
+                },
+
+
+            ];
+
+
+
+            function getResultData(eId) {
+                debugger;
+                document.getElementById("ResultGrid").innerHTML = "";
+                gridConfig(
+                    "ResultGrid",
+                    "/Rec/RecruitmentMaster/GetResultData?eId=" + eId,
+                    columnDefs,
+                    false,
+                    true,
+                    true,
+                    true,
+                    1,
+                    true,
+                    10);
+            }
+
+            $(document).ready(function () {
+                debugger;
+      
+        getResultData('');
+
+        $("#ExamCenter").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            change: onChange,
+            dataSource: {
+                //serverFiltering: true,
+                //autoBind: false,
+                
+                transport: {
+                    read: {
+                        url: "/Rec/RecruitmentMaster/GetExamCenter",
+                    }
+                }
+            }
+        });
+        function onChange() {
+            debugger;
+            var eId = $("#ExamCenter").data("kendoDropDownList").value();
+            getResultData(eId);
+        }
+
+     });
+
+
+        </script>

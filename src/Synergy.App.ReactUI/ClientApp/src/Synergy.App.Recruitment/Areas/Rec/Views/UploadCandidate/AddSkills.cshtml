@@ -1,0 +1,406 @@
+﻿@inject CMS.Common.IUserContext _userContext
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model CandidateProfileViewModel
+
+@{
+    ViewBag.Title = "Add Skills"; Layout = "/Views/Shared/_PopupLayout.cshtml";
+
+}
+
+<style>
+    .descrplov{
+        font-size:15px;
+    }
+    .btn-cancel {
+        color: #ffffff;
+    }
+
+    .btn {
+        margin: 0px;
+    }
+
+    .btn-cancel:hover {
+        color: #ffffff;
+    }
+
+    .col-form-label {
+        font-weight: bold;
+        margin-left: -5px;
+    }
+
+    .col-sm-6 {
+        font-size: 14px;
+    }
+
+    .navbar {
+        display: none;
+    }
+
+    .no-space {
+        font-size: 14px;
+    }
+
+    .col-label {
+        margin-left: -15px;
+    }
+
+    .col-value {
+        padding-left: 15px;
+        font-size: 14px;
+    }
+
+    .col-label-cont {
+        margin-left: -5px;
+    }
+
+    .span-col-label {
+        font-weight: bold;
+    }
+
+    .k-grid tbody tr td {
+        vertical-align: top;
+    }
+
+    .col-xl-9 {
+        max-width: 100%;
+        flex: 0 0 100%;
+    }
+
+    .col-xl-3 {
+        max-width: 100%;
+    }
+
+    a {
+        /* size: 10px; */
+        font-size: 15px;
+    }
+</style>
+
+
+<div class="Qlink-title-mbody card-space">
+    <div class="row">
+        <div class="col-10 col-md-11 col-xl-11">
+            <h5>Job Criteria<br></h5>
+        </div>
+        <div class="col-2 col-md-1 col-xl-1"></div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div>
+            <div class="row">
+                <div class="col-12">
+                    @{
+                        foreach (var item1 in Model.Criterias)
+                        {
+                            <div class="row form-group">
+                                <div class="col-md-3">
+                                    @item1.Criteria
+                                </div>
+                                <div class="col-md-9">
+
+                                    @(Html.Kendo().DropDownList()
+                                                            .Name(item1.Id)
+                                                            .DataTextField("Name")
+                                                            .DataValueField("Id").Value(item1.Value)
+                                                            .OptionLabel("--Select--").DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("GetListOfValueList", "ListOfValue", new { type = item1.CriteriaTypeCode });
+                                                                });
+                                                            })
+                                                           )
+                                </div>
+                            </div>
+                        } }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="Qlink-title-mbody card-space">
+    <div class="row">
+        <div class="col-10 col-md-11 col-xl-11">
+            <h5>Skills<br></h5>
+        </div>
+        <div class="col-2 col-md-1 col-xl-1"></div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div>
+            <div class="row">
+                <div class="col-12">
+                    @{
+                        foreach (var item2 in Model.Skills)
+                        {
+                            <div class="row form-group">
+                                <div class="col-md-3">
+                                    @item2.Criteria
+                                </div>
+                                <div class="col-md-9">
+
+                                    @(Html.Kendo().DropDownList()
+                                                            .Name(item2.Id)
+                                                            .DataTextField("Name")
+                                                            .DataValueField("Id")
+                                                            .Value(item2.Value)
+                                                            .OptionLabel("--Select--").DataSource(source =>
+                                                            {
+                                                                source.Read(read =>
+                                                                {
+                                                                    read.Action("GetListOfValueList", "ListOfValue", new { type = item2.CriteriaTypeCode });
+                                                                });
+                                                            })
+                                                            )
+                                </div>
+                            </div>
+                        } }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="Qlink-title-mbody card-space">
+    <div class="row">
+        <div class="col-10 col-md-11 col-xl-11">
+            <h5>Other Information<br></h5>
+        </div>
+        <div class="col-2 col-md-1 col-xl-1"></div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div>
+            <div class="row">
+                <div class="col-12">
+                    @{
+                        for (var i = 0; i < Model.OtherInformations.Count(); i++)
+                        {
+                            <div class="row form-group">
+                                <div class="col-md-3">
+                                    @Model.OtherInformations[i].Criteria
+                                </div>
+                                <div class="col-md-2">
+                                    @if (Model.OtherInformations[i].CriteriaTypeCode == "LISTOFVALUE")
+                                    {
+                                        @(Html.Kendo().DropDownListFor(x => x.OtherInformations[i].Value)
+                                                                //.Name(item3.Value)
+                                                                .Events(x =>x.Change("OnChangeDropdown"))
+                                                                .DataTextField("Name")
+                                                                .DataValueField("Id")
+                                                                //.Value(Model.OtherInformations[i].Value)
+                                                                .OptionLabel("--Select--")
+                                                                .DataSource(source =>
+                                                                {
+                                                                    source.Read(read =>
+                                                                    {
+                                                                        read.Action("GetListOfValueListById", "ListOfValue", new { parentId = Model.OtherInformations[i].ListOfValueTypeId }).Data("filterDropdown");
+                                                                    });
+                                                                }))
+                                        @Html.HiddenFor(x => x.OtherInformations[i].Criteria)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].CriteriaType)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].Type)
+
+                                    }
+                                    else if (Model.OtherInformations[i].CriteriaTypeCode == "INPUT")
+                                    {
+                                        @Html.Kendo().TextBoxFor(x => x.OtherInformations[i].Value)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].Criteria)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].CriteriaType)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].Type)
+                                    }
+                                    @*else if (Model.OtherInformations[i].CriteriaTypeCode == "DATEPICKER")
+                        {
+                            var code = Model.OtherInformations[i].Value.ToSafeDateTime();
+                            @Html.Kendo().DatePickerFor(x => code).Format("dd MMM yyyy")
+                        }*@
+                                </div>
+                                @*<script>
+                        
+                         var html = "<div class='col-md-6' id='descp_" +@i+"'>test </div >";
+                            document.getElementById("parentdesc").appendChild = html;
+                    </script>*@
+                                <div class="descrplov" id="descp_@i"></div>
+                                @*<div class="col-md-6" id="descp">
+                    </div>*@
+                            </div>
+                        }
+                    }
+
+
+                    @*@{
+            for (var i = 0; i < Model.OtherInformations.Count(); i++)
+            {
+                            <div class="row form-group">
+                                <div class="col-md-3">
+                                    @Model.OtherInformations[i].Criteria
+                                </div>
+                                <div class="col-md-9">
+                                    @if (Model.OtherInformations[i].CriteriaTypeCode == "LISTOFVALUE")
+                                    {
+                                        @(Html.Kendo().DropDownListFor(x => x.OtherInformations[i].Value)
+                                                    //.Name(item3.Value)
+                                                    .DataTextField("Name")
+                                                    .DataValueField("Id")
+                                                    .Value(Model.OtherInformations[i].Value)
+                                                    .OptionLabel("--Select--")
+                                                    .DataSource(source =>
+                                                    {
+                                                        source.Read(read =>
+                                                        {
+                                                            read.Action("GetListOfValueList", "ListOfValue", new { type = Model.OtherInformations[i].ListOfValueType });
+                                                        });
+                                                    }))
+                                        @Html.HiddenFor(x => x.OtherInformations[i].Criteria)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].CriteriaType)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].Type)
+                                    }
+                                    else if (Model.OtherInformations[i].CriteriaTypeCode == "INPUT")
+                                    {
+                                        @Html.Kendo().TextBoxFor(x => x.OtherInformations[i].Value)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].Criteria)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].CriteriaType)
+                                        @Html.HiddenFor(x => x.OtherInformations[i].Type)
+                                    }
+
+                                </div>
+
+
+                            </div>
+            }
+        }*@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<button class="btn btn-primary" onclick="onSave()">Save</button>
+
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.DataAction)
+@Html.HiddenFor(x => x.PhotoId)
+@Html.HiddenFor(x => x.QIDAttachmentId)
+@Html.HiddenFor(x => x.PassportAttachmentId)
+@Html.HiddenFor(x => x.AcademicCertificateId)
+@Html.HiddenFor(x => x.OtherCertificateId)
+@Html.HiddenFor(x => x.ResumeId)
+@Html.HiddenFor(x => x.CoverLetterId)
+@Html.HiddenFor(x => x.CriteriasList)
+@Html.HiddenFor(x => x.SkillsList)
+@Html.HiddenFor(x => x.OtherInformationsList)
+@Html.HiddenFor(x => x.JobAdvertisementId)
+<script>
+
+    function onSave() {
+
+        var criteriasList = $("#CriteriasList").val();
+        var criteriasListobj = jQuery.parseJSON(criteriasList);
+        var skillsList = $("#SkillsList").val();
+        var skillsListobj = jQuery.parseJSON(skillsList);
+        var otherInformationsList = $("#OtherInformationsList").val();
+        var otherInformationsListobj = jQuery.parseJSON(otherInformationsList);
+
+        var dropDownDOMelements = $(".k-dropdown");
+        var dropDowns = [];
+        dropDownDOMelements.each(function (ddl) {
+            var currentAriaOwnsAttribute = $(this)[0].attributes[7].nodeValue;
+            var currentDropDownListName = currentAriaOwnsAttribute.substring(0, currentAriaOwnsAttribute.length - 8);
+            var currentDropDownList = $('#' + currentDropDownListName).data("kendoDropDownList");
+            var value = currentDropDownList.value();
+            var jsonData = {
+                Id: currentDropDownListName,
+                Value: value,
+            };
+            dropDowns.push(jsonData);
+        })
+        $.each(criteriasListobj, function (key, value) {
+            $.each(dropDowns, function (key1, value1) {
+                if (value.Id == value1.Id) {
+                    value.Value = value1.Value;
+                }
+            });
+        });
+        $.each(skillsListobj, function (key, value) {
+            $.each(dropDowns, function (key1, value1) {
+                if (value.Id == value1.Id) {
+                    value.Value = value1.Value;
+                }
+            });
+        });
+        $.each(otherInformationsListobj, function (key, value) {
+            $.each(dropDowns, function (key1, value1) {
+                if (value.Id == value1.Id) {
+                    value.Value = value1.Value;
+                }
+            });
+        });
+        var a = criteriasListobj;
+        var b = skillsListobj;
+        var c = otherInformationsListobj;
+
+        
+
+        var obj = JSON.stringify(a) + "||" + JSON.stringify(b) + "||" + JSON.stringify(c);
+        //var objlist  = JSON.stringify(obj);
+        window.parent.CloseSkillPopup(obj);
+
+        //$("#CriteriasList").val(JSON.stringify(criteriasListobj));
+        //$("#SkillsList").val(JSON.stringify(skillsListobj));
+        //$("#OtherInformationsList").val(JSON.stringify(otherInformationsListobj));
+    }
+    function filterDropdown(val, check) {
+
+        if (check == 'filter') {
+            return {
+                parentId: val,
+            };
+        }
+        else {
+
+        }
+    }
+    function OnChangeDropdown(e) {
+        
+        var dataItem = e.sender.dataItem();
+        var elementId = e.sender.element[0].id.slice(18);
+        var elem = elementId.split('__');
+        var c = parseInt(elem[0]) + 1;
+
+        var search = filterDropdown(dataItem.Id, 'filter');
+        // $("#OtherInformations_" + c + "__Value").data("kendoDropDownList").dataSource.read(search);
+        var child = $("#OtherInformations_" + c + "__Value").data("kendoDropDownList")
+        if (child != undefined) {
+            child.dataSource.read(search);
+        }
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/Recruitment/ListOfValue/GetListOfValueById?id=" + dataItem.Id,
+            success: function (data) {
+                
+                //alert(tablename);
+                var i = c - 1;
+                if (data != null) {
+
+                    if (data.EnableDescription == true) {
+
+                        document.getElementById("descp_" + i).innerHTML = "Description: " + data.Description;
+                    }
+                    else {
+                        document.getElementById("descp_" + i).innerHTML = "";
+                    }
+                }
+                else {
+                    document.getElementById("descp_" + i).innerHTML = "";
+                }
+
+            },
+        });
+    }
+</script>

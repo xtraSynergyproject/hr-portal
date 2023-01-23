@@ -1,0 +1,279 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model AdhocTaskComponentViewModel
+
+<style>
+    .form-label-group {
+        position: relative;
+        margin-bottom: 0px;
+    }
+
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+    /*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+
+</style>
+<script type="text/javascript">
+
+
+
+    function OnCancel(args) {
+
+    }
+    $(document).ready(function () {
+
+        if ('@Model.AssigneeType' == '@TaskAssignedToTypeEnum.User') {
+           // $("#AssignedToTeamId").data("kendoDropDownList").value("");
+            $("#TeamSection").hide();
+        }
+        else if ('@Model.AssigneeType' == '@TaskAssignedToTypeEnum.Team') {
+            $("#TeamSection").show();
+        }
+
+        $("#AssigneeType").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+         //   filter: "contains",
+            value: '@Model.AssigneeType.ToString()',
+            change: OnChange,
+            dataSource: {
+            transport: {
+                read: {
+                    url: "/Home/GetEnumIdNameList?enumType=TaskAssignedToTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#AssignedToTeamId").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "Select Team...",
+            value: '@Model.AssignedToTeamId',
+            change: OnChange,
+            dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/Team/GetTeamList",
+                    }
+                }
+            }
+        });
+        assigneToUserDropdown();
+    });
+
+     function assigneToUserDropdown() {
+         var assigneeType = $("#AssigneeType").data("kendoDropDownList").value();
+            var teamId = $("#AssignedToTeamId").data("kendoDropDownList").value();
+         $("#AssignedToUserId").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.AssignedToUserId',
+                dataBound: OnDataBound,
+            dataSource:
+            {
+            transport:
+                {
+                read:
+                    {
+                        url: "/Cms/User/GetUsersListOnTypeBasis?assigneeType=" + assigneeType + "&teamId=" + teamId,
+                    }
+                }
+            }
+        });
+    }
+
+    function closeNavPortal() {
+        
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function FilterUsers() {
+        var search =
+        {
+            assigneeType: $("#AssigneeType").data("kendoDropDownList").value(),
+            teamId: $("#AssignedToTeamId").data("kendoDropDownList").value(),
+        }
+        return search;
+    }
+    function OnChange() {
+
+      //  var search = FilterUsers();
+      //  $("#AssignedToUserId").data("kendoDropDownList").dataSource.read(search);
+        assigneToUserDropdown();
+        if ($("#AssigneeType").val() == "User") {
+            $("#TeamSection").hide();
+            $("#AssignedToTeamId").data("kendoDropDownList").value("");
+        }
+        else if ($("#AssigneeType").val() == "Team")
+        {
+            $("#TeamSection").show();
+        }
+    }
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+           // window.parent.parent.$("#documentTypeTreeView").data("kendoTreeView").dataSource.read();
+            var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("ManageIndex", "Template", new { @area = "Cms"})?templateId=' + TemplateId, $('#index'));
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+
+
+
+</script>
+            <div class="col-12">Assignee Type </div>
+            <div class=" col-12 pad-10">
+                <div class="form-label-group">
+
+                    @*@(Html.Kendo().DropDownListFor(x => x.AssigneeType)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "TaskAssignedToTypeEnum" });
+                                });
+                            })
+                 .DataTextField("Name")
+                 .DataValueField("Id")
+                 .Events(x=>x.Change("OnChange"))
+                           .HtmlAttributes(new { @class = "form-control"})
+                           .Value(Model.AssigneeType.ToString())
+        )*@
+
+                    <input asp-for="AssigneeType" id="AssigneeType" class="form-control" />
+                </div>
+
+
+            </div>
+            <div id="TeamSection" class="col-12">
+                <div class="col-12">Team </div>
+                <div class=" col-12 pad-10">
+                    <div class="form-label-group">
+                        @*@(Html.Kendo().DropDownListFor(x=>x.AssignedToTeamId)
+                  .HtmlAttributes(new { style = "width:100%" })
+                  .OptionLabel("Select Team...")
+                  .DataTextField("Name")
+                  .DataValueField("Id")
+                   .Events(x => x.Change("OnChange"))
+                  .DataSource(source =>
+                  {
+                      source.Read(read =>
+                      {
+                          read.Action("GetTeamList", "Team", new { @area = "cms" });
+                      })
+                      .ServerFiltering(true);
+                  })
+                  .AutoBind(false)
+
+        )*@
+
+                        <input asp-for="AssignedToTeamId" id="AssignedToTeamId" class="form-control" style = "width:100%"  />
+                    </div>
+
+
+                </div>
+            </div>
+          
+            <div class="col-12">User </div>
+            <div class=" col-12 pad-10">
+                <div class="form-label-group">
+                    @*@(Html.Kendo().DropDownListFor(x => x.AssignedToUserId)
+                  .HtmlAttributes(new { style = "width:100%" })
+                  .OptionLabel("Select User...")
+                  .DataTextField("Name")
+                  .DataValueField("Id")
+                  .DataSource(source =>
+                  {
+                      source.Read(read =>
+                      {
+                          read.Action("GetUsersListOnTypeBasis", "User", new { @area = "cms" }).Data("FilterUsers");
+
+                      })
+                      .ServerFiltering(true);
+                  })
+                  .AutoBind(true)
+                  .CascadeFrom("AssigneeType")
+        )*@
+                    <input asp-for="AssignedToUserId" id="AssignedToUserId" class="form-control" style="width:100%" />
+
+                </div>
+
+
+            </div>
+
+
+          
+            
+

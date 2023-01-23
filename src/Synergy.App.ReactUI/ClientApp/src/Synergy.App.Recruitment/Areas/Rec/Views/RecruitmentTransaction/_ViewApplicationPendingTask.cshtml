@@ -1,0 +1,641 @@
+﻿
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+
+@{
+    ViewData["Title"] = "View Candidates";
+    Layout = "/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+
+@model ApplicationViewModel
+
+<script type="text/javascript">
+
+    var columnDefs = [
+        {
+            headerName: "Action",
+            field: "CandidateProfileId",
+            width: 250,
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuViewApplicants' data-idvalue='" + params.value + "' data-applicationId='" + params.data.ApplicationId + "' data-applicationState='" + params.data.ApplicationState + "' data-applicationStateCode='" + params.data.ApplicationStateCode + "' data-applicationStatusCode='" + params.data.ApplicationStatusCode + "' data-jobId='" + params.data.JobId + "' data-orgId='" + params.data.OrganizationId +"' ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+        {
+            headerName: "Position",
+            field: "JobName",
+            width: 250,
+        },
+        {
+            headerName: "Organization unit",
+            field: "OrganizationName",
+            width: 250,
+        },
+        {
+            headerName: "Task",
+            field: "TaskNo",
+            width: 250,
+            cellRenderer: params => {
+                var data1 = "";
+                if (params.value != null || params.value != '') {
+                    data1 = "<a style='cursor:pointer;color:blue' onclick='onTask('" + params.data.TaskId + "')'>" + params.value+"</a>";
+                }
+                return data1;
+            }
+        },
+        {
+            headerName: "Task Subject",
+            field: "TaskSubject",
+            width: 250,
+        },
+        {
+            headerName: "Application State",
+            field: "ApplicationStateName",
+            width: 250,
+        },
+        {
+            headerName: "Application Status",
+            field: "ApplicationStatus",
+            width: 250,
+        },
+        {
+            headerName: "Application No",
+            field: "ApplicationNo",
+            width: 250,
+        },
+        {
+            headerName: "First Name",
+            field: "FirstName",
+            width: 250,
+        },
+        {
+            headerName: "Middle Name",
+            field: "MiddleName",
+            width: 250,
+        },
+        {
+            headerName: "Last Name",
+            field: "LastName",
+            width: 250,
+        },
+        {
+            headerName: "Gaec No",
+            field: "GaecNo",
+            width: 250,
+        },
+        {
+            headerName: "Email",
+            field: "Email",
+            width: 250,
+        },
+        {
+            headerName: "Total Work Experience",
+            field: "TotalWorkExperience",
+            width: 250,
+        },
+        {
+            headerName: "Contact Phone Home",
+            field: "ContactPhoneHome",
+            width: 250,
+        },
+        {
+            headerName: "Score",
+            field: "Score",
+            width: 250,
+        },
+        {
+            headerName: "Gender",
+            field: "Gender",
+            width: 250,
+        },
+        {
+            headerName: "Birth Date",
+            field: "BirthDate",
+            width: 250,
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
+            }
+        },
+        {
+            headerName: "Age",
+            field: "Age",
+            width: 250,
+        },
+        {
+            headerName: "Birth Place",
+            field: "BirthPlace",
+            width: 250,
+        },
+        {
+            headerName: "Nationality",
+            field: "Nationality",
+            width: 250,
+        },
+        {
+            headerName: "BloodGroup",
+            field: "BloodGroup",
+            width: 250,
+        },
+        {
+            headerName: "Marital Status",
+            field: "MaritalStatusName",
+            width: 250,
+        },
+        {
+            headerName: "Passport Number",
+            field: "PassportNumber",
+            width: 250,
+        },
+        {
+            headerName: "Passport Issue Country",
+            field: "PassportIssueCountry",
+            width: 250,
+        },
+        {
+            headerName: "Passport Expiry Date",
+            field: "PassportExpiryDate",
+            width: 250,
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
+            }
+        },
+        {
+            headerName: "QatarId",
+            field: "QatarId",
+            width: 250,
+        },
+        {
+            headerName: "Current Address House",
+            field: "CurrentAddressHouse",
+            width: 250,
+        },
+        {
+            headerName: "Current Address Street",
+            field: "CurrentAddressStreet",
+            width: 250,
+        },
+        {
+            headerName: "Current Address City",
+            field: "CurrentAddressCity",
+            width: 250,
+        },
+        {
+            headerName: "Current Address State",
+            field: "CurrentAddressState",
+            width: 250,
+        },
+        {
+            headerName: "Current Address Country",
+            field: "CurrentAddressCountryName",
+            width: 250,
+        },
+        {
+            headerName: "Permanent Address House",
+            field: "PermanentAddressHouse",
+            width: 250,
+        },
+        {
+            headerName: "Permanent Address Street",
+            field: "PermanentAddressStreet",
+            width: 250,
+        },
+        {
+            headerName: "Permanent Address City",
+            field: "PermanentAddressCity",
+            width: 250,
+        },
+        {
+            headerName: "Permanent Address State",
+            field: "PermanentAddressState",
+            width: 250,
+        },
+        {
+            headerName: "Permanent Address Country",
+            field: "PermanentAddressCountryName",
+            width: 250,
+        },
+        {
+            headerName: "Contact Phone Local",
+            field: "ContactPhoneLocal",
+            width: 250,
+        },
+        {
+            headerName: "Salary Currency",
+            field: "SalaryCurrencyName",
+            width: 250,
+        },
+        {
+            headerName: "Net Salary",
+            field: "NetSalary",
+            width: 250,
+        },
+        {
+            headerName: "Other Allowances",
+            field: "OtherAllowances",
+            width: 250,
+        }
+
+    ];
+
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-menuViewApplicants',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var candprofid = $trigger.data('idvalue');
+                var appid = $trigger.data('applicationId');
+                var appstate = $trigger.data('applicationState');
+                var appstatecode = $trigger.data('applicationStateCode');
+                var appstatuscode = $trigger.data('applicationStatusCode');
+                var jobid = $trigger.data('jobId');
+                var orgid = $trigger.data('orgId');
+                
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'addcomment':
+                                        onAddComment(appid, appstate);
+                                        break;
+                                    case 'application':
+                                        OnApplication(candprofid, appid);
+                                        break;
+                                    case 'applicationstatus':
+                                        OnViewAppStateTrack(appid);
+                                        break;
+                                    case 'applicationstate':
+                                        onApplicationState(appstatecode, 1, appstatuscode, jobid, orgid);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "addcomment": { name: "Add Comment", icon: "fas fa-plus" },
+                                "application": { name: "View", icon: "fas fa-eye" },
+                                "applicationstatus": { name: "Application Status Report", icon: "fas fa-eye" },
+                                "applicationstate": { name: "Go to State", icon: "fas fa-eye" },
+
+                            }
+                        };
+                }
+            }
+        });
+        GetViewApplicantsGrid();
+    });
+
+
+    function GetViewApplicantsGrid() {
+        document.getElementById("kgrdViewApplicants").innerHTML = "";
+        gridConfig(
+            "kgrdViewApplicants",
+            "/Rec/RecruitmentTransaction/ReadViewApplicationPendingTaskData",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function back() {
+
+            //window.location.href = "/recruitment/manpowerrequirementsummary/index";
+            var url = "/recruitment/jobadvertisement/jobadvertisement";
+            LoadPartailView(url, $('#cms-content'));
+
+    }
+
+    function FilterGrid() {
+        var orgddl = $("#OrganizationId").data("kendoDropDownList");
+        var jobddl = $("#JobId").data("kendoDropDownList");
+        var orgId = orgddl != null ? orgddl.value() : "";
+        var jobId = jobddl != null ? jobddl.value() : "";
+
+        return {
+            OrgId: orgId,
+            JobId: jobId,
+        }
+    }
+    function OnDataBound() {
+
+        //var cgrid1 = $("#kgrdCandInterview").data("kendoGrid");
+        //var ccount = cgrid1.dataSource.data();
+
+        //  alert(ccount.length);
+        //$("#StateCount1").html(ccount.length);
+        //var ccount = cgrid1.dataSource.total();
+        //$("#StateCount1").html(ccount);
+
+    }
+    function OnJobChange() {
+        var search = FilterGrid();
+        $("#kgrdViewApplicants").data("kendoGrid").dataSource.read(search);
+    }
+    function OnChangeOrg() {
+        var search = FilterGrid();
+        $("#kgrdViewApplicants").data("kendoGrid").dataSource.read(search);
+    }
+    function onApplicationState(state, count, status,jobid,orgid) {
+
+        //var orgId = $("#OrganizationId").val();
+        //var jobAdvId = $("#JobId").val();
+        var orgId = orgid;
+        var jobAdvId = jobid;
+
+        var jobstate = state;
+        var jobstatus = status;
+        if (state == "UnReviewed" || state =="Rereviewed") {
+            window.parent.LoadPartailView1("/Recruitment/CandidateShortList/CandidateShortlistByHR?jobAdvId=" + jobAdvId + "&orgId=" + orgId, 'cms-content');
+        } else {
+            window.parent.LoadPartailView1("/Recruitment/RecruitmentDashboard/JobAdvertisementStatistic?jobAdvId=" + jobAdvId + '&state=' + jobstate + '&orgId=' + orgId + '&count=' + count + '&status=' + jobstatus, 'cms-content');
+        }
+       // window.parent.CloseIframePopup();
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function onTask(taskId) {
+        //alert(taskId);
+        @*iframeOpenUrl = '@Url.Action("Index", "Task", new { @area= "Cms" })?taskId=' + taskId +'&isPopUp=true' ;
+        OpenIframePopup1(1200, 1200, 'View Task');*@
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Index", "Task", new { @area = "Cms" })?taskId=' + taskId + '&isPopUp=true';
+        win.OpenWindow({ Title: 'View Task', Width: 1200, Height: 1200 });
+        return false;
+    }
+    function IframePostbackScript() {
+        $("#kgrdViewApplicants").data("kendoGrid").dataSource.read();
+    }
+    function onAddComment(appId, appStateId)
+    {
+        @*iframeOpenUrl = '@Url.Action("AddComment", "CandidateShortlist", new { @area="Recruitment"})?appId=' + appId + "&appStateId=" + appStateId;
+        OpenIframePopup1(1000, 1200, 'Manage Comments');*@
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("AddComment", "CandidateShortlist", new { @area = "Recruitment" })?appId=' + appId + "&appStateId=" + appStateId;
+        win.OpenWindow({ Title: 'Manage Comments', Width: 1000, Height: 1200 });
+        return false;
+    }
+    function OnApplication(Id, appId) {
+        @*iframeOpenUrl = '@Url.Action("PrintableView", "CandidateProfile", new { @area="Recruitment"})?candidateProfileId=' + Id + '&applicationId=' + appId;
+        OpenIframePopup1(1000, 1200, 'Candidate Profile Details');*@
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("PrintableView", "CandidateProfile", new { @area = "Recruitment" })?candidateProfileId=' + Id + '&applicationId=' + appId;
+        win.OpenWindow({ Title: 'Candidate Profile Details', Width: 1000, Height: 1200 });
+        return false;
+    }
+    function OnViewAppStateTrack(Id) {
+        @*iframeOpenUrl = '@Url.Action("ApplicationStateTrack", "RecruitmentDashboard", new { @area="Recruitment"})?applicationId=' + Id;
+        OpenIframePopup1(1200, 1000, 'Application Status Track');*@
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ApplicationStateTrack", "RecruitmentDashboard", new { @area = "Recruitment" })?applicationId=' + Id;
+        win.OpenWindow({ Title: 'Application Status Track', Width: 1200, Height: 1000 });
+        return false;
+    }
+
+</script>
+
+<style>
+    .k-grid td, .k-grid th {
+        font-size: 14px !important;
+    }
+
+    .tb-bg {
+        /*background-color:cadetblue;*/
+        background-color: #17a2b8 !important;
+        color: #fff;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .tb-bg1 {
+        /*background-color: cornflowerblue;*/
+        background-color: #ffc107 !important;
+        color: #000;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .tb-bg2 {
+        /* background-color: darkcyan;*/
+        background-color: #17a2b8 !important;
+        color: #fff;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .k-footer-template {
+        background-color: #DAEDFF
+    }
+
+    .k-grid-header .k-header, .k-grid-header thead, .k-grid-header .k-hierarchy-cell {
+        background-color: #527ab8;
+    }
+
+        .k-grid-header thead a {
+            color: #fff !important;
+        }
+
+    .dropdown-menu {
+        line-height: 0.5em;
+        /* background-color: rgb(243 241 233);*/
+    }
+
+    .btn-group, .btn-group-vertical {
+        position: inherit !important;
+    }
+
+    .color-bg {
+        background-color: #8cb7f8;
+        border: 1px solid #3b65f8;
+    }
+
+    .card-columns {
+        border: 1px solid #d7d7d7;
+        border-radius: 6px;
+        padding: 2px;
+        height: 160px;
+        width: 100%;
+    }
+
+    .card-box {
+        border: 1px solid #ff0000;
+        border-radius: 6px;
+        overflow: hidden;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    .col-border {
+        margin: 0 4px 4px;
+        padding: 4px;
+        border: 1px solid #bababa;
+        border-radius: 6px;
+    }
+
+    .numbers {
+        padding: 4px;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .numtext {
+        color: white;
+    }
+
+    .ico-applications {
+        padding: 0 10px 0 0;
+        color: #fff;
+    }
+
+    .col-highlight {
+        background-color: #1D6EF4;
+    }
+
+    #StateCount1 {
+        color: black;
+    }
+
+    .k-grid tbody tr td {
+        vertical-align: top;
+    }
+
+    .Qlink-title {
+        border: 1px solid #d7d3d3;
+        width: 100%;
+        font-weight: 600;
+        background-color: #f0f0f0;
+        padding: 4px 0 4px 6px;
+        border-radius: 6px;
+        text-align: left;
+        font-size: 18px;
+    }
+
+    table tr th {
+        color: #fdfdfd;
+    }
+
+    .k-grid thead {
+        background-color: #1c4893;
+    }
+</style>
+
+<div class="row-12" style="margin-left:15px;">
+
+
+    <div class="col-sm-12 col-md-12 col-lg-12" style="padding:10px;">
+        <div id="kgrdViewApplicants" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+        @*@(Html.Kendo().Grid<ApplicationViewModel>
+                        ().Name("kgrdViewApplicants").Resizable(resize => resize.Columns(true))
+                        //.ToolBar(tools =>
+                        //{
+                        //    tools.Excel();
+                        //})
+                        .Columns(columns =>
+                        {
+                            columns.Bound(c => c.CandidateProfileId).ClientTemplate("<div class='btn-group'><button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown' >Actions</button><ul class='dropdown-menu' role='menu'><li><button class='btn btn-info' onclick='onAddComment(\"#:ApplicationId#\",\"#:ApplicationState#\")'>Add Comment</button></li><br/>" +
+           "<li><button class='btn btn-info' onclick='OnApplication(\"#=CandidateProfileId#\",\"#:ApplicationId#\");'><i class='far fa-address-card'></i>&nbsp;View</button></li><br/><li><button class='btn btn-info' onclick='OnViewAppStateTrack(\"#:ApplicationId#\")'>Application Status Report</button></li><br/>" +
+           "<li><button class='btn btn-info' onclick='onApplicationState(\"#:ApplicationStateCode#\", \"1\", \"#:ApplicationStatusCode#\",\"#:JobId#\",\"#:OrganizationId#\")'>Go to State</button></li></ul></div>").Width(150).Title("Actions").HeaderHtmlAttributes(new { title = "Actions" }).Locked(true).Lockable(false).Exportable(false);
+
+                            //columns.Bound(c => c.CandidateProfileId).ClientTemplate("<button class='btn btn-info' onclick='onAddComment(\"#:ApplicationId#\",\"#:ApplicationState#\")'>Add Comment</button>").Title("Comment").Width(150).Locked(true).Lockable(false);
+
+                            //columns.Bound(c => c.CandidateProfileId).ClientTemplate("<a href='javascript:OnApplication(\"#=CandidateProfileId#\");'><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("View").Width(100).Locked(true).Lockable(false);
+
+                            //columns.Bound(c => c.ApplicationId).ClientTemplate("<button class='btn btn-info' onclick='OnViewAppStateTrack(\"#:ApplicationId#\")'>Application State Report</button>").Title("Application State Report").Width(180).Locked(true).Lockable(false);
+                            //columns.Bound(c => c.ApplicationState).ClientTemplate("#if(ApplicationStateCode=='UnReviewed'){#<button class='btn btn-info' onclick='UpdateStatus(\"#:CandidateType#\",\"SHORTLISTED\",\"#:ApplicationId#\",\"#:CandidateProfileId#\",\"ShortListByHr\")'>Move To HR Shortlist</button>#}#").Title("Action").Width(180).Locked(true).Lockable(false);
+                            columns.Bound(p=>p.JobName).Title("Position").HeaderHtmlAttributes(new { title = "Position" }).Width(150).Locked(true).Lockable(false);
+                            columns.Bound(p => p.OrganizationName).Title("Organization unit").HeaderHtmlAttributes(new { title = "Organization Unit" }).Width(150).Locked(true).Lockable(false);
+                            columns.Bound(p => p.TaskNo).Title("Task").HeaderHtmlAttributes(new { title = "Task" }).ClientTemplate("<a style='cursor:pointer;color:blue' onclick='onTask(\"#:TaskId#\")'>#:TaskNo#</a>").Width(150).Locked(true).Lockable(false);
+                            columns.Bound(p => p.TaskSubject).Title("Task Subject").HeaderHtmlAttributes(new { title = "Task Subject" }).Width(150).Locked(true).Lockable(false);
+                            columns.Bound(p => p.ApplicationStateName).HeaderHtmlAttributes(new { title = "Application State Name" }).Title("Application State").Width(150);
+                            columns.Bound(p => p.ApplicationStatus).HeaderHtmlAttributes(new { title = "Application Status" }).Title("Status").Width(150);
+                            columns.Bound(p => p.ApplicationNo).HeaderHtmlAttributes(new { title = "Application No" }).Width(150);
+                            columns.Bound(p => p.FirstName).HeaderHtmlAttributes(new { title = "First Name" }).Title("First Name").Width(150);
+                            columns.Bound(p => p.MiddleName).HeaderHtmlAttributes(new { title = "Middle Name" }).Title("Middle Name").Width(150);
+                            columns.Bound(p => p.LastName).HeaderHtmlAttributes(new { title = "Last Name" }).Title("Last Name").Width(150);
+                            columns.Bound(p => p.GaecNo).Title("GAEC No").HeaderHtmlAttributes(new { title = "GAEC No" }).Width(150);
+                            columns.Bound(p => p.Email).HeaderHtmlAttributes(new { title = "Email" }).Width(150);
+
+
+                            columns.Bound(p => p.TotalWorkExperience).HeaderHtmlAttributes(new { title = "Total Work Experience" }).Width(150);
+                            columns.Bound(p => p.ContactPhoneHome).HeaderHtmlAttributes(new { title = "Contact Phone Home" }).Title("Mobile").Width(150);
+                            columns.Bound(p => p.Score).HeaderHtmlAttributes(new { title = "Score" }).Width(150);
+                            columns.Bound(p => p.Gender).HeaderHtmlAttributes(new { title = "Gender" }).Width(150);
+                            columns.Bound(p => p.BirthDate).HeaderHtmlAttributes(new { title = "Birth Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+                            columns.Bound(p => p.Age).HeaderHtmlAttributes(new { title = "Age" }).Width(150);
+                            columns.Bound(p => p.BirthPlace).HeaderHtmlAttributes(new { title = "Birth Place" }).Width(150);
+                            columns.Bound(p => p.Nationality).HeaderHtmlAttributes(new { title = "Nationality" }).Width(150);
+                            columns.Bound(p => p.BloodGroup).HeaderHtmlAttributes(new { title = "Blood Group" }).Width(150);
+                            columns.Bound(p => p.MaritalStatusName).HeaderHtmlAttributes(new { title = "Marital Status Name" }).Title("Marital Status").Width(150);
+                            columns.Bound(p => p.PassportNumber).HeaderHtmlAttributes(new { title = "Passport Number" }).Width(150);
+                            columns.Bound(p => p.PassportIssueCountry).HeaderHtmlAttributes(new { title = "Passport Issue Country" }).Width(150);
+                            columns.Bound(p => p.PassportExpiryDate).HeaderHtmlAttributes(new { title = "Passport Expiry Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+                            columns.Bound(p => p.QatarId).HeaderHtmlAttributes(new { title = "Qatar Id" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressHouse).HeaderHtmlAttributes(new { title = "Current Address House" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressStreet).HeaderHtmlAttributes(new { title = "Current Address Street" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressCity).HeaderHtmlAttributes(new { title = "Current Address City" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressState).HeaderHtmlAttributes(new { title = "Current Address State" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressCountryName).HeaderHtmlAttributes(new { title = "Current Address Country Name" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressHouse).HeaderHtmlAttributes(new { title = "Permanent Address House" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressStreet).HeaderHtmlAttributes(new { title = "Permanent Address Street" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressCity).HeaderHtmlAttributes(new { title = "Permanent Address City" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressState).HeaderHtmlAttributes(new { title = "Permanent Address State" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressCountryName).HeaderHtmlAttributes(new { title = "Permanent Address Country Name" }).Width(150);
+
+                            columns.Bound(p => p.ContactPhoneLocal).HeaderHtmlAttributes(new { title = "Contact Phone Local" }).Width(150);
+                            //columns.Bound(p => p.CurrentEmployer).Width(150);
+                            //columns.Bound(p => p.CurrentEmploymentLocation).Width(250);
+                            //columns.Bound(p => p.CurrentEmploymentPosition).Width(250);
+                            //columns.Bound(p => p.CurrentEmploymentStartDate).Width(250).Format("{0:MM/dd/yyyy}");
+                            //columns.Bound(p => p.CurrentEmploymentEndDate).Width(250);
+                            //columns.Bound(p => p.CurrentEmploymentResponsibilities).Width(300);
+
+                            columns.Bound(p => p.SalaryCurrencyName).HeaderHtmlAttributes(new { title = "Salary Currency Name" }).Title("Salary Currency").Width(150);
+                            //columns.Bound(p => p.IndianSalary).Width(150);
+                            // columns.Bound(p => p.OverseasSalary).Width(150);
+                            columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary After Income Tax" }).Title("Net Salary After Income Tax").Width(150);
+                            columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(150);
+
+                        })
+                         //.ToolBar(toolbar =>
+                         //{
+                         //    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateMenuGroup();'><i class='fa fas fa-plus'></i>&nbsp;Create Menu Group</button>");
+                         //})
+                         //.Events(e => e.DataBound("OnDataBoundNot"))
+                         .Events(e => e.DataBound("OnDataBound"))
+                        .Scrollable().Height(700)
+                        .Sortable().Resizable(resize => resize.Columns(true))
+                        .Selectable(select => select.Enabled(false))
+                        .Filterable(f => f.Extra(false)
+                                          .Operators(o => o.ForString(s => s.Clear()
+                                          .Contains("Contains")
+                                          .IsEqualTo("Is equal to")
+                                          )))
+                        .Pageable(pageable => pageable
+                        .Refresh(true)
+                        .PageSizes(true)
+                        .ButtonCount(5))
+                        .AutoBind(true)
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(10)
+                         .Read(read => read.Action("ReadViewApplicationPendingTaskData", "RecruitmentTransaction", new { @area = "Rec" }))
+                        .Model(model => model.Id(p => p.Id))
+                        )
+          )*@
+
+
+    </div>
+
+
+
+
+</div>
+

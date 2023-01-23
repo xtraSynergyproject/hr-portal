@@ -1,0 +1,290 @@
+﻿@using Syncfusion.EJ2.Navigations;
+@using Syncfusion.EJ2.Buttons;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model List<Synergy.App.ViewModel.UserViewModel>
+@{
+    ViewData["Title"] = "Manage User";
+}
+
+<style>
+    .btnAddUser {
+        /*        border-radius: 10% !important;
+        background-color: deeppink !important;*/
+        font-size: 16px !important;
+        /*background-color: #e3165b !important;*/
+    }
+
+    .btnEditUser {
+        border-radius: 50% !important;
+        background-color: deeppink !important;
+        /*background-color: #e3165b !important;*/
+    }
+
+    .img-myprofile {
+        border-radius: 50%;
+        height: 50px;
+        width: 50px;
+    }
+
+    .kgrdUserStyle {
+        width: 100% !important;
+    }
+</style>
+<script>
+    var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+    var columnDefs = [
+        {
+            field: "PhotoId",
+            cellRenderer: params => {
+                if (params.value != null) {
+                    return "<div style='text-align:center;'> <img class='img-myprofile' src='/user/profilephoto?id=" + params.value + "' onerror='OnPhotoError(this);' /></div>";
+                } else
+                {
+                    return "<div style='text-align:center;' > <img class='img-myprofile' style='background-color:gray;' src='../images/profile.jpg' /></div>";
+                }; 
+            }
+        },
+        {
+            field: "Name",
+        },
+        { field: "Email" },
+        { field: "JobTitle" },
+        {
+            field: "Status",
+            cellRenderer: params => {
+                return statusObj[params.value]; //only for enum
+            }
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBinUser' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    $(function () {
+
+        GetUserData();
+
+        //$.contextMenu('update');
+        //$('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-menuBinUser',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEdit(id);
+                                        break;
+                                   
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-pencil" },
+                               
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+
+    function GetUserData() {
+        document.getElementById("kgrdUser").innerHTML = "";
+       gridConfig(
+           "kgrdUser",
+           "/user/ReadData",
+           columnDefs,
+           false,
+           true,
+           true,
+           true,
+           1,
+           true,
+           10);
+    }
+
+</script>
+<div class="text-center">
+    @*<h1 class="display-4">@ViewBag.Title</h1>*@
+</div>
+
+@*@{
+        List<object> toolbarItems = new List<object>();
+        toolbarItems.Add(new { id = "AddNewUser", text = "Add New User", tooltipText = "Add New User", prefixIcon = "fa fas fa-plus", cssClass = "btnAddUser" });
+
+        List<object> commands = new List<object>();
+        commands.Add(new { type="Edit", buttonOption = new { id = "EditUser", textAlign = "Center", contentType = "imageonly", iconCss = "fa fas fa-pencil", cssClass = "btnEditUser" } });
+
+
+    }*@
+
+<!--<div>
+    <ejs-grid id="Grid" dataSource="@Model" allowPaging="true" allowSorting="true" toolbarClick="toolbarClick" toolbar=toolbarItems commandClick="commandClick">
+        <e-grid-pagesettings pageSize="10"></e-grid-pagesettings>
+        <e-grid-columns>
+            <e-grid-column field="" headerText="Action" width="80" allowFiltering="false" allowSorting="false" commands="commands" textAlign="Center"></e-grid-column>
+            <e-grid-column field="PhotoId" headerText="Photo" textAlign="Left" width="120" template="#templatePhoto"></e-grid-column>
+            <e-grid-column Field="Id" HeaderText="User Id" IsPrimaryKey="true" Width="100" Visible="false"></e-grid-column>
+            <e-grid-column Field="Name" HeaderText="Name" Width="150"></e-grid-column>
+            <e-grid-column Field="Email" HeaderText="Email" Width="200"></e-grid-column>-->
+@*<e-grid-column Field="Password" HeaderText="Password" Width="200"></e-grid-column>*@
+<!--<e-grid-column Field="JobTitle" HeaderText="Job Title" Width="150"></e-grid-column>
+            <e-grid-column Field="CreatedDate" HeaderText="Created Date" Format="dd MMM yyyy HH:mm" TextAlign="Left" Width="150"></e-grid-column>
+            <e-grid-column Field="LastUpdatedDate" HeaderText="Last Updated Date" Format="dd MMM yyyy HH:mm" TextAlign="Left" Width="150"></e-grid-column>
+        </e-grid-columns>
+    </ejs-grid>
+</div>-->
+@*<div class="row">
+        <div class="col-12">
+            <kendo-grid name="kgrdUser" height="550">
+                <columns>
+                    <column field="" title="Action">
+                        <filterable enabled="false"></filterable>
+                    </column>
+                    <column field="PhotoId" title="Photo" />
+                    <column field="Id" title="User Id" />
+                    <column field="Name" title="Name" />
+                    <column field="Email" title="Email" />
+                    <column field="JobTitle" title="Job Title" />
+
+                    <column field="CreatedDate" title="Created Date" format="{0:dd MMM yyyy}" />
+                    <column field="LastUpdatedDate" title="Last Updated Date" format="dd MMM yyyy" />
+                </columns>
+                <scrollable enabled="true" />
+                <sortable enabled="true" />
+                <pageable enabled="true" />
+                <filterable enabled="true" />
+                <datasource type="DataSourceTagHelperType.Ajax" page-size="10">
+                    <transport>
+                        <read url="@Url.Action("ReadUserData", "User")" />
+                    </transport>
+                </datasource>
+            </kendo-grid>
+        </div>
+    </div>*@
+
+<div class="row">
+    <div class="col-md-12">
+        <button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Create New User </button>
+        <br /><br />
+        <div id="kgrdUser" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<UserViewModel>
+        ().Name("kgrdUser").HtmlAttributes(new { @class = "kgrdUserStyle" })
+        .Columns(col =>
+        {
+            col.Command(command =>
+            {
+                command.Custom(" ").Text("").IconClass("fa fas fa-pencil").Click("OnEdit").HtmlAttributes(new { @class= "btnEditUser"});
+            });
+            col.Bound(c => c.PhotoId).Width(150).Filterable(false).Title("Photo").ClientTemplate("#if(PhotoId!=null){#<div style='text-align:center;'><img class='img-myprofile' src='/user/profilephoto?id=#:data.PhotoId#' onerror='OnPhotoError(this);' /></div>#}else{#<div style='text-align:center;'><img class='img-myprofile' style='background-color:gray;' src='../images/profile.jpg' /></div>#}#");
+            col.Bound(c => c.Name).Width(300);
+            col.Bound(c => c.Email).Width(300);
+            col.Bound(c => c.JobTitle).Width(300);
+            col.Bound(c => c.Status).Title("Status").Width(200);
+            col.Bound(c => c.CreatedDate).Format("{0:dd MMM yyyy HH:mm}").Width(200);
+            col.Bound(c => c.LastUpdatedDate).Format("{0:dd MMM yyyy HH:mm}").Width(200);
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Custom().Text(" Create New User").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreate();" });
+        })
+        .Scrollable(x => x.Enabled(false))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(5)
+        .Read(read => read.Action("ReadUserData", "User"))
+        .Model(model => model.Id(p => p.Id)))
+        )*@
+    </div>
+</div>
+
+<script id="templatePhoto" type="text/x-template">
+    <div class="image">
+    <img class="img-myprofile" src="/user/profilephoto?id=${PhotoId}" onerror='OnPhotoError(this);' />
+    </div>
+</script>
+
+<script id="templateUserStatus" type="text/x-template">
+
+        ${if(Status == 1)}
+             <div>
+                    <span class="statustxt">Active</span>
+                </div>
+    ${else}
+         <div>
+                <span class="statustxt">InActive</span>
+            </div>
+             ${/if}
+</script>
+
+<script>
+    function OnCreate() {
+        OpenIframeModal('/user/create', 'Create User', 450, 1000);
+
+    }
+    function OnEdit(id) {
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        var url = '/user/edit?id=' + id;
+        OpenIframeModal(url, 'Edit User', 450, 1000);
+
+    }
+    function toolbarClick(args) {
+        if (args.item.id === 'AddNewUser') {
+            //alert("Add New user Under Development");
+            OpenIframeModal('/user/create', 'Create User', 450, 1000);
+        }
+    }
+    function commandClick(args) {
+
+        console.log(args);
+        var userId = args.rowData.Id;
+        if (userId != null && userId != "") {
+            var url = '/user/edit?id=' + userId;
+            OpenIframeModal(url, 'Edit User', 450, 1000);
+        }
+    }
+</script>
+
+<script id="templateEdit" type="text/x-template">
+    <div>
+    <ejs-button id="targetButton" content="Add Company"></ejs-button>
+    </div>
+</script>
+

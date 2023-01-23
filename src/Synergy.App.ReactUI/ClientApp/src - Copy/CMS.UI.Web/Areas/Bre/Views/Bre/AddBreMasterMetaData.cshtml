@@ -1,0 +1,677 @@
+﻿@{
+    ViewData["Title"] = "Add Bre Master Data";
+    //Layout = null;
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@model CMS.UI.ViewModel.BreMasterTableMetadataViewModel
+<style>
+    .splitter-container, .splitter-container1, .splitter-container2, .splitter-container3 {
+        height: 750px;
+        width: 100%;
+    }
+
+    .left {
+        min-width: 200px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 100vh !important;
+    }
+
+    .k-switch-container {
+        font-size: x-small !important;
+        font-weight: bold;
+    }
+
+    .k-widget.k-switch-on .k-switch-container,
+    /* override the mouse over selector */
+    .k-switch-on:hover .k-switch-container {
+        background-color: red;
+        color: #fff;
+    }
+
+    .k-widget.k-switch-off .k-switch-container,
+    /* override the mouse over selector */
+    .k-switch-off:hover .k-switch-container {
+        background-color: green;
+    }
+
+    .k-switch-label-on, .k-switch-label-off {
+        display: block;
+    }
+
+    .bre-badge {
+        padding: 10px;
+        /* padding-bottom:20px;*/
+    }
+
+    #listView {
+        border: none;
+        border-radius: 6px;
+        overflow-x: hidden;
+    }
+
+    .product {
+        /* float: left;*/
+        position: relative;
+        /*  width: 50px;*/
+        margin: 0 5px 5px;
+        padding-left: 5px;
+        padding-top: 10px;
+        /* cursor:pointer;*/
+    }
+</style>
+
+
+
+<div id="maindiv" class="splitter-container">
+    <div class="left" style="padding-left:10px;padding-top:10px;">
+        <h6>Master Collection Data</h6>
+        <hr />
+        @*@(Html.Kendo().ListView<TableMetadataViewModel>()
+               .Name("listView")
+               .TagName("div")
+               .ClientTemplateId("template")
+               .Selectable(ListViewSelectionMode.Single)
+               .Events(events=> events.Change("OnChange"))
+               .DataSource(dataSource => dataSource
+                    .Ajax().Read(read => read
+                    .Action("GetMasterMetaDataColletionList", "Bre",new { id= Model.TableMetadataId })
+                    )
+                )
+         )*@
+
+        <div id="listView"></div>
+
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="product">
+                #: Name #
+            </div>
+        </script>
+    </div>
+    <div class="right" style="padding-left:10px;padding-top:10px;">
+        <div id="rightSection" style="display:none">
+            <div>
+                <h6 style="width:200px; padding:10px;">Business Rule</h6>
+
+                @*@(Html.Kendo().TreeView()
+                        .Name("Ruletreeview").HtmlAttributes( new {@class="treeview"})
+                        //   .Checkboxes(checkboxes => checkboxes
+                        //            .Name("RuleCheck")
+                        //            .CheckChildren(true)
+                        //        )
+                        //      .Events(events => events
+                        //    .Check("onRuleCheck")
+                        //)
+                        .Events(e=>e.Select("OnSelect"))
+                        .TemplateId("treeview-template")
+                        .DataSource(dataSource => dataSource
+                            .Read(read => read
+                                .Action("GetMasterBusinessRuleModelList", "Bre",new { masterId= Model.Id })
+                            )
+                        )
+                    )*@
+
+                <div id="ruletreeview"></div>
+
+                <script id="treeview-template" type="text/kendo-ui-template">
+    # if (item.Condition!=null && item.Condition!="") { #
+    <div class="row">
+        <div class="col-12 bre-switch">
+            @*<span class="bre-badge badge badge-warning" onclick="editGroup('#:item.id#')"><i class="fas fa-edit"></i></span>*@
+            # if (item.Condition=='And') { #
+            <span class="bre-badge badge badge-info" onclick="editGroup('#:item.id#')">#: item.Condition#</span>
+            # } else {#
+            <span class="bre-badge badge badge-info" onclick="editGroup('#:item.id#')">#: item.Condition#</span>
+            # } #
+            <span class="bre-badge badge badge-danger" onclick="addGroup('#:item.id#')"><i class="far fa-plus-circle"></i> Add Group</span>
+            <span class="bre-badge badge badge-danger" onclick="addCondition('#:item.id#')"><i class="far fa-plus-circle"></i> Add Condition</span>
+            @*<i class="fas fa-edit" onclick="editGroup('#:item.id#')" title="Edit Group"></i>*@
+            #if(item.ParentId!=null){#
+            <i class="fas fa-trash" onclick="removeGroup('#:item.id#')" title="Remove Group"></i>
+            #}#
+
+        </div>
+    </div>
+    # } else {#
+    <div class="row" style="min-width:650px;">
+
+        @*<span class="bre-badge badge badge-warning" onclick="editCondition('#:item.id#')"><i class="fas fa-edit"></i></span>*@
+
+
+        @*<div class="col-3"--> style="display:flex;margin-right:25px>
+            <span class="bre-badge badge badge-primary" style="width:170px;overflow-wrap:break-word !important;white-space:normal !important;">#: item.FieldSourceTypeStr# . #: item.Field#</span>
+
+        </div>
+        <div class="col-3" style="display:flex;margin-right:25px">
+            <span class="bre-badge badge badge-success" style="width:170px;overflow-wrap:break-word !important;white-space:normal !important;">#: item.OperatorType#</span>
+        </div>
+        <div class="col-3"--> style="display:flex;margin-right:25px">
+            <span class="bre-badge badge badge-primary" style="width:170px;overflow-wrap:break-word !important;white-space:normal !important;">#: item.ValueSourceTypeStr# . #: item.Value#</span>
+        </div>*@
+        <div class="col-9" >
+            <span class="bre-badge badge badge-primary" style="width:100%;overflow-wrap:break-word !important;white-space:normal !important;">#: item.OperationValue#</span>
+        </div>
+
+     <div class="col-1">
+       <span> <i class="fas fa-edit" onclick="editCondition('#:item.id#')" title="Edit Condition"></i></span>
+     </div>
+        #if(item.ParentId!=null){#
+     <div class="col-1">
+       <span> <i class="fas fa-trash" onclick="removeCondition('#:item.id#')" title="Remove Condition"></i></span>
+     </div>
+         <div class="col-1"></div>
+        #}#
+
+    </div>
+    # } #
+    @*<span data-id="#:item.id#" data-type="#:item.ItemType#" class="tree-menu"><i class="fa fa-ellipsis-h"></i></span>*@
+
+                </script>
+
+                @*<iframe width="300" height="400" src="RuleBuilder.html" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>*@
+            </div>
+            <div>
+                <h6 style=" padding:10px;">
+                    Select Properties To Create Master
+                    @*<div style="float:right">*@
+                    <button type="submit" style="float:right" class="btn btn-success" onclick="SaveData();">Save</button>
+                </h6>
+                @*</div>*@
+                @*@(Html.Kendo().TreeView()
+        .Name("Propertytreeview").HtmlAttributes( new {@class="treeview"})
+        //.Events(e=>e.Select("OnSelect"))
+        .DataTextField("DisplayName")
+        .TemplateId("property-template")
+         .Checkboxes(checkboxes => checkboxes
+                .Name("checkedFiles")
+                .CheckChildren(true)
+            )
+     .Events(events => events
+        .Check("onCheck").DataBound("OnDataBound")
+    )
+    //.AutoBind(true)
+    //.DataSource(dataSource => dataSource
+    //    .Read(read => read
+    //        .Action("GetPropertiesFromMasterDataCollection", "bre",new { name=""})
+    //    )
+    //)
+    )*@
+                <script id="property-template" type="text/kendo-ui-template">
+                    #: item.Name #
+                </script>
+            </div>
+            @*<div style="float:right">
+                    <button type="submit" class="btn btn-success" onclick="SaveData();">Save</button>
+                </div>*@
+        </div>
+
+
+    </div>
+</div>
+@Html.HiddenFor(x => x.BusinessRuleId)
+@Html.HiddenFor(x => x.ParentId)
+@Html.HiddenFor(x => x.DataAction)
+@Html.HiddenFor(x => x.TableMetadataId)
+@Html.HiddenFor(x => x.TemplateType)
+@Html.HiddenFor(x => x.Id)
+<script>
+    var selectedCollection;
+    var selectedtemplatetype;
+    $(document).ready(function () {
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Bre/GetMasterMetaDataColletionList?id=" + '@Model.TableMetadataId',
+                    dataType: "json"
+                }
+            },            
+        });
+
+        $("#listView").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#template").html()),
+            selectable:'@ListViewSelectionMode.Single',
+            change: OnChange
+        });
+
+        if ('@Model.DataAction' == "Edit") {
+            $.ajax({
+                url: "GetPropertiesFromMasterDataCollection?tableMetaDateId=@Model.TableMetadataId&templateType=@Model.TemplateType&ruleId=@Model.BusinessRuleId",
+                type: "GET",
+                success: function (result) {
+                    $("#Propertytreeview").data("kendoTreeView").setDataSource(result);
+                    $("#rightSection").show();
+                }
+            });
+        }
+        readRuleTreeData();
+    });
+
+
+    function readRuleTreeData() {
+        document.getElementById('ruletreeview').innerHTML = "";
+        ShowLoader($('#maindiv'));
+        $.ajax({
+            url: '/bre/bre/GetMasterBusinessRuleModelList?masterId=@Model.Id',
+            dataType: "json",
+            success: function (result) {
+                debugger;
+                var root = document.getElementById('ruletreeview');
+                var parent = result.filter(x => x.id != null);
+                for (var i = 0; i <= parent.length - 1; i++) {
+                    var data = parent[i];
+                   createTreeList(data, root, result, null);
+                }
+
+                var toggler = document.getElementsByClassName("caret");
+                var i;
+
+                for (i = 0; i < toggler.length; i++) {
+                    toggler[i].addEventListener("click", function () {
+                        this.parentElement.querySelector(".nested").classList.toggle("active");
+                        this.classList.toggle("caret-down");
+                    });
+                }
+                HideLoader($('#maindiv'));
+
+            }
+        });
+    }
+
+    function createTreeList(data, root, result, ul) {
+        debugger;
+        var child = [];
+        if (data.id != null) {
+            child = searchChild(data.id, result, root);
+        } else {
+            chid = [];
+        }
+        if (ul == null) {
+             ul = document.createElement('ul');
+        }
+       // li.classList.add("nested");
+        var li = document.createElement('li');
+        if (child.length > 0) {
+            li.classList.add("caret");
+        }
+        var p1 = "";
+        var p2 = "";
+        var p3 = "";
+        var p4 = "";
+        var p5 = "";
+
+        if (data.Condition == "And") {
+            p2 = "<span class='bre-badge badge badge-info' onclick='editGroup(\"" + data.id + "\")" > + data.Condition + "</span>";
+
+        } else {
+            p2 = "<span class='bre-badge badge badge-info' onclick='editGroup(\"" + data.id + "\")" > + data.Condition + "</span>";
+
+        }
+
+        if (data.Condition != null && data.Condition != "") {
+            p1 = "<div class='row'>" +
+                "<div class='col-12 bre-switch'> " + p2 +
+                "<span class='bre-badge badge badge-danger' onclick = 'addGroup(\"" + data.id + "\")' > <i class='far fa-plus-circle'></i> Add Group</span >" +
+                "<span class='bre-badge badge badge-danger' onclick='addCondition(\"" + data.id + "\")'><i class='far fa-plus-circle'></i> Add Condition</span>";
+            if (data.ParentId != null) {
+                p1 = p1 + "< i class='fas fa-trash' onclick = 'removeGroup(\"" + data.id + "\")' title = 'Remove Group' ></i >";
+
+            }
+            p1 = p1 + "</div ></div >";
+        } else {
+           p1 = "<div class='col-9' >" +
+                "       <span class='bre-badge badge badge-primary' style='width:100%;overflow-wrap:break-word !important;white-space:normal !important;'>"+ data.OperationValue + "</span>" +
+                "   </div>" +
+                "<div class='col-1'>" +
+               "  <span> <i class='fas fa-edit' onclick='editCondition(\"" + data.id + "\")' title='Edit Condition'></i></span>" +
+                "</div>";
+        if(data.ParentId != null) {
+            p1 = p1 + "< div class='col-1' >" +
+                "<span> <i class='fas fa-trash' onclick='removeCondition(\"" + data.id + "\")' title='Remove Condition'></i></span>" +
+                "</div >" +
+                "<div class='col-1'></div>";
+
+            }
+
+            p1 = p1 + "</div >";
+        }
+
+        li.innerHTML = p1;
+        ul.appendChild(li);
+        root.appendChild(ul);
+
+        if (child != [])
+        {
+            var ul = document.createElement('ul');
+            ul.classList.add("nested");
+            for (var x = 0; x <= child.length - 1; x++)
+            {
+                createTreeList(child[x], li, result, ul);
+            }
+        }
+       // return root;
+    }
+
+    function searchChild(nameKey, myArray) {
+        var newArray  = [];
+        for (var i = 0; i < myArray.length; i++) {
+            if (myArray[i].ParentCommentId === nameKey) {
+                newArray.push( myArray[i]);
+            }
+        }
+        return newArray;
+    }
+
+    function OnDataBound(e) {
+        var rootNodes = $("#Propertytreeview").getKendoTreeView().dataSource.data();
+        for (var i = 0; i < rootNodes.length; i++) {
+            var node = rootNodes[i];
+            if (node.IsChecked) {
+                node.set("checked", true);
+            }
+        }
+    }
+
+    function onRuleCheck(e) {
+        var dataItem = this.dataItem(e.node);
+        //$("#ValueId").val(dataItem.id);
+        var rootNodes = $("#Ruletreeview").getKendoTreeView().dataSource.data();
+        traverse(rootNodes, function (node) {
+            if (node != dataItem) {
+                node.set("checked", false);
+            }
+        });
+    }
+    function traverse(nodes, callback) {
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
+            var children = node.hasChildren && node.children.data();
+            callback(node);
+            if (children) {
+                traverse(children, callback);
+            }
+        }
+    }
+      function reloadtreeview() {
+    //  alert("test");
+          $("#Ruletreeview").data("kendoTreeView").dataSource.read({ masterId: '@Model.Id' });
+          //$("#Ruletreeview").data("kendoTreeView").dataSource.read({ masterId:'@Model.Id' });
+    }
+
+
+     function addGroup(id) {
+
+       
+          $.ajax({
+
+            type: 'POST',
+              url: '/Bre/BreRuleModel/CreateBusinessRuleBuilderGroup?dataAction=Create&tableMetaId=@Model.Id&parentId='+id+'&condition=And"+"&ruleId=@ViewBag.ruleId',
+            contentType: 'application/json; charset=utf-8',
+            //data: JSON.stringify({ 'DataAction': 'Create', 'DecisionNodeId': '@Model.Id', 'ParentRuleId': id, 'Condition': 'And', 'RuleId': '@ViewBag.ruleId' }),
+                                                dataType: 'json',
+                                                success: function (response)
+                                                {
+                                                    $("#Ruletreeview").data("kendoTreeView").dataSource.read({ masterId:'@Model.Id' });
+                                                },
+                                                error: function (error) {
+                                                    alert("error")
+                                                }
+                                            });
+    }
+    function addCondition(id) {
+      
+
+            var win = GetMainWindow();
+        win.iframeOpenUrl =  "/Bre/BreRuleModel/AddMasterCondition?masterId=@Model.Id&templateId=@ViewBag.templateId&parentId=" + id + "&dataAction=Create&ruleId=@Model.BusinessRuleId&collectionId=" + selectedCollection + "&templateType=" + selectedtemplatetype;
+        win.OpenWindow({ Title: 'Add Condition', Width: 1000, Height: 700 });
+        return false;
+    }
+    function editGroup(id) {
+
+     
+            $.ajax({
+
+            type: 'POST',
+                url: '/Bre/BreRuleModel/CreateBusinessRuleBuilderGroup?dataAction=Edit&id='+id,
+            contentType: 'application/json; charset=utf-8',
+            //data: JSON.stringify({ 'DataAction': 'Create', 'DecisionNodeId': '@Model.Id', 'ParentRuleId': id, 'Condition': 'And', 'RuleId': '@ViewBag.ruleId' }),
+                                                dataType: 'json',
+                                                success: function (response)
+                                                {
+                                                    $("#Ruletreeview").data("kendoTreeView").dataSource.read();
+                                                },
+                                                error: function (error) {
+                                                    alert("error")
+                                                }
+                                            });
+    }
+    function editCondition(id) {
+
+       
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Bre/BreRuleModel/AddMasterCondition?id=" + id + "&templateId=@ViewBag.templateId&ruleId=@Model.BusinessRuleId&collectionId=" + selectedCollection + "&templateType=" + selectedtemplatetype;
+        win.OpenWindow({ Title: 'Edit Condition', Width: 1000, Height: 700 });
+        return false;
+    }
+    function removeGroup(id)
+    {
+         var flag = confirm('Do you really want to delete');
+                                        if (flag) {
+                                            $.ajax({
+
+                                                type: 'GET',
+                                                url: '/bre/breRuleModel/RemoveGroup?id=' + id,
+                                                contentType: 'application/json; charset=utf-8',
+                                                dataType: 'json',
+                                                success: function (response)
+                                                {
+                                                    $("#Ruletreeview").data("kendoTreeView").dataSource.read({ masterId:'@Model.Id' });
+                                                },
+                                                error: function (error) {
+                                                    alert("error")
+                                                }
+                                            });
+                                        }
+    }
+    function removeConditioModel(id) {
+        var flag = confirm('Do you really want to delete');
+        if (flag) {
+            $.ajax({
+
+                type: 'GET',
+                url: '/bre/breRuleModel/RemoveCondition?id=' + id,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function (response) {
+                    $("#Ruletreeview").data("kendoTreeView").dataSource.read({ masterId:'@Model.Id' });
+                },
+                error: function (error) {
+                    alert("error")
+                }
+            });
+        }
+    }
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '25%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+    function OnChange(e) {
+        var data = $("#listView").data("kendoListView").dataSource.data(),
+            selected = $.map(this.select(), function (item) {
+                return data[$(item).index()].Id;
+            });
+            templateType = $.map(this.select(), function (item) {
+                return data[$(item).index()].TemplateType;
+            });
+        selectedCollection = selected[0];
+        selectedtemplatetype = templateType[0];
+         $.ajax({
+             url: "GetPropertiesFromMasterDataCollection?tableMetaDateId=" + selected[0] + "&templateType=" + templateType[0] +"&ruleId=@Model.BusinessRuleId",
+            type:"GET",
+            success: function (result) {
+                $("#Propertytreeview").data("kendoTreeView").setDataSource(result);
+            }
+         });
+
+        //$.ajax({
+        //    url: "GetBusinessRuleModelTableList?tableMetaId=" + selected[0] ,
+        //    type: "GET",
+        //    success: function (result) {
+        //        $("#treeview1").data("kendoTreeView").setDataSource(result);
+        //    }
+        //});
+        $("#rightSection").show();
+      //  $("#Ruletreeview").data("kendoTreeView").read({masterId:'@Model.ParentId'});
+    }
+
+
+
+    function checkedNodeIds(nodes, checkedNodes) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].checked) {
+                checkedNodes.push(nodes[i]);
+            }
+            if (nodes[i].hasChildren) {
+                checkedNodeIds(nodes[i].children.view(), checkedNodes);
+            }
+        }
+    }
+    var checkedNodes = [];
+    // show checked node IDs on datasource change
+    function onCheck() {
+        checkedNodes = [];
+        var treeView = $("#Propertytreeview").data("kendoTreeView");
+        checkedNodeIds(treeView.dataSource.view(), checkedNodes);
+        if (checkedNodes.length > 0) {
+            console.log(checkedNodes);
+        } else {
+            console.log("No nodes checked.");
+        }
+    }
+    function SaveData()
+    {
+
+        if ('@Model.DataAction' == "Create") {
+            $.ajax({
+                url: "ManageMasterTableMetaData",
+                data: {
+                    Id:'@Model.Id',
+                    BusinessRuleId: '@Model.BusinessRuleId',
+                    TableMetadataId: selectedCollection,
+                    //ParentId: selectedCollection,
+                    ParentId: '@Model.BusinessRuleId',
+                    BreInputDataType: "Object",
+                    DataType: "Object",
+                    DataAction: '@DataActionEnum.Create'
+                },
+                type: "POST",
+                success: function (result) {
+
+                    for (var i = 0; i < checkedNodes.length; i++) {
+
+                        $.ajax({
+                            url: "ManageMasterColumnMetaData",
+                            data: {
+                                Name: checkedNodes[i].Name,
+                                ColumnName: checkedNodes[i].Name,
+                                Alias: checkedNodes[i].Alias,
+                                ColumnMetadataId: checkedNodes[i].Id,
+                                DataType: checkedNodes[i].DataType,
+                                BreInputDataType: "Property",//checkedNodes[i].BreInputDataType,
+                               // ParentId: selectedCollection,
+                                ParentId: '@Model.Id',
+                                BreMasterTableMetadataId: '@Model.Id',
+                                DataAction: '@DataActionEnum.Create'
+                            },
+                            type: "POST",
+                            success: function (result) {
+
+                               // window.parent.RefreshTreelist();
+                                window.parent.GetIframePopup().RefreshTreelist();
+                               
+                                var win = GetMainWindow();
+                                win.CloseWindow();
+                                return false;
+
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+             for (var i = 0; i < checkedNodes.length; i++) {
+
+                        $.ajax({
+                            url: "ManageMasterColumnMetaData",
+                            data: {
+                                Name: checkedNodes[i].Name,
+                                ColumnName: checkedNodes[i].Name,
+                                Alias: checkedNodes[i].Alias,
+                                ColumnMetadataId: checkedNodes[i].Id,
+                                DataType: checkedNodes[i].DataType,
+                                BreInputDataType: "Property",//checkedNodes[i].BreInputDataType,
+                               // ParentId: '@Model.TableMetadataId',
+                                ParentId: '@Model.Id',
+                                BreMasterTableMetadataId: '@Model.Id',
+                                DataAction: '@DataActionEnum.Create'
+                            },
+                            type: "POST",
+                            success: function (result) {
+
+                               // window.parent.RefreshTreelist();
+                                window.parent.GetIframePopup().RefreshTreelist();
+                               
+                                var win = GetMainWindow();
+                                win.CloseWindow();
+                                return false;
+
+                            }
+                        });
+                    }
+        }
+
+
+        console.log(checkedNodes);
+    }
+
+     function OnSelect(e) {
+        e.preventDefault();
+    }
+
+
+
+
+    @*function SaveData()
+    {
+        for (var i = 0; i < checkedNodes.length; i++) {
+            $.ajax({
+                url: "ManageBusinessRuleMasterData",
+                data: {
+                    Name: checkedNodes[i].DisplayName,
+                    DataType: checkedNodes[i].Name,
+                    ParentId: '@Model.ParentId',
+                    BusinessRuleId : '@Model.BusinessRuleId',
+                    BreInputDataType: "Property",//checkedNodes[i].BreInputDataType,
+                    BreMetadataType: '@BreMetadataTypeEnum.MasterData.ToString()',
+                    DataAction:'@DataActionEnum.Create'
+                },
+                type: "POST",
+                success: function (result) {
+                    
+                }
+            });
+        }
+        console.log(checkedNodes);
+    }*@
+</script>

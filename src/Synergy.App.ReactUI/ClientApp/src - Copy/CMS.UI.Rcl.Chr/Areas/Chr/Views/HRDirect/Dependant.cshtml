@@ -1,0 +1,519 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRDirectController> Resource
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@model DependentViewModel
+
+@{
+    ViewData["Title"] = Resource["Dependent"];
+    Layout = null;
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+<script>
+    @*function OnDeleteHiringManager(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var flag = confirm('Do you really want to delete?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "HiringManager", new { @area="Recruitment"})?Id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdHiringManager").data("kendoGrid").dataSource.read();
+                        kendo.alert("Hiring Manager Deleted Successfully");
+                    } else {
+                        $("#kgrdHiringManager").data("kendoGrid").dataSource.read();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    $("#kgrdHiringManager").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }*@
+
+    function OnEditDependant(/*e*/NoteId) {
+
+       // e.preventDefault();
+     //   var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&cbm=AfterCreateDependent&source=View&dataAction=View&templateCodes=HRDependant&portalId=' + portalId + '&recordId=' + /*dataItem.*/NoteId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["ManageDependent"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function OnCreateDependant() {
+
+        var portalId = $('#GlobalPortalId').val();
+        //var prms = encodeURIComponent('parentServiceId=123');
+        var udfs = encodeURIComponent('EmployeeId='+ '@Model.PersonId');
+
+        var url = '/Cms/Page?lo=Popup&cbm=AfterCreateDependent&source=Create&dataAction=Create&templateCodes=HRDependant&portalId=' + portalId + '&udfs=' + udfs;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title:'@Html.Raw(Resource["ManageDependent"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function RequestDocument() {
+
+        if ('@Model.UserId' == '' || '@Model.UserId' == null) {
+            kendo.alert("@Resource["Pleasemappersontouserfrommanageperson"]");
+        }
+        else {
+            var portalId = $('#GlobalPortalId').val();
+            //var prms = encodeURIComponent( 'parentServiceId=123&parentTaskId=223');
+
+            var url = '@Url.Action("SelectServiceTemplate", "NtsService",new {area="Cms" })?templateCode=&categoryCode=Dependent Documents&userId=' + '@Model.UserId';
+            //'/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=Project&portalId=' + portalId /*+ '&prms=' + prms*/;
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["RequestDocument"])', Width: 1000, Height: 600, Position: 'Right1' });
+            return false;
+        }
+    }
+
+    function UploadDocument(e) {
+        //e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //var udfs = encodeURIComponent('DependentId=' + dataItem.Id);
+
+        var portalId = $('#GlobalPortalId').val();
+        //varModelprms = encodeURIComponent( 'parentServiceId=123&parentTaskId=223');
+
+        var url = '@Url.Action("SelectNoteTemplate", "NtsNote",new {area="Cms" })?templateCode=&categoryCode=Dependent Documents';
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["UploadDocument"])', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+
+
+    function AfterCreateDependent() {
+       // $("#kgrdDependent").data("kendoGrid").dataSource.read();
+        getDependentData();
+    }
+    function OnAfterServiceCreate() {
+        $("#kgrdDepDocRequest").data("kendoGrid").dataSource.read();
+        //Dependent();
+    }
+    function OpenService(serviceId, templateCode) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterNoteCreate&source=View&dataAction=View&templateCodes=' + templateCode +'&portalId=' + portalId + '&recordId=' + serviceId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["RequestDocument"])', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+
+    function OnAfterNoteCreate() {
+        ShowNotification("Document Uploaded Successfully", "success");
+        getDependentData()
+       // $("#kgrdDependent").data("kendoGrid").dataSource.read();
+    }
+
+    function ShowExpired() {
+        var checkbox = $("#Expired");
+        var checked = checkbox.prop("checked");
+
+
+        if (checked == true) {
+            var search = {
+                personId: '@Model.PersonId',
+                ntsstatus: "NOTE_STATUS_EXPIRE"
+            };
+            getDependentData(checked);
+           // $("#kgrdDependent").data("kendoGrid").dataSource.read(search);
+        }
+        else {
+            var search = {
+                personId: '@Model.PersonId',
+                ntsstatus: "NOTE_STATUS_INPROGRESS"
+            };
+            getDependentData(checked);
+           // $("#kgrdDependent").data("kendoGrid").dataSource.read(search);
+        }
+    }
+    function OpenNote(depNoteId, deptemplateCode) {
+
+        @*var templateCode;
+        $.ajax({
+            url: '@Url.Action("GetTemplateCodeByNoteId", "HRDirect")',
+            type: 'GET',
+            cache: false,
+            data: { ntsnoteId: depNoteId },
+            success: function (response) {
+                templateCode = response.TemplateCode;
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(thrownError);
+            },
+            complete: function (data) {
+            }
+        });*@
+
+        var portalId = $('#GlobalPortalId').val();
+        // var prms = encodeURIComponent('parentServiceId=' + Id);
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterCreate&source=Versioning&dataAction=Edit&templateCodes=' + deptemplateCode + '&portalId=' + portalId + '&recordId=' + depNoteId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["OpenNote"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function Opendocument(dependentId) {
+        var portalId = $('#GlobalPortalId').val();
+        var url = "/Chr/HRDirect/DependantDocumentList?dependentId=" + dependentId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["Dependent Document List"])', Width: 900, Height: 600 });
+        return false;
+    }
+</script>
+<style>
+    .fa-plus {
+        margin-top: 5px;
+    }
+
+    .panelheader {
+        height: 45px;
+        background-color: #f5f5f5;
+        color: black;
+        border-color: #d4cfcf;
+        border-style: solid;
+        border-width: 1px;
+        border-radius: 6px 6px 0px 0px;
+        padding: 10px;
+        font-weight: bold;
+    }
+</style>
+<div style="padding:15px;">
+    <h4>@ViewBag.Title</h4>
+    <hr />
+    <div class="row" style="padding:0px 0px 15px 15px">
+        @*@Html.Kendo().CheckBox().Name("Expired").Label(@Resource["ShowExpired"]).HtmlAttributes(new { @style = "", @onclick = "ShowExpired();" })*@
+        
+        <div class="form-check">
+            <input type="checkbox" id="Expired" onclick="ShowExpired();">
+            <label>&nbsp;@Resource["ShowExpired"]</label>
+        </div>
+
+    </div>
+    <div class="row">
+
+        <div class="col-12">
+            @if (Model.UserRole == "HR")
+            {
+            <button type='button' class='btn btn-primary' onclick='OnCreateDependant();' style="background-color:#007bff;color:#fff;margin-left:5px;"><i class='fa fas fa-plus icon'></i>&nbsp;@Resource["CreateDependent"]</button>
+            }
+
+            <div id="kgrdDependent" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+            <script>
+
+
+    var columnDefs1 = [
+         {
+            field: "DependentId",
+            headerName: "@Resource["View"]",
+            cellRenderer: params => {
+                return "<input type='button' class='btn btn-link' onclick='Opendocument(\"" + params.data.DependentId + "\")' value='View' />";
+            }
+           },
+           {
+            field: "FirstName",
+            headerName: "@Resource["FirstName"]",
+           },
+           {
+               field: "RelationshipTypeName",
+                headerName:"@Resource["RelationshipType"]"
+
+           },
+           {
+               field: "IqamahIdNationalityId",
+                headerName:"@Resource["IqamahNationality"]"
+           },
+
+        {
+            field: "DateOfBirth",
+            headerName: "@Resource["DateOfBirth"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+
+        },
+
+         {
+            field: "DependentId",
+            headerName: "Manage Dependent",
+             cellRenderer: params => {
+                 if ('@Model.UserRole' == "HR") {
+                     return "<i class='fa fas fa-pencil' title='Manage Dependent' onclick='OnEditDependant(\"" + params.data.NoteId + "\")'></i>";
+                 }
+                 else {
+                     return "";
+                 }
+            }
+        },
+
+             {
+            field: "DependentId",
+                 headerName: "Upload Document",
+             cellRenderer: params => {
+
+                 return "<i class='fa fas fa-upload' title='Upload Document' onclick='UploadDocument()'></i>";
+
+
+            }
+        },
+
+                 {
+            field: "DependentId",
+                     headerName: "Request Document",
+             cellRenderer: params => {
+                 if ('@Model.UserRole' == "HR") {
+                     return "<i class='fas fa-file-import' title='Request Document' onclick='RequestDocument()'></i>";
+                 }
+                 else {
+                     return "";
+                 }
+            }
+           },
+
+    ];
+
+    $(function () {
+
+        getDependentData();
+
+
+
+    });
+
+                function getDependentData(checked) {
+                document.getElementById("kgrdDependent").innerHTML = "";
+                var ntsstatus = "";
+                    if (checked == true) {
+                        ntsstatus = "NOTE_STATUS_EXPIRE";
+                    }
+                    else {
+                        ntsstatus = "NOTE_STATUS_INPROGRESS";
+                    }
+        gridConfig(
+            "kgrdDependent",
+            "/Chr/HRDirect/ReadDependantList?personId=@Model.PersonId&ntsstatus=" + ntsstatus,
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+            </script>
+
+
+            @*@(Html.Kendo().Grid<DependentViewModel>()
+                .Name("kgrdDependent")
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.FirstName).Title(@Resource["FirstName"]);
+                    columns.Bound(p => p.RelationshipTypeName).Title(@Resource["RelationshipType"]);
+                    columns.Bound(p => p.IqamahIdNationalityId).Title(@Resource["IqamahNationality"]);
+                    columns.Bound(p => p.DateOfBirth).Title(@Resource["DateofBirth"]);
+                    columns.Command(command =>
+                    {
+                        if (Model.UserRole == "HR")
+                        {
+                            command.Custom("Manage Dependent").Text("<i class='fa fas fa-pencil' title='Manage Dependent'></i>").Click("OnEditDependant").HtmlAttributes(new { @class = "action-icon" });
+                        }
+                    }).Title(@Resource["ManageDependent"]).Width(140);
+                    columns.Command(command =>
+                    {
+                        command.Custom("Upload Document").Text("<i class='fa fas fa-upload' title='Upload Document'></i>").Click("UploadDocument").HtmlAttributes(new { @class = "action-icon" });
+
+                    }).Title(@Resource["UploadDocument"]).Width(140);
+                    columns.Command(command =>
+                    {
+                        if (Model.UserRole == "HR")
+                        {
+                            command.Custom("Request Document").Text("<i class='fas fa-file-import' title='Request Document'></i>").Click("RequestDocument").HtmlAttributes(new { @class = "action-icon" });
+                        }
+                    }).Title(@Resource["RequestDocument"]).Width(140);
+                })
+                .ToolBar(toolbar =>
+                {
+                if (Model.UserRole == "HR")
+                {
+                    toolbar.Custom().Text(@Resource["CreateDependent"]).IconClass("fa fas fa-plus icon").HtmlAttributes(new { @style = "background-color:#007bff;color:#fff;margin-left:5px;", onclick = "OnCreateDependant();" });
+                }
+
+            })
+                .ClientDetailTemplateId("template")
+                .Scrollable(x => x.Enabled(true))
+                .Resizable(resize => resize.Columns(true))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                .Operators(o => o.ForString(s => s.Clear()
+                .Contains("Contains")
+                .IsEqualTo("Is equal to")
+                )))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                .Read(read => read.Action("ReadDependantList", "HRDirect", new { @area = "CHR", personId=Model.PersonId, ntsstatus = "NOTE_STATUS_INPROGRESS" }))
+                .Model(model => model.Id(p => p.DependentId))
+            )
+        )*@
+        </div>
+    </div>
+
+    <br />
+    <br />
+
+    <div class="panelheader">@Resource["DocumentRequestedbyHR"]</div>
+    <div class="hr-pad-12">
+        <script>
+
+
+    var columnDefs = [
+
+           {
+            field: "ServiceNo",
+            headerName: "@SharedResource["ServiceNo"]",
+            cellRenderer: params => {
+                return "<input type='button' class='btn btn-link' onclick='OpenService(\"" + param.data.ServiceId + "\",\""+param.data.TemplateCode+"\")' value='"+value+"'/>";
+            }
+           },
+           {
+               field: "DocumentType",
+                headerName:"@Resource["DocumentType"]"
+
+           },
+           {
+               field: "Status",
+                headerName:"@Resource["Status"]"
+           },     
+
+        {
+            field: "IssueDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+       
+    ];
+
+    $(function () {
+
+        getDepDocRequestData();
+
+
+
+    });
+
+            function getDepDocRequestData() {
+                document.getElementById("kgrdDepDocRequest").innerHTML = "";
+
+        gridConfig(
+            "kgrdDepDocRequest",
+            "/Chr/HRDirect/ReadDependantDocumentRequestList? userId=@Model.UserId",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+        </script>
+        <div id="kgrdDepDocRequest" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<PersonDocumentViewModel>()
+            .Name("kgrdDepDocRequest")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.ServiceNo).Title(@SharedResource["ServiceNo"]).ClientTemplate("<input type='button' class='btn btn-link' onclick='OpenService(\"#= ServiceId #\",\"#= TemplateCode #\")' value='#=ServiceNo#'/>").Width(300);
+                columns.Bound(p => p.DocumentType).Title(@Resource["DocumentType"]);
+                columns.Bound(p => p.Status).Title(@SharedResource["Status"]);
+                columns.Bound(p => p.IssueDate).Title(@Resource["IssueDate"]);
+            })
+            .Scrollable(x => x.Enabled(true))
+            .Resizable(resize => resize.Columns(true))
+            //.Sortable(srt => srt.Enabled(true))
+            .Selectable(select => select.Enabled(false))
+            .Filterable(f => f.Extra(false)
+            .Operators(o => o.ForString(s => s.Clear()
+            .Contains("Contains")
+            .IsEqualTo("Is equal to")
+            )))
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5))
+            .AutoBind(true)
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(5)
+            .Read(read => read.Action("ReadDependantDocumentRequestList", "HRDirect", new { @area = "CHR", userId = Model.UserId }))
+            .Model(model => model.Id(p => p.ServiceId))
+            ).HtmlAttributes(new {@style="height:300px;" })
+        )*@
+    </div>
+
+</div>
+
+<script id="template" type="text/kendo-tmpl">
+        @*@(Html.Kendo().Grid<PersonDocumentViewModel>
+               ()
+               .Name("grid_#=DependentId#") // template expression, to be evaluated in the master context //\\#=NoteId\\#,\\#=TemplateCode\\#
+               .Columns(col =>
+               {
+                   //col.Command(c => c.Custom("<a target='_self' href='javascript:OpenNote();'>\\#=NoteNo\\#</a>").Click("OpenNote"));
+                   col.Bound(c => c.NoteNo).Title(@Resource["DocumentNo"]).ClientTemplate("<input type='button' class='btn btn-link' onclick=\"OpenNote('\\#=DepNoteId\\#','\\#=TemplateCode\\#')\" value='\\#=NoteNo\\#' />").Width(300);
+                   col.Bound(c => c.DocumentType).Title(@Resource["DocumentType"]);
+                   col.Bound(c => c.ExpiryDate).Title(@Resource["ExpiryDate"]);
+               })
+               .DataSource(dataSource => dataSource
+               .Ajax()
+               .PageSize(5)
+               .Read(read => read.Action("ReadDependentDocumentList", "HRDirect", new { area = "CHR", dependentId = "#=DependentId#" }))
+               .Model(model => model.Id(p => p.DepNoteId))
+               )
+               //.Pageable()
+               .Sortable()
+               .ToClientTemplate()
+               )*@
+</script>

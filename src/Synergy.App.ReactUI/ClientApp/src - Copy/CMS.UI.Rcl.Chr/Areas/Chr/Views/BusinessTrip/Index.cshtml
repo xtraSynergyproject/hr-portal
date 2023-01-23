@@ -1,0 +1,421 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.BusinessTripController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model BusinessTripViewModel
+@{
+    ViewBag.Title = Resource["BusinesssTrip"];
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    //Layout = null;
+}
+
+<style>
+    .k-grid a:hover {
+        text-decoration: underline !important;
+    }
+
+    .hover:hover {
+        text-decoration: underline;
+    }
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .date {
+        margin-left: 1%;
+        margin-right: 1%
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+    .panel-info {
+        border-color: #bce8f1;
+    }
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+    .panel-primary {
+        border-color: #428bca;
+    }
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+    .panel-filter {
+        border-color: #428bca;
+    }
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+</style>
+
+
+<script>
+
+    $(document).ready(function () {
+        var empid = '@Model.Id';//parent.jQuery("#PersonId").val();
+        var userid = '@Model.UserId';
+
+        if (empid.length > 0 && userid.length == 0) {
+            var Status = {
+                Id: empid,
+                Empuserid: '0#',
+            };
+          // $("#BusinessTripGridView").data("kendoGrid").dataSource.read(Status);
+          //  $("#BusinessTripGridView").data("kendoGrid").dataSource.data([]);
+            kendo.alert("@Resource["PleaseCreateUserforthisPerson"]");
+        }
+        getData();
+    })
+
+
+    function OnService() {
+        var Empid = '@Model.Id';
+        var userid = '@Model.UserId';
+        if (Empid.length > 0 && userid.length == 0) {
+
+            kendo.alert("@Resource["PleaseCreateUserforthisPerson"]");
+        } else {
+            var portalId = $('#GlobalPortalId').val();
+
+            //'8edc86b3-9934-46e3-95de-d76c816404b4';//;
+           // var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=&portalId=' + portalId /* +'&prms=' + prms*/;
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=BuisnessTrip&portalId=' + portalId /*+ '&prms=' + prms*/;
+
+            if (userid.length > 0) {
+
+                var prms = encodeURIComponent('ownerUserId=' + '@Model.UserId');
+                url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=BuisnessTrip&portalId=' + portalId + '&prms=' + prms;
+            }
+            //LoadCmsPartialView(url, 'Service', true, 1000, 600, 'Create Project');
+            //return false;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["BusinessTrip"])', Width: 1200, Height: 600 });
+            return false;
+        }
+    }
+
+    function OnAfterServiceCreate(service) {
+        //$("#BusinessTripGridView").data("kendoGrid").dataSource.read();
+        getData();
+    }
+
+    function OnEmployeechange(e) {
+        var dataItem = e.sender.dataItem();
+        var id = dataItem.UserId;
+        var Status = {
+            Id: id,
+        };
+        //$("#BusinessTripGridView").data("kendoGrid").dataSource.read(Status);
+        getData();
+    }
+
+    function gotoService(NoteId) {
+        debugger;
+        var portalId = $('#GlobalPortalId').val();
+
+        // var url = '/Cms/Page?source=Edit&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + id ;
+        // var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Versioning&dataAction=Edit&pageName=BusinessTrip&portalId=' + portalId + '&recordId=' + NoteId;
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&pageName=BuisnessTrip&portalId=' + portalId + '&recordId=' + NoteId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["Service"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function openClaimService(claimId) {
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=BusinessTripClaimService&portalId=' + portalId + '&recordId=' + claimId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Claim Service', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function OnRaiseClaimService(serviceId) {
+        var Empid = '@Model.Id';
+        var userid = '@Model.UserId';
+        if (Empid.length > 0 && userid.length == 0) {
+            kendo.alert("@Resource["PleaseCreateUserforthisPerson"]");
+        } else {
+            var portalId = $('#GlobalPortalId').val();
+            var prms = encodeURIComponent('parentServiceId=' + serviceId);
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=BusinessTripClaimService&portalId=' + portalId + '&prms=' + prms;
+
+            if (userid.length > 0) {
+
+                prms = encodeURIComponent('parentServiceId=' + serviceId+'&ownerUserId=' + '@Model.UserId');
+                url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=BusinessTripClaimService&portalId=' + portalId + '&prms=' + prms;
+            }
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: 'Claim Service', Width: 1200, Height: 600 });
+            return false;
+        }
+    }
+    var columnDefs = [
+
+        { headerName: "@SharedResource["ServiceNo"]", field: "ServiceNo",
+            cellRenderer: params => {
+                return "<a href='javascript:gotoService(\"" + params.data.NtsNoteId + "\");' style='cursor:pointer;color:dodgerblue;'>" + params.data.ServiceNo + "</a>";
+            }
+        },
+        {
+            headerName: "@Resource["AppliedDate"]", field: "StartDate",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            }
+        },
+        { headerName: "@Resource["Purpose"]", field: "Purpose" },
+        {
+            field: "BusinessTripStartDate", headerName: "@SharedResource["StartDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            }
+        },
+        {
+            field: "BusinessTripEndDate", headerName: "@SharedResource["EndDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day,month,year].join('.');
+            }
+        },
+        { field: "Status", headerName: "@SharedResource["Status"]", },
+        {
+            headerName: "Claim Service", field: "ClaimServiceId",
+            cellRenderer: params => {
+                if(params.data.ClaimServiceId != null) {
+                    return "<a href='javascript:openClaimService(\"" + params.data.ClaimServiceId + "\");' style='cursor:pointer;color:dodgerblue;'>" + params.data.ClaimServiceNo + "</a>";
+                } else if (params.data.StatusCode =="SERVICE_STATUS_COMPLETE") {
+                    return "<a href='javascript:OnRaiseClaimService(\"" + params.data.NtsNoteId + "\");' style='cursor:pointer;color:dodgerblue;'>Business Trip Claim</a>";
+                } else {
+                    return " ";
+                }
+            }
+        }
+    ];
+
+    function getData() {
+        var id = '@Model.Id';
+        var empid = '@Model.UserId';
+        document.getElementById("BusinessTripGridView").innerHTML = "";
+        gridConfig(
+            "BusinessTripGridView",
+            "/CHR/BusinessTrip/GetGridData?Id=" + id +"&Empuserid="+ empid,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+
+
+@*<div id="banner" role="group" style="width:100%;color:#FFFFFF;background: #17a2b8;padding-left: 5px;">
+           <div class="row" style="padding-top:10px;">
+
+               <div class=" col-md-9">
+                   <div style="font-size:.8em;padding-top:0px;">
+                       select Employee
+
+                       <div class="project-dropdown" id="dropdown" title="Task Template">
+
+                           @(Html.Kendo().DropDownList()
+    .Name("ddlTemplate")
+
+                           .DataTextField("EmployeeName")
+                           .DataValueField("UserId")
+                           .Filter(FilterType.Contains)
+                           .OptionLabel("Select Employee")
+                           .DataSource(source =>
+                           {
+                               source.Read(read =>
+                               {
+                                   read.Action("GetAllEmployee", "BusinessTrip", new { @area = "Cms"});
+                               });
+                           })
+                           .Events(x => x.Change("OnEmployeechange"))
+                           .HtmlAttributes(new { @class = "form-control" , @style="width:80%" })
+                           )
+
+                       </div>
+                   </div>
+               </div>
+           </div>
+
+        <div class="btn banner-item banner-item-date col-sm-2">&nbsp;</div>
+    </div>*@
+
+
+<div class="row">
+    <div class="col-12">
+        <button class="btn btn-filter-reset" onclick="OnService()" title="Reset Filter">@SharedResource["Create"]</button>
+        
+        <div style="padding-top:20px;">
+            <div id="BusinessTripGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    
+    @*<div class="panel panel-primary">
+            <div class="panel-heading"></div>
+            <div class="panel-body">
+                
+
+                @(Html.Kendo().Grid<BusinessTripViewModel>()
+                                .Name("BusinessTripGridView")
+                                .Columns(columns =>
+                                {
+                                    //columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+                                    columns.Bound(p => p.ServiceNo).Title(@SharedResource["ServiceNo"]).Width(170).ClientTemplate("<a target='_self' class='hover' style='cursor:pointer;color:dodgerblue;' onclick=\"gotoService('#=NstNodeId#')\" >#=ServiceNo#</a>");
+                                    columns.Bound(p => p.StartDate).Title(@Resource["AppliedDate"]).Format("{0:dd MMM yyyy}").Width(170);
+                                    columns.Bound(p => p.Purpose).Title(@Resource["Purpose"]).Width(170);
+                                    columns.Bound(p => p.BusinessTripStartDate).Title(@SharedResource["StartDate"]).Format("{0:dd MMM yyyy}").Width(170);
+                                    columns.Bound(p => p.BusinessTripEndDate).Title(@SharedResource["EndDate"]).Format("{0:dd MMM yyyy}").Width(300);
+                                    columns.Bound(p => p.Status).Title(@SharedResource["Status"]).Width(250);
+
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Excel();
+                                    //toolbar.Pdf();
+                                    toolbar.Search().Text(@SharedResource["Search"]);
+                                })
+    //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    .ColumnMenu(col=>col.Filterable(false))
+    .Height(700)
+    .Editable()
+    .Pageable()
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+    //.Events(events => events.DataBound("onDataBound"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .AutoSync(true)
+        .ServerOperation(false)
+        //.Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+
+        })
+        //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+        //.Create("DetailProducts_Create", "Grid")
+        .Read("GetGridDate", "BusinessTrip", new { @area = "CHR", Id=Model.Id, Empuserid=Model.UserId})
+    //.Update("DetailProducts_Update", "Grid")
+    //.Destroy("DetailProducts_Destroy", "Grid")
+    )
+)
+            </div>
+        </div>*@
+    </div>
+</div>
+
+
+
+

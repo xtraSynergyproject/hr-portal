@@ -1,0 +1,251 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext;
+
+@{
+    ViewData["Title"] = "View OBPS Details";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model JSCEnforcementUnAuthorizationViewModel
+
+
+<style>
+    .colLabel {
+        color: black !important;
+    }
+
+    .divDim {
+        width: 100%;
+        height: 100%;
+        min-height: calc(100vh - 6.5rem);
+        margin: auto;
+    }
+</style>
+
+
+<script>
+
+    $(document).ready(function () {
+        var newList = [];
+        var doclist = '@Model.Attachments';
+        var docListArr = doclist.split(",");
+        if (docListArr.length > 0 && docListArr[0] != "") {
+
+            for (var a = 0; a <= docListArr.length - 1; a++) {
+                newList.push({ Name: docListArr[a] });
+
+            }
+
+            var dataSource = newList;
+            document.getElementById("documentList").innerHTML = "";
+
+
+            $("#documentList").kendoListView({
+                dataSource: dataSource,
+                template: kendo.template($("#templateDoc").html()),
+                selectable: '@ListViewSelectionMode.Single',
+                //change: OnChange
+            });
+        }
+
+
+    });
+
+
+
+    function downloadFile(id) {
+        window.open('/cms/Document/GetFileMongo?fileId=' + id, '_blank');
+        return false;
+    }
+
+
+
+    function datefun(d) {
+        d = new Date(d);
+        let h = addZero(d.getHours());
+        let m = addZero(d.getMinutes());
+
+        return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear() + " " + h + ":" + m;
+    }
+
+
+
+</script>
+
+<style>
+    .k-animation-container {
+        height: 100% !important
+    }
+
+    .k-list-container .k-popup .k-group .k-reset {
+        height: 100% !important
+    }
+
+    .k-list-scroller {
+        height: 100% !important
+    }
+
+    #Department-list {
+        height: 100% !important
+    }
+
+
+
+    .bold {
+        font-weight: bold;
+    }
+
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+        /* Avoid cutout if font or line is bigger */
+        font: inherit;
+    }
+
+    .k-listview-content {
+        overflow: hidden;
+    }
+
+    .product1 {
+        float: left;
+        position: relative;
+        /*  width: 111px;
+                                                                                                                                                    height: 170px;*/
+        margin: 0 5px;
+        padding: 0;
+    }
+
+    #documentList {
+        border-color: transparent;
+        background-color: transparent;
+    }
+
+    #level1Doc {
+        border-color: transparent;
+        background-color: transparent;
+    }
+
+    .k-listview {
+        border-color: #dee2e600;
+    }
+
+    .product {
+        float: left;
+        position: relative;
+        width: 111px;
+        height: 170px;
+        margin: 0 5px;
+        padding: 0;
+    }
+
+        .product img {
+            width: 110px;
+            height: 110px;
+        }
+
+    .product1 img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .product h3 {
+        margin: 0;
+        padding: 3px 5px 0 0;
+        max-width: 96px;
+        overflow: hidden;
+        line-height: 1.1em;
+        font-size: .9em;
+        font-weight: normal;
+        text-transform: uppercase;
+        color: #999;
+    }
+
+    .product p {
+        visibility: hidden;
+    }
+
+    .product:hover p {
+        visibility: visible;
+        position: absolute;
+        width: 110px;
+        height: 110px;
+        top: 0;
+        margin: 0;
+        padding: 0;
+        line-height: 110px;
+        vertical-align: middle;
+        text-align: center;
+        color: #fff;
+        background-color: rgba(0,0,0,0.75);
+        transition: background .2s linear, color .2s linear;
+        -moz-transition: background .2s linear, color .2s linear;
+        -webkit-transition: background .2s linear, color .2s linear;
+        -o-transition: background .2s linear, color .2s linear;
+    }
+
+    .k-listview:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .k-confirm .k-window-titlebar::before {
+        content: 'Confirmation';
+    }
+
+    .k-confirm .k-window-titlebar .k-dialog-title {
+        visibility: collapse;
+    }
+
+    li {
+        list-style-type: square !important;
+    }
+</style>
+
+<div style="padding: 2%;background-color: white;" id="maindiv">
+
+    <h5 class="bold">CaseId : @Model.AuthorizationId - Authorization</h5>
+    <br />
+    <div class="table-responsive" style="background-color:whitesmoke">
+        <table class="table table-striped">
+            <tbody>
+                <tr>
+                    <td> Ward: <span class="bold"> @Model.WardNo </span></td>
+                    <td> Order NO : <span class="bold"> @Model.OrderNo </span> </td>                   
+                </tr>
+                <tr>
+                    <td> Remarks: <span class="bold"> @Model.Remarks </span></td>
+                    <td> Date Of Report: <span class="bold"> @Model.ReportedDateTime </span> </td>
+                </tr>
+                <tr>
+                    <td>  Documents Attached  </td>
+                    <td class="bold" colspan="3">
+                        <div id="documentList"></div>
+                        <script type="text/x-kendo-tmpl" id="templateDoc">
+
+                            <div id="#:Name#" class="product1">
+                                    <img id="#:Name#_img" class="upload-image-preview" style="background-color:gray;"
+                                    src="/cms/Document/GetImageMongo?id=#:Name#">
+                                    <br>
+                                     <span style="color:blue" class="fas fa-download" onclick="downloadFile('#:Name#')"></span>
+                            </div>
+                        </script>
+                    </td>
+
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+</div>
+
+

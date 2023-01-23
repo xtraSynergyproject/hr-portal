@@ -1,0 +1,138 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    //Layout = null;    
+}
+
+@model TemplateViewModel
+
+
+
+
+
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+   
+        <div class="row">
+            <div class="pad-15 no-gutters" style="width: 100%;">
+                <div id="jsGrid"></div>
+                @*@(Html.Kendo().Grid<ResourceLanguageViewModel>()
+                .Name("GridLanguage")
+                .ToolBar(toolbar =>
+                {
+                    toolbar.Save();
+                })
+                .Columns(columns =>
+                {
+                    columns.Bound(c => c.Code).Width(150);
+                    columns.Bound(c => c.English).Width(150);
+                    columns.Bound(c => c.Arabic).Width(150);
+
+                })
+                .Editable(editable => editable.Mode(GridEditMode.InCell)
+                )
+                .Scrollable(x => x.Enabled(false))
+                .Selectable(select => select.Enabled(false))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                .Batch(true)
+                .ServerOperation(false)
+                .Create(update => update.Action("TemplateLanguage_Create", "template"))
+                .Read(read => read.Action("GetTemplateLanguage", "template", new { templateId = Model.Id }))
+                .Update("TemplateLanguage_Create", "template")
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+
+                })
+                )
+        )*@
+
+            </div>
+        </div>
+
+        @*<div class="cms-footer">
+            <div class="col-sm-12" style="text-align:right;">
+                <button type="submit" class="btn btn-success" onclick="SaveData()">Save</button>
+
+            </div>
+        </div>*@
+   
+</div>
+
+<script>
+    
+
+    $("#jsGrid").jsGrid({
+        width: "100%",
+        height: "600px",
+
+        inserting: false,
+        editing: true,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 10,
+        pageButtonCount: 5,
+        deleteConfirm: "Do you really want to delete client?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                return $.ajax({
+                    type: "GET",
+                    url: "/cms/Template/GetLanguage?templateId=@Model.Id",
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+            //insertItem: function (item) {
+            //    return $.ajax({
+            //        type: "POST",
+            //        url: "/api/data",
+            //        data: item,
+            //        dataType: "json"
+            //    });
+            //},
+            updateItem: function (item) {
+                return $.ajax({
+                    type: "POST",
+                    url: "/cms/Template/LanguageUpdate",
+                    data: item,
+                    dataType: "json",
+                    success: function (result) {
+                        alert("Success", "updated successfully");
+                    },
+                    error: function (err) {
+                        alert(err, "Error updating");
+                    }
+                });
+            },
+            //deleteItem: function (item) {
+            //    return $.ajax({
+            //        type: "DELETE",
+            //        url: "/api/data/" + item.ID,
+            //        dataType: "json"
+            //    });
+            //}
+        },
+
+        fields: [
+
+            { name: "Code", type: "text", width: 180, validate: "required" },
+            { name: "English", type: "text", width: 200 },
+            { name: "Arabic", type: "text", width: 200 },
+            { type: "control" }
+
+        ]
+    });
+</script>

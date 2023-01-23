@@ -1,0 +1,122 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+@model ListOfValueViewModel
+
+@{
+    ViewData["Title"] = "ListOfValue";
+    Layout = null;
+}
+<script>
+        function OnDeleteListOfValue(e) {
+        var flag = confirm('Do you really want to delete the ListOfValue?');
+        //alert("..Delete");
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "LOV", new { @area= "Cms" })?Id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                        kendo.alert("ListOfValue Deleted Successfully.");
+                    } else {
+                        $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+      function OnCreateListOfValue() {
+
+        
+            var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Create", "LOV", new { @area="Cms"})';
+          win.OpenWindow({ Title: 'Manage ListOfValue', Width: 450, Height: 850 });
+        return false;
+
+    }
+    function OnEditListOfValue(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Edit", "LOV", new { @area="Cms"})?Id=' + dataItem.Id;
+          win.OpenWindow({ Title: 'Manage ListOfValue', Width: 450, Height: 850 });
+        return false;
+    }
+
+
+</script>
+
+
+<div>
+    <h4>@ViewBag.Title</h4>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-12">
+
+            @*@(Html.Kendo().Grid<LOVViewModel>
+    ()
+    .Name("ListOfValuegrid")
+    .ToolBar(toolbar =>
+    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateListOfValue();'><i class='fa fas fa-plus'></i>&nbsp;Create ListOfValue</button>"))
+
+    .Columns(columns =>
+
+    {
+        columns.Command(command =>
+        {
+            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditListOfValue").HtmlAttributes(new { @class = "action-icon" });
+            //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteListOfValue").HtmlAttributes(new { @class = "action-icon" });
+        }).Title("Action").Width(100);
+
+        columns.Bound(c => c.LOVType);
+        columns.Bound(c => c.Name);
+        columns.Bound(c => c.Description);
+        columns.Bound(c => c.Code);
+        columns.Bound(c => c.Status);
+        columns.Bound(c => c.SequenceOrder);
+
+    })
+    .Scrollable(x => x.Enabled(false))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                .Operators(o => o.ForString(s => s.Clear()
+                .Contains("Contains")
+                .IsEqualTo("Is equal to")
+                )))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                //.Events(events => events.Error("OnError"))
+                .Read(read => read.Action("ReadData", "LOV"))
+                .Model(model => model.Id(p => p.Id))
+                )
+          )*@
+
+        </div>
+    </div>
+</div>

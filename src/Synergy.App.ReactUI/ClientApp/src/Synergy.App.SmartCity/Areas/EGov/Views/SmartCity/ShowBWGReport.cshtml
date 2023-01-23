@@ -1,0 +1,253 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext;
+
+@{
+    ViewData["Title"] = "BWG Report";
+    Layout = null;
+}
+<style>
+
+    .k-grid-header .k-header {
+        position: relative;
+        vertical-align: bottom;
+        cursor: default;
+        font-weight: 600 !important;
+    }
+
+    .k-grid .k-grid-header .k-header .k-link {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+
+    .k-header {
+        position: relative;
+        vertical-align: bottom;
+        cursor: default;
+        font-weight: 600 !important;
+    }
+
+    .k-header {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+    td[role="gridcell"] {
+        /*white-space: nowrap;*/
+    }
+</style>
+
+<script>
+
+
+    $("#auto").kendoDropDownList({
+        dataTextField: "Name",
+        dataValueField: "Id",
+        optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+        dataSource: {
+            severFiltering: true,
+            transport: {
+                read: {
+                    url: "/EGov/SmartCity/GetJSCAutoListByTransferStation?transferStationId=@ViewBag.TransferStationId",
+                }
+            }
+        }
+    });
+
+    $("#startDate").kendoDatePicker({
+            value: new Date(new Date().setMonth(new Date().getMonth())),
+            format: "dd-MM-yyyy",
+            dateInput: false
+        });
+
+        $("#startDate").attr("disabled", "disabled");
+
+
+    $("#endDate").kendoDatePicker({
+            value: new Date(new Date().setMonth(new Date().getMonth())),
+            format: "dd-MM-yyyy",
+            dateInput: false
+        });
+
+    $("#endDate").attr("disabled", "disabled");
+
+    var columnDefs = [
+        {
+            headerName: "Sl.No",
+            field: "SlNo",
+            attributes: { style: "text-align:right;" }
+        },
+        {
+            title: "Name Of Bulk Waste Generator (BWG)(DDN)",
+            field: "NameOfBulkWasteGenerator",
+        },
+    ];
+
+    var columnDefs1 = [
+        {
+            title: "Arrival Time",
+            field: "ArrivalTime",
+            attributes: { style: "text-align:right;" }
+        },
+
+        {
+            title: "Departure Time",
+            field: "DepartureTime",
+            attributes: { style: "text-align:right;" }
+        },
+        {
+            title: "Wet Waste(in Kgs)",
+            field: "WetWaste",
+            attributes: { style: "text-align:right;" }
+        },
+        {
+            title: "Dry Waste(in Kgs)",
+            field: "DryWaste",
+            attributes: { style: "text-align:right;" }
+        },
+        {
+            title: "Signature Of BWG's Representative",
+            field: "SignatureOfBWGRepresentative",
+        },
+    ];
+
+   function getBWGReportData() {
+        debugger;
+        var startDate = kendo.toString($("#startDate").data("kendoDatePicker").value(), 'dd-MM-yyyy');
+        var endDate = kendo.toString($("#endDate").data("kendoDatePicker").value(), 'dd-MM-yyyy');
+        var auto = $("#auto").val();
+        if (auto == undefined || auto == null) {
+            alert("Select Auto")
+        } else if (startDate == undefined || startDate == null) {
+            alert("Select Date")
+        } else if (endDate == undefined || endDate == null) {
+            alert("Select Date")
+        } else {
+            $.ajax({
+                url: '/EGov/SmartCity/GetBWGAutoDetails?id=' + auto,
+                type: "GET",
+                dataType: "json",
+                success: function (result) {
+                    var url = "/EGov/SmartCity/GetBWGReportDetails?transferStationId=@ViewBag.TransferStationId&autoId=" + auto + "&startDate=" + startDate + "&endDate=" + endDate;
+                    var grid = $("#kGridView").kendoGrid({
+                        toolbar: ["excel", "pdf"],
+                        pdf: {
+                              fileName: "BWGReport.pdf",
+                              allPages: true,
+                              paperSize: "A3",
+                              margin: { top: "2cm", right: "0.5cm", bottom: "1cm", left: "0.5cm" },
+                              landscape: true,
+                              scale: 0.8
+                            },
+                        excelExport: function (e) {
+                            var sheet = e.workbook.sheets[0];
+                            for (var i = 0; i < sheet.rows.length; i++) {
+                                for (var ci = 0; ci < sheet.rows[i].cells.length; ci++) {
+                                    var cell = sheet.rows[i].cells[ci];
+                                    // add borders
+                                    cell.borderTop = { color: "black", size: 1 };
+                                    cell.borderRight = { color: "black", size: 1 };
+                                    cell.borderBottom = { color: "black", size: 1 };
+                                    cell.borderLeft = { color: "black", size: 1 };
+
+                                    // change cell background
+                                    cell.background = "#ffffff";
+                                    cell.color = "black";
+                                    if (i == 0) {
+                                        cell.hAlign = "center";
+                                    }
+                                    if (i >= 0 && i < 4) {
+                                        cell.bold = true;
+                                    }
+                                }
+                            }
+                        },
+                        excel: {
+                            fileName: "BWG_Report.xlsx",
+                            proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                            filterable: true,
+
+                        },                       
+                        height: 550,
+                        groupable: false,
+                        sortable: true,
+                        resizable: true,
+                        reorderable: true,
+                        pageable: {
+                            alwaysVisible: false,
+                            pageSizes: [5, 10, 20, 100]
+                       },
+                       dataSource: {
+                           type: "json",
+                           transport: {
+                               read: url
+                           },
+                       },//columnMenu: true,
+                        columns: [{
+                            title: "Jammu Municipal Corporation BWGs Waste Collection",
+                            headerAttributes: { "class": "k-text-center !k-justify-content-center" },
+                            columns: [
+                                {
+                                    title: "Vehicle Number: " + result.AutoNumber,
+                                    columns: [
+                                        {
+                                            title: "Date: " + result.Date,
+                                            columns: columnDefs
+                                        },
+                                        {
+                                            title: "Name Of The Route Coordinator: "+ result.nameOfTheRouteCoordinator,
+                                            columns: columnDefs1
+                                        },]
+                                }]
+                        }]
+                    });
+                }
+            });
+        }
+    }
+</script>
+<div class="p-2">
+    <h4>
+        Jammu Municipal Corporation BWGs Waste Collection
+    </h4>
+</div>
+
+<div class="row" style="padding:2%">
+    <div class="col">
+        <div class="form-label-group">
+            <div>
+                <span style="color:red">*</span> <label for="auto">Select Auto</label>
+            </div>
+            <input required id="auto" class="form-control" />
+            <script>
+            </script>
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-label-group">
+            <div>
+                <span style="color:red">*</span> <label for="TravelDate">Select Start Date</label>
+            </div>
+            <input required id="startDate" class="form-control" />
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-label-group">
+            <div>
+                <span style="color:red">*</span> <label for="TravelDate">Select End Date</label>
+            </div>
+            <input required id="endDate" class="form-control" />
+        </div>
+    </div>
+
+
+    <div class="col" style="padding-top: 2%;">
+        <button class="btn btn-primary" onclick="getBWGReportData()">Show Report</button>
+    </div>
+
+</div>
+
+<div class="col-12 p-2">
+    <div id="kGridView" style="width: 100%;height:500px" class="ag-theme-alpine"></div>
+</div>

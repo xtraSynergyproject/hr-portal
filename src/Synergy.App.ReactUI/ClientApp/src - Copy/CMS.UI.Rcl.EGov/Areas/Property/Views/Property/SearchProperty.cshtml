@@ -1,0 +1,458 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+
+@{
+    ViewData["Title"] = "SearchProperty";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model PayPropertyTaxViewModel
+<style>
+    .dropdown-toggle::after {
+        display: none;
+    }
+
+    .dropdown-menu {
+        width: 100%;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        display: none;
+        float: left;
+        min-width: 160px;
+        padding: 5px 0;
+        margin: 2px 0 0;
+        font-size: 14px;
+        list-style: none;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 4px;
+        -webkit-box-shadow: 0 6px 12px rgb(0 0 0 / 18%);
+        box-shadow: 0 6px 12px rgb(0 0 0 / 18%);
+        background-clip: padding-box;
+    }
+
+    .project-dropdown ul {
+        list-style-type: none;
+        margin-bottom: 0px;
+    }
+    /* #dropdown {
+        height: 42px;
+        left: 221px;
+        bottom: 35px;
+        font-size: 18px;
+
+        width: 99%;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid #E8E5E5;
+        box-sizing: border-box;
+        border-radius: 3px;
+        color: #FFFFFF;
+    }*/
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+
+    .banner-item-project {
+        background-color: #d6aa24;
+    }
+
+    .banner-item {
+        color: #fff;
+        height: 60px;
+        text-align: left;
+    }
+
+        .banner-item:hover {
+            color: #fff;
+        }
+
+    .banner-item-project {
+        background-color: #42ca88;
+    }
+
+    .banner-item-date {
+        background-color: #f0ad4e;
+    }
+
+    .k-dropdown-project .k-input {
+        display: none !important;
+    }
+
+    .hr-x-large {
+        max-width: none !important;
+    }
+
+    .hr-xx-large {
+        max-width: none !important;
+    }
+
+    .date {
+        width: 100%;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+        getDataSearchProperty();
+
+        $("#CityId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.CityId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=PROP_CITY_CODE",
+                    }
+                }
+            }
+        });
+
+        $("#WardNoId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.WardNoId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=PROP_WARD_NO.",
+                    }
+                }
+            }
+        });
+
+    });
+    function onSearch(evt) {
+        if ($("#CityId").val() == "") {
+            //
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("City is required");
+            evt.preventDefault();
+            return false;
+
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+
+        debugger;
+        var search = {
+            //projectIds: $("#ProjectFiltersIds").data("kendoMultiSelect").value(),
+            city: $("#CityId").data("kendoDropDownList").value(),
+            propertyId: $("#PropertyId").val(),
+            ownerName: $("#OwnerName").val(),
+            oldPropertyId: $("#OldPropertyId").val(),
+            houseNo: $("#HouseNo").val(),
+            street: $("#Locality").val(),
+            mobile: $("#Mobile").val(),
+            wardNo: $("#WardNoId").data("kendoDropDownList").value(),
+            postalCode: $("#PostalCode").val(),
+            email: $("#Email").val(),
+        };
+        $("#SearchPropertygrid").data("kendoGrid").dataSource.read(search);
+
+    }
+    @*function DataBound(e) {
+        debugger;
+
+        $(".selectcheckbox").bind("click", function (e) {
+            e.stopPropagation();
+            $(e.target).closest("tr").toggleClass("k-state-selected");
+        });
+
+        var rows = e.sender.element.find("tr");
+        rows.each(function (e) {
+            $(this).children().first().on("click", onFirstTDClick);
+        })
+        var abc = "@ViewBag.RowData";
+        var arr = JSON.parse(abc.replace(/&quot;/g, '"'));
+
+            for (var i = 0; i < arr.length; i++)
+            {
+                //console.log(e.sender._data[0].Id);
+                //if (e.sender._data[0].Id == arr[i].Id)
+                //{
+
+                $("#selectcheckbox_" + arr[i].PropertyId).closest("tr").toggleClass("k-state-selected");
+                // document.getElementById('selectcheckbox_' + arr[i].Id /*+ '/'*/).closest('tr').classList.add("k-state-selected");
+                if (document.getElementById('selectcheckbox_' + arr[i].PropertyId/* + '/'*/) != undefined && document.getElementById('selectcheckbox_' + arr[i].PropertyId/* + '/'*/) != null)
+                {
+                    document.getElementById('selectcheckbox_' + arr[i].PropertyId/* + '/'*/).checked = true;
+                }
+
+                //}
+
+
+            }
+
+    }*@
+    function onFirstTDClick(e) {
+        e.stopPropagation();
+        var tr = $(e.target).closest("tr");
+        tr.find('[type=checkbox]').prop('checked', !tr.hasClass("k-state-selected"));
+        tr.toggleClass("k-state-selected");
+
+    }
+
+    function Close(propertyId,propertyNo) {
+        debugger;
+
+       // propertyId: $("#PropertyId").val()
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'IdPassCallback', Prms: { PropertyId: propertyId, PropertyNo: propertyNo} });
+        return false;
+    }
+     var columnDefs = [
+
+        { field: "Id",
+            cellRenderer: params => {
+                return "<button class='btn btn-primary' onclick='javascript:Close(\"" + params.data.Id + "\",\"" + params.data.PropertyId + "\");'>" + Select + "</button>";
+
+            }
+        },
+       
+         { field: "CityName" },
+         { field: "PropertyId" },
+         { field: "OldPropertyId" },
+         { field: "Mobile" },
+         { field: "WardNo" },
+         { field: "OwnerName" },
+         { field: "HouseNo" },
+         { field: "Locality" },
+         { field: "PostalCode" },
+
+       
+       
+        { field: "Email" }
+    ];
+
+    function getDataSearchProperty() {
+        var id = '@Model.Id';
+      
+        document.getElementById("SearchPropertygrid").innerHTML = "";
+        gridConfig(
+            "SearchPropertygrid",
+            "/Property/Property/ReadSearchProperty",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+</script>
+
+@*<div class="row" style="margin-left:15px;">*@
+
+@*<form asp-controller="HomeTest" asp-action="Manage" method="post" class="form-horizontal" id="myForm">
+    <div class="text-danger" asp-validation-summary="All"></div>*@
+
+<div class="text-danger" asp-validation-summary="All"></div>
+<div class="row" style="padding-top:10px;padding-left:10px">
+
+    <div class="col-sm-3 col-md-3">
+
+        <label for="CityId">City Name<span class="required" style="color:red;">*</span></label>
+        @*@(Html.Kendo().DropDownListFor(x=>x.CityId)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                          read.Action("GetListOfValueList", "LOV", new { Type = "PROP_CITY_CODE" ,@area = "Cms" });
+                                      });
+                         })
+                          // .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                         .HtmlAttributes(new { @class = "form-control", @style = "width:100%"})
+                        )*@
+
+        <input asp-for="CityId" id="CityId" class="form-control" style="width:100%;" />
+
+    </div>
+
+
+    <div class="col-sm-3 col-md-3">
+        <label for="PropertyId">Property Id</label>
+        <input asp-for="PropertyId" type="text" class="form-control" placeholder="PropertyId" autocomplete="off" />
+
+
+
+    </div>
+    <div class="col-sm-3 col-md-3">
+        <label for="OldPropertyId">Old Property Id</label>
+        <input asp-for="OldPropertyId" type="text" class="form-control" placeholder="OldPropertyId" autocomplete="off" />
+
+
+    </div>
+    <div class="col-sm-3 col-md-3">
+        <label for="Mobile">Mobile</label>
+        <input asp-for="Mobile" type="Number" class="form-control" placeholder="Mobile" autocomplete="off" />
+
+
+    </div>
+</div>
+<div class="row" style="padding:10px">
+    <div class="col-sm-3 col-md-3">
+        <label for="WardNoId">Ward No</label>
+        @*@(Html.Kendo().DropDownListFor(x=>x.WardNoId)
+                       .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .DataSource(source =>
+                                      {
+                                          source.Read(read =>
+                                          {
+                                              read.Action("GetListOfValueList", "LOV", new { Type = "PROP_WARD_NO.", @area = "Cms" });
+                                          });
+                                      })
+                         // .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                         .HtmlAttributes(new { @class = "form-control", @style = "width:100%"})
+                        )*@
+
+        <input asp-for="WardNoId" id="WardNoId" class="form-control" style="width:100%;" />
+
+    </div>
+    <div class="col-sm-3 col-md-3">
+        <label for="OwnerName">Owner Name</label>
+        <input asp-for="OwnerName" type="text" class="form-control" placeholder="OwnerName" autocomplete="off" />
+
+
+    </div>
+
+
+
+
+</div>
+<div class="row" style="padding-top: 10px;padding-bottom: 10px;padding-left:10px">
+    <div class="col-sm-3 col-md-3">
+
+        <label for="HouseNo">House No.</label>
+        <input asp-for="HouseNo" type="text" class="form-control" placeholder="HouseNo" autocomplete="off" />
+    </div>
+    <div class="col-sm-3 col-md-3">
+        <label for="Street/Locality">Street/Locality</label>
+        <input asp-for="Locality" type="text" class="form-control" placeholder="Street/Locality" autocomplete="off" />
+    </div>
+    <div class="col-sm-3 col-md-3">
+        <label for="PostalCode">Postal Code</label>
+        <input asp-for="PostalCode" type="Number" class="form-control" placeholder="PostalCode" autocomplete="off" />
+    </div>
+    <div class="col-sm-3 col-md-3">
+        <label for="Email">Email</label>
+        <input asp-for="Email" type="email" class="form-control" placeholder="Email" autocomplete="off" />
+    </div>
+</div>
+<div class="row" style="padding-left:10px">
+    <div class=" col-md-12">
+        <br />
+        @*<button class="btn btn-Primary" onclick="onSearch()">Search Property</button>*@
+        <input type="submit" class="btn btn-primary" value="Search Property" id="submitBtn" onclick="onSearch(event)" />
+
+    </div>
+</div>
+
+
+<br />
+<div class="row" style="padding-left:10px">
+    <div>
+        <div class="row">
+            <div class="col-12">
+
+
+                <div style="padding-top:20px;">
+                    <div id="SearchPropertygrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                </div>
+            </div>
+        </div>
+        @*@(Html.Kendo().Grid<PayPropertyTaxViewModel>
+    ()
+    .Name("SearchPropertygrid")
+    //.ToolBar(toolbar =>
+    //toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateLegalEntity();'><i class='fa fas fa-plus'></i>&nbsp;Create Legal Entity</button>"))
+
+        .Columns(columns =>
+
+        {
+            //    columns.Command(command =>
+            //    {
+            //        command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditLegalEntity").HtmlAttributes(new { @class = "action-icon" });
+            //        command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteLegalEntity").HtmlAttributes(new { @class = "action-icon" });
+            //    }).Title("Action").Width(200);
+            columns.Template("<button class='btn btn-primary' onclick=\"Close('#=Id#','#=PropertyId#')\">Select</button>").Title("Select").Width(50);
+            columns.Bound(c => c.CityName);
+            columns.Bound(c => c.PropertyId);
+            columns.Bound(c => c.OldPropertyId);
+            columns.Bound(c => c.Mobile);
+            columns.Bound(c => c.WardNo);
+            columns.Bound(c => c.OwnerName);
+            columns.Bound(c => c.HouseNo);
+            columns.Bound(c => c.Locality);
+            columns.Bound(c => c.PostalCode);
+            columns.Bound(c => c.Email);
+
+
+
+
+        })
+    // .Events(e => e.DataBound("DataBound"))
+    .Scrollable(x => x.Enabled(false))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+
+                .Pageable(pageable => pageable
+                .Refresh(true)
+
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+
+
+                .Read(read => read.Action("ReadSearchProperty", "Property", new { @area = "Property" }))
+                .Model(model => model.Id(p => p.Id))
+
+                )
+          )*@
+
+    </div>
+</div>
+@*<div class="cms-slidebar-footer">
+    <button type="button" class="btn btn-light" onclick="Close();">Close</button>
+    </div>*@

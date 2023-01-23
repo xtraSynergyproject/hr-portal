@@ -1,0 +1,181 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Parcel GIS View";
+    Layout = null;
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" type="text/css" rel="stylesheet" />
+<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+<link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet" />
+<script src="/geojson/geojsonleafletconfig.js"></script>
+
+<div class="row">
+    <div class="col-3" style="margin:1%">
+        @* Filter: <input type="text" id="search" class="form-control" />
+        <br />
+        <button id="clear" class="btn btn-primary">Clear</button>
+
+        <div id="parcelMapTreeView" class="demo treeview"></div>*@
+        Select Parcel
+        <input id="parcelCol" class="form-control" style="width: 100%;" />
+        <br />
+        <input id="parcelText" class="form-control" style="width: 100%;" />
+        <br />
+        <button class="btn btn-primary" onclick="onSearchParcel()">Search</button>
+        <hr />
+        Select Colony
+        <input id="colony" class="form-control" style="width: 100%;" />
+        <br />
+        <button class="btn btn-primary" onclick="onSearchColony(true)">Search Colony</button>
+        <hr />
+        <button class="btn btn-primary" onclick="onSearchBoth()">Search Both</button>
+    </div>
+    <div class="col">
+        <div id="map-view" class="tab-pane">
+            <div class="card" style="padding:5px">
+                <div id="map"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+    var data1;
+    var data2;
+
+    function onSearchColony(isColony) {
+        var id = $("#colony").data("kendoDropDownList").value();
+        $.ajax({
+            type: "GET",
+            url: "/EGov/SmartCity/GetColoniesData?ids=" + id,
+            success: function (response) {
+                //  loadMap(response);
+                if (isColony) {
+                    loadMap(response);
+                } else {
+                    data2 = response;
+                    multiLayerMap(data1, data2);
+                }
+            }
+        });
+    }
+
+    function onSearchBoth() {
+        var parcelCol = $("#parcelCol").data("kendoDropDownList").value();
+        var parcelText = $("#parcelText").val();
+        getParcelSearchResult(parcelCol, parcelText);
+    }
+
+    function onSearchParcel() {
+        var parcelCol = $("#parcelCol").data("kendoDropDownList").value();
+        var parcelText = $("#parcelText").val();
+        var colId = $("#colony").data("kendoDropDownList").value();
+
+        if (parcelText != "" || parcelText != undefined || parcelText != null) {
+            if (colId != "" || colId != undefined || colId != null) {
+                getParcelSearchResult(parcelCol, parcelText, true);
+            } else {
+                alert("Select Colony")
+            }
+        } else {
+            alert("Add Parcel Text");
+        }
+    }
+
+   // getParcelSearchResult("", "", true);
+
+    function getParcelSearchResult(colName, colText, isParcel) {
+        $.ajax({
+            type: "GET",
+            url: "/EGov/SmartCity/GetParcelSearchResult?colName=" + colName + "&colText=" + colText,
+            success: function (response) {
+
+                data1 = response;
+                //onSearchColony();
+                if (isParcel) {
+                    loadMap(response);
+                } else {
+                    onSearchColony();
+                }
+            }
+        });
+    }
+
+    function onEachFeatureParcel(feature, layer) {
+        if (feature) {
+            var text = "Type - " + feature.type
+                + " <br/>Property Id - " + feature.prop_id
+                + " <br/>Residential Status - " + feature.res_stat
+                + " <br/>Road Details - " + feature.road_desc
+                + " <br/>Road Type - " + feature.road_type
+                + " <br/>Owner Details - " + feature.own_dtls
+                + " <br/>Owner Name - " + feature.own_name
+                + " <br/>Telephone No - " + feature.tel_no
+                + " <br/>Aadhar No - " + feature.aadhar;
+
+            layer.bindPopup(text);
+        }
+    }
+
+    function onEachFeature(feature, layer) {
+        if (feature) {
+            var text = "Type - " + feature.type
+                + " <br/>Property Id - " + feature.prop_id
+                + " <br/>Residential Status - " + feature.res_stat
+                + " <br/>Road Details - " + feature.road_desc
+                + " <br/>Road Type - " + feature.road_type
+                + " <br/>Owner Details - " + feature.own_dtls
+                + " <br/>Owner Name - " + feature.own_name
+                + " <br/>Telephone No - " + feature.tel_no
+                + " <br/>Aadhar No - " + feature.aadhar;
+
+            layer.bindPopup(text);
+        }
+    }
+
+    function onEachFeatureColony(feature, layer) {
+        if (feature) {
+            var text = "Colony - " + feature.col_name;
+            layer.bindPopup(text);
+        }
+    }
+
+
+    $("#parcelCol").kendoDropDownList({
+        optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/EGov/SmartCity/GetParcelColumn",
+                }
+            }
+        }
+    });
+
+    $("#colony").kendoDropDownList({
+        optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/EGov/SmartCity/GetColonyList",
+                }
+            }
+        }
+    });
+
+    var element = document.getElementById('map');
+    element.style = 'height:650px;';
+
+</script>

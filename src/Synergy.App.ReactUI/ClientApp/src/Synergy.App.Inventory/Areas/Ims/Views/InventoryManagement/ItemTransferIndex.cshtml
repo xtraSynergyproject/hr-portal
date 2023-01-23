@@ -1,0 +1,352 @@
+﻿@{
+    ViewData["Title"] = "Item Transfer";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+<div class="row pad-10 no-gutters page-content">
+    <div class="container" style="padding:0px;max-width:100%">
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li class="nav-item"><a data-toggle="tab" href="#draft" class="nav-link active" role="tab" aria-controls="draft" aria-selected="true" onclick="onItemTransferList()"><i class="far fa-file-alt" style="margin-left:15px;"></i><br />ITEM TRANSFER</a></li>
+        </ul>
+        <div class="tab-content" style="border: 1px solid silver;border-top:none;">
+            <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+                <div style="width: 100%;" class="p-3">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Search Criteria</legend>
+                        <div class="text-danger" asp-validation-summary="All"></div>
+                        <div class="row">
+                            <div class="col-4 form-group required">
+                                <div class="col-form-label">
+                                    <label>From Date</label>
+                                </div>
+                                <input id="FromDate" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label required">
+                                    <label>To Date</label>
+                                </div>
+                                <input id="ToDate" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label required">
+                                    <label>Warehouse</label>
+                                </div>
+                                <input id="WarehouseId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Item Type</label>
+                                </div>
+                                <input id="ItemTypeId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Item Category</label>
+                                </div>
+                                <input id="ItemCategoryId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Item Subcategory</label>
+                                </div>
+                                <input id="ItemSubCategoryId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Item Name</label>
+                                </div>
+                                <input id="ItemId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    &nbsp;
+                                </div>
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Search" onclick="OnSearch()" />
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Reset" onclick="OnReset()" />
+                                <input type="button" id="btnPrint" class="btn btn-primary btn-control" style="color:white" value="Print" onclick="OnPrint()" />
+                                <input type="button" id="btnDownload" class="btn btn-primary btn-control" style="color:white" value="Download" onclick="OnDownload()" />
+                                @*<button class="btn btn-warning" onclick="AddVendor()"><i class="fas fa-plus"></i> Add Vendor</button>*@
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset class="fieldset" id="itemFieldSet" style="display:none;">
+                        <legend class="fs-legend">Item Transfer List</legend>
+                        <div id="ItemListGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <div id="detailPage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        document.getElementById("btnPrint").disabled = true;
+        document.getElementById("btnDownload").disabled = true;
+
+        var d = new Date();
+        d.setDate(d.getDate() - 2);
+        $("#FromDate").kendoDatePicker({
+            value: d,
+            format: "dd.MM.yyyy"
+        });
+        $("#ToDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd.MM.yyyy"
+        });
+
+        $("#WarehouseId").kendoDropDownList({
+            dataTextField: "WarehouseName",
+            dataValueField: "Id",
+            optionLabel: "--Select--",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetWarehouseList",
+                    }
+                }
+            }
+        });
+
+    });
+
+    $("#ItemTypeId").kendoDropDownList({
+        dataTextField: "Name",
+        dataValueField: "Id",
+        optionLabel: "--All--",
+        change : OnChangeItemType,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/LOV/GetListOfValueList?type=IMS_ITEM_TYPE",
+                }
+            }
+        }
+    });
+
+    $("#ItemCategoryId").kendoDropDownList({
+        optionLabel: "--All--",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        filter: "contains",
+        change: OnChangeItemCategory,
+        dataBound: OnChangeItemCategory,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/IMS/InventoryMaster/GetItemCategoryListByItemType",
+                    data: fiterDataItemCategory
+                }
+            }
+        }
+    });
+
+    $("#ItemSubCategoryId").kendoDropDownList({
+        optionLabel: "--All--",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        filter: "contains",
+        change: OnChangeItemSubCategory,
+        dataBound: OnChangeItemSubCategory,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/IMS/InventoryMaster/GetItemSubCategoryListByItemCategory",
+                    data: fiterDataItemSubCategory
+                }
+            }
+        }
+    });
+
+    $("#ItemId").kendoDropDownList({
+        optionLabel: "--All--",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        filter: "contains",
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/IMS/InventoryMaster/GetItemListByItemSubCategory",
+                    data: fiterDataItem
+                }
+            }
+        }
+    });
+
+    function OnChangeItemType(e) {
+        //debugger;
+        $("#ItemCategoryId").data("kendoDropDownList").dataSource.read();
+    }
+
+    function OnChangeItemCategory(e) {
+        $("#ItemSubCategoryId").data("kendoDropDownList").dataSource.read();
+    }
+    function OnChangeItemSubCategory(e) {
+        $("#ItemId").data("kendoDropDownList").dataSource.read();
+    }
+
+
+    function fiterDataItemCategory() {
+        var search = {
+            itemTypeId: $("#ItemTypeId").data("kendoDropDownList").value(),
+        };
+        return search;
+    }
+
+    function fiterDataItemSubCategory() {
+        var search = {
+            itemCategoryId: $("#ItemCategoryId").data("kendoDropDownList").value(),
+        };
+        return search;
+    }
+
+    function fiterDataItem() {
+        var search = {
+            itemSubCategoryId : $("#ItemSubCategoryId").data("kendoDropDownList").value(),
+        };
+        return search;
+    }
+
+    function onItemTransferList() {
+
+    }
+    var columnDefs = [
+        {
+            headerName: "Sr No.",
+            field: "SNo",
+            width: 150,
+        },
+        {
+            headerName: "Transfer No",
+            field: "ServiceNo",
+            width: 350,
+        },
+        {
+            headerName: "Transfer Date",
+            field: "TransferDate",
+            width: 350,
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
+            },
+
+        },
+        {
+            headerName: "Challan No",
+            field: "ChallanNo",
+            width: 350,
+        },
+        {
+            headerName: "Item Name",
+            field: "ItemName",
+            width: 500,
+        },
+        {
+            headerName: "From WareHouse",
+            field: "FromWareHouse",
+            width: 350,
+        },
+        {
+            headerName: "To WareHouse",
+            field: "ToWareHouse",
+            width: 350,
+        },
+        {
+            headerName: "Transfer Qty",
+            field: "TransferQuantity",
+            width: 350,
+        },
+        {
+            headerName: "Issued Qty",
+            field: "IssuedQuantity",
+            width: 350,
+        },
+        {
+            headerName: "Transfer Reason",
+            field: "TransferReason",
+            width: 350
+        }
+    ];
+
+    $(function () {
+        var sd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        var ed = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        //GetItemListGrid(sd,ed,"","","","","");
+    });
+
+    function GetItemListGrid(fromDate,toDate, warehouse, itemtype, category, subcategory,item) {
+        document.getElementById("ItemListGrid").innerHTML = "";
+        gridConfig(
+            "ItemListGrid",
+            "/Ims/InventoryManagement/ReadItemTransferData?fromDate=" + fromDate + "&toDate=" + toDate + "&warehouseId=" + warehouse + "&itemTypeId=" + itemtype + "&itemCategoryId=" + category + "&itemSubCategoryId=" + subcategory + "&itemId=" + item,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function OnSearch() {
+        //alert("Search");
+        if ($("#WarehouseId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Warehouse field is required");
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+            $(".text-danger").html("");
+        }
+
+        $("#itemFieldSet").show();
+
+        var sd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        var ed = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+
+        var warehouse = $("#WarehouseId").data("kendoDropDownList").value();
+        var itemtype = $("#ItemTypeId").data("kendoDropDownList").value();
+        var category = $("#ItemCategoryId").data("kendoDropDownList").value();
+        var subcategory = $("#ItemSubCategoryId").data("kendoDropDownList").value();
+        var item = $("#ItemId").data("kendoDropDownList").value();
+
+        GetItemListGrid(sd, ed, warehouse, itemtype, category, subcategory, item);
+
+    }
+    function OnReset() {
+        //alert("Reset");
+
+        var d = new Date();
+        d.setDate(d.getDate() - 2);
+        var sd = kendo.toString(kendo.parseDate(d), 'yyyy-MM-dd HH:mm:ss');
+        $("#FromDate").data("kendoDatePicker").value(sd);
+        var ed = kendo.toString(kendo.parseDate(new Date()), 'yyyy-MM-dd HH:mm:ss');
+        $("#ToDate").data("kendoDatePicker").value(ed);
+
+        $("#WarehouseId").data("kendoDropDownList").value(-1);
+        $("#ItemTypeId").data("kendoDropDownList").value(-1);
+        $("#ItemCategoryId").data("kendoDropDownList").value(-1);
+        $("#ItemSubCategoryId").data("kendoDropDownList").value(-1);
+        $("#ItemId").data("kendoDropDownList").value(-1);
+
+        $("#itemFieldSet").hide();
+        document.getElementById("btnPrint").disabled = true;
+        document.getElementById("btnDownload").disabled = true;
+    }
+    function OnPrint() {
+        alert("Print");
+    }
+    function OnDownload() {
+        alert("Download");
+    }
+</script>

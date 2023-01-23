@@ -1,0 +1,150 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@{
+    ViewData["Title"] = "Search Entity Status";
+}
+<style>
+    #sebiinvestor h2 {
+        background-position: left center;
+        font-size: 17px;
+        height: 24px;
+        font-weight: bold;
+        color: #144878;
+        /* background: url(../images/headingbg.png) no-repeat; */
+        padding-left: 12px;
+        padding-top: 2px;
+    }
+
+</style>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#listcompany").hide();
+        $("#listcompanydetails").hide();
+
+        $("#EntityTypeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--Select--",
+            change: onEntityTypeChange,
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetLOVIdNameList?lovType=SEBIEntityType",
+                    }
+                }
+            }
+        });
+
+        $("#ListedCompanyId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--Select--",
+            filter: "contains",
+            change: onListedCompanyChange,
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/NtsService/GetSEBIInvestorListedCompanyIdNameList",
+                    }
+                }
+            }
+        });
+
+    });
+    function onEntityTypeChange() {
+        $("#listcompany").show();
+        var typeid = $("#EntityTypeId").data("kendoDropDownList").value();
+        var search = { entityType: typeid };
+        $("#ListedCompanyId").data("kendoDropDownList").dataSource.read(search);
+
+    }
+    function onListedCompanyChange() {
+        var comp = $("#ListedCompanyId").data("kendoDropDownList").value();
+        $.ajax({
+            url:'@Url.Action("GetSEBIInvestorListedCompanyData", "NtsService", new { @area= "Cms" })?listedCompanyId='+comp,
+        type: "GET",
+        contentType: "application/json",
+        dataType: "JSON",
+        success: function (response) {
+            if (response.success) {
+                debugger;
+                $("#listcompanydetails").show();
+                console.log(response.data);
+                $("#companyName").text(response.data.NameOfTheCompany);
+                $("#companyStatus").text(response.data.EntityTypeName);
+                $("#companyAddress").text(response.data.RegisteredOfficeAddressOfCompany);
+                $("#stateofCompany").text(response.data.SelectState);
+                $("#previousNames").text(response.data.PreviousNamesOfTheCompany);
+                $("#exchangeStatus").text('');
+                $("#registrarName").text('');
+                $("#registrarAddress").text('');
+                $("#designatedStockExchange").text(response.data.StockExchangeForComplaints);
+            }
+        }
+        });
+
+    }
+</script>
+
+<div id="sebiinvestor">
+    <div class="row pad-10">
+        <div class="col-12">
+            <h2>@ViewData["Title"]</h2>
+        </div>
+    </div>
+    <div class="row pad-10">
+        <div class="col-4">Select Entity<span class="required">*</span></div>
+        <div class="col-8"><input id="EntityTypeId" class="form-control hr-xx-large" /></div>
+    </div>
+    <div class="row pad-10" id="listcompany">
+        <div class="col-4">Enter the Company to be Searched</div>
+        <div class="col-8"><input id="ListedCompanyId" class="form-control hr-xx-large" /></div>
+    </div>
+    <div id="listcompanydetails">
+        <div class="row pad-10">
+            <div class="col-4"><b>Company Name</b></div>
+            <div class="col-8"><span id="companyName" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-10">
+            <div class="col-4"><b>Company Status</b></div>
+            <div class="col-8"><span id="companyStatus" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-10">
+            <div class="col-4"><b>Company Address</b></div>
+            <div class="col-8"><span id="companyAddress" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-10">
+            <div class="col-4"><b>State of Company</b></div>
+            <div class="col-8"><span id="stateofCompany" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-10">
+            <div class="col-4"><b>Previous Name(s)</b></div>
+            <div class="col-8"><span id="previousNames" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-10">
+            <div class="col-4"><b>Exchange Status</b></div>
+            <div class="col-8"><span id="exchangeStatus" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-10">
+            <div class="col-4"><b>Registrar Name</b></div>
+            <div class="col-8"><span id="registrarName" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-10">
+            <div class="col-4"><b>Registrar Address</b></div>
+            <div class="col-8"><span id="registrarAddress" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-10">
+            <div class="col-4"><b>Designated Stock Exchange	</b></div>
+            <div class="col-8"><span id="designatedStockExchange" style="color: #2564C0; font-weight: bold;"></span></div>
+        </div>
+        <div class="row pad-20">
+            <div class="col-12"><span style="color:red;font-weight:bold;">
+    Disclaimer:The above information is provided based on the data collected from the Stock Exchanges or from the website of Ministry of Company affairs as a service to investors.SEBI will not be responsible for any loss to any person/entity caused by any short-coming,defect or inaccuracy inadvertently or otherwise crept in the SEBI's web site.Any discrepancy may be brought to the notice of SEBI at sebi[at]sebi[dot]gov[dot]in.
+    Asterisk(*) indicates non-authenticated company
+</span></div>
+        </div>
+    </div>
+</div>

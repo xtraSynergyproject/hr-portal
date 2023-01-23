@@ -1,0 +1,307 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+
+<div class="tab-content" style="border: 1px solid silver;border-top:none;">
+    <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+        <div style="width: 100%;" class="p-3">
+
+
+            @*<fieldset class="fieldset">
+                <legend class="fs-legend">Search Criteria</legend>
+                <div class="text-danger" asp-validation-summary="All"></div>
+                <div class="row">
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            <label>Requisition Status</label>
+                        </div>
+                        <input type="text" id="RequisitionStatus" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            <label>Requisition From Date</label>
+                        </div>
+                        <input type="text" id="RequisitionFromDate" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            <label>Requisition To Date</label>
+                        </div>
+                        <input type="text" id="RequisitionToDate" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            <label>Item Type<span class="required">*</span></label>
+                        </div>
+                        <input type="text" id="ItemHead" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            <label>Customer</label>
+                        </div>
+                        <input type="text" id="Customer" class="form-control" />
+                    </div>
+                    <div class="col-4 form-group">
+                        <div class="col-form-label">
+                            &nbsp;
+                        </div>
+                        <input type="button" class="btn btn-primary btn-control" value="Get" style="color:white" onclick="OnSearch1()" />
+                        <button class="btn btn-warning" onclick="AddRequisition()"><i class="fas fa-plus"></i> New Requisition</button>
+                        <button class="btn btn-primary btn-control" style="display:none;color:white" onclick="AddPORequest()" id="poRequest">PO Request</button>
+                    </div>
+                </div>
+            </fieldset>*@
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Stock Adjustment List(s)</legend>
+                <div class="col-12 form-group">
+                    <div class="col-form-label">
+                        &nbsp;
+                    </div>
+                   
+                    <input type="button" class="btn btn-warning" value="Add Stock Adjustment" style="margin:5px;color:white" onclick="AddStockAdjustment()" />
+                </div>
+                <div id="StockListGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            </fieldset>
+
+
+        </div>
+    </div>
+    </div>
+<script>
+            var columnDefs = [
+                //{
+                //    field: "Id",
+                //    headerName: "Select",
+                //    cellRenderer: params => {
+                //        return "<input type='checkbox' class='checkcontact' data-id='" + params.value + "'/>"
+
+
+                //    }
+                //},
+                {
+                    field: "ServiceNo",
+                    // headerName: "Req. No"
+                },
+                {
+                    field: "AdjustmentDate",
+                    headerName: "Adjustment Date",
+                    cellRenderer: (data) => {
+                        var d = new Date(data.value);
+                        return d.getDate() + "." +( d.getMonth() +1)+ "." + d.getFullYear();
+                    }
+                },
+                {
+                    field: "WarehouseName",
+                    headerName: "Warehouse Name"
+                },
+                {
+                    field: "ServiceStatusName",
+                    headerName: "Status",
+                    //cellRenderer: params => {
+                    //    return statusObj[params.value]; //only for enum
+                    //}
+                },
+                {
+                    field: "CreatedBy",
+                    headerName: "Prepared By"
+                },
+                {
+                    headerName: "Actions",
+                    field: "Id",
+                    cellRenderer: params => {
+
+                        return "<div class='btn-group grid-menu' id='tree-menuadjustment' data-idvalue='" + params.value + "' data-status=\"" + params.data.ServiceStatusCode + "\" data-stocktype=\"" + params.data.StockAdjustmentType + "\"  data-warehouseid=\"" + params.data.WarehouseId + "\" ><i class='fas fa-ellipsis-v'></i></div>"
+                    }
+                }
+            ];
+            $(function () {
+
+
+
+
+                $.contextMenu({
+                    selector: '#tree-menuadjustment',
+                    trigger: 'left',
+                    build: function ($trigger, e) {
+
+
+                        var id = $trigger.data('idvalue');
+                        var adjType = $trigger.data('stocktype');
+                        var status = $trigger.data('status');
+                        var warehouseid = $trigger.data('warehouseid');
+                        switch (0) {
+                            case 0:
+                                //
+                                var Items;
+
+                                if (status == "SERVICE_STATUS_DRAFT") {
+                                    Items = {
+                                        "edit": { name: "Edit", icon: "fas fa-edit" },
+                                        "addItems": { name: "Item", icon: "fa-regular fa-cart-circle-plus" },
+                                        "submit": { name: "Submit", icon: "fa-regular fa-arrow-right-to-bracket" },
+                                    };
+                                }
+                                else if (status == "SERVICE_STATUS_COMPLETE") {
+                                    if (adjType == "0") {
+                                        Items = {
+                                            "receiveItem": { name: "Receive Item", icon: "fa-regular fa-cart-circle-plus" },
+                                            "addItems": { name: "Item", icon: "fa-regular fa-cart-circle-plus" },
+
+                                        };
+
+                                    }
+                                    else {
+                                        Items = {
+                                            "issueItem": { name: "Issue Stock Adjustment", icon: "fa-regular fa-cart-circle-plus" },
+                                            "addItems": { name: "Item", icon: "fa-regular fa-cart-circle-plus" },
+
+                                        };
+                                    }
+                                }
+                                
+
+                                return {
+                                    callback: function (key, options) {
+                                        switch (key) {
+                                            case 'issueItem':
+                                                onIssueItem(id, warehouseid);
+                                                break;
+                                            case 'receiveItem':
+                                                onReceviceItem(id);
+                                                break;
+                                            case 'addItems':
+                                                OnAddItem(id);
+                                                break;
+
+                                            case 'submit':
+                                                OnSubmit(id);
+                                                break;
+                                            case 'edit':
+                                                onEdit(id);
+                                                break;
+
+                                            default:
+                                        }
+                                    },
+                                    items: Items
+                                };
+
+
+                        }
+                    }
+                });
+                getStockAdjustmentData();
+
+
+
+
+            });
+            function getStockAdjustmentData() {
+                document.getElementById("StockListGrid").innerHTML = "";
+                //   var sd = kendo.toString($("#RequisitionFromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+                //  var ed = kendo.toString($("#RequisitionToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+                gridConfig(
+                    "StockListGrid",
+                    "/IMS/InventoryManagement/ReadStockAdjustmentList?",//+ $("#ItemHead").data("kendoDropDownList").value() + "&Customer=" + $("#Customer").data("kendoDropDownList").value() + "&Status=" + $("#RequisitionStatus").data("kendoDropDownList").value() + "&From=" + sd + "&To=" + ed,
+                    columnDefs,
+                    false,
+                    true,
+                    true,
+                    true,
+                    1,
+                    true,
+                    10);
+            }
+    function AddStockAdjustment() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/Ims/InventoryManagement/ManageStockAdjustment';
+        win.OpenWindow({ Title: 'Create Stock Adjustment', Width: 700, Height: 650 });
+    }
+
+    function OnAddItem(id)
+    {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryManagement/AddStockAdjustmentItems?stockAdjustmentId=' + id;// + '&itemHead=' + $("#ItemHead").data("kendoDropDownList").value() + '&serStatus=' + status;
+        win.OpenWindow({ Title: 'Add Items', Width: 700, Height: 800 });
+        return false;
+    }
+    function onEdit(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryManagement/ManageStockAdjustment?id=' + id;
+        win.OpenWindow({ Title: 'Edit Stock Adjustment', Width: 700, Height: 800 });
+        return false;
+    }
+    function OnSubmit(id) {
+
+        $.ajax({
+            url: '/IMS/InventoryManagement/CheckStockAdjustmentItemsExist?stockAdjustmentId=' + id,
+            type: 'POST',
+            data: {},
+            dataType: 'json',
+            success: function (result) {
+
+                if (result.success) {
+                    var flag = confirm('Do you really want to Submit?');
+
+                    if (flag) {
+                        ShowLoader($("#cms-content"));
+                        $.ajax({
+                            url: '/IMS/InventoryManagement/SubmitService?UdfNoteTableId=' + id,
+                            type: 'POST',
+                            data: {},
+                            dataType: 'json',
+                            success: function (result) {
+                                HideLoader($("#cms-content"));
+                                if (result.success) {
+                                    getStockAdjustmentData();
+                                    kendo.alert("Submitted Successfully.");
+                                } else {
+                                    getStockAdjustmentData();
+                                    var err = result.errors.BinderCountError.errors[0];
+                                    kendo.alert(err);
+                                }
+                            },
+                            error: function (ert) {
+                                HideLoader($("#cms-content"));
+                                getStockAdjustmentData();
+                            }
+                        });
+                        //return false;
+                    }
+                } else {
+                    kendo.alert("Please Add  Items First");
+                }
+            },
+            error: function (ert) {
+                getStockAdjustmentData();
+            }
+        });
+
+
+
+
+
+
+    }
+    function onIssueItem(id, warehouseid) {
+        //var win = GetMainWindow();
+        //win.iframeOpenUrl = '/IMS/InventoryManagement/StockAdjustmentIssues?stockAdjustmentId=' + id;
+        //win.OpenWindow({ Title: 'Stock Adjustment Issue', Width: 700, Height: 800 });
+        //return false;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryManagement/RequisitionIssueItems?requisitionId=' + id + '&warehouseId=' + warehouseid + '&issuetype=2';
+        win.OpenWindow({ Title: 'Issue Item For Stock Adjustment', Width: 1200, Height: 800 });
+        return false;
+    }
+    function onReceviceItem(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryManagement/ReceiveStockAdjustment?stockAdjustmentId=' + id;
+        win.OpenWindow({ Title: 'Stock Adjustment Issue', Width: 700, Height: 800 });
+        return false;
+    }
+</script>

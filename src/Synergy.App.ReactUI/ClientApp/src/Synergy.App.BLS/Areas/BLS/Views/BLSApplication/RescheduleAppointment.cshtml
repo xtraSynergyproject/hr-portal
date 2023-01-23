@@ -1,0 +1,181 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration configuration
+@inject IStringLocalizer<Synergy.App.BLS.Areas.Controllers.BLSApplicationController> Resource
+@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Microsoft.Extensions.Configuration;
+
+@model BLSVisaAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Reschedule Appointment";
+    Layout = null;
+}
+
+<style>
+    .pwd-tgap {
+        margin: 20px 0 0 0;
+        padding: 0;
+        text-align: center;
+    }
+</style>
+
+<script>
+
+    var onAjaxSuccess = function (res) {
+        debugger;
+        if (res.success) {
+            HideLoader($('#cms-content'));
+            /*$('#dntCaptchaRefreshButton')[0].click();*/
+            $("#ServiceNo").attr("disabled");
+            $("#ApplicantEmail").attr("disabled");
+            $("#getDetails").hide();
+            /*$("#submitDetails").attr("display","block");*/
+            $("#slotDetails").load(`/BLS/BLSApplication/RescheduleDetails?id=` + res.model.Id + `&serviceId=` + res.model.ServiceId);
+        }
+        else {
+            /*$('#dntCaptchaRefreshButton')[0].click();*/
+            HideLoader($('#cms-content'));
+            showError(res.error);
+        }
+    };
+
+    var onAjaxSuccess2 = function (res) {
+        debugger;
+        if (res.success) {
+            HideLoader($('#cms-content'));
+            ShowNotification("Appointment Rescheduled Successfully", "success");
+            window.location.reload();
+        }
+        else {
+            $('#dntCaptchaRefreshButton')[0].click();
+            HideLoader($('#cms-content'));
+            showError(res.error);
+        }
+    };
+
+    var showError = function (error) {
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+
+    function onFormSave(e) {
+        debugger;
+        //$("#validation-summary").html("");
+        //$("#validation-summary").css("display", "none");
+        //var captachVal = $("#DNTCaptchaInputText").val();
+        //if (captachVal == '' || captachVal == null) {
+        //    $("#validation-summary").html("Please Enter Captcha");
+        //    $("#validation-summary").css("display", "block");
+        //    e.preventDefault();
+        //    return false;
+        //}
+        var serno = $("#ServiceNo").val();
+        var email = $("#ApplicantEmail").val();
+        if (serno == "") {
+            $("#validation-summary").html("Enter Appointment No");
+            $("#validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+        else if (email == "") {
+            $("#validation-summary").html("Enter Email");
+            $("#validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+        else {
+            $("#validation-summary").html("");
+            $("#validation-summary").css("display", "none");
+            ShowLoader($('#cms-content'));
+        }        
+    }
+
+    function onAjaxBegin() {
+        ShowLoader($('#cms-content'));
+    }
+</script>
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="jumbotron" style="max-width:400px;margin:auto;">
+                <h5 class="text-center">Reschedule Appointment</h5>
+                <hr />
+                <form asp-controller="BLSApplication" asp-action="ManageRescheduleAppointment" class="form-horizontal"
+                      id="rescheduleForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+                      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+                      data-ajax="true" data-ajax-method="POST">
+
+                    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+                    <div class="form-group">
+                        <label for="ServiceNo" class="form-label required">
+                           @Resource["AppointmentNo"] 
+                        </label>
+                        <div>
+                            <input asp-for="ServiceNo" type="text" class="form-control" style="width:100%" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ApplicantEmail" class="form-label required">
+                           @Resource["Email"] 
+                        </label>
+                        <div>
+                            <input asp-for="ApplicantEmail" type="text" class="form-control" style="width:100%" required />
+                        </div>
+                    </div>
+
+                    @*<div class="text-center">
+            <dnt-captcha asp-captcha-generator-max="999999"
+                         asp-captcha-generator-min="111111"
+                         asp-captcha-generator-language="English"
+                         asp-captcha-generator-display-mode="ShowDigits"
+                         asp-use-relative-urls="true"
+                         asp-show-refresh-button="true"
+                         asp-placeholder=""
+                         asp-font-name="Tahoma"
+                         asp-font-size="20"
+                         asp-fore-color="#222222"
+                         asp-back-color="#ccc"
+                         asp-text-box-class="form-control"
+                         asp-text-box-template="<div class='form-group'><label class='form-label required text-left d-block' for='captcha'>Captcha</label>{0}</div>"
+                         asp-validation-message-class="text-danger"
+                         asp-validation-error-message="Please enter captcha"
+                         asp-refresh-button-class="fas fa-redo btn-sm"
+                         asp-use-noise="false" />
+        </div>*@
+
+                    <div class="text-center">
+                        <dnt-captcha asp-captcha-generator-max="999999"
+                                     asp-captcha-generator-min="111111"
+                                     asp-captcha-generator-language="English"
+                                     asp-captcha-generator-display-mode="ShowDigits"
+                                     asp-use-relative-urls="true"
+                                     asp-show-refresh-button="true"
+                                     asp-placeholder=""
+                                     asp-font-name="Tahoma"
+                                     asp-font-size="20"
+                                     asp-fore-color="#222222"
+                                     asp-back-color="#ccc"
+                                     asp-text-box-class="form-control"
+                                     asp-text-box-template="<div class='form-group'><label class='form-label required text-left d-block' for='captcha'>Captcha</label>{0}</div>"
+                                     asp-validation-message-class="text-danger"
+                                     asp-validation-error-message="Please enter captcha"
+                                     asp-refresh-button-class="fas fa-redo btn-sm"
+                                     asp-use-noise="false" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" id="getDetails" class="btn btn-primary btn-block">@Resource["GetDetails"]</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="slotDetails"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+

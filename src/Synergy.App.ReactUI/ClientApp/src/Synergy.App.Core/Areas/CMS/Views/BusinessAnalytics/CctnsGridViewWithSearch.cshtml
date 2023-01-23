@@ -1,0 +1,67 @@
+﻿
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+ @model System.Data.DataTable
+
+@*<h4 style="text-align: center; background: #006699; color: white; margin-bottom: 0px; padding-top: 6px; padding-bottom: 6px;">@ViewBag.Heading</h4>*@
+<div class="row">
+    <div class="col-12">
+        <div id="@ViewBag.GridName" style="width: 100%;height:550px" class="ag-theme-alpine"></div>       
+    </div>
+</div>
+<br />
+<script>
+    var columnDefs = [
+
+        {
+            field: "View",
+            headerName: "View",
+            minWidth: 100, 
+            maxWidth: 100,
+            cellRenderer: params => {
+                return "<span class='fas fa-eye' onclick='viewDetails("+params.data.JsonString+")'></span>";
+            }
+        },
+        @foreach (System.Data.DataColumn column in Model.Columns)
+        {
+            if (column.ColumnName == "JsonString")
+            {
+                @:{ field: '@column.ColumnName', headerName: "Details", minWidth: 300, maxWidth: 500, cellRenderer: params => {  if (params.data.@column.ColumnName != null && params.data.@column.ColumnName != undefined) { return "<div class='text-justify' >" + params.data.@column.ColumnName + " </div>"; }else { return "";}} },
+            
+            }
+            else
+            {
+                 @:{ field: '@column.ColumnName', headerName: toTitleCaseGrid('@column.ColumnName'), minWidth: 150, maxWidth: 300, cellRenderer: params => {  if (params.data.@column.ColumnName != null && params.data.@column.ColumnName != undefined) { return "<div class='text-justify' >" + params.data.@column.ColumnName + " </div>"; }else { return "";}} },
+                
+            }
+        }
+    ];
+    $(function () {        
+        var str = '@Html.Raw(ViewBag.SearchStr)';
+        document.getElementById("@ViewBag.GridName").innerHTML = "";
+        var url = "/cms/BusinessAnalytics/ReadCctnsDataListWithSearch?indexName=@ViewBag.IndexName&filterColumn=@ViewBag.FilterColumn&searchStr="+str+"&isAdvance=@ViewBag.IsAdvance&plainSearch=@ViewBag.PlainSearch&dateFilterType=@ViewBag.DateFilterType&startDate=@ViewBag.StartDate&endDate=@ViewBag.EndDate";        
+        gridConfig(
+            "@ViewBag.GridName",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+
+    });
+function viewDetails(json) {   
+    var str=JSON.stringify(json)
+    var url = '/Cms/BusinessAnalytics/CCTNSDetails?cctnsData=' + str;
+    var win = GetMainWindow();
+    win.iframeOpenUrl = url;
+    win.OpenWindow({ Title: 'CCTNS Details', Width: 1200, Height: 600 });
+    return false;
+    
+}
+
+</script>

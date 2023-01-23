@@ -1,0 +1,201 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@using Newtonsoft.Json;
+@{
+    Layout = null;
+}
+@model NewDashboardViewModel
+
+<link href="~/css/EGOV/MyRequest.css" rel="stylesheet" asp-append-version="true" />
+<link href="~/css/EGOV/DashBoardStyles.css" rel="stylesheet" asp-append-version="true" />
+<link href="~/css/EGOV/Dashboard-Navigation-with-Button.css" rel="stylesheet" asp-append-version="true" />
+<style>
+
+
+
+    .title-bg1 {
+        background-color: #070f74;
+        padding: 6px 0 2px 20px;
+        margin: 0;
+        font-size: 20px;
+        color: #fff;
+        border-radius: 12px 12px 0 0;
+        height: auto;
+        font-weight: 500;
+    }
+
+    .indiv-block-bg1 {
+        /* background-color: #F5EBBC; */
+        height: 100px;
+        width: 230px;
+        
+        border-radius: 20px;
+        margin-left: 20px;
+        overflow: hidden !important;
+        /* border: 1px solid #e66c80; */
+        background-color: #cdcdcd;
+    }
+
+    .label1 {
+        font-size: 20px;
+    }
+
+    .cancel-button {
+        background: #eb7c63;
+        order: 2;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/EGov/EGovernment/DashboardList",
+                    // data: FilterDDl,
+                    dataType: "json",
+                }
+            },
+            pageSize: 21
+        });
+
+        $("#listView").kendoListView({
+            dataSource: dataSource,
+            //change: OnChange,
+            template: kendo.template($("#template").html())
+        });
+    });
+    function onService() {
+        var portalId = window.parent.$('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=EGOV_PROJECT_PROPOSAL&portalId=' + portalId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create', Width: 1200, Height: 600 });
+    }
+</script>
+<script id="template" type="text/kendo-ui-template">
+    <div class="row col-12" style="margin:5px;color:blue;font-weight:500;font-size:16px">
+        <div class="col-2">
+        <span>#:ProjectDate#</span>
+        </div>
+        <div class="col-10">
+          <span>#:ProjectDate#</span><br/>
+         <span>#:ProjectName#</span><br/>
+       <span>#:ProjectDescription#</span><br/><br/>
+    <span>Read More <i class="fa-solid fa-chevrons-right"></i></span>
+        </div>
+
+        </div><hr/>
+       @*<div class="row col-12" style="margin:5px;color:Highlight;font-weight:500;font-size:16px">
+        <div class="col-2">
+        <span>#:Date#</span>
+        </div>
+        <div class="col-10">
+          <span>#:DateTime#</span><br/>
+         <span>#:Place#</span><br/>
+       <span>#:Description#</span><br/><br/>
+     <span>Read More <i class="fa-solid fa-chevrons-right"></i></span>
+        </div>
+
+        </div><hr/>
+     <div class="row col-12" style="margin:5px;color:Highlight;font-weight:500;font-size:16px">
+      <div class="col-2">
+      <span>#:Date#</span>
+      </div>
+      <div class="col-10">
+        <span>#:DateTime#</span><br/>
+       <span>#:Place#</span><br/>
+     <span>#:Description#</span><br/><br/>
+    <span>Read More <i class="fa-solid fa-chevrons-right"></i></span>
+      </div>
+
+      </div>*@
+
+</script>
+<div>
+    <br />
+    <p style="color:#070f74;font-weight:800;font-size:20px">Dashboard</p>
+
+    <div class="d-flex flex-row flex-nowrap overflow-hidden" id="services">
+        <div class="box" style=" overflow: unset; display: flex;">
+            @*@foreach (var item in Model.DashboardList)
+                {*@
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="box indiv-block-bg1">
+                        <div class="row tempheader">
+                            <div class="col">
+                                <div class="title-bg1">Projects</div>
+                            </div>
+                        </div>
+                        <div class="row" @*style="background-color:gray;"*@>
+                            <div class="col" style="text-align:center;">
+                                <label class="amount">@Model.ProjectCount</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="box indiv-block-bg1">
+                        <div class="row tempheader">
+                            <div class="col">
+                                <div class="title-bg1">Finished</div>
+                            </div>
+                        </div>
+                        <div class="row" @*style="background-color:gray;"*@>
+                            <div class="col" style="text-align:center;">
+                                <label class="amount">@Model.FinishedCount</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="box indiv-block-bg1">
+                        <div class="row tempheader">
+                            <div class="col">
+                                <div class="title-bg1">Likes</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col" style="text-align:center;">
+                                <label class="amount">@Model.LikeCount</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="box indiv-block-bg1">
+                        <div class="row tempheader">
+                            <div class="col">
+                                <div class="title-bg1">Comments</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col" style="text-align:center;">
+                                <label class="amount">@Model.CommentCount</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+
+        </div>
+    </div>
+
+
+</div>
+<br />
+<div class="row">
+
+    <div class="col-6" style="color:#070f74;font-weight:800;font-size:20px">Latest and Past Projects</div>
+    <div class="col-6" style="padding-left:320px"><button class="btn btn-primary" style="background-color:black;border-color:black" onclick="onService()">Add New +</button></div>
+</div>
+<br />
+<div id="listView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+
+

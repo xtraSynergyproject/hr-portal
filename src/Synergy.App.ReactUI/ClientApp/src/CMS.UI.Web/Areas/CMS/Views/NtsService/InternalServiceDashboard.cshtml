@@ -1,0 +1,884 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.NtsServiceController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@using Kendo.Mvc.UI
+@using Synergy.App.Common
+
+@model ProjectDashboardViewModel;
+
+@{
+    ViewBag.Title = @Resource["InternalDashboard"];
+
+    Layout = null;
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+    .banner-container {
+        position: relative;
+        color: white;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 14px;
+        left: 60px;
+        font-size: 35px;
+    }
+</style>
+<script>
+    function onDatewiseSearch() {
+
+        var dates = {
+
+            StartDate: kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            DueDate: kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            TemplateCategoryCode:'@Model.CategoryCode',
+            TemplateMasterCode:'@Model.TemplateCode'
+        };
+
+        $("#chartDateWiseSearch").data("kendoChart").dataSource.read(dates);
+    }
+    $(document).ready(function () {
+        $("#FromDate").kendoDatePicker();
+        $("#ToDate").kendoDatePicker();
+        onDatewiseSearch();
+
+        $("#mdlServiceStatus").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Name",
+            filter: "contains",
+            autoBind: true,
+            autoClose: false,
+            change: onChangeServiceStatus,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_SERVICE_STATUS" })",
+                    }
+                }
+            }
+        });
+
+     });
+     function OnOpen(e) {
+        var portalId =  $("#GlobalPortalId").val();
+         e.preventDefault();
+         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+         var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterCreate&source=View&dataAction=View&templateCodes=' + dataItem.TemplateCode + '&portalId=' + portalId + '&recordId=' + dataItem.Id;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Service Request', Width: 1200, Height: 700 });
+        return false;
+
+    }
+    function GOWBS() {
+        window.parent.LoadPartailView1("/pjm/ProjectTask/Index?ProjectId=@Model.Id&pageName=WorkBreakDownStructure", 'cms-content');
+        AddBreadCrumb({ Text: 'Work BreakDown Structure', Name: 'WorkBreakDownStructure', Url: '/pjm/ProjectTask/Index?ProjectId=@Model.Id&pageName=WorkBreakDownStructure', PageType: 'Custom', LoadType: 'PartialView', IsNotClickable: false, IsClickDisabled: true }, true, 'Project Dashboard');
+
+    }
+
+    function GotoTask() {
+
+    }
+
+    function OnProjectChange(id) {
+    }
+
+    function AddTask() {
+
+    }
+
+    function onTaskSeriesClick(e) {
+
+        //alert("onTaskSeriesClick");
+        //console.log(e.dataItem);
+        
+        var selectvalue = e.dataItem.Type;
+        var multiselect = $("#mdlServiceStatus").data("kendoMultiSelect");
+        var mdlvalue = multiselect.value();
+        var newvalue = new Array();
+        newvalue = mdlvalue;
+        var addflag = true;
+        if (newvalue.length > 0) {
+            var i = 0;
+            for (i = 0; i < newvalue.length;i++) {
+                if (newvalue[i] == selectvalue) {
+                    addflag = false;
+                }
+            }
+            if (addflag) {
+                newvalue.push(selectvalue);
+            }
+        } else {
+            newvalue.push(selectvalue);
+        }
+        multiselect.value(newvalue);
+
+      //  var multiselectTaskAssigned = $("#mdlServiceOwnedRequested").data("kendoMultiSelect");
+      //  var assignedvalue = multiselectTaskAssigned.value();
+        //var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        //var stagevalue = multiselectTaskStages.value();
+
+        var search = {
+            ServiceStatusIds: newvalue,
+          //  StatusIds: assignedvalue,
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+
+        //var g = $("#kgdProjectGridView").data("kendoGrid");
+        //console.log(g);
+        //g.dataSource.group({ field: "NtsStatus" });
+       //alert("\n category : " + e.category + "\n value : " + e.dataItem.Code);
+        //window.lModelcation.href = "/pmt/pmthome/tasks?taskStatus=" + e.dataItem.Code;
+    }
+
+    function onTaskAssignedSeriesClick(e) {
+
+
+        var selectvalue = e.dataItem.Type;
+        //var multiselect = $("#mdlServiceOwnedRequested").data("kendoMultiSelect");
+        //var mdlvalue = multiselect.value();
+        //var newvalue = new Array();
+        //newvalue = mdlvalue;
+        //var addflag = true;
+        //if (newvalue.length > 0) {
+        //    var i = 0;
+        //    for (i = 0; i < newvalue.length; i++) {
+        //        if (newvalue[i] == selectvalue) {
+        //            addflag = false;
+        //        }
+        //    }
+        //    if (addflag) {
+        //        newvalue.push(selectvalue);
+        //    }
+        //} else {
+        //    newvalue.push(selectvalue);
+        //}
+        //multiselect.value(newvalue);
+
+        var multiselectTaskStatus = $("#mdlServiceStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        //var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        //var stagevalue = multiselectTaskStages.value();
+
+        var search = {
+            ServiceStatusIds: statusvalue,
+          //  StatusIds: newvalue,
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+
+
+    }
+    function onTaskStagesSeriesClick(e) {
+
+        var selectvalue = e.dataItem.Id;
+        var multiselect = $("#mdlTaskStages").data("kendoMultiSelect");
+        var mdlvalue = multiselect.value();
+        var newvalue = new Array();
+        newvalue = mdlvalue;
+        var addflag = true;
+        if (newvalue.length > 0) {
+            var i = 0;
+            for (i = 0; i < newvalue.length; i++) {
+                if (newvalue[i] == selectvalue) {
+                    addflag = false;
+                }
+            }
+            if (addflag) {
+                newvalue.push(selectvalue);
+            }
+        } else {
+            newvalue.push(selectvalue);
+        }
+        multiselect.value(newvalue);
+        var multiselectTaskStatus = $("#mdlServiceStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+      //  var multiselectTaskAssigned = $("#mdlServiceOwnedRequested").data("kendoMultiSelect");
+      //  var assignedvalue = multiselectTaskAssigned.value();
+
+        var search = {
+            //projectId: '@Model.Id',
+           // projectIds: newvalue,
+            ServiceStatusIds: statusvalue,
+          //  StatusIds: assignedvalue,
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+
+
+        //var g = $("#kgdProjectGridView").data("kendoGrid");
+        //console.log(g);
+        //g.dataSource.group({ field: "ServiceStage" });
+    }
+    function onChangeServiceStatus() {
+        var multiselectTaskStatus = $("#mdlServiceStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+      //  var multiselectTaskAssigned = $("#mdlServiceOwnedRequested").data("kendoMultiSelect");
+      //  var assignedvalue = multiselectTaskAssigned.value();
+        //var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+       // var stagevalue = multiselectTaskStages.value();
+        var search = {
+            //projectId: '@Model.Id',
+            //projectIds: stagevalue,
+            ServiceStatusIds: statusvalue,
+        //    StatusIds: assignedvalue,
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+
+    }
+    function onChangeTaskAssigned() {
+        var multiselectTaskStatus = $("#mdlServiceStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+     //   var multiselectTaskAssigned = $("#mdlServiceOwnedRequested").data("kendoMultiSelect");
+     //   var assignedvalue = multiselectTaskAssigned.value();
+       // var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+       // var stagevalue = multiselectTaskStages.value();
+        var search = {
+            //projectId: '@Model.Id',
+           // projectIds: stagevalue,
+            ServiceStatusIds: statusvalue,
+        //    StatusIds: assignedvalue,
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+
+    }
+    function onChangeTaskStages() {
+        var multiselectTaskStatus = $("#mdlServiceStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+      //  var multiselectTaskAssigned = $("#mdlServiceOwnedRequested").data("kendoMultiSelect");
+       // var assignedvalue = multiselectTaskAssigned.value();
+        var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        var stagevalue = multiselectTaskStages.value();
+        var search = {
+           //projectId: '@Model.Id',
+           // projectIds: stagevalue,
+            ServiceStatusIds: statusvalue,
+         //   StatusIds: assignedvalue,
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+
+    }
+    function OnDataBound(arg) {
+
+        document.getElementById('projectFiles').style.border = 'none';
+        var data = $("#projectFiles").data("kendoListView").dataSource.data();
+        var data1 = $("#ProjectTask12").data("kendoListView").dataSource.data();
+        if (data.length == 0) {
+            $('#no-data-file').show();
+        } else {
+            $('#no-data-file').hide();
+        }
+        if (data1.length == 0) {
+            $('#no-data-notifi').show();
+        } else {
+            $('#no-data-notifi').hide();
+        }
+    }
+
+    function OnTaskAssChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-taskchart').show();
+
+        } else {
+            $('#no-data-taskchart').hide();
+        }
+    }
+
+    function OnTaskStatusChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-chart').show();
+
+        } else {
+            $('#no-data-chart').hide();
+        }
+    }
+
+    function OnTaskTimeChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-timechart').show();
+
+        } else {
+            $('#no-data-timechart').hide();
+        }
+    }
+    function OnProjectStageChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-stagechart').show();
+
+        } else {
+            $('#no-data-stagechart').hide();
+        }
+    }
+    function onFilterReset() {
+        var newvalue = new Array();
+        var multiselectTaskStatus = $("#mdlServiceStatus").data("kendoMultiSelect");
+        multiselectTaskStatus.value(newvalue);
+      //  var multiselectTaskAssigned = $("#mdlServiceOwnedRequested").data("kendoMultiSelect");
+      //  multiselectTaskAssigned.value(newvalue);
+       // var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+       // multiselectTaskStages.value(newvalue);
+        @*var search = {
+            projectId: '@Model.Id',
+        };*@
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read();
+
+    }
+</script>
+
+@*<div style=""><img style="width:100%; height:100px" src="~/images/ServiceHomeBanner.png" /></div>*@
+<div class="banner-container">
+    <img style="width:100%; height:100px" src="~/images/NTS/Service.jpeg" />
+    @*<div class="banner-text">@Resource["ServiceHomeDashboard"]</div>*@
+    <div class="banner-text">Dashboard</div>
+</div>
+<div class="row hr-pad-top-10">
+    <div class="col-md-6">
+        <h4>
+        </h4>
+    </div>
+</div>
+@*@if (Model.ProjectList != null && Model.ProjectList.Count() > 0)
+    {*@
+
+<div id="appWrapper" class="hr-pad-top-15">
+    @*@if (Model.TemplateUserType == NtsUserTypeEnum.Owner)
+        {
+            <div class="row no-gutter btn-group btn-group-sm" role="group" style="margin:5px;margin-left:10px;">-->
+                <button type="button" onclick="GOWBS();" class="btn btn-sm btn-primary">
+                    <i class="fad fa-network-wired"></i>&nbsp;&nbsp;Go To WorkBreakdown Structure
+                </button>
+            </div>
+        }*@
+    @*<div class="row no-gutter btn-group btn-group-sm" role="group" style="width:100%;margin:5px;">
+            <button type="button" class="btn btn-success col-sm-2">Project Progress&nbsp;<b>@Model.ProgressPercentage%</b></button>
+            <button type="button" onclick="GotoTask();" class="btn btn-success col-sm-2">View All Tasks&nbsp;<b>@Model.TaskCount</b></button>
+            <button type="button" class="btn btn-success col-sm-2">Time Entry&nbsp;<b>@Model.TaskTimeEntryHours</b></button>
+            <button type="button" class="btn btn-success col-sm-2">Activities&nbsp;<b>@Model.ActivityCount</b></button>
+            <button type="button" class="btn btn-success col-sm-2">Project Estimate&nbsp;<b>@Model.ProjectEstimatedHours</b></button>
+            <button type="button" class="btn btn-success col-sm-2">Task Estimate&nbsp;<b>@Model.TaskEstimatedHours</b></button>
+        </div>*@
+
+    <div class="row">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            <div class=" d-flex justify-content-center">
+                @SharedResource["From"]
+                @*@(Html.Kendo().DatePicker()
+             .Name("FromDate")
+             .Value(DateTime.Today.AddMonths(-1))
+             .HtmlAttributes(new {@class="date" })
+        )*@
+                <input id="FromDate" class="date" value="@DateTime.Today.AddMonths(-1)" />
+                @SharedResource["To"]<br />
+                @*@(Html.Kendo().DatePicker()
+             .Name("ToDate")
+             .Value(DateTime.Today).HtmlAttributes(new { @class = "date" })
+        )*@
+                <input id="ToDate" class="date" value="@DateTime.Today" />
+                <br />
+                <button class="btn btn-filter-reset" onclick="onDatewiseSearch()" title="@Resource["ResetFilter"]"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        @*<div class="col-sm-4">
+
+            <div class="panel panel-success">
+                <div class="panel-heading">External Request</div>
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                            .Name("chartTaskByStatus")
+                            .Legend(legend => legend
+                                .Position(ChartLegendPosition.Bottom)
+                            )
+                            .DataSource(ds => ds
+                             .Read(read => read.Action("GetExternalServiceChartByStatus", "NtsService", new { @area = "Cms" }))
+                            //.Read(read => read.Action("GetProjectTaskChartByStatus", "Project", new { @area = "PJM", projectId = Model.Id }))
+                            )
+                            .SeriesColors(new string[] { "#ff9800", "#fad84a", "#4caf50", "#03a9f4" })
+                            .Series(series =>
+                            {
+                                series.Donut(model => model.Value, model => model.Type)
+                                .Labels(labels => labels
+                                    .Visible(true)
+                                    .Position(ChartPieLabelsPosition.Center)
+                                    //.Template("#= category # - #= kendo.format(' {0:n0}', value) # ")
+                                    .Background("transparent")
+
+                                );
+
+                            }).HtmlAttributes(new { @style = "height:300px;" })
+                            .Tooltip(tooltip => tooltip
+                                .Visible(true)
+                            .Template("#= category # - #= kendo.format('{0:P}', percentage) #")
+                            //.Template("#= category # ")
+                            )
+        .Events(events => events
+            .SeriesClick("onTaskAssignedSeriesClick")
+            .DataBound("OnTaskStatusChartDataBound")
+            )
+        )
+
+                    <div id="no-data-chart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>@SharedResource["NoDataFound"]</span></div>
+
+                </div>
+            </div>
+        </div>*@
+        <div class="col-sm-4">
+            <div class="panel panel-info">
+                <div class="panel-heading">Internal Request</div>
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                              .Name("chartTaskByType")
+                              .Legend(legend => legend
+                              .Position(ChartLegendPosition.Bottom)
+                              )
+                              .DataSource(ds => ds
+                              .Read(read => read.Action("GetInternalDashboardChartByStatus", "NtsService", new { @area = "Cms" , categoryCodes=Model.CategoryCode, templateCodes=Model.TemplateCode}))
+
+                              )
+                              .SeriesColors(new string[] { "#03a9f4", "#ff9800", "#fad84a", "#4caf50" })
+                              .Series(series =>
+                              {
+                                  series.Pie(model => model.Value, model => model.Type)
+                                  .Labels(labels => labels
+                                  .Visible(true)
+                                  .Position(ChartPieLabelsPosition.Center)
+                                  .Background("transparent"));
+                              }).HtmlAttributes(new { @style = "height:300px;" })
+                               .Tooltip(tooltip => tooltip
+                               .Visible(true)
+                               .Template("#= category # - #= kendo.format('{0:P}', percentage) #"))
+                               .Events(e => e
+                               .SeriesClick("onTaskSeriesClick")
+                               .DataBound("OnTaskAssChartDataBound"))
+                        )
+                    <div id="no-data-taskchart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>@SharedResource["NoDataFound"]</span></div>
+
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+
+            <div class="panel panel-success">
+                <div class="panel-heading">Task</div>
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                            .Name("chartTaskByStatus")
+                            .Legend(legend => legend
+                                .Position(ChartLegendPosition.Bottom)
+                            )
+                            .DataSource(ds => ds
+                             .Read(read => read.Action("GetInternalDashboardTaskChart", "NtsService", new { @area = "Cms", categoryCodes = Model.CategoryCode, templateCodes = Model.TemplateCode }))
+                            //.Read(read => read.Action("GetProjectTaskChartByStatus", "Project", new { @area = "PJM", projectId = Model.Id }))
+                            )
+                            .SeriesColors(new string[] { "#ff9800", "#fad84a", "#4caf50", "#03a9f4" })
+                            .Series(series =>
+                            {
+                                series.Donut(model => model.Value, model => model.Type)
+                                .Labels(labels => labels
+                                    .Visible(true)
+                                    .Position(ChartPieLabelsPosition.Center)
+                                    //.Template("#= category # - #= kendo.format(' {0:n0}', value) # ")
+                                    .Background("transparent")
+
+                                );
+
+                            }).HtmlAttributes(new { @style = "height:300px;" })
+                            .Tooltip(tooltip => tooltip
+                                .Visible(true)
+                            .Template("#= category # - #= kendo.format('{0:P}', percentage) #")
+                            //.Template("#= category # ")
+                            )
+        .Events(events => events
+            .SeriesClick("onTaskAssignedSeriesClick")
+            .DataBound("OnTaskStatusChartDataBound")
+            )
+        )
+
+                    <div id="no-data-chart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>@SharedResource["NoDataFound"]</span></div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel panel-warning">
+                <div class="panel-heading">Request SLA</div>
+
+                @*<div class=" d-flex justify-content-center">
+                        From <br />
+                        @(Html.Kendo().DatePicker()
+                     .Name("FromDate").HtmlAttributes(new {@class="date" })
+                )
+                        To <br />
+                        @(Html.Kendo().DatePicker()
+                     .Name("ToDate").HtmlAttributes(new { @class = "date" })
+                )
+                    </div>
+                    <div style="text-align:center;">
+                        <br />
+                        <button class="btn btn-filter-reset" onclick="onDatewiseSearch()" title="Reset Filter">Search</button>
+                    </div>*@
+
+
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                                .Name("chartDateWiseSearch")
+                                .Legend(legend => legend
+                                .Position(ChartLegendPosition.Bottom)
+                                )
+                                .DataSource(ds => ds
+                                .Read(read => read.Action("GetRequestSLA", "NtsService", new { @area = "Cms" }))
+                                )
+                                .Series(series =>
+                                {
+                                    series.Line(model => model.Days, model=>model.Type)
+                                    .Labels(labels => labels
+                                    .Visible(true)
+                                    .Background("transparent")
+                                    ).Name("Service SLA");
+                                    series.Line(model => model.ActualSLA, model=>model.Type)
+                                    .Labels(labels => labels
+                                    .Visible(true)
+                                    .Background("transparent")
+                                    ).Name("Actual SLA");
+                                })
+                                .CategoryAxis(axis=>axis.Categories(model => model.Type).Labels(l=>l.Rotation("auto")))
+                                .HtmlAttributes(new { @style = "height:300px;" })
+                                .Tooltip(tooltip => tooltip
+                                .Visible(true)
+                                .Template("#= category #"))
+                                .Events(e => e
+                                .DataBound("OnProjectStageChartDataBound")
+                                )
+                        )
+
+                    <div id="no-data-stagechart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>@SharedResource["NoDataFound"]</span></div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+   
+
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-filter">
+                <div class="panel-heading">@SharedResource["Filter"]</div>
+                <div class="panel-body">
+                    <div class="row" style="padding:5px;">
+                        @*<div class="col-3">
+                            External Service Status
+                            @(Html.Kendo().MultiSelect().Name("mdlServiceOwnedRequested")
+                             .DataSource(source =>
+                             {
+                                 source.Read(read =>
+                                 {
+                                     read.Action("GetExternalServiceChartByStatus", "NtsService", new { area = "CMS"});
+                                 });
+                             })
+                             .AutoClose(false)
+                             .Placeholder(@Resource["FilterServiceStatus"])
+                             .DataTextField("Type")
+                             .DataValueField("Type")
+                             .Events(e=>e.Change("onChangeTaskAssigned"))
+                             .HtmlAttributes(new { @class = "hr-x-large search-control" })
+            )
+                        </div>*@
+                        <div class="col-3">
+                            Internal Service Status
+                            @*@(Html.Kendo().MultiSelect().Name("mdlServiceStatus")
+                             .DataSource(source =>
+                             {
+                                 source.Read(read =>
+                                 {
+                                     read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_SERVICE_STATUS" });
+                                 });
+                             })
+                             .AutoClose(false)
+                             .Placeholder(@Resource["FilterServiceStatus"])
+                             .DataTextField("Name")
+                             .DataValueField("Name")
+                             .Events(e=>e.Change("onChangeServiceStatus"))
+                             .HtmlAttributes(new { @class = "hr-x-large search-control" })
+            )*@
+                            <select id="mdlServiceStatus" data-placeholder="@Resource["FilterServiceStatus"]" class="hr-x-large search-control"></select>
+
+                            @*@Resource["ServiceOwned/Requested"]
+        @(Html.Kendo().MultiSelect().Name("mdlServiceOwnedRequested")
+         .DataSource(source =>
+         {
+             source.Read(read =>
+             {
+                 read.Action("GetEnumIdNameList", "Home", new { enumType = "NtsUserTypeEnum",area=""});
+             });
+         })
+         .AutoClose(false)
+         .Placeholder(@Resource["FilterServiceOwned/Requested"])
+         .DataTextField("Name")
+         .DataValueField("EnumId")
+         .Events(e => e.Change("onChangeTaskAssigned"))
+         .HtmlAttributes(new { @class = "hr-x-large search-control" })*@
+
+                        </div>
+                        
+                        <div class="col-3" style="text-align:center;">
+                            
+                            <button class="btn btn-filter-reset" onclick="onFilterReset()" title="@Resource["ResetFilter"]">@SharedResource["Reset"]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">@Resource["ServiceDetails"]</div>
+                <div class="panel-body">
+
+                    <div id="kgdProjectGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+                    <script>
+
+
+    var columnDefs1 = [
+        {
+            field: "Id",
+            headerName: "open",
+            cellRenderer: params => {
+                return "<i class='fa fas fa-eye' title='Open' onclick='OnOpen(\"" + params.data.TemplateCode + "\",\"" + params.data.Id + "\")' ></i>";
+            }
+           },
+           {
+            field: "ServiceNo",
+            headerName: "@Resource["ServiceNo"]",
+           },
+           {
+               field: "ServiceSubject",
+                headerName:"@Resource["ServiceSubject"]"
+
+           },
+           {
+               field: "TemplateDisplayName",
+                headerName:"@Resource["TemplateType"]"
+           },
+            {
+                field: "OwnerUserUserName",
+                headerName:"@Resource["OwnerUserName"]"
+        },
+
+             {
+                 field: "ServiceStatusName",
+                headerName:"@Resource["ServiceStatusName"]"
+           },
+
+        {
+            field: "StartDate",
+            headerName: "@Resource["StartDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+
+        },
+
+        {
+            field: "DueDate",
+            headerName: "@Resource["DueDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+
+        },
+
+    ];
+
+    $(function () {
+
+        getprojectGridinternalData();
+
+
+
+    });
+
+                        function getprojectGridinternalData(search) {
+                            document.getElementById("kgdProjectGridView").innerHTML = "";
+
+        gridConfig(
+            "kgdProjectGridView",
+            "/Cms/NtsService/GetInternalDashboardServiceList?categoryCodes=@Model.CategoryCode&templateCodes=@Model.TemplateCode",
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+                    </script>
+
+                    @*@(Html.Kendo().Grid<ServiceViewModel>()
+            .Name("kgdProjectGridView")
+            .Columns(columns =>
+            {
+                columns.Command(command =>
+                {
+                    command.Custom("open").Text("<i class='fa fas fa-eye' title='Open'></i>").Click("OnOpen").HtmlAttributes(new { @class = "action-icon" });
+                    //command.Custom("addtask").Text("<i class='fa fa-plus' title='Add Task'></i>").Click("OnEditJobDesc").HtmlAttributes(new { @class = "action-icon" });
+                    //command.Custom("addStage").Text("<i class='fa fa-plus' title='View Job Description Request'></i>").Click("OnViewJobDesc").HtmlAttributes(new { @class = "action-icon" });
+                }).Width(150).Title(SharedResource["Action"]);
+                columns.Bound(p => p.ServiceNo).Title(@SharedResource["ServiceNo"]).Width(300);
+                columns.Bound(p => p.ServiceSubject).Title(@Resource["ServiceSubject"]).Width(250);
+                columns.Bound(p => p.TemplateDisplayName).Title(@Resource["TemplateType"]).Width(250);
+                columns.Bound(p => p.OwnerUserUserName).Title(@Resource["OwnerUserName"]).Width(250);
+                //columns.Bound(p => p.TemplateUserType).Title(@Resource["TemplateUserType"]).Width(200);
+                // columns.Bound(p => p.Priority).Width(200);
+                columns.Bound(p => p.ServiceStatusName).Title(@Resource["ServiceStatusName"]).Width(200);
+                columns.Bound(p => p.StartDate).Title(@SharedResource["StartDate"]).Format("{0:dd MMM yyyy}").Width(150);
+                columns.Bound(p => p.DueDate).Title(@SharedResource["EndDate"]).Format("{0:dd MMM yyyy}").Width(150);
+            })
+            .ToolBar(toolbar =>
+            {
+
+                toolbar.Search().Text(SharedResource["Search"]);
+            })
+            .ColumnMenu(col=>col.Filterable(true))
+            .Height(700)
+            .Editable()
+            //.Pageable()
+            .Sortable()
+            .Navigatable()
+            .Resizable(r=>r.Columns(true))
+            .Reorderable(r => r.Columns(true))
+            .Groupable(g=>g.ShowFooter(false))
+            .Filterable()
+            .Scrollable(x => x.Enabled(true))
+            //.Events(events => events.DataBound("onDataBound"))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .PageSize(20)
+                .AutoSync(true)
+                .ServerOperation(false)
+                //.Events(events => events.Error("error_handler"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+
+                })
+
+                .Read("GetInternalDashboardServiceList", "NtsService", new { @area = "Cms", categoryCodes = Model.CategoryCode, templateCodes = Model.TemplateCode })
+
+            )
+        )*@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*}
+    else
+    {
+        <iframe src="/pjm/project/ProjectNotAssigned" style="width:100%;height:60vh"></iframe>
+    }*@

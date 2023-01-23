@@ -1,0 +1,252 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model PageMemberViewModel
+
+<div>
+    <div class="left pad-l-t-15">
+        @*<h5>Content</h5>*@
+        <div class="row">
+            <div class="col-sm-6">
+                @*@(Html.Kendo().TreeView().Checkboxes(checkboxes => checkboxes
+                    .Name("checkedFiles")
+                    .CheckChildren(true)
+                    .Template("<span class='k-checkbox-wrapper'><input class='k-checkbox' name='checkedFiles#=item.id#' type='checkbox' value='true' #= item.Checked ? 'checked' : '' #  aria-label='#=item.text#' /></span>")
+                )
+                 .Events(events => events
+                    .Check("onCheck")
+                )
+            .Name("treeview").HtmlAttributes( new {@class="treeview"})
+            //.Events(e=>e.Select("OnSelect"))
+            .DataTextField("Name")
+            .TemplateId("ct-tv-template")
+            .DataSource(dataSource => dataSource
+                .Read(read => read
+                    .Action("ReadPermissionData", "PagePermission",new { @area="Cms",portalId=Model.PortalId})
+                )
+            )
+        )*@
+
+                <div id="permissionTree"></div>
+
+            </div> 
+            <div class="col-sm-6">
+                @*@(Html.Kendo().TreeView().Checkboxes(checkboxes => checkboxes
+                    .Name("checkedFiles1")
+                    .CheckChildren(true)
+                )
+            .Name("treeviewgroup").HtmlAttributes( new {@class="treeview"})
+            //.Events(e=>e.Select("OnSelect"))
+            .DataTextField("Name")
+            .TemplateId("ct-tv-template")
+            .DataSource(dataSource => dataSource
+                .Read(read => read
+                    .Action("ReadGroupPermissionData", "PagePermission",new { @area="Cms",portalId=Model.PortalId})
+                )
+            )
+        )*@
+                <div id="permissionTree1"></div>
+            </div>
+            </div>
+
+            <script id="ct-tv-template" type="text/kendo-ui-template">
+                <span style="width:100%">   #: item.Name #</span>
+                <span data-id="#:item.id#" data-parent-id="#:item.ParentId#" class="tree-menu"><i class="fa fa-ellipsis-h"></i></span>
+
+            </script>
+
+        </div>
+   
+</div>
+<div class="cms-footer">
+    <input type="button" class="btn btn-primary" value="Save" onclick="OnSave()" />
+</div>
+
+<script type="text/javascript">
+    // function that gathers IDs of checked nodes
+    function checkedNodeIds(nodes, checkedNodes) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].checked) {
+                checkedNodes.push(nodes[i].id);
+            }
+
+            if (nodes[i].hasChildren) {
+                checkedNodeIds(nodes[i].children.view(), checkedNodes);
+            }
+        }
+    }
+
+    getPermissionTree();
+    getPermissionTree1();
+
+    function getPermissionTree() {
+        portalId = '@Model.PortalId';
+
+        $("#permissionTree").fancytree({
+            checkbox: true,
+            source: $.ajax({
+                url: "/cms/PagePermission/ReadPermissionData?portalId=" + portalId,
+                dataType: "json"
+            }),
+            lazyLoad: function (event, data) {
+                var node = data.node;
+                data.result = {
+                    url: "/cms/PagePermission/ReadPermissionData",
+                    data: { id: node.key, portalId: portalId }
+                }
+
+            },
+            select: function (event, data) {
+                
+                var s = data.tree.getSelectedNodes().join(", ");
+                var selectedNodes = data.tree.getSelectedNodes();
+                var selectedNames = [];
+                var selectedKey = [];
+                for (var i = 0; i <= selectedNodes.length - 1; i++) {
+                    selectedKey.push(selectedNodes[i].key);
+                    selectedNames.push(selectedNodes[i].title);
+                }
+                if (selectedKey.length == 0 || selectedKey.includes("All")) {
+                    $("#moduleStatus").html("All");
+                }
+                else {
+                    $("#moduleStatus").html(selectedNames.join(", "));
+                }
+                $("#ModuleId").val(selectedKey.join(","));
+                var search = FilterGrid();
+                $("#kgrdTask").data("kendoListView").dataSource.read(search);
+            },
+            renderNode: function (event, data) {
+                // Optionally tweak data.node.span
+                var node = data.node;
+                node.renderTitle();
+            },
+            dblclick: function (event, data) {
+                var node = data.node;
+            },
+            contextMenu: {
+                menu: function (data) {
+                    
+                    return {
+                    }
+                },
+                actions: function (node, action, options) {
+                }
+            }
+        });
+    }
+
+
+      function getPermissionTree1() {
+        portalId = '@Model.PortalId';
+          $("#permissionTree").fancytree({
+            checkbox: true,
+            source: $.ajax({
+                url: "/cms/NtsService/GetModuleFancyTreeList?moduleCodes=" + moduleCodes,
+                dataType: "json"
+            }),
+            lazyLoad: function (event, data) {
+                var node = data.node;
+                data.result = {
+                    url: "/cms/NtsService/GetModuleFancyTreeList",
+                    data: {id: node.key, moduleCodes: moduleCodes }
+                }
+
+            },
+            select: function (event, data) {
+                
+                var s = data.tree.getSelectedNodes().join(", ");
+                var selectedNodes = data.tree.getSelectedNodes();
+                var selectedNames = [];
+                var selectedKey = [];
+                for (var i = 0; i <= selectedNodes.length - 1; i++) {
+                    selectedKey.push(selectedNodes[i].key);
+                    selectedNames.push(selectedNodes[i].title);
+                }
+                if (selectedKey.length == 0 || selectedKey.includes("All")) {
+                    $("#moduleStatus").html("All");
+                }
+                else {
+                    $("#moduleStatus").html(selectedNames.join(", "));
+                }
+                $("#ModuleId").val(selectedKey.join(","));
+                var search = FilterGrid();
+                $("#kgrdTask").data("kendoListView").dataSource.read(search);
+            },
+            renderNode: function (event, data) {
+                // Optionally tweak data.node.span
+                var node = data.node;
+                node.renderTitle();
+            },
+            dblclick: function (event, data) {
+                var node = data.node;
+            },
+            contextMenu: {
+                menu: function (data) {
+                    
+                    return {
+                    }
+                },
+                actions: function (node, action, options) {
+                }
+            }
+        });
+    }
+    // show checked node IDs on datasource change
+    function onCheck() {
+        var checkedNodes = [],
+            treeView = $("#treeview").data("kendoTreeView"),
+            message;
+
+        checkedNodeIds(treeView.dataSource.view(), checkedNodes);
+
+        if (checkedNodes.length > 0) {
+            message = "IDs of checked nodes: " + checkedNodes.join(",");
+        } else {
+            message = "No nodes checked.";
+        }
+        $("#result").html(message);
+    }
+   function OnSave() {
+
+       var checkedNodes = [],
+           checkedNodes1 = [],
+           treeView = $("#treeview").data("kendoTreeView"),
+           treeviewgroup = $("#treeviewgroup").data("kendoTreeView"),
+           message, message1;
+
+       checkedNodeIds(treeView.dataSource.view(), checkedNodes);
+       if (checkedNodes.length > 0) {
+           message = checkedNodes.join(",");
+       }
+
+       checkedNodeIds(treeviewgroup.dataSource.view(), checkedNodes1);
+       if (checkedNodes1.length > 0) {
+           message1 = checkedNodes1.join(",");
+       }
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Cms/PagePermission/ManagePagePermission",
+            data: { data: message, groupdata: message1,pageId:'@Model.PageId',portalId:'@Model.PortalId'},
+            dataType: "json",
+            success: function (response)
+            {
+
+                alert(response);
+            },
+            error: function (response) {
+
+                alert("error");
+            },
+        });
+
+        return false;
+    }
+</script>

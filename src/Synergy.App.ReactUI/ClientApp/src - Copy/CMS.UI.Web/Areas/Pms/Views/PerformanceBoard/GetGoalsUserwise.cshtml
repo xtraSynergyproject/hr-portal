@@ -1,0 +1,467 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceTaskController> Resource
+@using CMS.UI.ViewModel
+@using CMS.Common
+
+@{
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+@model ApplicationViewModel
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        HideLoader($("#global-overlay"));
+        //
+        if ('@ViewBag.Success' == "True") {
+           // closeNav();
+          // $("#grid").data("kendoGrid").dataSource.read();
+         }
+
+           $("#Sender").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+               optionLabel:'@SharedResource["Select"]',
+            change: onChangeSender,
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/PMS/PerformanceTask/GetSubordinatesIdNameList",
+                    }
+                }
+            }
+           });
+
+         $("#ProjectFiltersIds").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+             optionLabel:'@SharedResource["Select"]',
+            change: onChangeProjectFiltersIds,
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/PMS/PerformanceTask/GetPerformanceList",
+                    }
+                }
+            }
+         });
+
+         $("#mdlTaskStagesType").kendoDropDownList({
+            dataTextField: "Name",
+             dataValueField: "Id",
+             filter: "contains",
+             optionLabel: "@SharedResource["Select"]",
+             change: onChangeTaskStagesType,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=PerformanceStageEnumUsers",
+                    }
+                }
+            }
+         });
+
+         if ('@ViewBag.UserId'!= null) {
+             $("#Sender").data("kendoDropDownList").value('@ViewBag.UserId');
+             onChangeSender();
+        }
+
+    });
+
+    function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'OnCloseCreateObjectives'});
+        return false;
+    }
+
+    function SelectCells() {
+        var grid = $("#kgrdGetGoalsUserWise").data("kendoGrid");
+        var Types = $("#mdlTaskStagesType").data("kendoDropDownList").value();
+        var sum = 0;
+        var listitem = [];
+        var strList = "";
+        var leftweightage = 0;
+        var rows = grid.tbody.children();
+        for (var j = 0; j < rows.length; j++) {
+            var row = $(rows[j]);
+            var data = grid.dataItem(row);
+            if (data.Weightage !=null) {
+                sum = sum + parseInt(data.Weightage);
+
+                strList = strList + data.Id + ":" + data.Weightage + ",";
+                var ids = data.Id;
+                var weightage = data.Weightage;
+              //  alert(weightage);
+
+                var item = {
+                    Value: weightage, Name: ids
+                };
+
+                listitem.push(item);
+
+
+            } else {
+                leftweightage = 1;
+                if (Types == "PMS_COMPENTENCY") {
+                  kendo.alert("@Resource["PleaseAddWeightageForAllCompetency"]");
+                } else {
+                    kendo.alert("@Resource["PleaseAddWeightageForAllGoals"]");
+                }
+                break;
+            }
+
+
+        }
+
+        if (sum == 100 && leftweightage == 0) {
+
+            var sender = $("#Sender").data("kendoDropDownList").value();
+            var ProjectId = $("#ProjectFiltersIds").data("kendoDropDownList").value();
+            var Types = $("#mdlTaskStagesType").data("kendoDropDownList").value();
+
+            $.ajax({
+                type: "POST",
+                url: "/Pms/PerformanceBoard/updategoalsUserwise",
+                //   url:@Url.Action("updategoalsUserwise", "PerformanceBoard", new { Area = "Pms" })
+                data: { GoalList: strList, PerformanceId: ProjectId, Type: Types, UserID: sender },
+                traditional: true,
+                dataType: "json",
+
+                success: function (response) {
+                    kendo.confirm("@SharedResource["SaveSuccessfully"]").then(function () {
+                        Closepopup();
+                    }, function () {
+                            Closepopup();
+                    });
+
+
+
+                },
+                failure: function (response) {
+                    alert(response.responseText);
+                },
+                error: function (response) {
+                    alert(response.responseText);
+                }
+            });
+
+
+
+        }
+        else
+        {
+            if (leftweightage == 0) {
+                if (Types == "PMS_COMPENTENCY") {
+                    kendo.alert("@Resource["SumOfCompetencyShouldBe100"]");
+                } else {
+
+                    kendo.alert("@Resource["SumOfGoalShouldBe100"]");
+                }
+            }
+        }
+
+    }
+
+    function ShowLoader(target) {
+        // target.loadingOverlay();
+        kendo.ui.progress(target, true);
+    }
+    function HideLoader(target) {
+        //target.loadingOverlay('remove');
+        kendo.ui.progress(target, false);
+    }
+    function onChangeTaskStagesType() {
+
+        var sender = $("#Sender").data("kendoDropDownList").value();
+        var ProjectId = $("#ProjectFiltersIds").data("kendoDropDownList").value();
+        var Types = $("#mdlTaskStagesType").data("kendoDropDownList").value();
+
+        if (sender.length > 0 && ProjectId.length > 0 && Types.length>0) {
+
+            var search = {
+                UserID: sender,
+                Type: Types,
+                PerformanceId: ProjectId,
+            };
+            $("#BusinessTripGridView").data("kendoGrid").dataSource.read(search);
+            var grid = $("#BusinessTripGridView").data("kendoGrid");
+            var competency = "@Resource["Competency"]";
+            var goals = "@Resource["Goals"]";
+            if (Types == "PMS_COMPENTENCY") {
+
+
+                grid.thead.find("[data-title~='Goals']").html(competency);
+            } else {
+
+                grid.thead.find("[data-title~='Goals']").html(goals);
+            }
+        } else { kendo.alert("Please Select All Fields"); }
+    }
+    function onChangeSender() {
+        var sender = $("#Sender").data("kendoDropDownList").value();
+        var search = {
+            ownerId: sender,
+        };
+        $("#ProjectFiltersIds").data("kendoDropDownList").dataSource.read(search);
+    }
+
+
+    function onChangeProjectFiltersIds() {
+
+        var sender = $("#Sender").data("kendoDropDownList").value();
+        var ProjectId = $("#ProjectFiltersIds").data("kendoDropDownList").value();
+        var Types = $("#mdlTaskStagesType").data("kendoDropDownList").value();
+
+        if (sender.length > 0 && ProjectId.length > 0 && Types.length>0) {
+
+            var search = {
+                UserID: sender,
+                Type: Types,
+                PerformanceId: ProjectId,
+            };
+            $("#BusinessTripGridView").data("kendoGrid").dataSource.read(search);
+            var grid = $("#BusinessTripGridView").data("kendoGrid");
+            var competency = "@Resource["Competency"]";
+            var goals = "@Resource["Goals"]";
+            if (Types == "PMS_COMPENTENCY") {
+
+
+                grid.thead.find("[data-title~='Goals']").html(competency);
+            } else {
+
+                grid.thead.find("[data-title~='Goals']").html(goals);
+            }
+        }
+    }
+    $(document).ready(function () {
+        $("#kgrdGetGoalsUserWise").jsGrid({
+            width: "100%",
+            height: "600px",
+
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            deleteConfirm: "Do you really want to delete client?",
+
+            //data: clients,
+            controller: {
+                loadData: function (filter) {
+                    return $.ajax({
+                        type: "GET",
+                        url: "@Url.Action("ReadGoalsUsrwise", "PerformanceBoard", new { @area = "Pms" })",
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+
+                //updateItem: function (item) {
+                //    return $.ajax({
+                //        type: "POST",
+                //        url: "/cms/Content/UpdateUserPermissionData",
+                //        data: item,
+                //        success: function (result) {
+                //            var grid = $("#kgrdUserPermission").data("JSGrid")
+                //            grid.render();
+
+                //        },
+                //    });
+                //},
+
+            },
+
+            fields: [
+                { name: "GoalName", type: "text", width: 60, editing: false },
+                { name: "WeightageName", type: "text", width: 60 },
+                { type: "control" }
+
+
+
+            ]
+        });
+    });
+
+
+</script>
+
+<style>
+    .cms-bulkinterview-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+</style>
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <div id="divCreateObjectives">
+        <div class="container">
+            <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+            <div class="row">
+                <div class="col-1">
+                    <label class="col-form-label">@SharedResource["User"]<span class="required">*</span><br></label>
+                </div>
+                <div class="col-3">
+                    @*@(Html.Kendo().DropDownList().Name("Sender")
+                         .DataSource(source =>
+                         {
+                             source.Read(read =>
+                             {
+                                 read.Action("GetSubordinatesIdNameList", "PerformanceTask", new { area = "Pms" });
+                             });
+                         })
+                         //.AutoClose(false)
+                         //.Placeholder("Search User")
+                         .OptionLabel("" + SharedResource["Select"] + "")
+                         .Filter("contains")
+                         .DataTextField("Name")
+                         .DataValueField("Id")
+                         .Events(e => e.Change("onChangeSender"))
+                         .HtmlAttributes(new { @class = "hr-xx-large search-control" })
+        )*@
+                    <input id="Sender" class="hr-xx-large search-control" />
+                </div>
+            
+                <div class="col-1">
+                    <label class="col-form-label">@Resource["PerformanceDocument"]<span class="required">*</span><br></label>
+                </div>
+                <div class="col-3">
+                    @*@(Html.Kendo().DropDownList().Name("ProjectFiltersIds")
+                         .DataSource(source =>
+                         {
+                             source.Read(read =>
+                             {
+                                 read.Action("GetPerformanceList", "PerformanceTask", new { @area = "Pms" });
+                             });
+                         })
+                        //.AutoClose(false)
+                        // .Placeholder("Search Performance Document")
+                        .OptionLabel("" + SharedResource["Select"] + "")
+                        .Filter("contains")
+                         .DataTextField("Name")
+                         .DataValueField("Id")
+                         .Events(e => e.Change("onChangeProjectFiltersIds"))
+                         .HtmlAttributes(new { @class = "hr-xx-large search-control" })
+        )*@
+                    <input id="ProjectFiltersIds" class="hr-xx-large search-control" />
+                </div>
+            
+                <div class="col-1">
+                    <label class="col-form-label">@Resource["Type"]<span class="required">*</span><br></label>
+                </div>
+                <div class="col-3">
+                    @*@(Html.Kendo().DropDownList().Name("mdlTaskStagesType")
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     //read.Action("GetPerformanceStageIdNameList", "Performance", new {area = "Pms", performanceId = Model.Id });
+                     read.Action("GetEnumIdNameList", "Home", new { area = "", enumType = "PerformanceStageEnumUsers" });
+                 });
+             })
+             //.AutoClose(false)
+             //.Placeholder("Search Type")
+             .OptionLabel("" + SharedResource["Select"] + "")
+             .Filter("contains")
+                         .DataTextField("Name")
+                         .DataValueField("Id")
+                         .Events(e => e.Change("onChangeTaskStagesType"))
+                         .HtmlAttributes(new { @class = "hr-xx-large search-control" })
+        )*@
+                    <input id="mdlTaskStagesType" class="hr-xx-large search-control" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <button class="btn btn-filter-reset" style="background:#007bff;color:#fff" onclick="SelectCells()" title="@Resource["ResetFilter"]">@SharedResource["Save"]</button>
+                    <br />
+                    <div class="panel panel-primary">
+                        <div class="panel-heading"></div>
+                        <div class="panel-body">
+                            <div id="kgrdGetGoalsUserWise"></div>
+                            @*@(Html.Kendo().Grid<GoalViewModel>()
+                                .Name("BusinessTripGridView")
+                                .Groupable(false)
+                                .Columns(columns =>
+                                {
+
+                                    //columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+                                    columns.Bound(p => p.GoalName).Title("" + Resource["Goals"] + "").Width(250);
+                                    columns.Bound(p => p.Weightage).Title("" + Resource["Weightage"] + "").Width(250);
+
+
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Excel();
+                                    //toolbar.Pdf();
+                                    toolbar.Search();
+                                })
+    //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    .ColumnMenu(col=>col.Filterable(false))
+    .Height(700)
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Pageable()
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+    //.Events(events => events.DataBound("Databounds"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .AutoSync(true)
+
+        .ServerOperation(false)
+           //.Events(events => events.Error("error_handler"))
+
+           .Model(m =>
+           {
+               m.Id(model => model.Id);
+               m.Field(p => p.GoalName).Editable(false);
+
+
+
+           })
+
+        //.Model(model =>
+        //{
+        //    model.Id(p => p.Id);
+        //})
+
+        //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+        //.Create("DetailProducts_Create", "Grid")
+        .Read("ReadGoalsUsrwise", "PerformanceBoard", new { @area = "Pms"})
+    //.Update("DetailProducts_Update", "Grid")
+    //.Destroy("DetailProducts_Destroy", "Grid")
+    )
+)*@
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

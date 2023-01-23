@@ -1,0 +1,349 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pay.Controllers.SalaryController> Resource
+@using Synergy.App.ViewModel;
+@using Kendo.Mvc.UI;
+@using Synergy.App.Common;
+@using Kendo.Mvc.Extensions;
+@model SalaryEntryViewModel
+@{
+    ViewBag.Title = Resource["PayrollSummary"];
+    //Layout = "~/Areas/Pay/Views/Shared/_LayoutPayNew.cshtml";
+    //Layout = "~/Views/Shared/Themes/Recruitment/_Layout.cshtml";
+    Layout = null;
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $(".k-grid .k-grid-btnAdd span").addClass("k-icon k-add");
+
+        $("#Year").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Text",
+            dataValueField: "Value",
+            value: "@Model.Year",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetYearList?value=@Model.Year",
+                    }
+                }
+            }
+        });
+
+        $("#Month").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "EnumId",
+            value: "@(Model.Month.IsNotNull()?(int)((MonthEnum)Enum.Parse(typeof(MonthEnum), Model.Month.ToString())): Model.Month)",
+            height: 350,
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                        transport: {
+                            read: {
+                                url: "/Home/GetEnumIdNameList?enumType=MonthEnum",
+                            }
+                        }
+                    },
+        });
+
+        $("#PersonId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.PersonId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetPersonList",
+                    }
+                }
+            }
+        });
+
+
+        $("#btnSearch").click(function () {
+            var Year = $("#Year").val();
+            var Month = $("#Month").val();
+            var PersonId = $("#PersonId").val();
+            var url = "/pay/salary/payslip?month=" + Month + "&year=" + Year + "&personId=" + PersonId;
+            //window.location.href = url;
+            LoadPartailView(url, $('#cms-content'));
+        })
+        $.validator.unobtrusive.parse(document);
+        SetTabControls(0);
+    });
+    function FilterGrid() {
+        //var category = $("#ElementCategory").data("kendoDropDownList").value();
+
+        var search = {
+            Year: $("#Year").val(),
+            Month: $("#Month").val(),
+            PersonId: $("#PersonId").val()
+        };
+        return search;
+    }
+    function OnDownload(id) {
+        //alert(id);
+        @*url = '/Cms/Report?rptName=Pms/PMS_PerformanceDocument.trdp&rptUrl=pms/query/GetUserPerformanceDocumentInfo/' + user +'&lo=@LayoutModeEnum.Popup&rptUrl2=pms/query/GetPerformanceDocumentServiceStepTaskByUser/'+user;
+        var prms = encodeURIComponent('rptName=Pms/PMS_PerformanceDocument.trdp&rptUrl=/pms/query/GetUserPerformanceDocumentInfo/' + user +'&lo=@LayoutModeEnum.Popup');*@
+        var url = '/Cms/Report?rptName=Pay/PaySlip.trdp&lo=@LayoutModeEnum.Popup&rptUrl=pay/query/GetPaySlipDetails/'+id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Payslip', Width: 800, Height: 700 });
+        //window.open("/Pay/PaySlip/DownloadPayslip?salaryEntryId=" + id, '_blank');
+        return false;
+    }
+    function onNext(index, select) {
+        var valid = $("#formTemplate").valid();
+        if (valid) {
+            SetTabControls(index, select);
+        }
+    }
+    function SetTabControls(index, select) {
+        var tabStrip = $("#tabstripTemplate").data("kendoTabStrip");
+        if (select) {
+            tabStrip.select(index);
+        }
+    }
+    function onTabSelect(e) {
+        SetTabControls($(e.item).index(), false);
+    }
+    function OnSubmit() {
+        var category = $("#ElementCategory").data("kendoDropDownList").value();
+        //var search = FilterGrid();
+        //$("#kgrdRunResult").data("kendoGrid").dataSource.read({ elementCategory: category, search: search });
+        var search = getDataPaySlip();
+        window.parent.getDataPaySlip(search);
+        return false;
+    }
+    function OnError(e) {
+        //  alert(e.toString());
+    }
+</script>
+
+<div class="appWrapper">
+    <div class="formHeader">
+        <h4>
+            @ViewBag.Title
+        </h4>
+    </div>
+    <div class="row no-gutter hr-pad-top-15">
+        <div class="form-group col-xs-12 col-lg-2">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @SharedResource["Year"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownList()
+                    .Name("Year")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                    .Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-small" })
+                    .BindTo(ApplicationExtension.GetYearList(Model.Year.ToString())))*@
+
+                <input id="Year" class="hr-small" />
+            </div>
+        </div>
+
+        <div class="form-group col-xs-12 col-lg-3">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @SharedResource["Month"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownList()
+                    .Name("Month")
+                    .Height(350)
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                    .Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-large" })
+                    .BindTo(EnumExtension.SelectListFor(typeof(MonthEnum), (MonthEnum)Model.Month)))*@
+
+                <input id="Month" class="hr-small" />
+
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-lg-3">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Person"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(model => model.PersonId)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetPersonList", "HRDirect", new { area = "Chr" });
+                        });
+                    })
+                    .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input asp-for="PersonId" id="PersonId" class="hr-xx-large" />
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <div class="col-lg-12 label-div">
+                &nbsp;
+            </div>
+            <div class="col-lg-12" style="padding-top:5px;">
+                @*@Html.Kendo().Button().Name("btnSearch").Content(@SharedResource["Search"]).HtmlAttributes(new { @class = "k-primary" })*@
+                <button type="button" class="btn btn-primary" id="btnSearch">@SharedResource["Search"]</button>
+            </div>
+        </div>
+    </div>
+    <Script>
+  var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+    var columnDefs = [
+
+        { field: "PersonFullName", headerName: "@Resource["EmployeeName"]" },
+        { field: "PersonNo", headerName: "@Resource["EmployeeNo"]" },
+        { field: "SponsorshipNo", headerName: "@Resource["IqamahNo"]" },
+        {
+            field: "PayrollStartDate",  headerName: "@Resource["PayrollStartDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+         {
+             field: "PayrollEndDate",  headerName: "@Resource["PayrollEndDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        { field: "TotalEarning", headerName: "@Resource["TotalEarning"]" },
+        { field: "TotalDeduction", headerName: "@Resource["TotalDeduction"]" },
+        { field: "NetAmount", headerName: "@Resource["NetAmount"]" },
+
+
+
+
+            ];
+
+
+            $(function () {
+
+                getDataPaySlip();
+
+
+            });
+
+        function getDataPaySlip(url) {
+
+            var newUrl = "@Url.Action("ReadSalaryData", "Salary", new { area = "Pay", Year = Model.Year})&Month="+'@Model.Month'+"&PersonId="+'@Model.PersonId';
+            if (url != null) {
+                newUrl = url;
+            }
+
+            document.getElementById("kgrdSalary").innerHTML = "";
+        //     var search = {
+        //    Year: $("#Year").val(),
+        //    Month: $("#Month").val(),
+        //    PersonId: $("#PersonId").val()
+        //};
+        //return search;
+        //var templateId = $("#TemplateId").val();
+        //var projectNo = $("#ProjectNo").val();
+        //var noteNo = $("#NoteNo").val();
+        //var docDescription = $("#DocumentName").val();
+        gridConfig(
+            "kgrdSalary",
+            newUrl,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+            }
+    </Script>
+    <div class="col-12">
+
+        <div id="kgrdSalary" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </div>
+    @*<div class="hr-pad-top-10">
+            @(Html.Kendo().Grid<SalaryEntryViewModel>
+            ().Name("kgrdSalary")
+            .Columns(col =>
+            {
+
+                col.Bound(c => c.PersonFullName).Title(@Resource["EmployeeName"]).Width(250);
+                col.Bound(c => c.PersonNo).Title(@Resource["EmployeeNo"]).Width(200);
+                col.Bound(c => c.SponsorshipNo).Title(@Resource["IqamahNo"]).Width(200);
+                col.Bound(c => c.PayrollStartDate).Title(@Resource["PayrollStartDate"]).Format("{0: dd MMM yyyy}").Width(200);
+                col.Bound(c => c.PayrollEndDate).Title(@Resource["PayrollEndDate"]).Format("{0: dd MMM yyyy}").Width(200);
+                col.Bound(c => c.TotalEarning).Title(@Resource["TotalEarning"]).Width(200);
+                col.Bound(c => c.TotalDeduction).Title(@Resource["TotalDeduction"]).Width(200);
+                col.Bound(c => c.NetAmount).Title(@Resource["NetAmount"]).Width(200);
+                //col.Template("<span style='cursor:pointer;' class='glyphicon glyphicon-download-alt' onclick='return OnDownload(#=Id#);' title='Export To Pdf'></span>").Title("Download").Width(30);
+                col.Bound(c=>c.Id).ClientTemplate("<span style='cursor:pointer;' onclick='OnDownload(\"#=Id#\");' title='Export To Pdf'><i class='fa fas fa-arrow-to-bottom'></i></span>").Title(@SharedResource["Download"]).Width(150);
+
+            })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Excel().Text(@SharedResource["ExportToExcel"]);
+
+            })
+            //.Events(e => e.DataBound("OnDataBound"))
+            .Excel(e => e.FileName("Payslip.xlsx").AllPages(true))
+            //.Resizable(resize => resize.Columns(true))
+            .Scrollable(s => s.Height("auto"))
+            .Sortable()
+            .Selectable(select => select.Enabled(false))
+            .Filterable(f => f.Extra(false)
+            .Operators(o => o.ForString(s => s.Clear()
+            .Contains("Contains")
+            .IsEqualTo("Is equal to")
+            )))
+            .Pageable(pageable => pageable
+            .Refresh(true)
+
+            .PageSizes(true)
+            .ButtonCount(5))
+            .AutoBind(true)
+            .DataSource(
+            dataSource => dataSource
+            .Ajax()
+            .PageSize(10)
+
+            .Events(events => events.Error("OnError"))
+            .Read(read => read.Action("ReadSalaryData", "Salary", new { area = "Pay", Year = Model.Year, Month = Model.Month, PersonId = Model.PersonId }))
+            .Update(update => update.Action("Update", "Salary"))
+            .Destroy(destroy => destroy.Action("Delete", "Salary"))
+            .Model(model => model.Id(p => p.Id))
+            )
+            .Editable(
+            editable => editable.Mode(GridEditMode.PopUp)
+            .DisplayDeleteConfirmation(@SharedResource["Areyousurethatyouwanttoproceed?"])
+            )
+
+                )
+
+
+        </div>*@
+
+
+</div>
+
+
+

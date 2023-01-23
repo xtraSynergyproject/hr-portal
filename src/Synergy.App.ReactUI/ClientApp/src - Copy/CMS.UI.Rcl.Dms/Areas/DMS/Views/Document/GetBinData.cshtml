@@ -1,0 +1,518 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@using Kendo.Mvc.UI;
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@model DMSDocumentViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+
+<style>
+    .k-dirty {
+        display: none;
+    }
+</style>
+<script>
+
+
+
+    function productDetails(product) {
+
+
+
+        var url = "/DMS/Document/Getfolderpath?NoteId=" + product.ParentId;
+
+        $.get(url, function (data, status) {
+
+
+            return data;
+        });
+
+
+
+
+}
+
+
+    function onDataBound(e) {
+
+        var grid = this;
+
+        grid.content.find("tr").each(function () {
+            var row = $(this);
+
+
+            var dataItem = grid.dataItem(row);
+
+
+            var url = "/DMS/Document/Getfolderpath?NoteId=" + dataItem.ParentId;
+
+            $.get(url, function (data, status) {
+
+                dataItem.set("FolderPath", data);
+                //return data;
+            });
+            e.preventDefault()
+
+
+          //  row.attr("data-id", dataItem.id);
+        })
+    }
+    $(function () {
+
+        debugger;
+        $.contextMenu({
+            selector: '#tree-menuBin',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var status = $trigger.data('status');
+                var noteid = $trigger.data('noteid');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (status) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'restore':
+                                        OnRestore(noteid);
+                                        break;
+
+                                    case 'delete':
+                                        OnDelete(noteid);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "restore": { name: "@Html.Raw(SharedResource["Restore"])", icon: "fas fa-trash-restore" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+    });
+
+    function OnError(response, status, error) {
+        if (response != null) {
+            if (response.responseJSON != null) {
+                alert(response.responseJSON.TypeMessage + ' ' + response.responseJSON.Message);
+            }
+            else if (response.errors != null) {
+                var message = "Error:\n";
+                $.each(e.errors, function (key, value) {
+                    if (value.errors) {
+                        message += value.errors.join("\n");
+                    }
+                });
+                alert(message);
+            }
+            else if (response.responseText != null) {
+                var elements = $(response.responseText);
+                var found = elements.filter("title");
+                var decoded = $("<div/>").html(found.html()).text();
+                if (decoded.indexOf("A potentially dangerous Request") >= 0) {
+                    alert("You cannot enter special characters like <html>, <div> etc...");
+                }
+                else {
+                    // alert(response.responseText);
+                    document.write(response.responseText);
+                }
+            }
+            else {
+                // alert(6)
+
+                //alert(JSON.stringify(response.xhr.responseText));
+
+                //document.write($("<div/>").html(JSON.stringify(response)));
+                document.write(response.xhr.responseText);
+
+            }
+        }
+        else {
+            alert("Internal server error.");
+        }
+    }
+    function OnFolderImageError(obj, alt) {
+        obj.onerror = null;
+        $(obj).hide();
+        $('#' + alt).show();
+    }
+    function OnDocumentImageError(obj, alt) {
+        obj.onerror = null;
+        $(obj).hide();
+        $('#' + alt).show();
+    }
+
+    function OnPhotoError(obj, name) {
+        obj.onerror = null;
+        if (name != null && name != '' && name != 'null') {
+            var c = name.slice(0, 1);
+            obj.src = '/images/' + c + '.png';
+        }
+        else {
+            obj.src = '/images/noemployee.jpg';
+        }
+
+    }
+    function Open(Id) {
+
+
+       
+        var url = "/nts/note/NoteCard?NoteId=" + Id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Document', Width: 1400, Height: 800 });
+        return false;
+    }
+
+
+    function OnRestore(id) {
+        //e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var flag = confirm('Do you really want to Restore the Document?');
+        if (flag) {
+            $.ajax({
+                url: '/DMS/Document/RestorebinDocument?NoteId=' + id,
+                type: 'GET',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    kendo.alert("Document Restore Successfully");
+                   // $("#kgrdNote").data("kendoGrid").dataSource.read();
+                    getLinkData();
+                    //$("#treeview").data("kendoTreeList").dataSource.read();
+
+                },
+                error: function (ert) {
+                  //  $("#kgrdNote").data("kendoGrid").dataSource.read();
+                    getLinkData();
+                    var tree = $("#treeview").data("kendoTreeView");
+                    //$("#treeview").data("kendoTreeList").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+    $(document).ready(function () {
+
+       // $.contextMenu('update');
+       // $('.context-menu-list').trigger('contextmenu:refresh');
+        $(".k-grid .k-grid-btnAdd span").addClass("k-icon k-add");
+        $("#btnSearch").click(function () {
+
+
+            var search = FilterGrid();
+
+
+            $("#kgrdTaskDetails").data("kendoGrid").dataSource.read(search);
+        });
+        getLinkData();
+    });
+
+    function FilterGrid() {
+
+
+
+        var Category = $("#Category").data("kendoMultiSelect").value();
+        var Template = $("#Template").data("kendoMultiSelect").value();
+        var Assignee = $("#Assignee").data("kendoMultiSelect").value();
+
+        var Status = $("#Status").data("kendoMultiSelect").value();
+
+        return {
+
+            Category: Category.toString(),
+            Template: Template.toString(),
+            Assignee: Assignee.toString(),
+            Status: Status.toString(),
+
+
+        };
+
+    }
+
+    function OnCategoryChange(e) {
+        var dataItem = e.sender.dataItem();
+        var id = dataItem.Id;
+
+
+
+
+
+        var Status = FilterData();
+
+
+        $("#Template").data("kendoMultiSelect").dataSource.read(Status);
+    }
+
+
+    function FilterData() {
+        var value = $("#Category").data("kendoMultiSelect").value();
+
+        return {
+            Category: value.toString(),
+
+        };
+    }
+
+    function OnTemplateChange(e) {
+
+        var dataItem = e.sender.dataItem();
+        var id = this.value();
+        var category = $("#Category").data("kendoMultiSelect").value();
+
+        var Status = {
+            Category: category.toString(),
+            Template: id.toString(),
+
+        };
+
+
+        $("#Assignee").data("kendoMultiSelect").dataSource.read(Status);
+    }
+
+    $('.hamburger-menu').on('mouseup', function (event) {
+
+        $('.contextMenu').hide();
+        $('.context-menu-list').trigger('contextmenu:hide');
+
+
+    });
+
+
+
+
+    function Test() {
+       
+        var url = "/PJM/EmailTask/EmailInbox?module=COPY_EMAIL";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'test', Width: 1400, Height: 1200 });
+        return false;
+
+    }
+
+     function getfolderpath(parentid) {
+        var url = "/DMS/Document/Getfolderpath?NoteId=" + parentid;
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            success: function (data) {
+                //debugger;
+                var elementid = "anc-" + parentid;
+                document.getElementById(elementid).innerHTML = data;
+                //return data;
+            },
+            dataType: "json",
+        });
+    }
+
+    var columnLinkDefs = [
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                    return "<div class='btn-group grid-menu' id='tree-menuBin' data-idvalue='" + params.data.Id + "' data-status=\"0\" data-templatecode='" + params.data.templatecode + "'  data-noteid='" + params.data.NoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+
+
+            }
+        },
+
+        {
+            headerName: "@SharedResource["Name"]",
+            field: "DocumentName",
+            cellRenderer: params => {
+                var data = "";
+                var data1 = "";
+                if (params.data.UploadType == 'File') {
+                    data = "<span id='img-alt-" + params.data.Id + "' class='fas fa-file-alt' style='display:none;color:gray;font-size:30px;border-radius:4px;width:30px;height:30px;'></span><img style='border-radius:4px;width:30px;height:30px'  onerror='OnDocumentImageError(this,\"img-alt-" + params.data.Id+"\");' src=''/>"
+                }
+                else {
+                    data = "<span id='img-alt-" + params.data.Id + "' class='fas fa-folder' style='display:none;color:#ffd861;font-size:30px;border-radius:4px;width:30px;height:30px;\'></span><img style='border-radius:4px;width:30px;height:30px'  onerror='OnDocumentImageError(this,\"img-alt-" + params.data.Id +"\");' src=''/>"
+                }
+               if(params.data.DocumentName != null) {
+                        data1= "<span style='padding-left:5px;'>" + params.data.DocumentName +"</span>"
+                }else{
+                        data1 = "<span style='padding-left:5px;' >Draft</span>"
+                }
+                return data+data1
+            }
+        },
+        {
+            headerName: "@Resource["FolderPath"]",
+            field: "FolderPath",
+            cellRenderer: params => {
+                var url = "/DMS/Document/Getfolderpath?NoteId=" + params.data.ParentId;
+                getfolderpath(params.data.ParentId);
+                return "<a style='cursor:pointer' id='anc-" + params.data.ParentId+"'></a>";
+            }
+        },
+
+        {
+            headerName: "@SharedResource["UpdatedBy"]",
+            field: "UpdatedByUser",
+            cellRenderer: params => {
+
+                return "<img width='30' height='30' style='border-radius:20px'  onerror='OnPhotoError(this,\"" + params.data.UpdatedByUser + "\");' src='/Cms/document/getimagemongo?id=" + params.data.PhotoId + "'/>" + params.data.UpdatedByUser;
+
+            }
+        },
+        {
+            headerName: "@SharedResource["CreatedDate"]",
+            field: "CreatedDate",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
+            }
+        },
+
+        {
+            headerName: "@Resource["DocumentType"]",
+            field: "DocumentType",
+        },
+
+        {
+            headerName: "@Resource["UploadType"]",
+            field: "UploadType",
+        },
+
+        {
+            headerName: "@Resource["Version"]",
+            field: "NoteVersionNo",
+        },
+
+        {
+            headerName: "@SharedResource["Status"]",
+            field: "StatusName",
+        },
+
+        {
+            headerName: "@Resource["ModifiedDate"]",
+            field: "UpdatedDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
+            }
+        },
+
+    ];
+
+    function getLinkData() {
+        document.getElementById("LinkGrid").innerHTML = "";
+        gridConfig(
+            "LinkGrid",
+            "/DMS/Document/GetBinDocumentDataGrid",
+            columnLinkDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+</script>
+<div class="appWrapper">
+    <div class="formHeader">
+        <h4>
+            @ViewBag.Title
+        </h4>
+    </div>
+
+    <input type="button" class="btn-primary" style="visibility:collapse" onclick="Test();"  />
+
+    <div class="hr-pad-top-10 form_wrapper1">
+        <div class="col-md-12">
+            <div id="LinkGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+        @*<div class="col-md-12">
+            @(Html.Kendo().Grid<DMSDocumentViewModel>().Name("kgrdNote")
+                              .Columns(col =>
+                              {
+                                  col.Bound(c => c.Id).ClientTemplate("<div class='btn-group grid-menu' id='tree-menuBin' data-idvalue=\"#:Id#\" data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>").Width(150).Title(@SharedResource["Action"]);
+                                  col.Bound(c => c.DocumentName).Title(@SharedResource["Name"]).Width(250).ClientTemplate("#if(UploadType=='File'){#<span id=\"img-alt-#:data.Id#\" class=\"fas fa-file-alt\" style=\"display:none;color:gray;font-size:30px;border-radius:4px;width:30px;height:30px;\"></span><img style='border-radius:4px;width:30px;height:30px'  onerror='OnDocumentImageError(this,\"img-alt-#:data.Id#\");' src=''/>#}else{#<span id=\"img-alt-#:data.Id#\" class=\"fas fa-folder\" style=\"display:none;color:\\#ffd861;font-size:30px;border-radius:4px;width:30px;height:30px;\"></span><img style='border-radius:4px;width:30px;height:30px'  onerror='OnDocumentImageError(this,\"img-alt-#:data.Id#\");' src=''/>#}#<span style='padding-left:5px;'>#if(DocumentName != null) {# #:DocumentName# # }else{# Draft #}#</span>");
+                                  col.Bound(c => c.FolderPath).Title(@Resource["FolderPath"]).Width(250).ClientTemplate("<a style='cursor:pointer'>#:FolderPath#</a>");
+                                  col.Bound(c => c.UpdatedByUser).Title(@SharedResource["UpdatedBy"]).Width(250).ClientTemplate("<img width='30' height='30' style='border-radius:20px'  onerror='OnPhotoError(this,\"#=UpdatedByUser#\");' src='/Cms/document/getimagemongo?id=#=PhotoId#''/>#=UpdatedByUser#");
+                                  col.Bound(c => c.CreatedDate).Title(@SharedResource["CreatedDate"]).Width(130).Format("{0:dd MMM yyyy}");
+                                  col.Bound(c => c.DocumentType).Title(@Resource["DocumentType"]).Width(150);
+                                  col.Bound(c => c.UploadType).Title(@Resource["UploadType"]).Width(150);
+                                  col.Bound(c => c.NoteVersionNo).Title(@Resource["Version"]).Width(80);
+                                  col.Bound(c => c.StatusName).Title(@SharedResource["Status"]).Width(100);
+
+                                  col.Bound(c => c.UpdatedDate).Title(@Resource["ModifiedDate"]).Width(130).Format("{0:dd MMM yyyy}");
+
+                              })
+    .Scrollable(scrollable => scrollable.Enabled(true).Height(350))
+    .Sortable(srt => srt.Enabled(true))
+    .Resizable(r => r.Columns(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+
+           .Operators(o => o.ForString(s => s.Clear()
+           .Contains("Contains")
+           .IsEqualTo("Is equal to")
+       )))
+
+
+
+    .Pageable(pageable => pageable
+    .Refresh(true)
+
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+
+     .Events(events => events
+
+             .DataBound("onDataBound")
+
+         )
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(20)
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+        model.Id(p => p.ParentId);
+
+    })
+
+    .Read(read => read.Action("GetBinDocumentData", "Document", new { @area = "DMS"}))
+
+    ))
+
+
+        </div>*@
+
+    </div>
+
+
+</div>
+
+<script type="text/javascript">
+
+
+    function OnPrint(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        window.location.href = "/nts/service/DownloadServiceRequest?serviceId=" + dataItem.ServiceId;
+        return false;
+    }
+
+</script>

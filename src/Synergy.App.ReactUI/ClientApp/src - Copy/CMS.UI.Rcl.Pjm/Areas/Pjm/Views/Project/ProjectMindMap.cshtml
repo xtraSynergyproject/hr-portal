@@ -1,0 +1,424 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.ProjectController> Resource
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@model ProgramDashboardViewModel
+
+@{
+    ViewBag.Title = "";
+
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    Layout = null;
+}
+
+<script type="text/javascript" src="~/lib/joint.js/lodash.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/backbone.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/joint.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/config/selection.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/dagre.js"></script>
+<script type="text/javascript" src="~/lib/joint.js/graphlib.core.js"></script>
+@*<script src="~/lib/joint.js/config/rappid.js"></script>*@
+<script type="text/javascript" src="~/lib/joint.js/config/halo.js"></script>
+<script type="text/javascript" src="~/js/PJM/projectMindMap.js"></script>
+@*<script type="text/javascript" src="~/lib/joint.js/common_jointjs.js"></script>*@
+
+<style>
+    .bnr-img {
+        width: 100%;
+    }
+
+    .banner-container {
+        position: relative;
+        color: white;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 14px;
+        left: 60px;
+        font-size: 35px;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        document.getElementById('global-overlay').style.display = "none";
+
+         $("#Start").kendoDateTimePicker({ format: "@ApplicationConstant.DateAndTime.DefaultDateTimeFormat"});
+        $("#End").kendoDateTimePicker({ format: "@ApplicationConstant.DateAndTime.DefaultDateTimeFormat"});
+
+
+
+    });
+
+</script>
+
+@Html.Hidden("ProjectId", (string)ViewBag.ProjectId)
+
+<div class="banner-container" style="width:100%">
+    <img style="width:100%; height:100px" src="~/images/pmt/Project Diagram.jpg" />
+    <div class="banner-text">Project Diagram</div>
+</div>
+
+<div class="row">
+    <div class="col-xs-4" style=" margin-left: 18px;">
+        <div style="text-align: center; margin: 10px;">
+            <input id="projects" style="margin-top:10px;" />
+            <br />
+            <br />
+            <button style="margin-top:10px;" title="@SharedResource["CreateProject"]" class="btn btn-primary" onclick="createNewProject()"><span class="fas fa-project-diagram"></span>&nbsp; @SharedResource["CreateProject"]</button>
+            <br />
+        </div>
+        <div style="text-align:center;font-weight:600;font-size:20px;">@Resource["AddItems"]</div>
+        <div id="stencil" style="text-align:center;    margin-left: 50px;"></div>
+    </div>
+    <div class="col">
+        <br />
+        <div style="text-align:center">
+            @Resource["Zoom"]: <input id="sx" type="range" value="1.00" step="0.1" min="0.1" max="1.5" autocomplete="off" />
+            @Resource["Width"]: <input id="width" type="range" value="3000" step="500" min="3000" max="30000" autocomplete="off" />
+            @Resource["Height"]: <input id="height" type="range" value="2000" step="500" min="2000" max="200000" autocomplete="off" />
+            * @Resource["Hoveronboxformorefunctionalities"]
+        </div>
+        <br />
+        <div style=" height: 600px; width: 1250px; overflow-x: scroll; overflow-y: scroll;">
+            <div id="paper"></div>
+        </div>
+    </div>
+</div>
+
+@*<div class="row" id="mainContent">
+
+    @(Html.Kendo().DropDownList().Name("AssigneeUserId")
+            .HtmlAttributes(new { @style = "width:100%;" })
+            .OptionLabel("Select")
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+            source.Read(read =>
+            {
+            read.Action("GetUserIdNameList", "User", new { area = "CMS" });
+            });
+            })
+            .AutoBind(true)
+            .Filter(FilterType.Contains)
+            )
+
+    <br />
+    <br />
+    <span style="color:white">Owner User</span>
+    <br />
+    @(Html.Kendo().DropDownList().Name("OwnerUserId")
+            .HtmlAttributes(new { @style = "width:100%;" })
+            .OptionLabel("Select")
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+            source.Read(read =>
+            {
+            read.Action("GetUserIdNameList", "User", new { area = "CMS" });
+            });
+            })
+            .AutoBind(true)
+            .Filter(FilterType.Contains)
+            )
+
+    <br />
+    <br />
+    <span style="color:white">Start Date</span>
+    <br />
+    @Html.Kendo().DateTimePicker().Name("Start").Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat).HtmlAttributes(new { @style = "width:100%;" })
+
+    <br /><br />
+    <span style="color:white">End Date</span>
+    <br />
+    @Html.Kendo().DateTimePicker().Name("End").Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat).HtmlAttributes(new { @style = "width:100%;" })-->
+
+</div>*@
+
+<style>
+    .menu .menu-options .menu-option {
+        padding: 0;
+        font-weight: 500;
+        z-index: 1;
+        font-size: 14px;
+        padding: 10px 40px 10px 20px;
+        cursor: pointer;
+        border-bottom: solid;
+        border-color: lightgrey;
+    }
+
+    .menu {
+        width: 120px;
+        z-index: 1;
+        box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
+        position: fixed;
+        display: none;
+        transition: 0.2s display ease-in;
+    }
+
+        .menu .menu-options {
+            list-style: none;
+            padding: 10px 0;
+            z-index: 1;
+            margin: unset;
+        }
+
+            .menu .menu-options .menu-option {
+                font-weight: 500;
+                z-index: 1;
+                font-size: 14px;
+                padding: 10px 40px 10px 20px;
+                cursor: pointer;
+                border-bottom: solid;
+                border-color: lightgrey;
+            }
+
+                .menu .menu-options .menu-option:hover {
+                    background: rgba(0, 0, 0, 0.2);
+                }
+</style>
+
+<div class="menu" style="background-color:#f2e9e4;width:200px">
+    <ul id="menulist" class="menu-options" style="padding: 0;">
+        <li class="menu-option">Back</li>
+        <li class="menu-option">Reload</li>
+        <li class="menu-option">Save</li>
+        <li class="menu-option">Save As</li>
+        <li class="menu-option">Inspect</li>
+    </ul>
+</div>
+
+
+<div class="form-popup" id="myForm">
+    <div id="property" style="height:480px;overflow-y:scroll; background-color:#2D9FCA;width: 330px;padding:10px;">
+        <a onclick="showFullDetails()">@Resource["ViewFullDetails"]</a>
+        <h4 style="color:white;font-weight:bold">@Resource["Properties"]</h4>
+        <span style="color:white">@SharedResource["Title"]</span>
+        <br />
+        @*@Html.Kendo().TextBox().Name("Title").HtmlAttributes(new { @style = "width:100%;", @maxlength = "30" })*@
+        <input type="text" name="Title" class="form-control" style="width:100%" />
+        <br />
+        <span style="color:white">@Resource["AssigneToUser"]</span>
+        <br />
+        @*@(Html.Kendo().DropDownList().Name("AssigneeUserId")
+            .HtmlAttributes(new { @style = "width:100%;" })
+            .OptionLabel("Select")
+            //.Events(e => e.Change("OnTeamChange"))
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+            source.Read(read =>
+            {
+            read.Action("GetUserIdNameList", "User", new { area = "CMS" });
+            });
+            })
+            .AutoBind(true)
+            .Filter(FilterType.Contains)
+            )*@
+
+        <input id="AssigneeUserId" style="width:100%;" />
+
+        <br />
+        <span style="color:white">@Resource["OwnerUser"]</span>
+        <br />
+        @*@(Html.Kendo().DropDownList().Name("OwnerUserId")
+            .HtmlAttributes(new { @style = "width:100%;" })
+            .OptionLabel("Select")
+            //.Events(e => e.Change("OnTeamChange"))
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+            source.Read(read =>
+            {
+            read.Action("GetUserIdNameList", "User", new { area = "CMS" });
+            });
+            })
+            .AutoBind(true)
+            .Filter(FilterType.Contains)
+            )*@
+
+        <input id="OwnerUserId" style="width:100%;" />
+
+        <br />
+        <span style="color:white">@SharedResource["StartDate"]</span>
+        <br />
+        @*@Html.Kendo().DateTimePicker().Name("Start").Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat).HtmlAttributes(new { @style = "width:100%;" })*@
+
+        <input id="Start" style="width:100%;" />
+        <br />
+        <span style="color:white">@SharedResource["EndDate"]</span>
+        <br />
+        @*@Html.Kendo().DateTimePicker().Name("End").Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat).HtmlAttributes(new { @style = "width:100%;" })*@
+
+        <input id="End" style="width:100%;" />
+        <br />
+        <span style="color:white">@Resource["Predecessor"]</span>
+        <br />
+        <div id="pred" style="width: 100%;"></div>
+
+        <br />
+        <span style="color:white">@Resource["Successor"]</span>
+        <br />
+        <div id="succ" style="width: 100%;"></div>
+
+        <br /> <br />
+        <button class="btn btn-primary" style="color:black;background-color:white;" onclick="saveProperties()">@Resource["Update"]</button>
+        <button class="btn cancel" style=" background-color: red; color: white;" onclick="closeForm()">@SharedResource["Close"]</button>
+    </div>
+</div>
+
+<style>
+
+    /* The popup form - hidden by default */
+    .form-popup {
+        display: none;
+        position: fixed;
+        bottom: 50px;
+        right: 15px;
+        border: 3px solid #f1f1f1;
+        z-index: 9;
+    }
+
+    /* Add styles to the form container */
+    .form-container {
+        max-width: 300px;
+        padding: 10px;
+        background-color: white;
+    }
+
+        /* Full-width input fields */
+        .form-container input[type=text], .form-container input[type=password] {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0 22px 0;
+            border: none;
+            background: #f1f1f1;
+        }
+
+            /* When the inputs get focus, do something */
+            .form-container input[type=text]:focus, .form-container input[type=password]:focus {
+                background-color: #ddd;
+                outline: none;
+            }
+
+        /* Set a style for the submit/login button */
+        .form-container .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 16px 20px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        /* Add a red background color to the cancel button */
+        .form-container .cancel {
+            background-color: red;
+        }
+
+        /* Add some hover effects to buttons */
+        .form-container .btn:hover, .open-button:hover {
+            opacity: 1;
+        }
+
+    #paper {
+        background: #ffffff;
+    }
+
+    #stencil {
+        background: #ece2e3;
+    }
+
+    /*.html-element {
+        position: absolute;
+        background: #3498DB;*/
+    /* Make sure events are propagated to the JointJS element so, e.g. dragging works.*/
+    /*pointer-events: none;
+        -webkit-user-select: none;
+        border-radius: 4px;
+        border: 2px solid #2980B9;
+        box-shadow: inset 0 0 5px black, 2px 2px 1px gray;
+        padding: 5px;
+        box-sizing: border-box;
+        z-index: 2;
+    }
+
+        .html-element select,
+        .html-element input,
+        .html-element button {*/
+    /* Enable interacting with inputs only. */
+    /*pointer-events: auto;
+        }
+
+            .html-element button.delete {
+                color: white;
+                border: none;
+                background-color: #C0392B;
+                border-radius: 20px;
+                width: 15px;
+                height: 15px;
+                line-height: 15px;
+                text-align: middle;
+                position: absolute;
+                top: -15px;
+                left: -15px;
+                padding: 0;
+                margin: 0;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+                .html-element button.delete:hover {
+                    width: 20px;
+                    height: 20px;
+                    line-height: 20px;
+                }
+
+        .html-element select {
+            position: absolute;
+            right: 2px;
+            bottom: 28px;
+        }
+
+        .html-element input {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border: none;
+            color: #333;
+            padding: 5px;
+            height: 16px;
+        }
+
+        .html-element label {
+            color: #333;
+            text-shadow: 1px 0 0 lightgray;
+            font-weight: bold;
+        }
+
+        .html-element span {
+            position: absolute;
+            top: 2px;
+            right: 9px;
+            color: white;
+            font-size: 10px;
+        }
+
+    .circleE {
+        width: 50px;
+        height: 50px;
+        border-radius: 250px;
+        font-size: 12px;
+        color: #fff;
+        line-height: 50px;
+        text-align: center;
+        background: #000
+    }*/
+</style>

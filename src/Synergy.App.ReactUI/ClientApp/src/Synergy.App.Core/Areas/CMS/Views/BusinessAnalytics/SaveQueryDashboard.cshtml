@@ -1,0 +1,219 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.BusinessAnalyticsController> Resource
+
+@{
+    ViewData["Title"] = "Watchlist Dashboard";
+    Layout = null;
+    //Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@using Synergy.App.ViewModel;
+
+<style>
+    .k-listview{
+        color:unset;
+    }
+    #listview_keyword{
+        width:100%;
+        border:none;
+    }
+    .k-listview-content{
+        overflow:hidden;
+    }
+   
+    .panel-body {
+        text-align: center;
+        background: lightgray;
+        color:white;
+    }
+    .panel-heading {
+        text-align: center;
+        padding: 22px !important;
+        /*background: #ffbd45;*/
+        color: #fff;
+        font-size: 60px;
+    }
+    .card-block {
+        height: 180px;
+    }
+    .panel-success{
+        background:#00a28a;
+    }
+    .panel-warning{
+        background:#f7c46c;
+    }
+    .panel-info{
+        background:#0179a8;
+    }
+    .panel-default{
+        background:#888c9b;
+    }
+    .panel-danger{
+        background:#dc3545;
+    }
+</style>
+
+
+<script>
+    var dataSourceKeyword = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: "/Cms/BusinessAnalytics/ReadSocialMediaWatchlistData",
+            }
+        },
+    });
+
+    $("#listview_keyword").kendoListView({
+        dataSource: dataSourceKeyword,
+        template: kendo.template($("#watchlist-template").html())
+    });
+
+</script>
+
+<div class="container-fluid hr-pad-top-10">
+    <h4>Watchlist Dashboard</h4>
+    <hr />
+    <div id="accordion" class="accordion" role="tablist" aria-multiselectable="true">
+        <div id="listview_keyword"></div>
+    </div>
+</div>
+
+<script id="watchlist-template" type="text/kendo-ui-template">
+    <div class="card" style='margin-bottom:10px;'>
+        <div class="card-header" role="tab" id="heading#=Id#">
+            <a class="collapsed" data-toggle="collapse" data-parent="\#accordion" href="\#collapse#=Id#" onClick="loadCount('#=Id#','#=NoteSubject#')" aria-expanded="false" aria-controls="collapse#=Id#">
+                <h5 class="mb-0">#=NoteSubject#</h5>
+            </a>
+            <span class="fal fa-directions" style="top:20px;right:16px;position:absolute" title="Go To Integrated Dashboard" onClick="loadIntegratedDashboard('#=Id#','#=NoteSubject#')"></span>
+        </div>
+        <div id="collapse#=Id#" class="collapse" role="tabpanel" aria-labelledby="heading#=Id#">
+            <div class="card-block">
+                <div style='padding:10px;'>
+                    <div class="row form-group">
+                    <div class="col">
+                            <div class="panel panel-success">
+                                <div class="panel-heading">
+                                    <span id="dial100_count#=Id#" class="count_class">0</span>
+                                </div>
+                                <div class="panel-body">
+                                    <span>Dial 100</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="panel panel-warning">
+                                <div class="panel-heading">
+                                    <span id="cctns_count#=Id#" class="count_class">0</span>
+                                </div>
+                                <div class="panel-body">
+                                    <span>CCTNS</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="panel panel-info">
+                                <div class="panel-heading">
+                                    <span id="rssfeeds_count#=Id#" class="count_class">0</span>
+                                </div>
+                                <div class="panel-body">
+                                    <span>RSS Feeds</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <span id="facebook_count#=Id#" class="count_class">0</span>
+                                </div>
+                                <div class="panel-body">
+                                    <span>Facebook</span>
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="col">
+                            <div class="panel panel-danger">
+                                <div class="panel-heading">
+                                    <span id="instagram_count#=Id#" class="count_class">0</span>
+                                </div>
+                                <div class="panel-body">
+                                    <span>Instagram</span>
+                                </div>
+                            </div>
+                        </div>*@
+                        <div class="col">
+                            <div class="panel panel-danger">
+                                <div class="panel-heading">
+                                    <span id="youtube_count#=Id#" class="count_class">0</span>
+                                </div>
+                                <div class="panel-body">
+                                    <span>Youtube</span>
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="col">
+                            <div class="panel panel-warning">
+                                <div class="panel-heading">
+                                    <span id="whatsapp_count#=Id#" class="count_class">0</span>
+                                </div>
+                                <div class="panel-body">
+                                    <span>Whatsapp</span>
+                                </div>
+                            </div>
+                        </div>*@
+                        <div class="col">
+                            <div class="panel panel-info">
+                                <div class="panel-heading">
+                                    <span id="twitter_count#=Id#" class="count_class">0</span>
+                                </div>
+                                <div class="panel-body">
+                                    <span>Twitter</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+
+    $(document).ready(function () {
+
+
+    });
+    function loadIntegratedDashboard(id,name) {
+        var text = name;
+        text = text.replaceAll(" ", "%20");
+        var portalId = $('#GlobalPortalId').val();
+        var customurl = encodeURIComponent('watchlistId=' + id + '&keyword=' + text + '&ruturnPageName=SocialMediaWatchlistDashboard');
+        var url = '/Cms/Page?pageName=SocialMediaDashboard&portalId=' + portalId + '&customUrl=' + customurl;
+        LoadCmsPartialView(url, 'Custom');
+    }
+    function loadCount(id, name) {
+        var text = name;
+        text = text.replaceAll(" ", "%20");
+           $.ajax({
+               url: '@Url.Action("GetAllIIPDataSourceCount", "BusinessAnalytics", new { @area="Cms"})?watchlistId=' + id + '&keyword=' + text,
+                type: 'GET',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+
+                    if (result.success) {
+                        $("#dial100_count" + id).html(result.dial100)
+                        $("#rssfeeds_count" + id).html(result.rssFeed)                        
+                        $("#youtube_count" + id).html(result.youtube)                        
+                        $("#twitter_count" + id).html(result.twitter)                        
+                        $("#facebook_count" + id).html(result.facebook)                        
+                        $("#cctns_count" + id).html(result.cctns)                        
+                    }
+                    else {
+                        kendo.alert(result.error);
+                    }
+                },
+                error: function (ert) {
+
+
+                }
+            });
+    }
+</script>

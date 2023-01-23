@@ -1,0 +1,375 @@
+﻿@using Synergy.App.ViewModel;
+@using Kendo.Mvc.UI;
+@using Synergy.App.Common;
+@using Kendo.Mvc.Extensions;
+@model EGovDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    // Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+
+}
+<link type="text/css" rel="stylesheet" href="~/css/cms/DashBoard.css" asp-append-version="true" />
+<style>
+    .summary-card {
+        width: 400px;
+        margin-right: 100px;
+    }
+
+    .summary-card-body {
+        width: 400px;
+    }
+
+    .border-right {
+        border-right: 1px solid #006699 !important;
+    }
+    .summary-card-header {
+        width: 400px;
+    }
+    
+</style>
+
+<script type="text/javascript">
+     function onBack()
+    {
+        window.location.href = "@ViewBag.ReturnUrl";
+    }
+    $('#left').click(function () {
+
+        //event.preventDefault();
+        $(".k-listview-content").animate({scrollLeft: "-=1075px"}, "slow");
+    });
+
+    $('#right').click(function () {
+
+        //event.preventDefault();
+        $(".k-listview-content").animate({ scrollLeft: "+=1075px"}, "slow");
+    });
+
+    function CreateService(templatecode) {
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&source=Create&dataAction=Create&templateCodes=' + templatecode + '&portalId=' + portalId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Request', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function getList(tempcode, statusCode) {
+        //var search = { templateCodes: tempcode, taskStatus: statusCode };
+        //$("#kGridView").data("kendoGrid").dataSource.read(search);
+        getEmployeeDashboardData(tempcode, statusCode);
+    }
+
+    function OpenService(serviceId, templateCode) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterService&source=View&dataAction=View&templateCodes=' + templateCode +'&portalId=' + portalId + '&recordId=' + serviceId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View Service', Width: 1200, Height: 700 });
+        return false;
+    }
+
+     function OpenTask(taskId, tempCode) {
+
+        var id = taskId;
+        var source = '@RequestSourceEnum.Edit.ToString()';
+        var action = '@DataActionEnum.Edit.ToString()';
+
+        var portalId = $('#GlobalPortalId').val();
+
+         var url = '/Cms/Page?lo=Popup&pageType=Task&cbm=OnAfterService&source=' + source + '&dataAction=' + action + '&templateCodes=' + tempCode + '&portalId=' + portalId + '&recordId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title:  "Task", Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function OnAfterService() {
+
+        $("#taskcount").data("kendoListView").dataSource.read();
+        /*$("#kGridView").data("kendoGrid").dataSource.read();*/
+        getEmployeeDashboardData();
+        //Dependent();
+    }
+
+    var columnDefs = [
+        {
+            headerName: "Service No",
+            field: "ServiceNo",
+            cellRenderer: params => {
+                return "<input type='button' class='btn btn-link' onclick='OpenService(\"" + params.data.Id + "\",\"" + params.data.TemplateCode + "\" )' value=\"" + params.value + "\" />";
+            }
+        },
+        {
+            headerName: "Service",
+            field: "ServiceName",
+        },
+        {
+            headerName: "Service Status",
+            field: "WorkflowStatus",
+        },
+        {
+            headerName: "Task No",
+            field: "TaskNo",
+            cellRenderer: params => {
+
+                return "<input type='button' class='btn btn-link' onclick='OpenTask(\"" + params.data.TaskActionId + "\",\"" + params.data.TemplateMasterCode + "\" )' value=\"" + params.value + "\" />";
+            }
+        },
+        {
+            headerName: "Task Status",
+            field: "TaskStatusName",
+            cellRenderer: params => {
+                if (params.value == "Completed") {
+                    return "<label class='text-success' style='font-weight:400;'>" + params.value + "</label>"
+                }
+                else if (params.value == "In Progress") {
+                    return "<label class='text-primary' style='font-weight:400;'>" + params.value + "</label>"
+                }
+                else if (params.value == "Overdue") {
+                    return "<label class='text-warning' style='font-weight:400;'>" + params.value + "</label>"
+                }
+                else {
+                    return "<label class='text-danger' style='font-weight:400;'>" + params.value + "</label>"
+                }
+                //return "<label #if(\"" + params.value + "\"=='Completed'){# class='btn btn-success' #}else if(\"" + params.value + "\"=='In Progress'){# class='btn btn-primary' #}else if(\"" + params.value + "\"=='Overdue'){# class='btn btn-warning' #}else if(\"" + params.value + "\"=='Rejected'){# class='btn btn-danger' #}#>" + params.value + "</label>";
+            }
+        },
+        {
+            headerName: "Requested By",
+            field: "ServiceOwner",
+        },
+        {
+            headerName: "Requested Date",
+            field: "CreatedDate",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            headerName: "Due Date",
+            field: "DueDate",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        //{
+        //    headerName: "Service Status",
+        //    field: "ServiceStatusName",
+        //},
+
+    ];
+
+    $(function () {
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/cms/NtsTask/ReadTaskListCount?categoryCodes="+'@ViewBag.CategoryCodes',
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#taskcount").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#templatetaskcount").html()),
+             dataBound: function () {
+                 var data = $("#taskcount").data("kendoListView").dataSource.data();
+                 for (var i = 0; i < data.length; i++) {
+                     console.log(data[i]);
+                     var vals = [data[i].AssignedToMeInProgreessOverDueCount, data[i].AssignedToMeCompleteCount, data[i].AssignedToMeRejectCancelCloseCount];
+                     var chart = "#chart_" + data[i].TemplateCode;
+                     var options = {
+                         series: vals,
+                         chart: {
+                             id: data[i].TemplateCode,
+                             width: 300,
+                             height: 220,
+                             type: 'pie',
+                             offsetX:-30,
+                             events: {
+                                 dataPointSelection: function (event, chartContext, config) {
+                                     var status=config.w.config.labels[config.dataPointIndex];
+                                     var code = config.w.config.chart.id;
+                                     var statusCode = '';
+                                     if (status ==='Pending') {
+                                         statusCode = 'TASK_STATUS_INPROGRESS,TASK_STATUS_OVERDUE';
+                                     } else if (status === 'Completed') {
+                                         statusCode = 'TASK_STATUS_COMPLETE';
+                                     } else if (status === 'Rejected') {
+                                         statusCode = 'TASK_STATUS_REJECT,TASK_STATUS_CANCEL';
+                                     }
+                                     getList(code, statusCode);
+
+                                 }
+                             }
+                         },
+                         legend: {
+                             position: 'bottom',
+                             horizontalAlign: 'center',
+                             offsetY:-5
+                         },
+                         labels: ['Pending', 'Completed', 'Rejected'],
+                         colors: ['#007bff','#28a745','#dc3545'],
+
+                     };
+
+                     var chart = new ApexCharts(document.querySelector(chart), options);
+                     chart.render();
+                 }
+
+            }
+
+        });
+
+        getEmployeeDashboardData();
+
+        $.contextMenu({
+            selector: '#tree-menu1',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+
+                                        break;
+
+                                    case 'delete':
+
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+    function getEmployeeDashboardData(catcode, statusCode) {
+        document.getElementById("kGridView").innerHTML = "";
+
+        var catcodes = '@ViewBag.CategoryCodes';
+        if (catcode!=null) {
+            catcodes = catcode;
+        }
+        var statuscodes = statusCode;
+        if (statuscodes == undefined) {
+            statuscodes = "";
+        }
+        /*alert(tempcodes);*/
+        gridConfig(
+            "kGridView",
+            "/cms/NtsTask/ReadTaskData?categoryCodes=" + catcodes + "&taskStatus=" + statuscodes,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function onReset() {
+        //HideLoader($("#global-overlay"));
+        //    window.parent.LoadPartailView1("/EGOV/EGovernment/EmployeeDashboard", 'EmployeeDashboard');
+        getEmployeeDashboardData();
+
+    }
+
+</script>
+
+
+
+<div class="col-12" style="padding:10px;margin-top:20px;">
+
+    <div>
+        
+        <div class="row">
+            <div class="col-6">
+                <h5 style="font-weight:bold;color:black">DASHBOARD</h5>
+            </div>
+
+            <div class="col-6">
+                @if (ViewBag.ReturnUrl != null)
+                {
+                    <input type="button" value="Back" onclick="onBack()" class="btnservice btn-primary" style="float:right;margin-left:10px;" />
+                }
+                <button style="float:right" id="right" class="scrollbtn"><i class="fas fa-chevron-right"></i></button>
+                <button style="float:right" id="left" class="scrollbtn"><i class="fas fa-chevron-left"></i></button>
+            </div>
+            @*@if (ViewBag.ReturnUrl != null)
+            {
+        <div class="col-1">
+            <input type="button" value="Back" onclick="onBack()" class="btnservice btn-primary" />
+        </div>
+            }*@
+
+            <div class="d-flex flex-row flex-nowrap overflow-hidden" id="paymentdues">
+
+            </div>
+        </div>
+        <div style="text-align:left !important;">
+            <div id="taskcount" class="taskcount">
+
+            </div>
+        </div>
+        <div class="row pl-4">
+            <button class="btn btn-secondary" onclick="onReset()">Clear Filter</button>
+        </div>
+
+
+
+    </div>
+    <div class="col-12 p-2">
+        <div id="kGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </div>
+</div>
+
+<script type="text/x-kendo-tmpl" id="templatetaskcount">
+       <div class="card text-center summary-card">
+        <div class="card-header summary-card-header" style="font-weight:500">
+            #=DisplayName#
+        </div>
+        <div class="card-body row summary-card-body" >
+            <div class="col-5 row border-right" >
+                <div class="col-12 pt-3 pl-3" style="text-align:center">
+                    <img class="caticon" src="/cms/Document/GetImageMongo?id=#=IconFileId#" onerror="OnDocumentError(this);">
+                </div>
+                <div class="col-12" style="text-align:center"><div style="font-weight:bold;font-size:20px;">#=TotalCount#</div><div style="font-weight:400;font-size:12px;">Total Task(s)</div></div>
+            </div>
+            <div class="col-7">
+                <div  id="chart_#=TemplateCode#">
+                </div>
+            </div>
+        </div>
+    </div>
+</script>

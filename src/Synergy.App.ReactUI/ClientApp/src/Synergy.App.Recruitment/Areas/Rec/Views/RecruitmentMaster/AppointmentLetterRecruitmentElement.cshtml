@@ -1,0 +1,670 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewBag.Title = "Requirement Dashboard";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@model RecCandidateElementInfoViewModel
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#JoiningDate").kendoDatePicker({
+            value: new Date(),
+            format: "@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat"
+        });
+
+        $("#ContractStartDate").kendoDatePicker({
+            value: new Date(),
+            format: "@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat"
+        });
+
+        $("#JoiningNotLaterThan").kendoDatePicker({
+            value: new Date(),
+            format: "@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat"
+        });
+
+        $("#OfferDesigination").kendoDropDownList({
+            dataTextField: "JobTitle",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            value: "@Model.OfferDesigination",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Rec/RecruitmentTransaction/GetJobIdNameList",
+                    }
+                }
+            }
+        });
+
+
+
+        $("#OfferGrade").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            value: "@Model.OfferGrade",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Rec/RecruitmentTransaction/GetGradeIdNameList",
+                    }
+                }
+            }
+        });
+
+        $("#OrganizationId").kendoDropDownList({
+            dataTextField: "DepartmentName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            value: "@Model.OrganizationId",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Rec/RecruitmentTransaction/GetOrgIdNameList",
+                    }
+                }
+            }
+        });
+
+        $("#AccommodationId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            value: "@Model.AccommodationId",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=LOV_ACCOMMODATION",
+                    }
+                }
+            }
+        });
+
+        var serCompData = [
+            { text: "3", value: "3" },
+            { text: "6", value: "6" },
+            { text: "12", value: "12" }
+        ];
+
+        $("#ServiceCompletion").kendoDropDownList({
+            dataTextField: "text",
+            dataValueField: "value",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            value: "@Model.ServiceCompletion",
+            dataSource: serCompData,
+        });
+
+        $("#REGrid").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/Rec/RecruitmentMaster/ReadPayElementData?appid=" + '@Model.ReferenceId',
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                onItemEditing: function (e) {
+                    debugger;
+                    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                        //
+                        e.grid.updateItem();
+                    }
+                },
+                updateItem: function (item) {
+                    debugger;
+                },
+            },
+            fields: [
+                {
+                    name: "ElementName",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "Value",
+                    type: "text",
+                    editing: true
+                },
+                {
+                    type: "control", deleteButton: false,
+                },
+                { name: "Id", type: "text", editing: false, visible: false },
+                { name: "ElementId", type: "text", editing: false, visible: false },
+                { name: "PayId", type: "text", editing: false, visible: false },
+                { name: "NoteId", type: "text", editing: false, visible: false },
+            ]
+        });
+
+    });
+
+    function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnSave(e) {
+
+        if ($("#VisaCategory").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Visa Category is Required");
+            e.preventDefault();
+            return false;
+        }
+        else if ($("#ContractStartDate").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Contract Start Date is Required");
+            e.preventDefault();
+            return false;
+        }
+        else if ($("#OfferGrade").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Offer Grade is Required");
+            e.preventDefault();
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+
+        $("#JoiningDate").val(kendo.toString($("#JoiningDate").data("kendoDatePicker").value(), 'yyyy-MM-dd'));
+        $("#ContractStartDate").val(kendo.toString($("#ContractStartDate").data("kendoDatePicker").value(), 'yyyy-MM-dd'));
+        $("#JoiningNotLaterThan").val(kendo.toString($("#JoiningNotLaterThan").data("kendoDatePicker").value(), 'yyyy-MM-dd'));
+
+        var elelist = [];
+        var eleGrid = $("#REGrid").data("JSGrid");
+
+        if (eleGrid._editingRow != null) {
+            eleGrid.updateItem();
+        }
+
+        for (var i = 0; i < eleGrid.data.length; i++) {
+            elelist.push(eleGrid.data[i]);
+        }
+
+        $("#JsonPayElement").val(JSON.stringify(elelist));
+    }
+
+    function OnCreate(e) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("RecruitmentPayElement", "RecruitmentDashboard", new { @area = "Recruitment" , applicatiodid=Model.ReferenceId })';
+        win.OpenWindow({ Title: 'Recruitment Pay Elements', Width: 400, Height: 1000 });
+        return false;
+    }
+
+    function OnEdit(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("EditRecruitmentPayElement", "RecruitmentDashboard", new { @area = "Recruitment" })?Id=' + dataItem.Id + '&applicatiodid=' + '@Model.ReferenceId';
+        win.OpenWindow({ Title: 'Recruitment Pay Elements', Width: 1000, Height: 1000 });
+        return false;
+    }
+
+    function OnDelete(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(dataItem.Id);
+        }, function () {
+
+        });
+    }
+
+    function confirmDelete(id) {
+        $.ajax({
+            url: '@Url.Action("DeleteElement", "RecruitmentDashboard", new { @area= "Recruitment" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                ShowNotification("Deleted Successfully", "success");
+                $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+    }
+
+    function change() {
+        var startDate = $("#ContractStartDate").val();
+        var joindate = new Date(startDate);
+        joindate.setDate(joindate.getDate() + 30);
+        $("#JoiningNotLaterThan").data("kendoDatePicker").value(joindate);
+    }
+
+    function OnTraineeChange(e) {
+        debugger;
+        if (e.checked == true) {
+            $("#ServiceCompletion").data("kendoDropDownList").value("12");
+        } else {
+            $("#ServiceCompletion").data("kendoDropDownList").value("6");
+        }
+    }
+
+</script>
+
+<style>
+    .bold-text {
+        font-weight: bold;
+    }
+
+    .left-column-property {
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 1px;
+    }
+
+    .right-column-property {
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 0px;
+    }
+
+    .middle-column-property-1 {
+        border-width: 1px;
+        border-style: solid;
+    }
+
+    .middle-column-property-2 {
+        border-width: 1px;
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 1px;
+    }
+</style>
+
+<div class="row" style="margin-left:15px;">
+
+    <form asp-controller="RecruitmentMaster" asp-action="ManageApplicationElement" method="post" class="form-horizontal">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="row no-gutters pad-10" style="width:100%">
+                <div class="col pad-10">
+                    <div class="form-label-group">
+                        <span style="padding-right: 10px;">Name : </span>
+                        <span style="font-weight: 700;">@Html.DisplayFor(x => x.ApplicantName)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row no-gutters pad-10" style="width:100%">
+                @*<div class="col-12 pad-10">
+                    <div class="form-label-group">
+                        <span style="padding-right: 10px;">Offer Desigination : </span>
+                        <input type="text" asp-for="OfferDesigination" id="OfferDesigination" class="form-control" style="width:70%" />
+
+
+                    </div>
+                </div>*@
+
+                <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                    <label for="OfferDesigination" class="form-label">
+                        Offer Desigination :
+                    </label>
+                    <div>
+                        <input asp-for="OfferDesigination" type="text" class="form-control" style="width:100%" />
+                    </div>
+                </div>
+
+            @*</div>*@
+
+
+            @*<div class="row no-gutters pad-10">*@
+
+            @*<div class="col-6 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="AnnualLeave">Annual Leave</label>
+                </div>
+                <input type="number" asp-for="AnnualLeave" class="form-control" style="width:100%;" />
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="AnnualLeave" class="form-label">
+                    Annual Leave
+                </label>
+                <div>
+                    <input asp-for="AnnualLeave" type="text" class="form-control" style="width:100%" />
+                </div>
+            </div>
+
+            @*<div class="col-6 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="OrganizationId">Organization<span class="required">*</span></label>
+                </div>
+                <input type="text" asp-for="OrganizationId" class="form-control" />
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="OrganizationId" class="form-label required">
+                    Organization
+                </label>
+                <div>
+                    <input asp-for="OrganizationId" type="text" class="form-control" style="width:100%" required />
+                </div>
+            </div>
+
+
+            @*</div>*@
+
+            @*<div class="row no-gutters pad-10">*@
+
+
+
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="OfferGrade">Offer Grade<span class="required">*</span></label>
+                </div>
+                <input type="text" asp-for="OfferGrade" id="OfferGrade" class="form-control" />
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="OfferGrade" class="form-label required">
+                    Offer Grade
+                </label>
+                <div>
+                    <input asp-for="OfferGrade" type="text" class="form-control" style="width:100%" required />
+                </div>
+            </div>
+
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="AccommodationId">Accommodation</label>
+                </div>
+                <input type="text" asp-for="AccommodationId" id="AccommodationId" class="form-control" />
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="AccommodationId" class="form-label required">
+                    Accommodation
+                </label>
+                <div>
+                    <input asp-for="AccommodationId" type="text" class="form-control" style="width:100%" required />
+                </div>
+            </div>
+
+
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="JoiningDate" class="form-label">
+                    Joining Date
+                </label>
+                <div>
+                    <input asp-for="JoiningDate" type="text" class="form-control" style="width:100%" />
+                </div>
+            </div>
+
+
+            @*</div>*@
+
+            @*<div class="row no-gutters pad-10">*@
+
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="SalaryOnAppointment">Salary On Appointment</label>
+                </div>
+                <input type="number" asp-for="SalaryOnAppointment" class="form-control" placeholder="Salary On Appointment" autocomplete="off" />
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="SalaryOnAppointment" class="form-label">
+                    Salary On Appointment
+                </label>
+                <div>
+                    <input asp-for="SalaryOnAppointment" type="text" class="form-control" style="width:100%" />
+                </div>
+            </div>
+
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:105px">
+                <div>
+                    <label for="SalaryRevision">Salary Revision</label>
+                </div>
+                <input type="checkbox" style="margin-top: 5px;" asp-for="SalaryRevision" />
+            </div>
+
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="SalaryRevision" class="form-label">
+                    Salary Revision
+                </label>
+                <div>
+                    <input asp-for="SalaryRevision" type="checkbox" style="margin-top: 5px;" />
+                </div>
+            </div>
+
+
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="SalaryRevisionAmount">Salary Revision Amount</label>
+                </div>
+                <input type="number" asp-for="SalaryRevisionAmount" class="form-control" placeholder="Salary Revision Amount" autocomplete="off" />
+            </div>
+
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="SalaryRevisionAmount" class="form-label">
+                    Salary Revision Amount
+                </label>
+                <div>
+                    <input asp-for="SalaryRevisionAmount" type="number" class="form-control" style="width:100%" />
+                </div>
+            </div>
+
+            @*</div>*@
+
+            @*<div class="row no-gutters pad-10">*@
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="ServiceCompletion">Service Completion(Month)</label>
+                </div>
+                <input type="text" asp-for="ServiceCompletion" id="ServiceCompletion" class="form-control" />
+
+
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="ServiceCompletion" class="form-label">
+                    Service Completion(Month)
+                </label>
+                <div>
+                    <input asp-for="ServiceCompletion" type="text" class="form-control" style="width:100%" />
+                </div>
+            </div>
+
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="TravelOriginAndDestination">Travel Origin And Destination</label>
+                </div>
+                <input type="text" asp-for="TravelOriginAndDestination" class="form-control" placeholder="Travel Origin And Destination" autocomplete="off" />
+            </div>
+
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="TravelOriginAndDestination" class="form-label">
+                    Travel Origin And Destination
+                </label>
+                <div>
+                    <input asp-for="TravelOriginAndDestination" type="text" class="form-control" style="width:100%" />
+                </div>
+            </div>
+
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group">
+                <div>
+                    <label for="VehicleTransport">VehicleTransport</label>
+                </div>
+                <input type="text" asp-for="VehicleTransport" class="form-control" placeholder="Vehicle Transport" autocomplete="off" />
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="VehicleTransport" class="form-label">
+                    Vehicle Transport
+                </label>
+                <div>
+                    <input asp-for="VehicleTransport" type="text" class="form-control" style="width:100%" />
+                </div>
+            </div>
+
+            @*</div>*@
+
+            @*<div class="row no-gutters pad-10">*@
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="ContractStartDate">Contract Made<span class="required">*</span></label>
+                </div>
+                <div>
+                    <input type="text" asp-for="ContractStartDate" id="ContractStartDate" class="form-control" />
+                </div>
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="ContractStartDate" class="form-label required">
+                    Contract Made
+                </label>
+                <div>
+                    <input asp-for="ContractStartDate" type="text" class="form-control" style="width:100%" required />
+                </div>
+            </div>
+
+
+            @*<div class="col-4 pad-20">
+            <div class="form-label-group" style="padding-right:45px">
+                <div>
+                    <label for="JoiningNotLaterThan">Joining Not Later Than</label>
+                </div>
+                <div>
+                    <input type="text" asp-for="JoiningNotLaterThan" id="JoiningNotLaterThan" class="form-control" />
+                </div>
+            </div>
+        </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="JoiningNotLaterThan" class="form-label">
+                    Joining Not Later Than
+                </label>
+                <div>
+                    <input asp-for="JoiningNotLaterThan" type="text" class="form-control" style="width:100%" />
+                </div>
+            </div>
+
+
+            @*</div>*@
+
+            @*<div class="row no-gutters pad-10">*@
+
+
+
+
+
+            <!--<div class="col-4 pad-20">
+
+    <div class="form-label-group" style="padding-left:100px">-->
+            @*<div style="width:70px">
+            <label>Is Trainee</label>
+        </div>*@
+            <!--<input type="checkbox" style="margin-top: 5px;" asp-for="IsTrainee" onclick="OnTraineeChange(this);" /><label> Is Trainee</label>
+        </div>
+    </div>-->
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="IsTrainee" class="form-label">
+                    Is Trainee
+                </label>
+                <div>
+                    <input asp-for="IsTrainee" type="checkbox" style="margin-top: 5px;" />
+                </div>
+            </div>
+
+            @*<div class="col-4 pad-20" style="display:none;">
+                <div class="form-label-group" style="padding-right:45px">
+                    <div>
+                        <label for="IsLocalCandidate">Is Local Candidate</label>
+                    </div>
+                    <input type="checkbox" style="margin-top: 5px;" asp-for="IsLocalCandidate" /><label> Is Local Candidate</label>
+                </div>
+            </div>*@
+
+            <div class="form-group col-sm-6 col-md-4 col-lg-4 pr-3">
+                <label for="IsLocalCandidate" class="form-label">
+                    Is Local Candidate
+                </label>
+                <div>
+                    <input asp-for="IsLocalCandidate" type="checkbox" style="margin-top: 5px;" />
+                </div>
+            </div>
+
+            </div>
+
+            <div id="REGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+
+
+            @Html.HiddenFor(x => x.Id)
+            @Html.HiddenFor(x => x.ElementId)
+            @Html.HiddenFor(x => x.JsonPayElement)
+            @Html.HiddenFor(x => x.ApplcationStateName)
+            @Html.HiddenFor(x => x.TaskStatus)
+            @Html.HiddenFor(x => x.ReferenceId)
+        </div>
+
+
+        <div>
+            <div class="col-sm-12" style="text-align:right;">
+                <button type="submit" class="btn btn-success" onclick="OnSave(event)">Save</button>
+            </div>
+        </div>
+
+    </form>
+
+</div>

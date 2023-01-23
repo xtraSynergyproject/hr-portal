@@ -1,0 +1,530 @@
+﻿@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.Business;
+@using Synergy.App.Common;
+@*@using Syncfusion.EJ2;
+@using Syncfusion.EJ2.PdfViewer;
+@using Syncfusion.EJ2.Navigations;*@
+
+@inject IFileBusiness _fileBusiness
+@inject IUserContext _userContext;
+@model IList<Synergy.App.ViewModel.FileViewModel>
+@{
+    //ViewBag.Title = ERP.Translation.Nts.Service.PageTitleCreate;// "Create Service";
+    if (ViewBag.Layout == "dms")
+    {
+        Layout = null;
+    }
+    else
+    {
+        Layout = "~/Areas/Core/Views/Shared/_PopupLayoutPDF.cshtml";
+    }
+
+    //Layout = null;
+
+}
+<style>
+
+
+    /*#pdfviewer {
+        display: block;
+    }*/
+</style>
+
+<script>
+
+
+
+
+    function loadImage() {
+
+        const viewer = new Viewer(document.getElementById("tabstrip"), {
+            inline: false,
+            hidden: function () {
+                viewer.destroy();
+            },
+        });
+
+        // image.click();
+        viewer.show();
+
+    }
+
+    function OnClear(e) {
+
+        var _id = e.sender.element[0].id.split('_')[1];
+        _id = "pdfViewer" + _id;
+
+        var pdfviewer = document.getElementById(_id).ej2_instances[0];
+        //pdfviewer.download();
+        pdfviewer.unload();
+    }
+    function onDownload(docId) {
+
+        //window.location.href = "/General/File/GetFile?fileId=" + docId;
+        url = '/cms/Document/GetFileMongo?fileId=' + docId;
+        window.open(url, '_blank');
+        return false;
+    }
+    
+
+</script>
+<div id="pdfviewerDiv">
+    @foreach (var tab in Model)
+     {
+        if (Helper.IsImageFile(tab.FileExtension))
+         {
+            <div>
+                <img id="dynamicImage_@tab.Id" src='/Cms/document/getimagemongo?id=@tab.Id' style="width:100%" onclick="onDownload('@tab.Id');" />
+            </div>
+        }
+        else if (Helper.IsVideoFile(tab.FileExtension))
+        {
+            <video id="videoRec" autoplay style="width: 95%;margin:2%;" controls playsinline>
+                <source src="/cms/Document/GetFileMongo?fileId=@tab.Id" type="video/mp4">
+            </video>
+        }
+        else if (Helper.IsAudioFile(tab.FileExtension))
+        {
+            <audio id="audioRec" controls autoplay playsinline style="width: 95%;margin:2%;">
+                <source src="/cms/Document/GetFileMongo?fileId=@tab.Id" type="audio/mp3">
+            </audio>
+        }
+     }
+
+    @*@(Html.Kendo().TabStrip()
+                                                                        .Name("tabstrip")
+                                                                              .Items(tabstrip =>
+                                                                              {
+                                                                              var i = 0;
+                                                                              foreach (var tab in Model)
+                                                                              {
+
+                                                                                  tabstrip.Add().Text(tab.FileName).Selected(i==0).Content(@<text>
+                                                                                    <div style="padding-bottom:5px;"><span title="Download File" style="float:left"><i onclick="onDownload('@tab.Id');" class='fad fa-download li-fal' style="font-size:24px; color: midnightblue; cursor:pointer"></i></span><span style="padding:10px"></span>
+            </div>
+
+                                                                                    @if (Helper.IsPdfFile(tab.FileExtension))
+                                                                                    {
+                                                                                    <div>
+                                                                                        <span style="float:right;">
+                                                                                            @{
+
+                                                                                                var _btnName = string.Concat("btnSave_", tab.Id);
+                                                                                                var author = _userContext.Name;
+                                                                                            }
+
+
+                                                                                            <script>
+                                                                                                function OnSave(e) {
+                                                                                                    ShowLoader($('#pdfviewerDiv'));
+                                                                                                    var _id = e.sender.element[0].id.split('_')[1];
+                                                                                                    _id = "pdfViewer_@tab.VersionNo";// + _id;
+
+                                                                                                    var pdfviewer = document.getElementById(_id).ej2_instances[0];
+                                                                                                    pdfviewer.exportAnnotation();
+                                                                                                    pdfviewer.download();
+
+                                                                                                    setTimeout(function () {
+                                                                                                        HideLoader($('#pdfviewerDiv'));
+                                                                                                        ShowNotification('File saved successfully!');
+                                                                                                        var url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit';
+                                                                                                        location.href = url;
+                                                                                                    }, 3000);
+                                                                                                }
+                                                                                                 function OnVersionchange(e)
+                                                                                            {
+                                                                                                var dataItem = e.sender.dataItem();
+                                                                                                    var url = "";
+                                                                                                    if (dataItem.Code == "True") {
+                                                                                                        url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit';
+                                                                                                    }
+                                                                                                    else {
+                                                                                                        url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit&logId=' + $("#FileLogId").data("kendoDropDownList").value();
+                                                                                                    }
+                                                                                                location.href = url;
+                                                                                        }
+                                                                                                function OnLogBound(e)
+                                                                                                {
+                                                                                                    var data = e.sender.dataSource.data();
+                                                                                                    for (var i = 0; i < data.length;i++)
+                                                                                                    {
+                                                                                                        if (data[i].Name == '@tab.VersionNo')
+                                                                                                        {
+                                                                                                            $("#FileLogId").data("kendoDropDownList").value(data[i].Id);
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            </script>
+                                                                                                                                                                 <input id="FileLogId" />
+
+                                                                                             @if (ViewBag.CanEdit==true && ViewBag.LogId == null)
+                                                                                             {
+                                                                                                   <button type="button" id="@_btnName" class="btn btn-primary" onclick="OnSave()" title="Save File">Save File</button>
+                                                                                            }
+                                                                                            else
+                                                                                            {
+
+                                                                                                <span>If you want to save any changes, please click on edit button on main menu,then open this file.</span>
+                                                                                            }
+                                                                                            @if (ViewBag.CanEdit == true && ViewBag.LogId != null)
+                                                                                            {
+                                                                                                 <button type="button" id="RevertExcelVersion" class="btn btn-primary" title="Revert To This Version">Revert To This Version</button>
+                                                                                            }
+                                                                                        </span>
+                                                                                        <br /> <br />
+
+                                                                                        <script>
+
+                                                                                            $(document).ready(function () {
+
+                                                                                                        $("#FileLogId").kendoDropDownList({
+                                                                                                            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                                                                            dataTextField: "Name",
+                                                                                                            dataValueField: "Id",
+                                                                                                            change: OnVersionchange,
+                                                                                                            dataBound: OnLogBound,
+                                                                                                            dataSource: {
+                                                                                                                transport: {
+                                                                                                                    read: {
+                                                                                                                            url: "/Cms/GetFileLog?FileId=@tab.Id",
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            }
+                                                                                                        });
+
+                                                                                                var viewer = new ej.pdfviewer.PdfViewer({
+                                                                                                    documentPath: "@tab.Id",
+                                                                                                    serviceUrl: '/api/PdfViewer',
+                                                                                                    isCommandPanelOpen: true,
+                                                                                                    highlightSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    underlineSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    strikethroughSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    circleSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    polygonSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    rectangleSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    lineSettings : {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    arrowSettings : {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    stickyNotesSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    radiusSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    stampSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    freeTextSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    volumeSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    perimeterSettings: {
+                                                                                                        author:"@author"
+                                                                                                    },
+                                                                                                    areaSettings: {
+                                                                                                        author:"@author"
+                                                                                                    }
+                                                                                                });
+                                                                                                ej.pdfviewer.PdfViewer.Inject(ej.pdfviewer.Toolbar, ej.pdfviewer.Magnification, ej.pdfviewer.BookmarkView, ej.pdfviewer.ThumbnailView, ej.pdfviewer.TextSelection, ej.pdfviewer.TextSearch, ej.pdfviewer.Print, ej.pdfviewer.Navigation, ej.pdfviewer.LinkAnnotation, ej.pdfviewer.Annotation, ej.pdfviewer.FormFields);
+                                                                                                viewer.appendTo('#pdfViewer_@tab.VersionNo');
+                                                                                            });
+
+                                                                                       </script>
+
+                                                                                        <div id="pdfViewer_@tab.VersionNo" style= "height:640px; width:100%;">
+
+                                                                                        </div>
+
+                                                                                    </div>
+
+                                                                                            }
+                                                                                    else if (Helper.IsExcelFile(tab.FileExtension)){
+                                                                                        <div>
+                                                                                             @if (ViewBag.CanEdit==true && ViewBag.LogId == null)
+                                                                                             {
+                                                                                                  <button type="button" id="SaveExcel" class="btn btn-primary" title="Save File">Save File</button>
+                                                                                                }
+                                                                                                else
+                                                                                                {
+                                                                                                    <span>If you want to save any changes, please click on edit button on main menu,then open this file.</span>
+                                                                                                }
+
+                                                                                            <input id="FileLogId" />
+
+                                                                                            @if (ViewBag.CanEdit == true && ViewBag.LogId != null)
+                                                                                                    {
+                                                                                                 <button type="button" id="RevertExcelVersion" class="btn btn-primary" title="Revert To This Version">Revert To This Version</button>
+                                                                                                    }
+                                                                                            <script>
+                                                                                                $(document).ready(function () {
+
+                                                                                                            $("#FileLogId").kendoDropDownList({
+                                                                                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                                                                                dataTextField: "Name",
+                                                                                                                dataValueField: "Id",
+                                                                                                                change: OnVersionchange,
+                                                                                                                dataBound: OnLogBound,
+                                                                                                                dataSource: {
+                                                                                                                    transport: {
+                                                                                                                        read: {
+                                                                                                                            url: "/Cms/GetFileLog?FileId=@tab.Id",
+                                                                                                                        }
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            });
+
+                                                                                                    ShowLoader($('#pdfviewerDiv'));
+                                                                                                    $.ajax({
+                                                                                                        url: "/DocumentEditor/LoadExcel?id=@tab.Id&versionNo=@tab.VersionNo",
+                                                                                                        success: function (res) {
+                                                                                                            var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+                                                                                                            spreadsheet.fromJSON(res);
+                                                                                                            if ('@ViewBag.CanEdit' == 'True' && '@ViewBag.LogId' == '') {
+                                                                                                                document.getElementById('SaveExcel').addEventListener('click', () => {
+                                                                                                                    ShowLoader($('#pdfviewerDiv'));
+                                                                                                                    var http = new XMLHttpRequest();
+                                                                                                                    http.open('POST', '/api/documenteditor/SaveExcel');
+                                                                                                                    http.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+                                                                                                                    http.responseType = 'json';
+                                                                                                                    var sfdt = { content: JSON.stringify(spreadsheet.toJSON()), fileid: '@tab.Id' };
+                                                                                                                    http.send(JSON.stringify(sfdt));
+                                                                                                                    setTimeout(function () {
+                                                                                                                        HideLoader($('#pdfviewerDiv'));
+                                                                                                                        ShowNotification('File saved successfully!');
+                                                                                                                        var url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit';
+                                                                                                                        location.href = url;
+                                                                                                                    }, 3000);
+                                                                                                                });
+                                                                                                            }
+                                                                                                            HideLoader($('#pdfviewerDiv'));
+                                                                                                        },
+                                                                                                        error: function (xhr, httpStatusMessage, customErrorMessage) {
+                                                                                                            HideLoader($('#pdfviewerDiv'));
+                                                                                                        }
+                                                                                                    });
+                                                                                                });
+                                                                                            </script>
+                                                                                             <script>
+                                                                                                function OnVersionchange(e)
+                                                                                            {
+                                                                                                var dataItem = e.sender.dataItem();
+                                                                                                    var url = "";
+                                                                                                    if (dataItem.Code == "True") {
+                                                                                                        url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit';
+                                                                                                    }
+                                                                                                    else {
+                                                                                                        url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit&logId=' + $("#FileLogId").data("kendoDropDownList").value();
+                                                                                                    }
+                                                                                                location.href = url;
+                                                                                        }
+                                                                                        function OnLogBound(e)
+                                                                                        {
+                                                                                            var data = e.sender.dataSource.data();
+                                                                                            for (var i = 0; i < data.length;i++)
+                                                                                            {
+                                                                                                if (data[i].Name == '@tab.VersionNo')
+                                                                                                {
+                                                                                                    $("#FileLogId").data("kendoDropDownList").value(data[i].Id);
+                                                                                                }
+                                                                                            }
+                                                                                        }
+
+                                                                                            </script>
+                                                                                            @(Html.Kendo().Spreadsheet().Name("spreadsheet").HtmlAttributes(new { style = "width:100%;" }))
+                                                                                        </div>
+                                                                                    }
+                                                                                    else if (Helper.IsImageFile(tab.FileExtension))
+                                                                                    {
+                                                                            <div>
+                                                                                <img id="dynamicImage_@tab.Id"  src='/Cms/document/getimagemongo?id=@tab.Id' style="width:100%" onclick="loadImage()" />
+
+                                                                            </div>
+                                                                                    }
+                                                                                    else if (Helper.IsVideoFile(tab.FileExtension))
+                                                                                {
+                                                                                    <video id="videoRec" autoplay style="width: 95%;margin:2%;" controls playsinline>
+                        <source src="/cms/Document/GetFileMongo?fileId=@tab.Id" type="video/mp4">
+                    </video>
+
+                                                                            }
+                                                                                    else if (Helper.IsAudioFile(tab.FileExtension))
+                                                                                    {
+                                                                                        <audio id="audioRec" controls autoplay playsinline style="width: 95%;margin:2%;">
+                                <source src="/cms/Document/GetFileMongo?fileId=@tab.Id" type="audio/mp3">
+                            </audio>
+                                                                                                }
+                                                                                                else if(Helper.IsSfdtFile(tab.FileExtension))
+                                                                                                {
+                                                                                                    if (tab.MongoPreviewFileId.IsNotNullAndNotEmpty())
+                                                                                                    {
+
+
+                                                                                                @if (ViewBag.CanEdit==true && ViewBag.LogId==null)
+                                                                                                {
+                                                                                                     <button type="button" id="SaveDoc" class="btn btn-primary"  title="Save File" icon="check-outline">Save File</button>
+                                                                                                }
+                                                                                                else
+                                                                                                {
+                                                                                                    <span>If you want to save any changes, please click on edit button on main menu,then open this file.</span>
+                                                                                                }
+
+                                                                                                    <input id="FileLogId" />
+
+                                                                                                    @if (ViewBag.CanEdit == true && ViewBag.LogId != null)
+                                                                                                    {
+                                                                                                            <button type="button" id="RevertExcelVersion" class="btn btn-primary" title="Revert To This Version" icon="check-outline">Revert To This Version</button>
+                                                                                                    }
+                                                                                            <div id="doceditor"></div>
+                                                                                            <script>
+                                                                                                $(document).ready(function () {
+
+                                                                                                            $("#FileLogId").kendoDropDownList({
+                                                                                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                                                                                dataTextField: "Name",
+                                                                                                                dataValueField: "Id",
+                                                                                                                change: OnVersionchange,
+                                                                                                                dataBound: OnLogBound,
+                                                                                                                dataSource: {
+                                                                                                                    transport: {
+                                                                                                                        read: {
+                                                                                                                            url: "/Cms/GetFileLog?FileId=@tab.Id",
+                                                                                                                        }
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            });
+
+                                                                                                    ShowLoader($('#pdfviewerDiv'));
+                                                                                                    var documentEditorContainer = new ej.documenteditor.DocumentEditorContainer({ enableToolbar: true, height: '590px' });
+                                                                                                    documentEditorContainer.appendTo('#doceditor');
+                                                                                                    $.ajax({
+                                                                                                            url: "/api/documenteditor/Import?fileId=@tab.Id&versionNo=@tab.VersionNo",
+                                                                                                            success: function (res) {
+                                                                                                                HideLoader($('#pdfviewerDiv'));
+                                                                                                                documentEditorContainer.documentEditor.open(res);
+                                                                                                                document.getElementById('SaveDoc').addEventListener('click', () => {
+                                                                                                                    ShowLoader($('#pdfviewerDiv'));
+                                                                                                                    var http = new XMLHttpRequest();
+                                                                                                                    http.open('POST', '/api/documenteditor/ExportSFDT');
+                                                                                                                    http.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+                                                                                                                    http.responseType = 'json';
+                                                                                                                    var sfdt = { content: documentEditorContainer.documentEditor.serialize(), fileid: '@tab.Id' };
+                                                                                                                    http.send(JSON.stringify(sfdt));
+                                                                                                                    setTimeout(function () {
+                                                                                                                        HideLoader($('#pdfviewerDiv'));
+                                                                                                                        ShowNotification('File saved successfully!');
+                                                                                                                        var url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit';
+                                                                                                                        location.href = url;
+                                                                                                                    }, 3000);
+
+
+                                                                                                                });
+
+                                                                                                            },
+                                                                                                        error: function (xhr, httpStatusMessage, customErrorMessage) {
+                                                                                                            HideLoader($('#pdfviewerDiv'));
+                                                                                                                alert(customErrorMessage);
+
+                                                                                                            }
+                                                                                                        });
+
+                                                                                                });
+                                                                                            </script>
+                                                                                            <script>
+                                                                                                function OnVersionchange(e)
+                                                                                            {
+                                                                                                var dataItem = e.sender.dataItem();
+                                                                                                    var url = "";
+                                                                                                    if (dataItem.Code == "True") {
+                                                                                                        url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit';
+                                                                                                    }
+                                                                                                    else {
+                                                                                                        url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit&logId=' + $("#FileLogId").data("kendoDropDownList").value();
+                                                                                                    }
+                                                                                                location.href = url;
+                                                                                        }
+                                                                                        function OnLogBound(e)
+                                                                                        {
+                                                                                            var data = e.sender.dataSource.data();
+                                                                                            for (var i = 0; i < data.length;i++)
+                                                                                            {
+                                                                                                if (data[i].Name == '@tab.VersionNo')
+                                                                                                {
+                                                                                                    $("#FileLogId").data("kendoDropDownList").value(data[i].Id);
+                                                                                                }
+                                                                                            }
+                                                                                        }
+
+                                                                                            </script>
+                                                                                                    }
+                                                                                                    else
+                                                                                                    {
+                                                                                                        <div>
+                                                                                                            Preview available as soon as possible.
+                                                                                                        </div>
+                                                                                                    }
+                                                                                                }
+                                                                                                else
+                                                                                                {
+                                                                        <div>
+                                                                            No Preview Available
+                                                                        </div>
+                                                                            }
+
+                                                                                    <script>
+                                                                                        $(document).ready(function () {
+                                                                                            if ('@ViewBag.CanEdit' == 'True' && '@ViewBag.LogId' !='') {
+                                                                                                document.getElementById('RevertExcelVersion').addEventListener('click', () => {
+                                                                                                    ShowLoader($('#pdfviewerDiv'));
+                                                                                                    var http = new XMLHttpRequest();
+                                                                                                    http.open('POST', '/api/documenteditor/RevertFileVersion');
+                                                                                                    http.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+                                                                                                    http.responseType = 'json';
+                                                                                                    var sfdt = { content:@tab.VersionNo , fileid: '@tab.Id' };
+                                                                                                    http.send(JSON.stringify(sfdt));
+                                                                                                    setTimeout(function () {
+                                                                                                        HideLoader($('#pdfviewerDiv'));
+                                                                                                        ShowNotification('File saved successfully!');
+                                                                                                        var url = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=@tab.Id&canEdit=@ViewBag.CanEdit';
+                                                                                                        location.href = url;
+                                                                                                    }, 3000);
+                                                                                                });
+                                                                                            }
+                                                                                            });
+                                                                                    </script>
+
+
+
+                                                                                </text>
+                                                                                                                                                );
+                                                                                      i++;  }
+
+                                                                              })
+        )*@
+</div>
+@if (Model.Count == 0)
+{
+    <div style="text-align:center">
+        <h4 class="required">
+            No File Found !
+        </h4>
+    </div>
+}
+ 
+

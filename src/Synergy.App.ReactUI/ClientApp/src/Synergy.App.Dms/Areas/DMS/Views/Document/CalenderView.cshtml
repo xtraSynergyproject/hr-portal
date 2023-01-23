@@ -1,0 +1,252 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model DMSDocumentViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+
+
+<style>
+    .template-container {
+        height: 90px !important
+    }
+
+        .template-container img {
+            float: left;
+            margin: 0 4px;
+            margin-right: 10px;
+        }
+
+        .template-container h3 {
+            padding: 0 4px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 14px;
+        }
+
+    .template-title-1 {
+        color: #65CCFF;
+    }
+
+    .template-title-2 {
+        color: #D0D03B;
+    }
+
+    .k-event .k-i-reload,
+    .k-event .k-i-non-recurrence {
+        display: none;
+    }
+</style>
+<script type="text/javascript">
+
+
+
+    function gotoFileManager(id) {
+        
+        var portalId = $('#GlobalPortalId').val();
+        var customurl = encodeURIComponent('id=' + id);
+        var url = '/Cms/Page?pageName=FileExplorer&portalId=' + portalId + '&customUrl=' + customurl;
+        LoadCmsPartialView(url, 'Custom');
+    }
+
+    function viewDocument(templatecode, recordid) {
+
+        var portalId = $('#GlobalPortalId').val();
+        //var url = '/Cms/Page?lo=Popup&pageType=Note&source=Edit&dataAction=Edit&pageName=GENERAL_NOTE&recordId=' + parentId + '&portalId=' + portalId;
+        var url = '/Cms/Page?lo=Popup&pageType=Note&source=View&dataAction=View&templateCodes=' + templatecode + '&recordId=' + recordid + '&portalId=' + portalId;
+        //var url = '/Cms/Page?lo=Popup&pageType=Note&cbm=OnAfterTaskCreate&source=' + source + '&dataAction=' + action + '&templateCodes=' + code + '&portalId=' + portalId + '&recordId=' + id;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["Details"])', Width: 1200, Height: 650 });
+        return false;
+    }
+
+
+    $(function () {
+        $.contextMenu({
+            selector: '.tree-menu1',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var parentId = $trigger.data('id');
+                var parentType = $trigger.data('type');
+                var foldeid = $trigger.data('folderid');
+                var Templatecode = $trigger.data('templatecode');
+
+                
+
+
+
+                switch (parentType) {
+
+
+                    case 'Type':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'view':
+                                        viewDocument(Templatecode, parentId);
+
+                                        break;
+                                    case 'documentfolder':
+                                        gotoFileManager(foldeid);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "view": { name: "@Html.Raw(Resource["ViewDocument"])", icon: "fas fa-eye" },
+                                "documentfolder": { name: "@Html.Raw(Resource["OpenDocumentLocation"])", icon: "fas fa-eye" }
+                            }
+                        };
+                    default:
+                        return {
+                            callback: function (key, options) {
+                                alert(parentId);
+                                alert(parentType);
+                            },
+                            items: {
+
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+
+    function OnEventClick(Ntsid, id) {
+
+
+    }
+
+</script>
+
+<div class="appWrapper">
+
+
+    <div class="hr-pad-top-10">
+        <div style="background:transparent;">
+
+            @*@(Html.Kendo().Scheduler<DMSCalenderViewModel>()
+                                                                .Name("scheduler")
+                                                                .Date(DateTime.Now.Date)
+                                                                .StartTime(DateTime.Now.Date)
+                                                                .Height(530)
+                                                                .Views(views =>
+                                                                {
+
+                                                                    views.DayView(x => x.AllDaySlot(true).Editable(false).MajorTick(1440).AllDayEventTemplateId("fullTemplate").Title(@SharedResource["Day"])
+                                                                    );
+                                                                    views.WeekView(x => x.AllDaySlot(true).Editable(false).MajorTick(1440).AllDayEventTemplateId("event-template").Title(@SharedResource["Week"])
+                                                                    );
+                                                                    views.MonthView(x => x.Selected(true).Editable(false).EventTemplateId("event-template").EventHeight("auto").Title(@SharedResource["Month"])
+                                                                    );
+                                                                    views.AgendaView(x => x.Editable(false).EventTemplateId("ajendaTemplate").Title(@SharedResource["Agenda"])
+                                                                    );
+
+                                                                })
+                                                                .Resources(resource =>
+                                                                {
+                                                                    resource.Add(m => m.NtsId)
+                                                                    .Title("Nts")
+                                                                    .Name("Nts")
+                                                                    .DataTextField("Text")
+                                                                    .DataValueField("Value")
+                                                                    .DataColorField("Color")
+                                                                    .BindTo(new[] {
+                                                                    new { Text = "Task", Value = "T", Color = "#e6f2ff" } ,
+                                                                    new { Text = "Service", Value = "S", Color = "#c6ecd9" } ,
+                                                                    new { Text = "Note", Value = "N", Color = "#ffd9b3" }
+                                                                    });
+
+                                                                })
+                                                                .DataSource(d => d
+                                                                .Model(m =>
+                                                                {
+                                                                    m.Id(f => f.Id);
+                                                                    m.Field(f => f.Title).DefaultValue("No title");
+
+                                                                })
+                                                                   .Read(read => read.Action("ReadCalendarData", "Document", new { @Area="Dms"}))
+
+                                                                )
+        )*@
+
+
+            <script id="event-template" type="text/x-kendo-template">
+                <div class="template-container">
+                    <span data-id="#:data.NtsId#" data-type="Type" data-templatecode="#:data.templatecode#" data-folderid="#:data.Id#" class="tree-menu1" style="margin-right:10px"><i class="fa fa-ellipsis-v"></i></span>
+                                    <a onclick="return OnEventClick('#: data.NtsId #', '#: data.Id #');" class="template-link a_style" title="#:data.title# - #data.TemplateName# ( #= kendo.toString(start, 'dd MMM yyyy') # - #= kendo.toString(DueDate, 'dd MMM yyyy') #, #= StatusName #)">#= TitleLimited # - #=TemplateName#  (#=StatusName#)</a>
+                </div>
+            </script>
+            <script type="text/x-kendo-tmpl" id="fullTemplate">
+                <div class="row k-event-template #=NoteStatus#"  title="#:data.title# ( #= kendo.toString(start, 'dd MMM yyyy') # - #= kendo.toString(end, 'dd MMM yyyy') #, #= StatusName #)">
+                    <div class="col-xs-12 col-sm-4 col-md-5">
+                <span data-id="#:data.NtsId#" data-type="Type" data-templatecode="#:data.templatecode#" data-folderid="#:data.ParentId#" class="tree-menu1" style="margin-right:2px"><i class="fa fa-ellipsis-v"></i></span>
+                        <a onclick="return OnEventClick('#: data.NtsId #', '#: data.Id #');" class="template-link a_style">#= TitleLimited# - #=TemplateName#</a>
+                    </div>
+                    <div class="col-xs-12 col-sm-3 col-md-2 temp">
+                        Start Date : #= kendo.toString(start, 'dd MMM yyyy') #
+                    </div>
+                    <div class="col-xs-12 col-sm-3 col-md-2">
+                        Due Date : #= kendo.toString(DueDate, 'dd MMM yyyy') #
+                    </div>
+                    <div class="col-xs-12 col-sm-2 col-md-1">
+                        #= StatusName #
+                    </div>
+                </div>
+            </script>
+            <script type="text/x-kendo-tmpl" id="WeekTemplate">
+                <div class="row k-event-template #=NoteStatus#">
+                    <div class="row" style="margin-left:15px;">
+                <span data-id="#:data.NtsId#" data-type="Type" data-templatecode="#:data.templatecode#" data-folderid="#:data.ParentId#" class="tree-menu1" style="margin-right:10px"><i class="fa fa-ellipsis-v"></i></span>
+                        <a onclick="return OnEventClick('#: data.NtsId #', '#: data.Id #');" class="template-link a_style" title="#:data.title# ( #= kendo.toString(start, 'dd MMM yyyy') # - #= kendo.toString(DueDate, 'dd MMM yyyy') #, #= StatusName #)">#= TitleLimited# - #= TemplateName#  (#=StatusName#)</a>
+                    </div>
+
+                </div>
+            </script>
+            <script type="text/x-kendo-tmpl" id="titleTemplate">
+                <div class="row k-event-template #=NoteStatus#">
+                    <div class="row" style="margin-left:15px;">
+                <span data-id="#:data.NtsId#" data-type="Type" data-templatecode="#:data.templatecode#" data-folderid="#:data.ParentId#" class="tree-menu1" style="margin-right:10px"><i class="fa fa-ellipsis-v"></i></span>
+                        <a onclick="return OnEventClick('#: data.NtsId #', '#: data.Id #');" class="template-link a_style" title="#:data.title# - #data.TemplateName# ( #= kendo.toString(start, 'dd MMM yyyy') # - #= kendo.toString(DueDate, 'dd MMM yyyy') #, #= StatusName #)">#= TitleLimited # - #=TemplateName#  (#=StatusName#)</a>
+                    </div>
+                    <div class="row" style="margin-top:-13px;text-align:right;">
+                        <div class="#=NoteStatus#" style="width:10px;height:10px;border-radius:5px;"></div>&nbsp;
+                    </div>
+                </div>
+            </script>
+            <script type="text/x-kendo-tmpl" id="ajendaTemplate">
+                <span data-id="#:data.NtsId#" data-type="Type" data-templatecode="#:data.templatecode#" data-folderid="#:data.ParentId#" class="tree-menu1" style="margin-right:10px"><i class="fa fa-ellipsis-v"></i></span>
+                <a onclick="return OnEventClick('#: data.NtsId #', '#: data.Id #');" class="template-link" style="color:rgba(98, 105, 117, 1);" title="#:data.title#( #= kendo.toString(start, 'dd MMM yyyy') # - #= kendo.toString(DueDate, 'dd MMM yyyy') #, #= StatusName #)">#= TitleLimited # - #=TemplateName# (#=StatusName#)</a>
+            </script>
+            <script type="text/x-kendo-tmpl" id="templateshare">
+                <div class="mom">
+                    <div class="iconwithtextan" style="padding-left: 10px;">
+                        <div style="font-size: 10px; padding-left: 10px;"></div>
+                        <div style="font-size: 16px">#:SharedToUserName#</div>
+                    </div>
+                </div>
+            </script>
+        </div>
+    </div>
+
+
+</div>
+
+<script type="text/javascript">
+
+
+    function OnPrint(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        window.location.href = "/nts/service/DownloadServiceRequest?serviceId=" + dataItem.ServiceId;
+        return false;
+    }
+
+</script>

@@ -1,0 +1,610 @@
+﻿@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    var bannerHeight = 65;
+    var returnUrl = "";
+    string viewBagPortalId = Convert.ToString(ViewBag.PortalId);
+    string footerText = Convert.ToString(ViewBag.Footer);
+    if (ViewBag.Portal != null)
+    {
+        bannerHeight = ViewBag.Portal.BannerHeight;
+        if (ViewBag.HideHeader != null && ViewBag.HideHeader == true)
+        {
+            bannerHeight = 10;
+        }
+        returnUrl = string.Concat("/portal/", Convert.ToString(ViewBag.Portal.Name));
+
+    }
+    Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@*<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/open-iconic/font/css/open-iconic-bootstrap.min.css" asp-append-version="true">*@
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme.min.css" data-skin="default" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme-dark.min.css" data-skin="dark" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.css" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/custom.css" asp-append-version="true">
+<style>
+    .text-sm {
+        font-size: .75rem !important;
+    }
+
+    .dropdown-scroll {
+        height: 360px !important;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 15px;
+        left: 30px;
+        /*color: #fff;*/
+    }
+
+    .nts-d-none {
+        display: none;
+    }
+
+    .dropdown-menu {
+        z-index: 999 !important;
+    }
+
+    #cms-content {
+        min-height: calc(100vh - 125px) !important;
+    }
+
+    .app {
+        background-color: #fff;
+    }
+
+    .col-form-label {
+        color: #888c9b !important;
+    }
+
+    .lang-text {
+        font-size: .8rem;
+        font-weight: 400;
+        opacity: .8;
+    }
+
+    .lang-menu-text {
+        font-size: .85rem;
+        opacity: .8;
+    }
+
+    .lang-flag {
+        width: 1.2rem;
+        height: .8rem;
+        border-radius: 0px !important;
+    }
+
+    .container {
+        margin-right: 0px !important;
+        margin-left: 0px !important;
+    }
+
+    .formio-error-wrapper {
+        background-color: transparent !important;
+    }
+
+    .formio-error-wrapper, .formio-warning-wrapper {
+        padding: 0px !important;
+    }
+
+    .app-header-dark, .top-bar-brand {
+        /*background-color: #FF7F50 !important;*/
+        background-color: #f0f0f0 !important;
+    }
+
+    .bg-primary {
+        /*background-color: #FF7F50 !important;*/
+        background-color: #f0f0f0 !important;
+    }
+    /*.nav-link {
+        color: #fff !important;
+    }*/
+    .text-center {
+        text-align: unset !important;
+    }
+
+    li {
+        list-style: none !important;
+    }
+
+    .navbar-nav a.active {
+        color: #8f8f8f;
+    }
+    .footer-container {
+        padding: 0;
+        margin: 0 auto;
+        background-color: #353535;
+        width: 100%;
+        clear: both;
+    }
+    .footer-body {
+        margin: 0 auto;
+        background-color: #353535;
+        font-size: 16px;
+        color: #fff;
+        width: 95%;
+        clear: both;
+    }
+    .horz-line {
+        border-bottom: 2px solid #111;
+        margin: 0 0 0 8px;
+    }
+    .footer-menu1, .footer-menu2 {
+        padding: 10px;
+        margin: 10px auto;
+        line-height: 30px;
+        color: #fff;
+    }
+    .list-unstyled {
+        padding-left: 0;
+        list-style: none;
+    }
+    .ico-smedia {
+        float: left;
+        margin: 0 4px 10px;
+    }
+    .app-header {
+        position: unset !important;
+    }
+    .nav-link {
+        color: #465765 !important;
+    }
+        .nav-link:hover {
+            color: #8f8f8f !important;
+        }
+    .Logo-Block {
+        width: 100%;
+        display: inline-flex;
+        clear: both;
+        border: 1px solid #cecece;
+        border-radius: 12px;
+        margin: 20px auto;
+        height: auto;
+        background-color: #f0f0f0;
+        justify-content: space-evenly;
+    }
+
+    .logo-img {
+        height: 150px;
+        width: auto;
+        float: left;
+    }
+    .app-main{
+        padding-top:unset !important;
+    }
+    .nav-item.has-notified:before {
+        top: 0.95rem !important;
+    }
+    .copyright {
+        text-align: center !important;
+        background-color: #111 !important;
+        color: #fff !important;
+        margin: 0 !important;
+        clear: both !important;
+    }
+    .copyright-text {
+        padding: 6px 0 !important;
+        margin: 0 !important;
+        text-align: center !important;
+        line-height: 20px !important;
+    }
+</style>
+<script>
+    var skin = localStorage.getItem('skin') || 'default';
+    var isCompact = JSON.parse(localStorage.getItem('hasCompactMenu'));
+    var disabledSkinStylesheet = document.querySelector('link[data-skin]:not([data-skin="' + skin + '"])');
+    // Disable unused skin immediately
+    disabledSkinStylesheet.setAttribute('rel', '');
+    disabledSkinStylesheet.setAttribute('disabled', true);
+    // add flag class to html immediately
+    if (isCompact == true) document.querySelector('html').classList.add('preparing-compact-menu');
+    function IsPopupWindow() {
+        return (window.frameElement !== null && window.frameElement !== undefined && window.frameElement !== '');
+    }
+    if (IsPopupWindow()) {
+        $("<style>")
+            .prop("type", "text/css")
+            .html("\
+                .clear-padding {\
+                    margin-left: 0px !important;\
+                    padding-top: 0px!important;\
+                    padding-bottom: 0px!important;\
+                }\
+                .hide-in-popup {\
+                    display: none;\
+                }\
+                .app-main-popup {\
+                    padding-left: 0px !important;\
+                    padding-top: 0px !important;\
+                }")
+            .appendTo("head");
+    }
+
+    function MarkAllNotifications() {
+        debugger;
+        $.ajax({
+            url: '@Url.Action("MarkAllNotificationAsRead", "NotificationTemplate", new { @area= "PortalAdmin" })?userId=@_userContext.UserId&portalId=@_userContext.PortalId',
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        ShowNotification("Successfully marked as read", 'success');
+                    } else {
+                        ShowNotification("Update Failed", 'error');
+                    }
+                },
+                error: function (ert) {
+                    //
+                    ShowNotification("Update Failed", 'error');
+                }
+        });
+    }
+
+</script>
+
+<div class="app has-fullwidth">
+    <div class="row hide-in-popup">
+        <div class="col-sm-6 col-md-6 col-lg-8 col-xl-8 col-xxl-8 t-pad-10">
+            <img src="~/images/EGOV/Jammu/logo-jammu.png">
+
+        </div>
+        @{
+            var allowedPortals = (List<Synergy.App.ViewModel.PortalViewModel>)ViewBag.AllowedPortals;
+        }
+        <div class="col-sm-2 col-md-2 col-lg-1 col-xl-1 col-xxl-1 t-pad-10" style="display:flex;">
+            @if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+            {
+                <li class="nav-item dropdown header-nav-dropdown has-notified">
+                    <a class="nav-link" style="padding-top: 15px;" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Notifications"><span class="fa fa-envelope-open"></span></a> <!-- .dropdown-menu -->
+                    <div class="dropdown-menu dropdown-menu-rich dropdown-menu-right">
+                        <div class="dropdown-arrow"></div>
+                        <h6 class="dropdown-header stop-propagation">
+                            <span>Messages</span> <a href="javascript:MarkAllNotifications()">Mark all as read</a>
+                        </h6>
+                        <!-- .dropdown-scroll -->
+                        <div class="dropdown-scroll perfect-scrollbar">
+                            @if (ViewBag.TopMessages != null && ((List<Synergy.App.ViewModel.NotificationViewModel>)ViewBag.TopMessages).Any())
+                            {
+                                var messages = (List<Synergy.App.ViewModel.NotificationViewModel>)ViewBag.TopMessages;
+                                foreach (var msg in messages)
+                                {
+                                    @:  <a href="#" class="dropdown-item unread">
+                                        @:     <div class="user-avatar"><img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = msg.PhotoId })" alt="" onerror='OnPhotoError(this);'></div>
+                                        @:     <div class="dropdown-item-body"><p class="subject">@Html.Raw(msg.From)</p><p class="text text-truncate"> @Html.Raw(msg.Subject) </p><span class="date">@msg.CreatedDate.Humanize()</span></div>
+                                    @:</a>
+                                }
+                            }
+                        </div>
+                        <!-- /.dropdown-scroll -->
+                        <a href="javascript:LoadPartailView('/PortalAdmin/notificationTemplate/NewNotificationIndex',$('#cms-content'))" class="dropdown-footer">All messages <i class="fas fa-fw fa-long-arrow-alt-right"></i></a>
+                    </div><!-- /.dropdown-menu -->
+                </li>
+            }
+            @if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false && ViewBag.AllowedPortals != null && ((List<Synergy.App.ViewModel.PortalViewModel>)ViewBag.AllowedPortals).Any())
+            {
+                <li class="nav-item dropdown header-nav-dropdown">
+                    <a class="nav-link" style="padding-top: 15px;" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Applications"><span class="fa fa-th"></span></a> <!-- .dropdown-menu -->
+                    <div class="dropdown-menu dropdown-menu-rich dropdown-menu-right">
+                        <div class="dropdown-arrow"></div><!-- .dropdown-sheets -->
+                        <div class="dropdown-sheets dropdown-scroll perfect-scrollbar">
+
+                            @{
+                                foreach (var portal in allowedPortals)
+                                {
+                                    @:  <div class="dropdown-sheet-item">
+                                        @:     <a href="javascript:OnMenuPortalChange('@portal.Id')" class="tile-wrapper"><span class="tile tile-lg bg-@portal.IconBgColorText"><i class="@portal.IconCssText"></i></span> <span class="text-sm tile-peek">@portal.DisplayName</span></a>
+                                    @:  </div>
+                                }
+                            }
+
+                        </div><!-- .dropdown-sheets -->
+                    </div><!-- .dropdown-menu -->
+                </li>
+            }
+        </div>
+        <div class="col-sm-5 col-md-4 col-lg-3 col-xl-3 col-xxl-3 t-pad-10">
+            <div>
+                <div class="row">
+                    <div class="col sec-profile">
+                        <!-- .btn-account -->
+                        @if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+                        {
+                            <div class="navbar-nav dropdown d-flex mr-lg-n3" style=" padding-top: 10px;">
+                                <button class="btn-account" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="user-avatar user-avatar-md">
+                                        <img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" alt="" onerror='OnPhotoError(this);'>
+                                    </span> <span class="account-summary pr-lg-4 d-none d-lg-block"><span class="account-name">@_userContext.Name</span> <span class="account-description">@_userContext.JobTitle</span></span>
+                                </button> <!-- .dropdown-menu -->
+                                <div class="dropdown-menu">
+                                    <div class="dropdown-arrow d-lg-none" x-arrow=""></div>
+                                    <div class="dropdown-arrow ml-3 d-none d-lg-block"></div>
+                                    <h6 class="dropdown-header d-none d-md-block d-lg-none">@_userContext.Name</h6>
+                                    <a class="dropdown-item" href="javascript:LoadPartailView('/user/userprofile?userId=@_userContext.UserId&portalId=@_userContext.PortalId',$('#cms-content'))"><span class="dropdown-icon fa fa-user"></span>@Html.Raw(SharedResource["MyProfile"])</a>
+                                    <a class="dropdown-item" href="javascript:OpenChangePassowrd()"><span class="dropdown-icon fa fa-key"></span>@Html.Raw(SharedResource["ChangePassword"])</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="javascript:OpenGrantAccess()"><span class="dropdown-icon fa fa-check-double"></span>@Html.Raw(SharedResource["GrantAccess"])</a>
+                                    <a class="dropdown-item" href="javascript:SwitchProfile()"><span class="dropdown-icon fa fa-random"></span>@Html.Raw(SharedResource["SwitchProfile"])</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="@Url.Action("Index", "helpCenter", new { @area = "Cms"})"><span class="dropdown-icon fa fa-question"></span>Help Center</a>
+                                    <a class="dropdown-item" href="javascript:$('#logoutModal').modal('show');"><span class="dropdown-icon fa fa-sign-out"></span>@Html.Raw(SharedResource["Log Out"])</a>
+                                </div><!-- /.dropdown-menu -->
+                            </div>
+                        }
+                    </div>
+                    <div class="col">
+                        <img src="~/images/EGOV/Jammu/jmc-trans-logo.png">
+                    </div>
+                </div>
+            </div>
+            <div>
+            </div>
+        </div>
+    </div>
+
+    <header class="hide-in-popup app-header app-header-dark">
+        <!-- .top-bar -->
+        <div class="top-bar">
+            <!-- .top-bar-brand -->
+            <div class="top-bar-brand hide-side-menu">
+                <!-- toggle aside menu -->
+                <!--<button class="hamburger hamburger-squeeze mr-2" type="button" data-toggle="aside-menu" aria-label="toggle aside menu"><span class="hamburger-box"><span class="hamburger-inner"></span></span></button>--> <!-- /toggle aside menu -->
+                @*<a href="@ViewBag.Portal?.LandingPage">
+                        <img alt="" title="" style="max-height:50px;" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = ViewBag.Portal?.LogoId })" onerror='LogoError(this);' />
+                    </a>*@
+            </div><!-- /.top-bar-brand -->
+            <!-- .top-bar-list -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary py-lg-0" style="width:100%;">
+                <!-- .container -->
+                <div class="container">
+                    <button class="hamburger hamburger-squeeze d-flex d-lg-none" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation"><span class="hamburger-box"><span class="hamburger-inner"></span></span></button> <!-- .navbar-collapse -->
+                    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+                        <!-- .navbar-nav -->
+                        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+
+                            @{
+                                var menus = (List<Synergy.App.ViewModel.MenuViewModel>)ViewBag.Menus;
+                                var menuGroups = menus.Where(x => x.PageType == TemplateTypeEnum.MenuGroup
+                                || (x.PageType != TemplateTypeEnum.MenuGroup && x.ShowOutsideMenuGroup))
+                                .OrderBy(x => x.MenuGroupSequenceOrder).ThenBy(x => x.SequenceOrder).ToList();
+
+                                foreach (var item in menuGroups)
+                                {
+                                    if (item.PageType == TemplateTypeEnum.MenuGroup)
+                                    {
+                                        var childs = menus.Where(x => x.ParentId == item.Id && x.ShowOutsideMenuGroup == false && x.HideInMenu == false)
+                                            .OrderBy(x => x.SequenceOrder).ToList();
+                                        if (childs.Any())
+                                        {
+                                            @:<li class="nav-item dropdown">
+                                                @:<a class="nav-link active" href="#" id="@item.Id" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">@*<span class="menu-icon @menu.IconCss"></span>*@ <span class="mr-1">@item.DisplayName</span></a>
+                                                @: <ul class="dropdown-menu" aria-labelledby="@item.Id">
+                                                    foreach (var child in childs)
+                                                    {
+                                                        @: <li>
+                                                            @:   <a href="javascript:LoadPageById('@child.Id','@child.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()','','','','','','','','','','','','@child.Name','@child.IsPageRedirect')" class="dropdown-item">@*<span class="menu-icon @item.IconCss"></span>*@@child.DisplayName</a>
+                                                        @: </li>
+                                                    }
+                                                @: </ul>
+                                            @:</li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @: <li class="nav-item">
+                                            @:   <a class="nav-link " href="javascript:LoadPageById('@item.Id','@item.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()','','','','','','','','','','','','@item.Name','@item.IsPageRedirect')">@item.DisplayName</a>
+                                        @:</li>
+                                    }
+                                }
+                            }
+                        </ul>
+                        <div class="top-bar-item top-bar-item-right px-0 d-flex mr-lg-n3">
+                            <ul class="header-nav nav">
+                                @if (ViewBag.AllowedLanguages != null && ((List<Synergy.App.ViewModel.LOVViewModel>)ViewBag.AllowedLanguages).Any())
+                                {
+                                    var allowedLangs = (List<Synergy.App.ViewModel.LOVViewModel>)ViewBag.AllowedLanguages;
+
+                                    <li class="dropdown d-none d-md-flex">
+                                        <a class="nav-link" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Notifications">
+                                            <span class="pr-1 lang-text">@ViewBag.LanguageName</span>
+                                            <span class="user-avatar lang-flag"><img class="lang-flag" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = @ViewBag.LanguageImageId })" alt="" /></span>
+                                        </a>
+                                        <div class="dropdown-menu">
+                                            <div class="dropdown-arrow d-lg-none" x-arrow=""></div>
+                                            <div class="dropdown-arrow ml-3 d-none d-lg-block"></div>
+                                            @foreach (var item in allowedLangs)
+                                            {
+                                                //@: <a class="dropdown-item" href="javascript:$('#logoutModal').modal('show');"><span class="user-avatar"><img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = item.ImageId })" alt="" /></span>@Html.Raw(SharedResource["Log Out"])</a>
+                                                @: <a class="dropdown-item" href="javascript:ChangeLanguage('@item.Code');"><span class="user-avatar lang-flag"><img class="lang-flag" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = item.ImageId })" alt="" /></span><span class="pl-2 lang-menu-text">@item.Name</span></a>
+                                            }
+                                        </div><!-- /.dropdown-menu -->
+                                    </li>
+                                }
+                                <!--if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+                                {
+                                    <li class="nav-item dropdown header-nav-dropdown has-notified">
+                                        <a class="nav-link" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Notifications"><span class="fa fa-envelope-open"></span></a>-->
+                                <!-- .dropdown-menu -->
+                                <!--<div class="dropdown-menu dropdown-menu-rich dropdown-menu-right">
+                                    <div class="dropdown-arrow"></div>
+                                    <h6 class="dropdown-header stop-propagation">
+                                        <span>Messages</span> <a href="javascript:MarkAllNotifications()">Mark all as read</a>
+                                    </h6>-->
+                                <!-- .dropdown-scroll -->
+                                <!--<div class="dropdown-scroll perfect-scrollbar">
+                                    @if (ViewBag.TopMessages != null && ((List<Synergy.App.ViewModel.NotificationViewModel>)ViewBag.TopMessages).Any())
+                                    {
+                                        var messages = (List<Synergy.App.ViewModel.NotificationViewModel>)ViewBag.TopMessages;
+                                        foreach (var msg in messages)
+                                        {
+                                            @:  <a href="#" class="dropdown-item unread">
+                                                @:     <div class="user-avatar"><img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = msg.PhotoId })" alt="" onerror='OnPhotoError(this);'></div>
+                                                @:     <div class="dropdown-item-body"><p class="subject">@Html.Raw(msg.From)</p><p class="text text-truncate"> @Html.Raw(msg.Subject) </p><span class="date">@msg.CreatedDate.Humanize()</span></div>
+                                            @:</a>
+                                        }
+                                    }
+                                </div>-->
+                                <!-- /.dropdown-scroll -->
+                                <!--<a href="javascript:LoadPartailView('/PortalAdmin/notificationTemplate/NewNotificationIndex',$('#cms-content'))" class="dropdown-footer">All messages <i class="fas fa-fw fa-long-arrow-alt-right"></i></a>
+                                </div>-->
+                                <!-- /.dropdown-menu -->
+                                <!--</li>
+                                }-->
+                                <!--if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false && ViewBag.AllowedPortals != null && ((List<Synergy.App.ViewModel.PortalViewModel>)ViewBag.AllowedPortals).Any())
+                                {
+                                    <li class="nav-item dropdown header-nav-dropdown">
+                                        <a class="nav-link" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Applications"><span class="fa fa-th"></span></a>-->
+                                <!-- .dropdown-menu -->
+                                <!--<div class="dropdown-menu dropdown-menu-rich dropdown-menu-right">
+                                    <div class="dropdown-arrow"></div>-->
+                                <!-- .dropdown-sheets -->
+                                <!--<div class="dropdown-sheets dropdown-scroll perfect-scrollbar">-->
+
+                                   @* @{
+                                        foreach (var portal in allowedPortals)
+                                        {
+                                            @:  <div class="dropdown-sheet-item">
+                                                @:     <a href="javascript:OnMenuPortalChange('@portal.Id')" class="tile-wrapper"><span class="tile tile-lg bg-@portal.IconBgColorText"><i class="@portal.IconCssText"></i></span> <span class="text-sm tile-peek">@portal.DisplayName</span></a>
+                                            @:  </div>
+                                        }
+                                    }*@
+
+                                <!--</div>-->
+                                <!-- .dropdown-sheets -->
+                                <!--</div>--><!-- .dropdown-menu -->
+                                <!--</li>
+                                }-->
+                                <!-- /.nav-item -->
+                            </ul><!-- /.nav -->
+                            <!-- .btn-account -->
+                            <!--if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+                            {
+                                <div class="navbar-nav dropdown d-flex mr-lg-n3">
+                                    <button class="btn-account" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="user-avatar user-avatar-md">
+                                            <img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" alt="" onerror='OnPhotoError(this);'>
+                                        </span> <span class="account-summary pr-lg-4 d-none d-lg-block"><span class="account-name">@_userContext.Name</span> <span class="account-description">@_userContext.JobTitle</span></span>
+                                    </button>-->
+                            <!-- .dropdown-menu -->
+                            <!--<div class="dropdown-menu">
+                                <div class="dropdown-arrow d-lg-none" x-arrow=""></div>
+                                <div class="dropdown-arrow ml-3 d-none d-lg-block"></div>
+                                <h6 class="dropdown-header d-none d-md-block d-lg-none">@_userContext.Name</h6>
+                                <a class="dropdown-item" href="javascript:LoadPartailView('/user/userprofile?userId=@_userContext.UserId&portalId=@_userContext.PortalId',$('#cms-content'))"><span class="dropdown-icon fa fa-user"></span>@Html.Raw(SharedResource["MyProfile"])</a>
+                                <a class="dropdown-item" href="javascript:OpenChangePassowrd()"><span class="dropdown-icon fa fa-key"></span>@Html.Raw(SharedResource["ChangePassword"])</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="javascript:OpenGrantAccess()"><span class="dropdown-icon fa fa-check-double"></span>@Html.Raw(SharedResource["GrantAccess"])</a>
+                                <a class="dropdown-item" href="javascript:SwitchProfile()"><span class="dropdown-icon fa fa-random"></span>@Html.Raw(SharedResource["SwitchProfile"])</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="@Url.Action("Index", "helpCenter", new { @area = "Cms"})"><span class="dropdown-icon fa fa-question"></span>Help Center</a>
+                                <a class="dropdown-item" href="javascript:$('#logoutModal').modal('show');"><span class="dropdown-icon fa fa-sign-out"></span>@Html.Raw(SharedResource["Log Out"])</a>
+                            </div>-->
+                            <!-- /.dropdown-menu -->
+                            <!--</div>
+                            }-->
+                        </div>
+                    </div><!-- /.navbar-collapse -->
+                </div><!-- /.container -->
+            </nav>
+        </div><!-- /.top-bar -->
+    </header><!-- /.app-header -->
+    <!-- /.app-header -->
+    <!-- .app-main -->
+    <main class="app-main" id="main-content">
+        @RenderBody()
+        <div id="global-overlay" class="global-overlay">
+            <div class="global-overlay-loader">
+            </div>
+        </div>
+        @if (footerText.IsNotNullAndNotEmpty())
+        {
+            <footer class="app-footer hide-in-popup">
+                <div class="copyright"> @Html.Raw(footerText)</div>
+            </footer>
+        }
+
+    </main>
+
+    <div class="Logo-Block hide-in-popup">
+        <div>
+            <img class="logo-img" src="~/images/EGOV/Jammu/Logo1.png">
+        </div>
+        <div>
+            <img class="logo-img" src="~/images/EGOV/Jammu/Logo2.png">
+        </div>
+        <div>
+            <img class="logo-img" src="~/images/EGOV/Jammu/Logo3.png">
+        </div>
+        <div>
+            <img class="logo-img" src="~/images/EGOV/Jammu/Logo4.png">
+        </div>
+        <div>
+            <img class="logo-img" src="~/images/EGOV/Jammu/Logo5.png">
+        </div>
+        <div>
+            <img class="logo-img" src="~/images/EGOV/Jammu/Logo6.png">
+        </div>
+    </div>
+
+    <div class="footer-container hide-in-popup">
+        <div class="footer-body">
+            <div class="row">
+                <div class="col-md-4 col-lg-4 col-xl-4 col-xxl-4">
+                    <p class="footer-menu1 horz-line">
+                        <strong>Jammu Smart City Limited</strong>
+                        <br>Bahu Plaza Park, North Block, 4th Floor, Trikuta Nagar, Jammu<br>
+                    </p>
+                    <p class="footer-menu1 horz-line">
+                        <strong>For any queries</strong><br>Email: ceo@jammusmartcity.in<br>Contact No: +91 1122334499<br>
+                    </p>
+                </div>
+                <div class="col-md-4 col-lg-4 col-xl-4 col-xxl-4">
+                    <div class="footer-menu1">
+                        <ul class="list-unstyled">
+                            <li>About Us</li>
+                            <li>Press &amp; Media</li>
+                            <li>Team</li>
+                            <li>Careers</li>
+                            <li>Contact</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <img class="ico-smedia" src="~/images/EGOV/Jammu/ico-fb.png">
+                        <img class="ico-smedia" src="~/images/EGOV/Jammu/ico-twitter.png">
+                        <img class="ico-smedia" src="~/images/EGOV/Jammu/ico-whatsapp.png">
+                        <img class="ico-smedia" src="~/images/EGOV/Jammu/ico-instagram.png">
+                        <img class="ico-smedia" src="~/images/EGOV/Jammu/ico-linkedin.png">
+                        <img class="ico-smedia" src="~/images/EGOV/Jammu/ico-youtube.png">
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-4 col-xl-4 col-xxl-4">
+                    <div class="footer-menu2">
+                        <ul class="list-unstyled">
+                            <li>Video Gallery</li>
+                            <li>Photo Gallery</li>
+                            <li>Latest News</li>
+                            <li>Downloads</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p class="copyright-text">© 2022. All rights reserved.<br></p>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="~/Themes/Looper/dist/assets/vendor/pace-progress/pace.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/stacked-menu/js/stacked-menu.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/perfect-scrollbar/perfect-scrollbar.min.js" asp-append-version="true"></script> <!-- END PLUGINS JS -->
+<!-- BEGIN THEME JS -->
+<script src="~/Themes/Looper/dist/assets/javascript/theme.min.js" asp-append-version="true"></script> <!-- END THEME JS -->
+<script src="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/flatpickr/plugins/monthSelect/index.js" asp-append-version="true"></script>
+

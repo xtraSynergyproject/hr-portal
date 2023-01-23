@@ -1,0 +1,552 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+
+@model PerformanceDocumentViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+    var PMSType = "Goal";
+}
+
+<style>
+    .listViewDoc {
+        border: none;
+        border-radius: 6px;
+        overflow-x: hidden;
+    }
+
+    input.largerCheckbox {
+        width: 15px;
+        height: 20px;
+        background-color: #2196F3;
+    }
+
+    .board {
+        border: none;
+        overflow-x: scroll;
+        display: flex;
+    }
+
+    .card_task {
+        border-color: #209EB8;
+    }
+
+    .newtask {
+        background-color: black;
+        color: #fff;
+    }
+
+    .tasklist {
+        background-color: #209EB8;
+        color: #fff;
+        border-radius: 0px 0px 3px 3px;
+    }
+
+    .taskname {
+        /*color: #1D6EF4;*/
+        color: black;
+    }
+
+    .drp-user-photo {
+        height: 50px;
+        width: 50px;
+        border-radius: 30px;
+    }
+
+    #board > .k-listview-content {
+        display: flex;
+    }
+
+    .k-listview-content {
+        overflow: unset;
+    }
+
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+    }
+
+    .scrollbtn {
+        background-color: #4E4D4D;
+        color: white;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 2px;
+    }
+
+    .k-treeview-lines {
+        overflow-x: scroll;
+        width: 100%;
+    }
+    .banner-container {
+        position: relative;
+        color: white;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 14px;
+        left: 60px;
+        font-size: 35px;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&isLineManage=true", 'PerformanceFilter');
+        GetPDLData();
+        HideLoader($("#global-overlay"));
+
+    });
+
+    var columnDefs = [
+        {
+            field: "Id",
+            headerName: "Actions",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='menu-pditem' data-idvalue='" + params.value + "' data-owneruser='" + params.data.OwnerUserId + "' data-masterstageid='" + params.data.MasterStageId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+            },
+            minWidth: 100
+        },
+        { field: "MasterName", headerName: "@Resource["MasterName"]", minWidth: 150 },
+        @*{ field: "Name", headerName: "@Resource["DocumentName"]", minWidth: 180 },*@
+        { field: "Year", headerName: "Year", minWidth: 100 },
+        { field: "MasterStageName", headerName: "Stage Name", minWidth: 180 },
+        { field: "OwnerUserName", headerName: "@SharedResource["Owner"]", minWidth: 150 },
+        { field: "EmployeeNo", headerName: "@SharedResource["EmployeeNo"]", minWidth: 150 },
+        { field: "DepartmentName", headerName: "@SharedResource["DepartmentName"]", minWidth: 180 },
+        { field: "JobName", headerName: "@SharedResource["JobName"]", minWidth: 150 },
+        { field: "ServiceStatusName", headerName: "@SharedResource["Status"]", minWidth: 150 },
+        { field: "Year", headerName: "@SharedResource["Year"]", minWidth: 100 },
+        { field: "CalculatedRating", headerName: "@Resource["CalculatedRating"]", minWidth: 150 },
+        { field: "CalculatedRatingRounded", headerName: "@Resource["CalculatedRatingRounded"]", minWidth: 150 },
+        { field: "AdjustedRating", headerName: "@Resource["AdjustedRating"]", minWidth: 150 },
+        { field: "AdjustedRatingRounded", headerName: "@Resource["AdjustedRatingRounded"]", minWidth: 150},
+        { field: "FinalRating", headerName: "@Resource["FinalRating"]", minWidth: 150 },
+        { field: "FinalRatingRounded", headerName: "@Resource["FinalRatingRounded"]", minWidth: 150 },
+        {
+            field: "StartDate",
+            headerName: "@SharedResource["StartDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            },
+            minWidth: 150
+        },
+        {
+            field: "EndDate",
+            headerName: "@SharedResource["DueDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            },
+            minWidth: 150
+        },
+    ];
+
+    function GetPDLData(urlnew) {
+        var url = "";
+        if (urlnew != "" && urlnew != null) {
+            url = urlnew;
+        } else {
+            url = "/Pms/Performance/GetPerformanceList";
+        }
+        document.getElementById("kgdPDL").innerHTML = "";
+        gridConfig(
+            "kgdPDL",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    $(function () {
+                $.contextMenu({
+            selector: '#menu-pditem',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                var id = $trigger.data('idvalue');
+                var owneruser = $trigger.data('owneruser');
+                var masterstage = $trigger.data('masterstageid');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'download':
+                                        OnDownloadPD(owneruser, id, masterstage);
+                                        break;
+                                    case 'downloadreport':
+                                        OnDownloadPDR(owneruser, id, masterstage);
+                                        break;
+                                    case 'downloadletter':
+                                        OnDownloadLetter(owneruser, id, masterstage);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "download": { name: "View Performance Details", icon: "fas fa-eye" },
+                                "downloadreport": { name: "View Performance Result", icon: "fas fa-eye" },
+                                "downloadletter": { name: "View Letter", icon: "fas fa-eye" },
+                            }
+                        };
+                }
+            }
+        });
+    });
+
+    function OnDownloadPD(owneruser, id, masterstage) {
+        @*var user = '@Model.UserId';*@
+        
+        var user = owneruser;
+        var mstage = masterstage;
+        @*var url = '/Cms/Report?rptName=Pms/PMS_PerformanceDocument.trdp&rptUrl=pms/query/GetUserPerformanceDocumentInfo/' + user + '?PerformanceId=' + id + '&lo=@LayoutModeEnum.Popup&rptUrl2=pms/query/GetPerformanceDocumentServiceStepTaskByUser/' + user + '?PerformanceId=' + id;*@
+        @*var url = '/Cms/Report?rptName=Pms/PMS_PerformanceDocument.trdp&rptUrl=pms/query/GetUserPerformanceDocumentInfo/' + user + '/' + id + '?masterStageId=' + mstage + '&lo=@LayoutModeEnum.Popup&rptUrl2=pms/query/GetPerformanceDocumentServiceStepTaskByUser/' + user + '/' + id + '?masterStageId=' + mstage;*@
+        var url = '/Cms/FastReport?rptName=PMS_PerformanceDocument&rptUrl=pms/query/GetUserPerformanceDocumentInfo/' + user + '/' + id + '?masterStageId=' + mstage + '&lo=@LayoutModeEnum.Popup&rptUrl2=pms/query/GetPerformanceDocumentServiceStepTaskByUser/' + user + '/' + id + '?masterStageId=' + mstage;
+        @*var prms = encodeURIComponent('rptName=Pms/PMS_PerformanceDocument.trdp&rptUrl=/pms/query/GetUserPerformanceDocumentInfo/' + user +'&lo=@LayoutModeEnum.Popup');*@
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["Report"])', Width: 1200, Height: 700 });
+    }
+
+    function OnDownloadPDR(owneruser, id, masterstage) {
+        @*var user = '@Model.UserId';*@
+        var user = owneruser;
+        var mstage = masterstage;
+        @*var url = '/Cms/Report?rptName=PMS_PerformanceReport.trdp&rptUrl=pms/query/GetUserPerformanceDocumentInfo/' + user + '?PerformanceId=' + id + '&lo=@LayoutModeEnum.Popup';*@
+        //var url = '/Cms/Report?rptName=PMS_PerformanceReport.trdp&rptUrl=pms/query/GetUserPerformanceDocumentInfo/' + user + '/' + id + '?masterStageId=' + mstage +'&lo=@LayoutModeEnum.Popup';
+        var url = '/Cms/FastReport?rptName=PMS_PerformanceReport&rptUrl=pms/query/GetUserPerformanceDocumentInfo/' + user + '/' + id + '?masterStageId=' + mstage +'&lo=@LayoutModeEnum.Popup';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["Report"])', Width: 1200, Height: 700 });
+    }
+    function OnDownloadLetter(owneruser, id, masterstage) {
+        @*var user = '@Model.UserId';*@
+        var user = owneruser;
+        var mstage = masterstage;
+        @*var url = '/Cms/Report?rptName=Pms/PMS_LetterTemplate.trdp&rptUrl=pms/query/GetLetterTemplateDetails/' + user + '?PerformanceId=' + id + '&lo=@LayoutModeEnum.Popup';*@
+        @*var url = '/Cms/Report?rptName=Pms/PMS_LetterTemplate.trdp&rptUrl=pms/query/GetLetterTemplateDetails/' + user + '/' + id + '?masterStageId=' + mstage +'&lo=@LayoutModeEnum.Popup';*@
+        var url = '/Cms/FastReport?rptName=PMS_LetterTemplate&rptUrl=pms/query/GetLetterTemplateDetails/' + user + '/' + id + '?masterStageId=' + mstage +'&lo=@LayoutModeEnum.Popup';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Letter', Width: 1200, Height: 700 });
+
+    }
+    function OnSelect(e) {
+        //
+        e.preventDefault();
+
+    }
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+    function OnTask(userId) {
+        //
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id&assignedToUserId=' + userId);
+            var url = '/Cms/Page?source=Create&dataAction=Create&templateCodes=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Task');
+            return false;
+    }
+
+    function OnSubTask(parentTaskId) {
+        //
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id&parentTaskId=' + parentTaskId);
+        var url = '/Cms/Page?source=Create&dataAction=Create&templateCodes=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Sub Task');
+            return false;
+    }
+    function EditTask(taskId) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id');
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Versioning&dataAction=Edit&templateCodes=ProjectTask&portalId=' + portalId + '&recordId=' + taskId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Edit Task');
+            return false;
+    }
+    function OnGridGroupByUser() {
+        PMSType = "Goal";
+        $("#divgridGoal").show();
+        $("#divgridCompentency").hide();
+        var g = $("#kgdProjectGridView").data("kendoGrid");
+        g.dataSource.group([{ field: "UserName" }, { field: "ServiceStage" }]);
+
+    }
+    function OnGridGroupByProject() {
+        PMSType = "Compentency";
+        $("#divgridGoal").hide();
+        $("#divgridCompentency").show();
+
+        var g = $("#kgdProjectGridView").data("kendoGrid");
+        g.dataSource.group([{ field: "UserName" }, { field: "ServiceStage" }]);
+    }
+    function onSearch() {
+        var search = {
+            projectIds: $("#ProjectFiltersIds").data("kendoMultiSelect").value(),
+            recieverids : $("#Receiver").data("kendoMultiSelect").value(),
+            senderIds : $("#Sender").data("kendoMultiSelect").value(),
+            statusIds: $("#Status").data("kendoMultiSelect").value(),
+            pmsTypes: $("#mdlTaskStagesType").data("kendoMultiSelect").value(),
+            stageIds: $("#mdlTaskStages").data("kendoMultiSelect").value(),
+            column: $("#Column").data("kendoDropDownList").value(),
+            dateRange: $("#DateType").data("kendoDropDownList").value(),
+            fromDate : kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            toDate : kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+    }
+    function onReset() {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&isLineManage=true", 'PerformanceFilter');
+        $("#kgdProjectGridView").data("kenModeloGrid").dataSource.read();
+    }
+    function OnCreate() {
+
+        url = "/Pms/PerformanceTask/CreatePerformanceTask";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+
+        win.OpenWindow({ Title: '@Html.Raw(Resource["CreateTask"])', Width: 500, Height: 550 });
+    }
+    function OnCloseCreatePerformanceTask(prms) {
+        var portalId = $('#GlobalPortalId').val();
+        if (prms.code == "PMS_GOAL") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.objective + '&assignedToUserId=' + prms.owner +'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_GOAL_ADHOC_TASK&portalId=' + portalId + '&prms=' + prms;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateGoalTask"])', Width: 1200, Height: 700 });
+            return false;
+        } else if (prms.code == "PMS_COMPENTENCY") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.objective + '&assignedToUserId=' + prms.owner +'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_COMPENTENCY_ADHOC_TASK&portalId=' + portalId + '&prms=' + prms;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateCompetencyTask"])', Width: 1200, Height: 700 });
+            return false;
+        } else if (prms.code == "PMS_DEVELOPMENT") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.objective + '&assignedToUserId=' + prms.owner +'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_DEVELOPMENT_ADHOC_TASK&portalId=' + portalId + '&prms=' + prms;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateDevelopmentTask"])', Width: 1200, Height: 700 });
+            return false;
+        } else if (prms.code == "PMS_PEER_REVIEW") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.objective + '&assignedToUserId=' + prms.owner +'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_REVIEW_TASK&portalId=' + portalId + '&prms=' + prms;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["CreatePeerReviewTask"])', Width: 1200, Height: 700 });
+            return false;
+        }
+        return false;
+    }
+    function OnEdit(e) {
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        //alert(dataItem.Id);
+        var portalId = $('#GlobalPortalId').val();
+        if (dataItem.Type == "Goal") {
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_GOAL_ADHOC_TASK&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Task', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        } else if (dataItem.Type == "Competency") {
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_COMPENTENCY_ADHOC_TASK&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Task', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        } else if (dataItem.Type == "Development") {
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_DEVELOPMENT_ADHOC_TASK&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Task', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        } else if (dataItem.Type == "PeerReview") {
+            var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_REVIEW_TASK&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Task', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        }
+        return false;
+    }
+    function OnView(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        alert(dataItem.Id);
+    }
+    function OnDelete(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        alert(dataItem.Id);
+    }
+    function OnAfterTaskCreate(task) {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&isLineManage=true", 'PerformanceFilter');
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read();
+    }
+</script>
+
+
+<div class="banner-container">
+    <img style="width:100%; height:100px" src="~/images/PMS/Performance document by User.png" />
+    <div class="banner-text">@Resource["PerformanceDocumentList"]</div>
+</div>
+    @*<div class="col-md-6">
+            <h4>
+                Project Team Workload
+            </h4>
+        </div>*@
+
+
+
+@*<div id="PerformanceFilter">
+
+</div>*@
+<div class="row" style="padding-right:10px;">
+   
+</div>
+<div id="divgridview" class="row">
+    <div id="divgridGoal" class="col-sm-12">
+        <br />
+
+        <div id="kgdPDL" style="width:100%;height:550px" class="ag-theme-alpine"></div>
+
+        @*@(Html.Kendo().Grid<PerformanceDocumentViewModel>()
+    .Name("kgdPDL")
+    .Columns(columns =>
+    {
+        //columns.Command(command =>
+        //{
+
+        //    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon", title = "Edit" });
+
+        //}).Width(120);
+
+        columns.Bound(p => p.MasterName).Title(""+Resource["MasterName"]+"").Width(300);
+        columns.Bound(p => p.Name).Title("" + Resource["DocumentName"] + "").Width(250);
+        columns.Bound(p => p.OwnerUserName).Title("" + SharedResource["Owner"] + "").Width(250);
+        columns.Bound(p => p.EmployeeNo).Title("" + SharedResource["EmployeeNo"] + "").Width(250);
+        columns.Bound(p => p.DepartmentName).Title("" + SharedResource["DepartmentName"] + "").Width(250);
+        columns.Bound(p => p.JobName).Title("" + SharedResource["JobName"] + "").Width(250);
+        columns.Bound(p => p.ServiceStatusName).Title("" + SharedResource["Status"] + "").Width(250);
+        columns.Bound(p => p.Year).Title("" + SharedResource["Year"] + "").Width(200);
+        columns.Bound(p => p.CalculatedRating).Title("" + Resource["CalculatedRating"] + "").Width(200);
+        columns.Bound(p => p.CalculatedRatingRounded).Title("" + Resource["CalculatedRatingRounded"] + "").Width(200);
+        columns.Bound(p => p.AdjustedRating).Title("" + Resource["AdjustedRating"] + "").Width(200);
+        columns.Bound(p => p.AdjustedRatingRounded).Title("" + Resource["AdjustedRatingRounded"] + "").Width(200);
+        columns.Bound(p => p.FinalRating).Title("" + Resource["FinalRating"] + "").Width(200);
+        columns.Bound(p => p.FinalRatingRounded).Title("" + Resource["FinalRatingRounded"] + "").Width(200);
+        columns.Bound(p => p.StartDate).Title("" + SharedResource["StartDate"] + "").Format("{0:dd MMM yyyy}").Width(200);
+        columns.Bound(p => p.EndDate).Title("" + SharedResource["DueDate"] + "").Format("{0:dd MMM yyyy}").Width(200);
+
+    })
+    .ToolBar(toolbar =>
+    {
+        //toolbar.Excel();
+        //toolbar.Pdf();
+        toolbar.Search();
+        //toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;"+Html.Raw(Resource["CreateTask"])+"</button>");
+    })
+
+    .ColumnMenu(col=>col.Filterable(true))
+    .Height(700)
+    .Editable()
+    .Pageable()
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+
+.DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(20)
+    .AutoSync(true)
+    .ServerOperation(false)
+    //.Events(events => events.Error("error_handler"))
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+
+    })
+
+    .Read("GetPerformanceList", "Performance", new { @area = "Pms" })
+//.Group(g => g.Add(x => x.UserName))
+//.Group(g => g.Add(x => x.ServiceStage))
+
+)
+)*@
+
+    </div>
+    
+</div>
+
+
+
+<script>
+
+    var colors = ['#F56564', '#90D142', '#28BAF5', '#7551F5', '#5BA79F', '#7A8F9D', '#4F67B6'];
+    function OnDataBoundDoc(arg) {
+        var childDiv = document.getElementById('board').children;
+
+        for (var i = 0; i < childDiv.length; i++) {
+            childDiv[i].children[0].style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        }
+    }
+
+    $('#left').click(function () {
+        event.preventDefault();
+        $('#board').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+    });
+
+    $('#right').click(function () {
+        event.preventDefault();
+        $('#board').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+    });
+
+
+</script>
+

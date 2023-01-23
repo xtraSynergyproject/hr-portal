@@ -1,0 +1,933 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.TaskCollectionController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model ProjectDashboardChartViewModel;
+
+@{
+    ViewBag.Title = "Task Collection View";
+    Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    //Layout = null;
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .date {
+        margin-left: 1%;
+        margin-right: 1%
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-body {
+        padding: 0px 15px 0px 15px;
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+            padding-left: 15px;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+            padding-left: 15px;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+            padding-left: 15px;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff !important;
+            background-color: #428bca !important;
+            border-color: #428bca !important;
+            padding-left: 15px !important;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+            padding-left: 15px;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+
+    .k-grid thead {
+        color: #fff !important;
+        background-color: #428bca !important;
+    }
+
+    table tr th {
+        color: #fff !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+
+        $("#TaskStatus").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            autoBind: true,
+            autoClose: false,
+            change: onChangeTaskStatus,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_TASK_STATUS" })",
+                    }
+                }
+            }
+        });
+
+        $("#TaskOwnerList").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            autoBind: true,
+            autoClose: false,
+            change: onChangeTaskStatus,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "@Url.Action("GetTaskOwnerUserIdNameListGroup", "TaskCollection", new { area = "PJM" })",
+                        data: FilterTaskOwnerList,
+                    }
+                }
+            }
+        });
+
+         $("#FromDate").kendoDatePicker({
+            value:'@DateTime.Today.AddDays(-1)'
+        });
+        $("#ToDate").kendoDatePicker({
+            value:'@DateTime.Today'
+        });
+
+        GetGTSData();
+
+        $("#ddlLOV").val("f9de3fa5-1777-4e7a-b3f1-a0d81bb92fef");
+       // $("#TaskStatus").data("kendoMultiSelect").value(["f9de3fa5-1777-4e7a-b3f1-a0d81bb92fef"]);
+
+         $("#Id").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            change: OnTemplateChange,
+	    value:'@Model.Id',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Cms/NtsGroup/GetGroupListByType?type=@NtsTypeEnum.Task",
+                    }
+                }
+            }
+          });
+
+           $("#ddlLOV").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            change: OnddlovChange,
+               optionLabel:"Select ...",
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Cms/LOV/GetLOVIdNameList?lovType=LOV_TASK_STATUS",
+                    }
+                }
+            }
+        });
+        HideLoader($("#global-overlay"));
+    });
+
+    var columnDefs = [
+        {
+            field: "GroupName",
+            headerName:"@Resource["TemplateName"]"
+        },
+        {
+            field: "TaskNo",
+            headerName:"@Resource["TaskNo."]"
+        },
+        {
+            field: "Title",
+            headerName:"@Resource["TaskName"]"
+        },
+        {
+            field: "OwnerName",
+            headerName:"@Resource["RequestedBy"]"
+        },
+        {
+            field: "Priority",
+            headerName:"@SharedResource["Priority"]"
+        },
+        {
+            field: "NtsStatus",
+            headerName:"@SharedResource["Status"]"
+        },
+        {
+            field: "Start",
+            headerName: "@SharedResource["StartDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            }
+        },
+        {
+            field: "End",
+            headerName: "@SharedResource["DueDate"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            }
+        },
+    ];
+
+    function GetGTSData(urlnew) {
+        var url = "";
+        if (urlnew != "" && urlnew != null) {
+            url = urlnew;
+        } else {
+            url = "/PJM/TaskCollection/ReadTaskGridViewDataGroup?templateId=" + '@Model.Id';
+        }
+        document.getElementById("kgGTS").innerHTML = "";
+        gridConfig(
+            "kgGTS",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function OnTemplateChange(e) {
+
+        var dataItem = e.sender.dataItem();
+        var id = dataItem.Id;
+
+        $('#chartTaskByStatus').data('kendoChart').dataSource.read({ "templateId": id });
+        $('#chartTaskByOwner').data('kendoChart').dataSource.read({ "templateId": id });
+        //$('#kgdTaskGridView').data('kendoGrid').dataSource.read({ "templateId": id });
+
+        var newurl = "/PJM/TaskCollection/ReadTaskGridViewDataGroup?templateId=" + id;
+        GetGTSData(newurl);
+        HideLoader($("#global-overlay"));
+        var ststus = $('#ddlLOV').val();
+
+        var Status = {
+            TemplateID: id,
+            StatusLOV: ststus,
+        };
+
+        var User = {
+            TemplateID: id,
+            StatusLOV: ststus,
+            StatusTemplateID: null,
+        };
+        $("#chartTaskByStatus").data("kendoChart").dataSource.read(Status);
+        $("#chartTaskByType").data("kendoChart").dataSource.read(User);
+        onSearch();
+
+        //$("#ddlLOV").val("f9de3fa5-1777-4e7a-b3f1-a0d81bb92fef");
+        //$("#mdlTaskStatus").data("kendoMultiSelect").value(["f9de3fa5-1777-4e7a-b3f1-a0d81bb92fef"]);
+        //$("#divstatus").empty();
+        //$("#divassignee").empty();
+
+        //$("#divstatus").append("Task Status [InProgress]");
+
+        //$("#divassignee").append("Task InProgress by Assignee");
+        onDatewiseSearch();
+        var search = FilterTaskOwnerList(id);
+        $('#TaskOwnerList').data("kendoMultiSelect").dataSource.read(search);
+    }
+
+    function FilterTaskOwnerList(id) {
+        var search = { templateId: id };
+        return search;
+    }
+
+    function onChangeTaskStatus() {
+
+        var multiselectTaskStatus = $("#TaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskAssigned = $("#TaskOwnerList").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var id = $("#Id").val();
+
+        //var search = {
+        //    templateId: id,
+        //    statusIds: statusvalue,
+        //    senderIds: assignedvalue,
+        //};
+        //$("#kgdTaskGridView").data("kendoGrid").dataSource.read(search);
+
+        var newurl = "/PJM/TaskCollection/ReadTaskGridViewDataGroup?templateId=" + id + "&statusIds=" + statusvalue + "&senderIds=" + assignedvalue;
+        GetGTSData(newurl);
+        HideLoader($("#global-overlay"));
+    }
+
+
+
+
+    function GetStatuswiseAssignee(statustemplateid) {
+
+        var dates = {
+            templateId: $("#Id").data("kendoDropDownList").value(),
+            StatusTemplateID: statustemplateid,
+            StatusLOV: $("#ddlLOV").val(),
+        };
+
+        $("#chartTaskByOwner").data("kendoChart").dataSource.read(dates);
+    }
+
+    function onTaskStagesSeriesClick(e) {
+        //alert("onTaskSeriesClick");
+        //console.log(e.dataItem);
+        var selectvalue = e.dataItem.Id;
+        GetStatuswiseAssignee(selectvalue);
+
+        //alert(selectvalue);
+
+        //var multiselect = $("#mdlTaskStages").data("kendoMultiSelect");
+        //var mdlvalue = multiselect.value();
+        //var newvalue = new Array();
+        //newvalue = mdlvalue;
+        //var addflag = true;
+        //if (newvalue.length > 0) {
+        //    var i = 0;
+        //    for (i = 0; i < newvalue.length; i++) {
+        //        if (newvalue[i] == selectvalue) {
+        //            addflag = false;
+        //        }
+        //    }
+        //    if (addflag) {
+        //        newvalue.push(selectvalue);
+        //    }
+        //} else {
+        //    newvalue.push(selectvalue);
+        //}
+        //multiselect.value(newvalue);
+        //var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        //var statusvalue = multiselectTaskStatus.value();
+        //var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        //var assignedvalue = multiselectTaskAssigned.value();
+        //
+        //var search = {
+        //    projectId: '@Model.Id',
+        //    projectIds: newvalue,
+        //    statusIds: statusvalue,
+        //    recieverids: assignedvalue,
+        //};
+        //$("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        //
+    }
+
+    function OnddlovChange(e) {
+
+        var Groupid = $("#Id").val();
+        var dataItem = e.sender.dataItem();
+        var StatusId = dataItem.Id;
+        var Name = dataItem.Name;
+
+        $("#TaskStatus").data("kendoMultiSelect").value([StatusId]);
+        $("#divstatus").empty();
+        $("#divassignee").empty();
+
+        $("#divstatus").append("Task Status [" + Name + "]");
+
+        $("#divassignee").append("Task  " + Name + " by Assignee");
+
+        var Status = {
+            templateId: Groupid,
+            StatusLOV: StatusId,
+        };
+
+        var User = {
+            templateId: Groupid,
+            StatusLOV: StatusId,
+            StatusTemplateID: null,
+        };
+        $("#chartTaskByStatus").data("kendoChart").dataSource.read(Status);
+        $("#chartTaskByOwner").data("kendoChart").dataSource.read(User);
+
+    }
+
+    function onDatewiseSearch() {
+        var dates = {
+            TemplateID: $("#Id").val(),
+            fromDate: kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            toDate: kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+        };
+
+        $("#chartDateWiseSearch").data("kendoChart").dataSource.read(dates);
+    }
+
+    function onChangeTaskAssigned() {
+        var multiselectTaskStatus = $("#TaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskAssigned = $("#TaskOwnerList").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var id = $("#Id").val();
+
+        //var search = {
+        //    templateId: id,
+        //    statusIds: statusvalue,
+        //    senderIds: assignedvalue,
+        //};
+        //$("#kgdTaskGridView").data("kendoGrid").dataSource.read(search);
+
+        var newurl = "/PJM/TaskCollection/ReadTaskGridViewDataGroup?templateId=" + id + "&statusIds=" + statusvalue + "&senderIds=" + assignedvalue;
+        GetGTSData(newurl);
+        HideLoader($("#global-overlay"));
+    }
+
+     function onFilterReset() {
+            var newvalue = new Array();
+            var multiselectTaskStatus = $("#TaskStatus").data("kendoMultiSelect");
+            multiselectTaskStatus.value(newvalue);
+            var multiselectTaskAssigned = $("#TaskOwnerList").data("kendoMultiSelect");
+            multiselectTaskAssigned.value(newvalue);
+            var id = $("#Id").val();
+            var search = {
+                templateId: id,
+            };
+         //$("#kgdTaskGridView").data("kendoGrid").dataSource.read(search);
+         GetGTSData();
+         HideLoader($("#global-overlay"));
+     }
+
+    //function OnDataBound(arg) {
+
+    //    document.getElementById('projectFiles').style.border = 'none';
+    //    var data = $("#projectFiles").data("kendoListView").dataSource.data();
+    //    var data1 = $("#ProjectTask12").data("kendoListView").dataSource.data();
+    //    if (data.length == 0) {
+    //        $('#no-data-file').show();
+    //    } else {
+    //        $('#no-data-file').hide();
+    //    }
+    //    if (data1.length == 0) {
+    //        $('#no-data-notifi').show();
+    //    } else {
+    //        $('#no-data-notifi').hide();
+    //    }
+    //}
+
+    function OnTaskAssChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-taskchart').show();
+
+        } else {
+            $('#no-data-taskchart').hide();
+        }
+    }
+
+    function OnTaskStatusChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-chart').show();
+
+        } else {
+            $('#no-data-chart').hide();
+        }
+    }
+
+    //function OnTaskTimeChartDataBound(e) {
+    //    var view = e.sender.dataSource.view();
+    //    if (view.length === 0) {
+    //        $('#no-data-timechart').show();
+
+    //    } else {
+    //        $('#no-data-timechart').hide();
+    //    }
+    //}
+
+    function OnProjectStageChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-stagechart').show();
+
+        } else {
+            $('#no-data-stagechart').hide();
+        }
+    }
+
+    //function OnSelect(type) {
+    //
+    //    if (type == 'AssignedToMe') {
+    //        $('#assignedtome').show();
+    //        $('#reqbyme').hide();
+    //        $('#teamtask').hide();
+    //    }
+    //    else if (type == 'RequestedByMe') {
+    //        $('#assignedtome').hide();
+    //        $('#reqbyme').show();
+    //        $('#teamtask').hide();
+    //    }
+    //    else {
+    //        $('#assignedtome').hide();
+    //        $('#reqbyme').hide();
+    //        $('#teamtask').show();
+    //    }
+    //}
+</script>
+
+
+<div class="row hr-pad-top-10">
+    <div class="col-md-6">
+        <h4>
+            @Resource["TaskCollectionGroup-Self"]
+        </h4>
+    </div>
+</div>
+
+<div id="banner" role="group" style="width:100%;color:#FFFFFF;background: #17a2b8;padding-left: 25px;">
+    <div class="row" style="padding-top:10px;">
+
+        <div class=" col-md-9">
+            <div style="font-size:.8em;padding-top:0px;">
+               @Resource["TaskGroup"]
+
+                <div class="project-dropdown" id="dropdown" title="@Resource["TaskTemplate"]">
+                    <input id="Id" class="form-control" style="width:80%" />
+                    @*@(Html.Kendo().DropDownListFor(model=>model.Id)
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .Filter(FilterType.Contains)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetGroupListByType", "NtsGroup", new { @area = "Cms", @type = NtsTypeEnum.Task });
+            });
+        })
+        .Events(x => x.Change("OnTemplateChange"))
+        .HtmlAttributes(new { @class = "form-control" , @style="width:80%" })
+        )*@
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="padding-top:20px">
+
+        @* <div style="display:inline-flex;padding-left:140px">*@
+        <div class=" col-md-3">
+            <div title=" @SharedResource["Description"]" style="font-size:.8em">
+                @SharedResource["Description"]  
+                @*  <div style="padding-top:5px;font-size:18px">@Model.Description</div>*@
+            </div>
+        </div>
+
+    </div>
+    @* <div class="btn banner-item banner-item-date col-sm-2">&nbsp;</div>*@
+</div>
+
+
+<div id="appWrapper" class="hr-pad-top-15">
+
+    @*<div class="row no-gutter btn-group btn-group-sm" role="group" style="width:100%;margin:5px;">
+            <button type="button" onclick="OnSelect('AssignedToMe');" class="btn btn-success col-sm-2" id="RequestedByMe">Assigned To Me&nbsp;</button>
+            <button type="button" onclick="OnSelect('RequestedByMe');" class="btn btn-success col-sm-2" id="RequestedByMe">Requested By Me&nbsp;</button>
+            <button type="button" onclick="OnSelect('TeamTask');" class="btn btn-success col-sm-2" id="TeamTask">Team Task&nbsp;</button>
+        </div>*@
+
+
+    <div class="row">
+        <div class="col-sm-4">
+            <div class=" d-flex justify-content-center">
+                @SharedResource["Status"]:
+
+                <div class="project-dropdown" id="dropdown" style="width:65%" title="@Resource["TaskTemplate"]">
+                    <input id="ddlLOV" class="form-control" style="width:80%" />
+                    @*@(Html.Kendo().DropDownList()
+         .Name("ddlLOV")
+        .DataTextField("Name")
+        .DataValueField("Id")
+          .OptionLabel("Select ...")
+        .Filter(FilterType.Contains)
+
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_TASK_STATUS" });
+            });
+        })
+        .Events(x => x.Change("OnddlovChange"))
+        .HtmlAttributes(new { @class = "form-control" , @style="width:80%" })
+        )*@
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            <div class=" d-flex justify-content-center">
+                @SharedResource["From"]
+                @*@(Html.Kendo().DatePicker()
+             .Name("FromDate")
+             .Value(DateTime.Today.AddMonths(-1))
+             .HtmlAttributes(new {@class="date" })
+        )*@
+                <input id="FromDate" class="date" />
+                @SharedResource["To"] <br />
+                @*@(Html.Kendo().DatePicker()
+             .Name("ToDate")
+             .Value(DateTime.Today).HtmlAttributes(new { @class = "date" })
+        )*@
+                <input id="ToDate" class="date" />
+                <br />
+                <button class="btn btn-filter-reset" onclick="onDatewiseSearch()" title=" @SharedResource["ResetFilter"]"><i class="fa fa-search"></i></button>
+            </div>
+            @*<div style="text-align:center;">
+
+
+                </div>*@
+        </div>
+    </div>
+
+    <div class="row" id="assignedtome">
+        <div class="col-sm-4">
+
+            <div class="panel panel-success">
+                <div class="panel-heading" id="divstatus">@Resource["TaskStatus[InProgress]"]</div>
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                                            .Name("chartTaskByStatus")
+                                            .Legend(legend => legend
+                                            .Position(ChartLegendPosition.Bottom)
+                                            )
+                                                .DataSource(ds => ds
+                                                .Read(read => read.Action("GetTaskChartByStatusGroup", "TaskCollection", new { @area = "PJM", templateId = Model.Id }))
+                                                )
+                                            .SeriesColors(new string[] { "#ff9800", "#fad84a", "#4caf50", "#03a9f4" })
+                                            .Series(series =>
+                                            {
+                                                series.Donut(model => model.Value, model => model.Type)
+                                                .Labels(labels => labels
+                                                    .Visible(true)
+                                                    .Position(ChartPieLabelsPosition.Center)
+                                                    // .Template("#= category # - #= kendo.format(' {0:n0}', value) # ")
+                                                    .Background("transparent")
+
+                                                );
+
+                                            }).HtmlAttributes(new { @style = "height:300px;" })
+                                            .Tooltip(tooltip => tooltip
+                                                .Visible(true)
+                                            .Template("#= category #")
+                                            )
+                                            .Events(events => events
+                                            .SeriesClick("onTaskStagesSeriesClick")
+                                            .DataBound("OnTaskStatusChartDataBound")
+                                            )
+                        )
+
+                    <div id="no-data-chart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span> @SharedResource["NoDataFound"]</span></div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel panel-info">
+                <div class="panel-heading" id="divassignee">@Resource["TaskInProgressbyAssignee"]</div>
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                              .Name("chartTaskByOwner")
+                              .Legend(legend => legend
+                              .Position(ChartLegendPosition.Bottom)
+                              )
+                              .DataSource(ds => ds
+                              .Read(read => read.Action("GetTaskChartByOwnerGroup", "TaskCollection", new { @area = "PJM", templateId = Model.Id }))
+
+                              )
+                              .SeriesColors(new string[] { "#03a9f4", "#ff9800", "#fad84a", "#4caf50" })
+                              .Series(series =>
+                              {
+                                  series.Pie(model => model.Value, model => model.Type)
+                                  .Labels(labels => labels
+                                  .Visible(true)
+                                  .Position(ChartPieLabelsPosition.Center)
+                                  .Background("transparent"));
+                              }).HtmlAttributes(new { @style = "height:300px;" })
+                               .Tooltip(tooltip => tooltip
+                               .Visible(true)
+                               .Template("#= category #"))
+                        .Events(e => e
+                        //.SeriesClick("onTaskAssignedSeriesClick")
+                        .DataBound("OnTaskAssChartDataBound"))
+                        )
+                    <div id="no-data-taskchart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span> @SharedResource["NoDataFound"]</span></div>
+
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel panel-warning">
+                <div class="panel-heading">@Resource["TaskSLA"]</div>
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                                .Name("chartDateWiseSearch")
+                                .Legend(legend => legend
+                                .Position(ChartLegendPosition.Bottom)
+                                )
+
+                                .DataSource(ds => ds
+                                .Read(read => read.Action("GetDatewiseTaskSingleGroup", "TaskCollection", new { @area = "PJM"}))
+                                )
+                                .Series(series =>
+                                {
+
+                                    series.Pie(model => model.ActualSLA, model => model.Type)
+                                   .Labels(labels => labels
+                                   .Visible(true)
+                                   .Position(ChartPieLabelsPosition.Center)
+                                   .Background("transparent")
+
+                                   ).Name("Average SLA");
+                                }).HtmlAttributes(new { @style = "height:300px;" })
+                                .Tooltip(tooltip => tooltip
+                                .Visible(true)
+                                .Template("#= category # - #= kendo.format('{0:P}', percentage) #"))
+                        .Events(e => e
+                        //.SeriesClick("onTaskStagesSeriesClick")
+                        .DataBound("OnProjectStageChartDataBound")
+                        )
+                        )
+                    <div id="no-data-stagechart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span> @SharedResource["NoDataFound"]</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-filter">
+                <div class="panel-heading"> @SharedResource["Filter"]</div>
+                <div class="panel-body">
+                    <div class="row" style="padding:5px;">
+                        <div class="col-4">
+                            @Resource["TaskStatus"]
+                            @*@(Html.Kendo().MultiSelect().Name("TaskStatus")
+                             .DataSource(source =>
+                             {
+                                 source.Read(read =>
+                                 {
+                                     read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_TASK_STATUS" });
+                                 });
+                             })
+                             .AutoClose(false)
+                             .Placeholder(@Resource["FilterTaskStatus"])
+                             .DataTextField("Name")
+                             .DataValueField("Id")
+                             .Value(new[] { "f9de3fa5-1777-4e7a-b3f1-a0d81bb92fef" })
+                             .Events(e=>e.Change("onChangeTaskStatus"))
+                             .HtmlAttributes(new { @class = "hr-x-large search-control" })
+                        )*@
+                            <select id="TaskStatus" data-placeholder="@Resource["FilterTaskStatus"]" class="hr-x-large search-control"></select>
+
+                        </div>
+                        <div class="col-4">
+                            @Resource["TaskAssigned"]
+                            @*@(Html.Kendo().MultiSelect().Name("TaskOwnerList")
+                             .DataSource(source =>
+                             {
+                                 source.Read(read =>
+                                 {
+                                     read.Action("GetTaskOwnerUserIdNameListGroup", "TaskCollection", new { area = "PJM" }).Data("FilterTaskOwnerList");
+                                 });
+                             })
+                             .AutoClose(false)
+                             .Placeholder(@Resource["FilterTaskAssigned"])
+                             .DataTextField("Name")
+                             .DataValueField("Id")
+                             .Events(e => e.Change("onChangeTaskStatus"))
+                             .HtmlAttributes(new { @class = "hr-x-large search-control" })
+                        )*@
+                            <select id="TaskOwnerList" data-placeholder="@Resource["FilterTaskAssigned"]" class="hr-x-large search-control"></select>
+
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-filter-reset" onclick="onFilterReset()" title=" @SharedResource["ResetFilter"]"> @SharedResource["Reset"]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">@Resource["TaskDetails"]</div>
+                <div class="panel-body">
+                    <div id="kgGTS" style="width:100%;height:550px" class="ag-theme-alpine"></div>
+
+                    @*@(Html.Kendo().Grid<ProjectGanttTaskViewModel>
+    ()
+    .Name("kgGTS")
+    .Columns(columns =>
+    {
+        //columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+        columns.Bound(p => p.GroupName).Title(Resource["TemplateName"]).Width(250);
+        columns.Bound(p => p.TaskNo).Title(@Resource["TaskNo."]).Width(170);
+        columns.Bound(p => p.Title).Title(Resource["TaskName"]).Width(300);
+        columns.Bound(p => p.OwnerName).Title(@Resource["RequestedBy"]).Width(250);
+        columns.Bound(p => p.Priority).Title(@SharedResource["Priority"]).Width(150);
+        columns.Bound(p => p.NtsStatus).Title(@SharedResource["Status"]).Width(150);
+        columns.Bound(p => p.Start).Title(@SharedResource["StartDate"]).Format("{0:dd MMM yyyy}").Width(150);
+        columns.Bound(p => p.End).Title(@SharedResource["EndDate"]).Format("{0:dd MMM yyyy}").Width(150);
+    })
+    .ToolBar(toolbar =>
+    {
+        //toolbar.Excel();
+        //toolbar.Pdf();
+        toolbar.Search().Text(@SharedResource["Search"]);
+    })
+    //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    .ColumnMenu(col=>col.Filterable(false))
+    .Height(700)
+    .Editable()
+    .Pageable()
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+    //.Events(events => events.DataBound("onDataBound"))
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .Batch(true)
+    .PageSize(10)
+    .AutoSync(true)
+    .ServerOperation(false)
+    //.Events(events => events.Error("error_handler"))
+    .Model(model =>
+    {
+        model.Id(p => p.Id);
+    })
+    //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+    //.Create("DetailProducts_Create", "Grid")
+    .Read("ReadTaskGridViewDataGroup", "TaskCollection", new { @area = "PJM", projectId = Model.Id })
+    //.Update("DetailProducts_Update", "Grid")
+    //.Destroy("DetailProducts_Destroy", "Grid")
+    )
+    )*@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

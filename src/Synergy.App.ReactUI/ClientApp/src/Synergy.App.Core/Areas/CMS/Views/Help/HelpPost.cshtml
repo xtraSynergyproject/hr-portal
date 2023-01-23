@@ -1,0 +1,268 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.HelpController> Resource
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+@using Synergy.App.ViewModel
+@model NoteViewModel
+@{
+    //ViewBag.Title = "Dashboard";
+    Layout = null /*"/Areas/Cms/Views/Shared/_LayoutCms.cshtml"*/;
+}
+@inject Synergy.App.Common.IUserContext _userContext
+<head>
+    @*other head stuff...*@
+    <script src="https://hcaptcha.com/1/api.js" async defer></script>
+
+    <link href="~/css/flickity.css" rel="stylesheet" />
+    <script src="~/js/flickity.pkgd.min.js"></script>
+    @*<link rel="stylesheet" href="~/Content/flickity.css" media="screen">*@
+    @*<script src="~/Scripts/flickity.pkgd.min.js"></script>*@
+</head>
+
+<style>
+    .conversation-message-text {
+        padding: 0.5rem;
+        max-width: 480px;
+        min-height: 0;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-word;
+        box-shadow: 0 1px .5pxrgba(20,20,31,.12);
+    }
+</style>
+
+<script type="text/javascript">
+
+    function onSubmit(token) {
+        alert('thanks ');
+    }
+
+    function validate(event) {
+        event.preventDefault();
+        //hcaptcha.execute();
+        var widgetID = hcaptcha.render('hcaptcha', { sitekey: 'af25110b-e53a-42f1-99cf-91c1bcf966e3' });
+
+        hcaptcha.execute(widgetID, { async: true })
+            .then(({ response, key }) => {
+                console.log(response, key);
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    }
+
+    function onload() {
+        var element = document.getElementById('submit');
+        element.onclick = validate;
+    }
+
+
+    $(document).ready(function () {
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/Help/ReadManagePostTile?OrgId=" + '@Model.DepartmentId' + "&HomeType=UserGuide",
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listViewTM").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#template").html())
+        });
+    });
+
+    function AddUserGuide() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/cms/LandingPage/CreatePost?templateMasterCode=GROUP_MESSAGE&tagtotype=@NoteReferenceTypeEnum.Organization&orgId=@Model.DepartmentId&isUserGuide=true&moduleName=Admin&isHelp=true";
+        win.OpenWindow({Title: '@Html.Raw(Resource["PostingTo"])', Width: 650, Height: 550 });
+
+
+    }
+    function Goto(id) {
+        $("#docfeed-" + id)[0].scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+
+        let elements = document.getElementsByClassName('overlay');
+        var i;
+        for (i = 0; i < elements.length; i++) {
+            elements[i].style.background = "#565656";
+            elements[i].style.color = "#fff";
+        }
+        let curelement = document.getElementById(id);
+        curelement.style.backgroundColor = "#f5d01ba3";
+        curelement.style.color = "#060606";
+
+    }
+
+
+    function RefreshPageBack() {
+        var listView = $("#listViewTM").data("kendoListView");
+        // refreshes the ListView
+        listView.dataSource.read();
+        manageNoteList_Refresh($('#manageNoteList'));
+    }
+
+    function OnSearch() {
+        var srchtxt = $("#searchpost").val();
+        var search = { SearchParam: srchtxt };
+        var listView = $("#listViewTM").data("kendoListView");
+        listView.dataSource.read(search);
+    }
+
+    window.OnDocError = (obj) => {
+
+        obj.style.display = "none"
+        //obj.onerror = null;
+        //obj.src = '';
+        //obj.width = 50;
+        //obj.height = 50;
+        //obj.style.marginTop = "35%";
+        //obj.className = "e-list-icon e-fe-pdf"
+        var d_id = obj.id.split("_")[1];
+        alert("img error");
+        var dis = document.getElementById("alt_"+ d_id);
+        dis.style.display = "block";
+        var ext = obj.id.substring(obj.id.lastIndexOf(".") + 1);
+        if (ext.toLowerCase().includes("pdf")) {
+            dis.className = "fal fa-file-pdf";
+            dis.style.color = "red";
+        } else if (ext.toLowerCase().includes("xlsx") || ext.toLowerCase().includes("Xls")) {
+            dis.className = "fal fa-file-excel";
+            dis.style.color = "green";
+        } else if (ext.toLowerCase().includes("doc")) {
+            dis.className = "fal fa-file-word";
+            dis.style.color = "darkblue";
+        } else if (ext.toLowerCase().includes("pptx") || ext.toLowerCase().includes("ppt")) {
+            dis.className = "fal fa-file-powerpoint";
+            dis.style.color = "orange";
+        } else if (ext.toLowerCase().includes("mp4")) {
+            dis.className = "fab fa-youtube";
+            dis.style.color = "red";
+        }
+        //dis.width = 50;
+        //dis.height = 50;
+        dis.style.paddingTop = "75px";
+        dis.style.fontSize = "40px";
+
+    };
+
+    function CaptureImageAndVideo() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/cms/CaptureImageAndVideo?cbm=OnAfterCaptureImage&type=@CaptureType.Image";
+        win.OpenWindow({Title: 'Capture', Width: 650, Height: 550,  });
+    }
+
+    function OnAfterCaptureImage(obj) {
+        alert(obj.fileId);
+    }
+
+</script>
+
+<br />
+<div style="padding-left:2%">
+    <br />
+    <br />
+    <div id="hcaptcha"
+         class="h-captcha"
+         data-host="accounts.hcaptcha.com"
+         data-sitekey="af25110b-e53a-42f1-99cf-91c1bcf966e3"
+         data-callback="onSubmit"></div>
+    <button type="button" id="submit">submit</button>
+    <br />
+
+    <button class="btn btn-primary" onclick="AddUserGuide()">Click Here To Post</button>
+    <button class="btn btn-primary" onclick="CaptureImageAndVideo()">Capture</button>
+    <br /> <br />
+    @*<div>
+            <input  placeholder="@Resource["Searchpost"]" onclick="OnSearch();" />
+        </div>*@
+    <button type="button" class="close" aria-label="Close"><span aria-hidden="true"><i class="fa fa-times-circle"></i></span></button>
+    <div class="input-group-prepend">
+        <input id="searchpost" type="text" class="form-control" aria-label="Search" placeholder="Type something..." style=" width: 19%;">
+        <button class="btn btn-primary" onclick="OnSearch()">Search</button>
+        @*<span class="input-group-text"><span class="fas fa-magnifying-glass" style="color:black"></span></span>*@
+    </div>
+
+    <div class="page has-sidebar has-sidebar-fluid has-sidebar-expand-lg">
+        <div class="sidebar-backdrop"></div>
+        <div class="page-inner p-0">
+            <div class="page-section">
+                <div class="container-fluid py-3">
+                    <div id="listViewTM" class="list-group list-group-media mb-3">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-sidebar">
+            <header class="sidebar-header d-xl-none">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active">
+                            <a onclick="Looper.toggleSidebar()"><i class="breadcrumb-icon fa fa-angle-left mr-2"></i>Back</a>
+                        </li>
+                    </ol>
+                </nav>
+            </header>
+            <div class="sidebar-section">
+                @*<div id="mainList" class="list-group list-group-media mb-3" style="padding-top: 5%;">
+
+                    </div>*@
+                <br />
+                <br />
+                @{
+                    await Html.RenderPartialAsync("/Areas/Cms/Views/LandingPage/_EndlessScrollList.cshtml", new EndlessScrollListViewModel { Name = "manageNoteList", UrlActionName = "ReadManagePost", UrlControlName = "LandingPage", UrlAreaName = "Cms", PageSize = 10, OrgId = Model.DepartmentId, HomeType = "UserGuide" });
+                    //await Html.PartialAsync("/Areas/Cms/Views/LandingPage/OrgHome.cshtml");
+                    //await Html.RenderPartialAsync("/Areas/Cms/Views/LandingPage/OrgHome.cshtml");
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="template">
+    <div style="margin-left:10px;cursor:pointer;" onclick="Goto('#:Id#')" title="View">
+
+
+    <div class="conversation-message conversation-message-skip-avatar">
+                        <div class="conversation-message-text has-attachment">
+                          <div class="pswp-gallery">
+                            <!-- .card-figure -->
+                            <div class="card card-figure">
+                              <!-- .card-figure -->
+                              <figure class="figure">
+                                <!-- .figure-img -->
+                                <div class="figure-img figure-attachment">
+               #if (FileExtension == ".mp4")
+                {#
+                    <div id="alt_#:Id#" class="alt_img"><i class="fab fa-youtube" style="color:red;"></i></div>
+               #}else if (FileExtension == ".pdf")
+                    {#
+                    <div id="alt_#:Id#" class="alt_img"><i class="fal fa-file-pdf" style="color:red;"></i></div>
+               #}else if (FileExtension == null)
+                    {#
+                    <div id="alt_#:Id#" class="alt_img"><i class="far fa-comment-alt" style="color:orange;"></i></div>
+               #}else {#
+                    <img class="document-image doc-img-#:data.Id#" style="width:222px;height:164px;" src="/cms/Document/GetSnapMongo?id=#:FileId#"/>
+                #}#                                </div><!-- /.figure-img -->
+                                <figcaption class="figure-caption">
+                                  <ul class="list-inline d-flex text-muted mb-0">
+                                    <li class="list-inline-item text-truncate mr-auto"> #:NoteDescription#</li>
+                                    <li class="list-inline-item">
+
+                                    </li>
+                                  </ul>
+                                </figcaption>
+                              </figure><!-- /.card-figure -->
+                            </div><!-- /.card-figure -->
+                          </div>
+                        </div>
+                        @*<div class="conversation-meta">   #:SequenceOrder#. </div>*@
+                      </div>
+    </div>
+</script>
+
+
+
+
+
+

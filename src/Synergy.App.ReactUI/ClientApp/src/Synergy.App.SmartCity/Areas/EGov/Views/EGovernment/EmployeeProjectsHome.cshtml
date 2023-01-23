@@ -1,0 +1,237 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@using Newtonsoft.Json;
+@{
+    Layout = null;
+}
+@model EGovDashboardViewModel
+@inject IUserContext _userContext;
+@*<link href="~/css/EGOV/MyRequest.css" rel="stylesheet" asp-append-version="true" />*@
+@*<link href="~/css/EGOV/DashBoardStyles.css" rel="stylesheet" asp-append-version="true" />*@
+@*<link href="~/css/EGOV/Dashboard-Navigation-with-Button.css" rel="stylesheet" asp-append-version="true" />*@
+<style>
+
+    .title-bg1 {
+        background-color: #070f74;
+        padding: 6px 0 2px 20px;
+        margin: 0;
+        font-size: 20px;
+        color: #fff;
+        border-radius: 12px 12px 0 0;
+        height: auto;
+        font-weight: 500;
+    }
+
+    .indiv-block-bg1 {
+        /* background-color: #F5EBBC; */
+        height: 100px;
+        width: 230px;
+        border-radius: 20px;
+        margin-left: 20px;
+        overflow: hidden !important;
+        /* border: 1px solid #e66c80; */
+        background-color: #cdcdcd;
+    }
+
+    .label1 {
+        font-size: 20px;
+    }
+
+    .cancel-button {
+        background: #eb7c63;
+        order: 2;
+    }
+
+    .k-listview-content {
+        height: unset !important;
+        overflow-y: hidden !important;
+    }
+
+    .k-listview {
+        border-style: none !important;
+        height: unset !important;
+    }
+
+    #listView, #listViewPO, #listViewPU {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        display: flex;
+    }
+
+    .card {
+        float: left;
+        position: relative;
+        width: 290px;
+        height: 236px;
+        margin: 0 10px;
+        padding: 0;
+    }
+
+    .k-listview:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .footer-item {
+        cursor: pointer;
+        border: 1px solid;
+        border-radius: 30px;
+        padding: 4px;
+        padding-left: 13px;
+        margin-left: 10px;
+    }
+
+    #projName {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+        display: inline-block;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+
+        //Proposed By citizen
+        var dataSourcePM = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/EGov/EGovernment/CititzenProjectsHomeList?type=PROPOSEDBYCITIZEN&userId=@Model.UserId",
+                    // data: FilterDDl,
+                    dataType: "json",
+                }
+            },
+            pageSize: 21
+        });
+
+        $("#listView").kendoListView({
+            dataSource: dataSourcePM,
+            height: 350,
+            scrollable: "endless",
+            template: kendo.template($("#template").html())
+        });        
+
+        //Projects UnderTaken
+        var dataSourcePU = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/EGov/EGovernment/CititzenProjectsHomeList?type=PROJECTSUNDERTAKEN&userId=@Model.UserId",
+                    // data: FilterDDl,
+                    dataType: "json",
+                }
+            },
+            pageSize: 21
+        });
+
+        $("#listViewPU").kendoListView({
+            dataSource: dataSourcePU,
+            height: 350,
+            scrollable: "endless",
+            template: kendo.template($("#template").html())
+        });
+    });
+
+    function onService() {
+
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var isproposed = false;
+
+        $.ajax({
+            type: 'GET',
+            url: '/cms/lov/GetLOVDetailsByCode?code=EGOV_PRO_STATUS_PROPOSED',
+            success: function (res) {
+
+                var udfs = encodeURIComponent('IsProposedByCitizen=' + isproposed + '&ProjectStatus=' +res.Id);
+
+                var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=EGOV_PROJECT_PROPOSAL&portalId=' + portalId + '&udfs=' + udfs;
+                var win = GetMainWindow();
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Title: 'Create Project Proposal', Width: 1200, Height: 600 });
+            }
+        });        
+        
+    }
+
+    function OnAfterServiceCreate() {
+        $("#listViewPU").data("kendoListView").dataSource.read();
+    }
+
+    function OnClick(id, type) {
+        debugger;
+
+        type = (type == "Like") ? '@ProjectPropsalResponseEnum.Like' : '@ProjectPropsalResponseEnum.Dislike';
+
+        var url = "/EGOV/EGovernment/UpdateProjectProposalLikes?proposalId="+id+"&type="+type+"&userId=@_userContext.UserId";
+        $.ajax({
+            type: 'POST',
+            url: url,
+            success: function (res) {
+                if (res.success) {
+                    debugger;
+                    $("#listView").data("kendoListView").dataSource.read();                    
+                    $("#listViewPU").data("kendoListView").dataSource.read();
+                }
+                else {
+
+                }
+            }
+        });
+    }
+
+    function OpenService(serId,tcode) {
+         var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterServiceCreate&pageType=Service&source=View&dataAction=View&templateCodes='+tcode+'&portalId=' + portalId + '&recordId=' + serId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: 'View Project', Width: 1000, Height: 600, Position: 'Right1' });
+            return false;
+    }
+
+    function onCommentClick(serId)
+    {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ServiceComments", "Cms", new { @area= "" })?serviceId=' + serId+'&IsAddCommentEnabled=true';
+        win.OpenWindow({ Title: 'Project Comments', Width: 1000, Height: 600 });
+        return false;
+    }
+
+</script>
+
+<script id="template" type="text/kendo-ui-template">
+
+    <div class="card #:BorderCSS# mb-3">
+        <div class="card-header"><a href="javascript:OpenService('#:ServiceId#','#:TemplateCodes#');" id="projName" title="#:ProjectName#" style="text-decoration:underline;color:dodgerblue">#:ProjectName#</a></div>
+        <div class="card-body text-secondary" style="height: 125px;">
+              <p class="card-text">#:ProjectDescriptionText#</p>
+          </div>
+        <div class="card-footer text-muted" style="margin:0px;padding: 8px 0px;">
+        <div class="row col-12" style="margin-left: 0px;">
+            <div class="col-3 footer-item" #if(ResponseType == '1'){# style="color:green;" #}else{# style="color:grey;" #}#  onclick="OnClick('#:Id#','Like')">#:LikesCount# <i class="fa-solid fa-thumbs-up" title="Like" style="margin-left:5px;cursor:pointer;padding-top:3px;"></i></div>
+            <div class="col-3 footer-item" #if(ResponseType == '2'){# style="color:red;" #}else{# style="color:grey;" #}# onclick="OnClick('#:Id#','Dislike')">#:DislikesCount# <i class="fa-solid fa-thumbs-down" title="Dislike" style="margin-left:5px;cursor:pointer;padding-top:3px;"></i></div>
+            <div class="col-3 footer-item" style="color:dodgerblue;" onclick="onCommentClick('#:ServiceId#');">#:CommentsCount# <i class="fa-solid fa-message-lines" title="Comments" style="margin-left:5px;cursor:pointer;padding-top:3px;"></i></div>
+        </div>
+
+        </div>
+    </div>
+
+</script>
+
+<br />
+<div class="row">
+    <div class="col-6" style="color:#070f74;font-weight:800;font-size:20px">Projects Proposed By Citizens</div>    
+</div>
+<br />
+<div id="listView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+
+<div class="row">
+    <div class="col-6" style="color:#070f74;font-weight:800;font-size:20px">Projects Undertaken <button class="btn btn-primary" onclick="onService()">Create New Proposal</button></div>
+</div>
+<br />
+<div id="listViewPU" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+
+

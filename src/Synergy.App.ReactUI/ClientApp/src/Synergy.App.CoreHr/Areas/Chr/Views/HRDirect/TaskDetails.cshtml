@@ -1,0 +1,471 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRDirectController> Resource
+@using Kendo.Mvc.UI;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+
+@model TaskDetailsViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+
+
+<script>
+
+
+    $(document).ready(function () {
+
+         $("#Category").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetCategoryservice",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "--All--",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.Category)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+            change: OnCategoryChange
+         });
+
+        $("#Template").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetTemplatesService",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "--All--",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.Template)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+            change: OnTemplateChange
+        });
+
+
+        $("#Assignee").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/OwnerName",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "--All--",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.Assignee)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });
+      //  read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_SERVICE_STATUS" });
+
+
+        $("#Status").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/CMS/LOV/GetLOVIdNameList?lovType=LOV_SERVICE_STATUS",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "--All--",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.Status)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });
+
+
+        $(".k-grid .k-grid-btnAdd span").addClass("k-icon k-add");
+        $("#btnSearch").click(function () {
+
+
+            var search = FilterGrid();
+            getDataTaskDetails(search);
+
+           // $("#kgrdTaskDetails").data("kendoGrid").dataSource.read(search);
+        });
+
+    });
+
+    function FilterGrid() {
+
+
+
+        var Category = $("#Category").data("kendoMultiSelect").value();
+        var Template = $("#Template").data("kendoMultiSelect").value();
+        var Assignee = $("#Assignee").data("kendoMultiSelect").value();
+
+        var Status = $("#Status").data("kendoMultiSelect").value();
+
+        return {
+
+            Category: Category.toString(),
+            Template: Template.toString(),
+            Assignee: Assignee.toString(),
+            Status: Status.toString(),
+
+
+        };
+
+    }
+
+    function OnCategoryChange(e) {
+        var dataItem = e.sender.dataItem();
+        var id = dataItem.Id;
+
+
+
+
+
+        var Status = FilterData();
+
+
+        $("#Template").data("kendoMultiSelect").dataSource.read(Status);
+    }
+
+
+    function FilterData() {
+        var value = $("#Category").data("kendoMultiSelect").value();
+
+        return {
+            Category: value.toString(),
+
+        };
+    }
+
+    function OnTemplateChange(e) {
+
+        var dataItem = e.sender.dataItem();
+        var id = this.value();
+        var category = $("#Category").data("kendoMultiSelect").value();
+
+        var Status = {
+            Category: category.toString(),
+            Template: id.toString(),
+
+        };
+
+
+        $("#Assignee").data("kendoMultiSelect").dataSource.read(Status);
+    }
+</script>
+<div class="appWrapper">
+    <div class="formHeader">
+        <h4>
+            @ViewBag.Title
+        </h4>
+    </div>
+    <div class="row no-gutter hr-pad-top-15">
+        <div class="form-group col-xs-12 col-lg-4">
+            <div class="col-lg-12 label-div">
+                @Resource["Category"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().MultiSelectFor(model => model.Category)
+                       .DataSource(source =>
+                       {
+
+                           source.Read(read =>
+                           {
+                               read.Action("GetCategory", "HRDirect", new { area = "CHR" });
+                           });
+                       })
+                    //   .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                    .Placeholder(@Resource["--All--"])
+
+                     .AutoBind(true)
+                      .ValuePrimitive(true)
+                       .DataTextField("Name")
+                       .DataValueField("Id")
+                       .Filter(FilterType.Contains)
+                       .Events(x => x.Change("OnCategoryChange"))
+                       .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <select asp-for="Category" id="Category" data-placeholder="--All--" style="width:80%"></select>
+
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-lg-4">
+            <div class="col-lg-12 label-div">
+                @Resource["Template"]
+
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().MultiSelectFor(model => model.Template)
+                      .DataSource(source =>
+                      {
+                          source.Read(read =>
+                          {
+                              read.Action("GetTemplates", "HRDirect", new { area = "CHR" }).Data("FilterData");
+                          });
+                      })
+                     // .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                     .Placeholder(@Resource["--All--"])
+                     .IgnoreCase(true)
+                    .AutoBind(true)
+                     .ValuePrimitive(true)
+                      .DataTextField("Name")
+                      .DataValueField("Id")
+                      //   .Filter(FilterType.Contains)
+                      .Events(x => x.Change("OnTemplateChange"))
+                      .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <select asp-for="Template" id="Template" data-placeholder="--All--" style="width:80%"></select>
+
+            </div>
+        </div>
+
+
+        <div class="form-group col-xs-12 col-lg-4">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Assignee"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().MultiSelectFor(model => model.Assignee)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("Assignee", "HRDirect", new { area = "CHR" });
+                        });
+                    })
+                    //.OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                    .Placeholder("--All--")
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    //.Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <select asp-for="Assignee" id="Assignee" data-placeholder="--All--" style="width:80%"></select>
+
+            </div>
+        </div>
+
+        <div class="form-group col-xs-12 col-lg-4">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Status"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().MultiSelectFor(model => model.Status)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_TASK_STATUS" });
+                        });
+                    })
+                    //.OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                    .Placeholder("--All--")
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    //.Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <select asp-for="Status" id="Status" data-placeholder="--All--" style="width:80%"></select>
+
+            </div>
+        </div>
+
+
+
+        <div class="form-group col-xs-12 col-lg-2">
+            <div class="col-lg-12 label-div">
+                &nbsp;
+            </div>
+            <div class="col-lg-12">
+                @*@Html.Kendo().Button().Name("btnSearch").Content(@SharedResource["Search"]).HtmlAttributes(new { @class = "k-primary" })*@
+                <button type="button" class="btn btn-primary" id="btnSearch">@SharedResource["Search"]</button>
+            </div>
+        </div>
+    </div>
+    <Script>
+  var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+    var columnDefs = [
+
+        { field: "TaskNo", headerName: "@Resource["TaskNo"]" },
+        { field: "TaskName", headerName: "@Resource["TaskSubject"]" },
+        { field: "Category", headerName: "@Resource["Category"]" },
+        { field: "Template", headerName: "@Resource["Template"]" },
+        { field: "owner", headerName: "@Resource["OwnerName"]" },
+        { field: "Assignee", headerName: "@Resource["Assignee"]" },
+        {
+            field: "StartDate",  headerName: "@Resource["StartDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+         {
+             field: "EndDate",  headerName: "@Resource["EndDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        { field: "Status", headerName: "@Resource["Status"]" },
+        { field: "SLAText", headerName: "@Resource["SLAText"]" }
+   
+
+
+
+
+            ];
+
+
+            $(function () {
+
+                getDataTaskDetails();
+
+
+            });
+
+        function getDataTaskDetails() {
+            document.getElementById("kgrdTaskDetails").innerHTML = "";
+            //var Category = $("#Category").data("kendoMultiSelect").value();
+            //var Template = $("#Template").data("kendoMultiSelect").value();
+            //var Assignee = $("#Assignee").data("kendoMultiSelect").value();
+
+            //var Status = $("#Status").data("kendoMultiSelect").value();
+
+            //return {
+
+            //    Category: Category.toString(),
+            //    Template: Template.toString(),
+            //    Assignee: Assignee.toString(),
+            //    Status: Status.toString(),
+
+
+            //};
+            var search = FilterGrid();
+
+        gridConfig(
+            "kgrdTaskDetails",
+            "@Url.Action("GetTaskDetailsData", "HRDirect", new { area = "CHR" })?Category=" + search.Category + "&Template=" + search.Template + "&Assignee=" + search.Assignee + "&Status=" + search.Status,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+            }
+    </Script>
+    <div class="col-12">
+
+        <div id="kgrdTaskDetails" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </div>
+    @*<div class="hr-pad-top-10">
+            @(Html.Kendo().Grid<TaskDetailsViewModel>
+                ().Name("kgrdTaskDetails")
+                //.Width(100)
+                .Columns(col =>
+                {
+                    //col.Command(c => c.Custom("Print").Text("Print").SendDataKeys(true).Click("OnPrint")).Width(100);
+                    col.Bound(c => c.TaskNo).Title(@SharedResource["TaskNo"]).Width(110);
+                    col.Bound(c => c.TaskName).Title(@SharedResource["TaskSubject"]).Width(100);
+                    col.Bound(c => c.Category).Title(@Resource["Category"]).Width(100);
+                    col.Bound(c => c.Template).Title(@Resource["Template"]).Width(100);
+                    col.Bound(c => c.owner).Title(@SharedResource["OwnerName"]).Width(100);
+                    col.Bound(c => c.Assignee).Title(@Resource["AssigneeName"]).Width(100);
+                    col.Bound(c => c.StartDate).Title(@SharedResource["StartDate"]).Format("{0:dd MMM yyyy}").Width(100);
+                    col.Bound(c => c.EndDate).Title(@SharedResource["EndDate"]).Format("{0:dd MMM yyyy}").Width(100);
+                    col.Bound(c => c.Status).Title(@SharedResource["Status"]).Width(100);
+                    col.Bound(c => c.SLAText).Title(@SharedResource["SLA"]).Width(100);
+
+
+
+
+                })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Excel();
+
+            })
+            //.Excel(e => e.FileName("UserLeaveSummaryReport.xlsx").AllPages(true))
+            .Scrollable(x => x.Enabled(true))
+            .Resizable(x=>x.Columns(true))
+            .Sortable(srt => srt.Enabled(true))
+            .Selectable(select => select.Enabled(false))
+            .Filterable(f => f.Extra(false)
+            .Operators(o => o.ForString(s => s.Clear()
+            .Contains("Contains")
+            .IsEqualTo("Is equal to")
+
+            )))
+            .Groupable(g => g.ShowFooter(false))
+            .Pageable(pageable => pageable
+            .Refresh(true)
+
+            .PageSizes(true)
+            .ButtonCount(5))
+            .AutoBind(true)
+            .DataSource(
+            dataSource => dataSource
+            .Ajax()
+            .PageSize(10)
+
+            //.Events(events => events.Error("OnError"))
+           .Read(read => read.Action("GetTaskDetailsData", "HRDirect", new { area="CHR" }).Data("FilterGrid"))
+            //.Read(read => read.Action("GetTaskDetailsData", "CHR").Data("FilterGrid"))
+            // .Update(update => update.Action("Update", "ManpowerReport"))
+            // .Destroy(destroy => destroy.Action("Delete", "ManpowerReport"))
+            .Model(model => model.Id(p => p.Id))
+            )
+            //.Editable(
+            // editable => editable.Mode(GridEditMode.PopUp)
+            //  .DisplayDeleteConfirmation(ERP.Translation.Message.DeleteConfirm2)
+            // )
+
+            )
+
+
+        </div>*@
+
+
+</div>
+
+<script type="text/javascript">
+
+
+
+
+
+
+
+    function OnPrint(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        window.location.href = "/nts/service/DownloadServiceRequest?serviceId=" + dataItem.ServiceId;
+        return false;
+    }
+
+</script>

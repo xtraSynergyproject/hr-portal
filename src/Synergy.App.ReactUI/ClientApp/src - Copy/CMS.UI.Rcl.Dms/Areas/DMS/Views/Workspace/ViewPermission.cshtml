@@ -1,0 +1,145 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.WorkspaceController> Resource
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@using CMS.Data.Model;
+@using CMS.UI.ViewModel;
+
+@model DocumentPermissionViewModel
+@{
+    ViewData["Title"] = @Resource["ViewPermission"];
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<script>
+
+     var statusType = '@Html.Raw(EnumExtension.EnumToJson(typeof(DmsPermissionTypeEnum)))';
+    var statusTypeObj = JSON.parse(statusType);
+
+      var statusAccess = '@Html.Raw(EnumExtension.EnumToJson(typeof(DmsAccessEnum)))';
+    var statusAccessObj = JSON.parse(statusAccess);
+
+      var statusApplies = '@Html.Raw(EnumExtension.EnumToJson(typeof(DmsAppliesToEnum)))';
+    var statusAppliesObj = JSON.parse(statusApplies);
+
+
+     var columnDefs = [
+
+
+        {
+             headerName: "@Resource["Type"]", field: "PermissionType",
+             cellRenderer: params => {
+                 return statusTypeObj[params.value]; //only for enum
+             }
+        },
+         { headerName: "@Resource["User/PermissionGroup"]", field: "PermittedUserId" },
+         {
+             headerName: "@Resource["Access"]", field: "Access",
+             cellRenderer: params => {
+                 return statusAccessObj[params.value]; //only for enum
+             }
+         },
+         {
+             headerName: "@Resource["AppliesTo"]", field: "AppliesTo",
+             cellRenderer: params => {
+                 return statusAppliesObj[params.value]; //only for enum
+             }
+         },
+         { headerName: "@Resource["InheritedFrom"]", field: "InheritedFrom",},
+
+    ];
+
+    $(function () {
+
+        getData();
+
+
+
+    });
+
+
+
+   function getData() {
+       document.getElementById("myGrid").innerHTML = "";
+       gridConfig(
+           "myGrid",
+           "/dms/DocumentPermission/ViewPermissionDataGrid?NoteId=@Model.NoteId",
+           columnDefs,
+           false,
+           true,
+           true,
+           true,
+           1,
+           true,
+           10);
+    }
+
+</script>
+
+
+<div>
+    @*<h4>@ViewBag.Title</h4>*@
+
+    <br />
+
+
+    <div class="row">
+
+        <div class="col-12">
+            
+            <div id="myGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+
+        @*<div class="col-12">
+
+            @(Html.Kendo().Grid<DocumentPermissionViewModel>
+    ()
+    .Name("Permissiongrid")
+    //.ToolBar(toolbar =>
+    //toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateWorkspace();'><i class='fa fas fa-plus'></i>&nbsp;Add Workspace</button>"))
+
+    .Columns(columns =>
+
+    {
+        //columns.Command(command =>
+        //{
+        //    command.Custom("Permission").Text("<i class='fal fa-folder-open li-fal'></i>").Click("ManagePermission").HtmlAttributes(new { @class = "action-icon" });
+        //    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditWorkspace").HtmlAttributes(new { @class = "action-icon" });
+        //    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteWorkspace").HtmlAttributes(new { @class = "action-icon" });
+        //}).Title("Action").Width(120);
+
+        columns.Bound(c => c.PermissionType).Title(@Resource["Type"]);
+        columns.Bound(c => c.UserPermissionGroup).Title(@Resource["User/PermissionGroup"]);
+        columns.Bound(c => c.Access).Title(@Resource["Access"]);
+        columns.Bound(c => c.AppliesTo).Title(@Resource["AppliesTo"]);
+        columns.Bound(c => c.InheritedFrom).Title(@Resource["InheritedFrom"]);
+
+    })
+    .Scrollable(x => x.Enabled(false))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                //.Events(events => events.Error("OnError"))
+                .Read(read => read.Action("ViewPermissionData", "DocumentPermission", new { area = "Dms", NoteId = Model.NoteId }))
+                .Model(model => model.Id(p => p.Id))
+                )
+          )
+
+        </div>*@
+    </div>
+
+</div>
+

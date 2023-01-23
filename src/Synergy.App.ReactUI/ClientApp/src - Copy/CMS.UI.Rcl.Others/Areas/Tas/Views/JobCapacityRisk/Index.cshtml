@@ -1,0 +1,251 @@
+﻿
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@model CapacityRiskViewModel
+@{
+    ViewData["Title"] = "Job Capacity";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+<style>
+  
+    .kgrdSalaryInfoStyle {
+        width: 100% !important;
+    }
+
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+</style>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $("#DepartmentId").kendoDropDownList({
+            optionLabel: "All",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.DepartmentId",
+            filter: "contains",
+            autoBind: true,
+            change: OnChangeDept,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Taa/RosterSchedule/GetDepartmentList",
+                    }
+                }
+            }
+        });
+
+        $("#JobId").kendoDropDownList({
+            optionLabel: "All",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.JobId",
+            filter: "contains",
+            autoBind: false,
+            change: OnChange,
+            cascadeFrom: "DepartmentId",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Tas/JobCapacityRisk/GetDepartmentList",
+                        data: Filter
+                    }
+                }
+            }
+        });
+
+    });
+
+    function Filter() {
+        // debugger
+
+        var value = $("#DepartmentId").val();
+        return {
+            departmentId: value
+
+        }
+
+
+    }
+
+    function FilterChart(value,value2) {
+
+        return {
+            jobId: value,
+            departmentId: value2
+        }
+
+
+    }
+
+    function OnChange() {
+        var value = $("#JobId").val();
+        $("#chart").data("kendoChart").dataSource.read({ jobId: value });
+    }
+
+    function OnChangeDept() {
+        var value = $("#DepartmentId").val();
+        $("#chart").data("kendoChart").dataSource.read({ departmentId: value });
+    }
+
+    $("#update").click(function () {
+        var Department = $("#DepartmentId").val();
+        if (Department == null || Department == "") {
+            alert("Please Select Department");
+            return false;
+        }
+        else {
+            url = "/tas/JobCapacityRisk/UpdateCapacityRisk?departmentId=" + Department ;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url
+            win.OpenWindow({ Title: 'Update Risk', Width: 1200, Height: 600 });
+        }
+    })
+
+</script>
+@*<h3>@ViewBag.Title</h3>*@
+
+<div class="row">
+    <div class="row col-4">
+        <div class="col-12">Department</div>
+        <div class="col-12">
+            @*@(Html.Kendo().DropDownListFor(x => x.DepartmentId)
+                               .DataSource(source =>
+                               {
+                                   source.Read(read =>
+                                   {
+                                       read.Action("GetDepartmentList", "RosterSchedule", new { area = "Taa" });
+                                   });
+                               }).OptionLabel("All")
+                               .Events(x => x.Change("OnChangeDept"))
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                              .HtmlAttributes(new { @class = "form-control" })
+           )*@
+            
+            <input asp-for="DepartmentId" id="DepartmentId" class="form-control" />
+
+        </div>
+    </div>
+    <div class="row col-4 ">
+        <div class="col-12">Job</div>
+        <div class="col-12">
+            @*@(Html.Kendo().DropDownListFor(x => x.JobId)
+          //.Name("level")
+          .HtmlAttributes(new { style = "width:100%" })
+          .OptionLabel("All")
+          .DataTextField("Name")
+          .DataValueField("Id")
+          .DataSource(source =>
+          {
+              source.Read(read =>
+              {
+                  read.Action("GetDepartmentList", "JobCapacityRisk", new { @area = "Tas" })
+                       .Data("Filter");
+              })
+              .ServerFiltering(true);
+          })
+          .Events(x=>x.Change("OnChange"))
+          .Enable(false)
+          .AutoBind(false)
+          .CascadeFrom("DepartmentId")
+    )*@
+            <input asp-for="JobId" id="JobId" class="form-control" />
+
+        </div>
+    </div>
+    <div class="row col-4">
+        <div class="col-12"></div>
+        <div class="col-12">
+            @*@Html.Kendo().Button().Name("update").Content("Update Capacity Risk").HtmlAttributes(new { @class = "k-primary" })*@
+            <button type="submit" id="update" class="btn btn-primary">Update Capacity Risk</button>
+
+        </div></div>
+    </div>
+
+<div class="row">
+    <div class="col-12">
+        @(Html.Kendo().Chart<CapacityRiskViewModel>()
+        .Name("chart")
+        .Legend(false)
+        .DataSource(ds => ds.Read(read => read
+            .Action("ReadChartData", "JobCapacityRisk")
+        ))
+        .Series(series => {
+            series.Bubble(
+                model => model.InternalAvailability,
+                model => model.ExternalAvailability,
+                model=>model.Size,
+                model => model.JobName
+                );
+        })
+        .XAxis(axis => axis
+            .Numeric()
+            .Labels(labels => labels
+                .Format("{0:N0}")
+            )
+            .Title("Internal Availability")
+        )
+        .YAxis(axis => axis
+            .Numeric()
+            .Labels(labels => labels
+                .Format("{0:N0}")
+            )
+            .Title("External Availability")
+        )
+        .Tooltip(tooltip => tooltip
+            .Visible(true)
+            .Format("Job : {3}")
+        )
+    )
+    </div>
+</div>
+
+
+<script>
+    function Refresh() {
+        var value = $("#JobId").val();
+        $("#chart").data("kendoChart").dataSource.read({ jobId: value });
+    }
+</script>

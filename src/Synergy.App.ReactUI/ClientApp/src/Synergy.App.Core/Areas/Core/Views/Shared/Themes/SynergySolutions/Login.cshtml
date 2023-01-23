@@ -1,0 +1,401 @@
+﻿@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common;
+@model Synergy.App.ViewModel.LoginViewModel
+@{
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+    @*<link rel="icon" type="image/x-icon" href="~/images/galfaricon.jpeg" />*@
+    @if (ViewBag.FavIconId != null)
+    {
+        <link rel="icon" type="image/x-icon" href="/Cms/document/getimagemongo?id=@ViewBag.FavIconId" />
+    }
+    
+
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/floating-labels.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/jquery-splitter.css" asp-append-version="true" />
+    <link href="~/lib/font-awesome/css/all.min.css" rel="stylesheet" type="text/css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Rec/recruitment.css" asp-append-version="true" />
+    @*<link href="~/Themes/Recruitment/css/bootstrap-theme.css" rel="stylesheet">*@
+    <link href="~/Themes/HR/css/elegant-icons-style.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/Themes/HR/css/style.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/Themes/HR/css/style-responsive.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/Themes/HR/css/line-icons.css" rel="stylesheet" asp-append-version="true" />
+
+    <link href="https://kendo.cdn.telerik.com/2021.1.224/styles/kendo.bootstrap-v4.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/jquery.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/jszip.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/kendo.all.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2021.1.224/js/kendo.aspnetmvc.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/material.css" />
+
+    <script src="https://cdn.syncfusion.com/ej2/dist/ej2.min.js"></script>
+    <script src="~/js/jquery-splitter.js" asp-append-version="true"></script>
+    <script src="~/js/Encrypt/aes-min.js" asp-append-version="true"></script>
+    <style>
+        #content-wrapper {
+            background-color: #fff !important;
+        }
+
+        .login-bg {
+            /* background-image: url(../../assets/img/login-bg-galfar.png); */
+            width: 680px;
+            /* height: 300px;*/
+        }
+
+        .login-body {
+            background-color: #fff;
+        }
+
+        .login-body-form {
+            margin-top: 30px;
+        }
+
+        .main-bg {
+            background: #eeeeee;
+        }
+
+        .round-text-box {
+            border: 1px solid #cdd1d1;
+        }
+
+        .reg-bg {
+            width: 600px;
+            height: 600px;
+            background-color: #fff;
+        }
+
+        .register-bg {
+            border-radius: 18px;
+            background-color: #1D4993;
+            height: 350px;
+        }
+
+        .register-body-form {
+            padding-top: 10px;
+        }
+
+        .btn-reg {
+            background-color: #1D4993;
+            padding: 6px;
+            border-radius: 18px;
+            border: 1px solid #fff;
+            color: #fff;
+        }
+
+        .btn-login {
+            background-color: dodgerblue;
+            padding: 6px;
+            border-radius: 18px;
+            border: 1px solid #fff;
+            color: #fff;
+        }
+
+        .btn-reg:hover {
+            background-color: #1D4993;
+        }
+
+        .registersuccess-body-form {
+            height: 300px;
+            padding: 20px;
+            margin-top: 30px;
+            width: 80%;
+            margin: 26px auto;
+            background-color: #fff;
+            border-radius: 18px;
+        }
+
+        .title {
+            color: #4da74b;
+            font-size: 20px;
+            font-weight: 400;
+            padding: 25px;
+        }
+        /*.reg-text {
+            color: #8f8b8b;
+        }
+        .title-register {
+            color: #8f8b8b;
+        }*/
+    </style>
+
+    <script type="text/javascript">
+        $.ajaxSetup({
+            beforeSend: function (xhr, options) {
+                if (options.type.toUpperCase() == "POST") {
+                    xhr.setRequestHeader("RequestVerificationToken", $('input:hidden[name="__RequestVerificationToken"]').val());
+                }
+
+            }
+        });
+
+        var iframeOpenUrl = "";
+        function OnLogout() {
+            document.getElementById("logout").submit();
+        }
+        function OpenChangePassowrd() {
+            OpenIframeModal('/account/changepassword', 'Change Password', 350, 700);
+        }
+        function OpenBreResultViewDetails() {
+            OpenIframeModal('/bre/BreResultViewDetails', 'View Details', 450, 700);
+        }
+
+        function CloseIframeModal(reloadParent) {
+            $('#iframeModal').modal('hide');
+            if (reloadParent) {
+                //window.location.href = window.location.href;
+            }
+        }
+
+        function PhotoError(obj) {
+            obj.onerror = null;
+            obj.src = '/images/profile.jpg';
+
+        };
+        function LogoError(obj) {
+            //console.log($(obj).parent());
+            // obj.src = '/images/logo.png';
+            //$(obj).parent().css('padding-top', '15px');
+            //$(obj).parent().css('padding-left', '0px');
+            obj.onerror = null;
+            $(obj).hide();
+
+        };
+
+        function Register() {
+            $('#loginform').hide();
+            $('#register').show();
+
+            document.getElementById('Portal').value = '@Model.PortalId';
+            document.getElementById('SendWelcomeEmail').value = true;
+        }
+
+        function BackToLogin() {
+            $('#register').hide();
+            $('#registersuccess').hide();
+            $('#loginform').show();
+        }
+
+        function NewRegister() {
+
+            var data = {
+                Name : $('#Name').val(),
+                LastName : $('#LastName').val(),
+                Email: $("input[type = 'email']").val(),
+                Portal :  $('#Portal').val(),
+                SendWelcomeEmail : $('#SendWelcomeEmail').val()
+            };
+            ShowLoader($('#register'));
+            $.ajax({
+                url: '/Cms/User/RegisterUser',
+                type: 'POST',
+                data: {model:data},
+                dataType: 'json',
+                success: function (result) {
+
+                    if (result.success) {
+                        HideLoader($('#register'));
+                        $('#register').hide();
+                        $('#registersuccess').show();
+                    } else {
+                        HideLoader($('#register'));
+                        $("#validation-summary1").removeClass("validation-summary-valid");
+                        $("#validation-summary1").addClass("validation-summary-errors");
+                        $("#validation-summary1").html(result.error);
+                        return false;
+                    }
+                },
+                error: function (ert) {
+                    //
+
+                }
+            });
+        }
+        function EncryptPassword() {
+            var key = CryptoJS.enc.Utf8.parse('8080808080808080');
+            var iv = CryptoJS.enc.Utf8.parse('8080808080808080');
+            var ecp = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse($('#PasswordPlain').val()), key,
+                {
+                    keySize: 128 / 8,
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+            $('#Password').val(ecp);
+            return true;
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="container main-bg">
+        <form class="" id="loginform" asp-action="Login" asp-controller="Account" method="post" asp-area="">
+                
+            <div class="main-bg">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="row login-body login-bg">
+                    <div class="col sm-hide">
+                        <div class="login-body-form"></div>
+                    </div>
+
+                    <div class="col-sm-7" style="float:left;">
+                        <div class="login-body-form" style="padding-left:10px;">
+                            <div class="row">
+                                <div class="col" style="padding:0;">
+                                    <h4 style="font-weight: 500;">Login</h4>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col email-tgap">
+                                    <input asp-for="Email" type="text" class="round-text-box" placeholder="Email" required="required" autofocus>
+                                    <div class="img-email"><img src="~/images/ico-email.png"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col pwd-tgap">
+                                    <input id="PasswordPlain" type="password" class="round-text-box" placeholder="Password" required="required" id="pwd">
+                                    <input asp-for="Password" type="hidden">
+                                    <div class="img-email"><img src="~/images/ico-pwd.png"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col pwd-tgap">
+                                    <dnt-captcha asp-captcha-generator-max="999999"
+                                                 asp-captcha-generator-min="111111"
+                                                 asp-captcha-generator-language="English"
+                                                 asp-captcha-generator-display-mode="ShowDigits"
+                                                 asp-use-relative-urls="false"
+                                                 asp-placeholder="Enter Captcha"
+                                                 asp-validation-error-message="Please enter valid security code."
+                                                 asp-font-name="Tahoma"
+                                                 asp-font-size="20"
+                                                 asp-fore-color="#333333"
+                                                 asp-back-color="#ccc"
+                                                 asp-text-box-class="round-text-box"
+                                                 asp-text-box-template="<span class='input-group-prepend'><span class='form-group-text'></span></span>{0}"
+                                                 asp-validation-message-class="text-danger"
+                                                 asp-refresh-button-class="fas fa-redo btn-sm"
+                                                 asp-use-noise="false" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <input class="col pwd-tgap text-center btn-login" type="submit"  onclick="return EncryptPassword();" value="LOGIN" />
+                            </div>
+                            <div class="row">
+                                <div class="col pwd-tgap text-center">
+                                    <div class="form-check"><input asp-for="RememberMe" class="form-check-input" type="checkbox" id="formCheck-1"><label class="form-check-label" style="font-weight: 500;color:dodgerblue;" for="formCheck-1">Remember me<br></label></div>
+                                </div>
+                                <div class="col pwd-tgap text-center "><label class="form-label forgot-pwd"><a style="color:dodgerblue;font-weight: 500;" href="/account/forgotpassword?portalId=@Model.PortalId">Forgot Password?</a></label></div>
+                            </div>
+                            <input asp-for="LoginViewName" type="hidden" />
+                            <input asp-for="PortalId" type="hidden" />
+                            <input asp-for="ReturnUrl" type="hidden" />
+                        </div>
+                    </div>
+                    <div class="col-sm-5" style="float:right;height:100%;">
+                        <div style="background-color:dodgerblue;height:100%;text-align:center;padding:170px 60px;">
+                            <div>
+                                <input type="button" class="btn btn-dark" style="background-color:#000;" value="REGISTER NOW" onclick="Register();" />
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+
+        <div class="register-body register-bg" id="register" style="display:none;">
+            <div class="row">
+                <div class="col">
+                    <div class="register-body-form">
+                        <div id="validation-summary1" class="text-danger" asp-validation-summary="All"></div>
+                        <div class="row">
+                            <div class="col email-tgap">
+                                <h4 class="title-register">Register</h4><label class="reg-text">First Name *</label><input asp-for="Name" type="text" class="round-text-box form-control" autocomplete="off" required="required" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col email-tgap"><label class="reg-text">Last Name *</label><input asp-for="LastName" type="text" class="round-text-box form-control" autocomplete="off" required="required" /></div>
+                        </div>
+                        <div class="row">
+                            <div class="col email-tgap"><label class="reg-text">Email *</label><input asp-for="Email" type="email" class="round-text-box form-control" autocomplete="off" required="required" /></div>
+                        </div>
+                        @*<div class="row">
+                                <div class="col email-tgap"><label class="reg-text">Password *</label><input asp-for="Password" type="password" class="round-text-box form-control" autocomplete="off" required="required" /></div>
+                            </div>
+                            <div class="row">
+                                <div class="col email-tgap"><label class="reg-text">Confirm Password *</label><input asp-for="ConfirmPassword" type="password" class="round-text-box form-control" autocomplete="off" required="required" /></div>
+                            </div>*@
+                        <div class="row">
+                            <!--<input class="col pwd-tgap text-center btn-reg" type="submit"--> @*src="~/images/but-register.png"*@ <!--value="REGISTER" />-->
+                            <input class="col pwd-tgap text-center btn-reg" type="button" @*src="~/images/but-register.png"*@ value="REGISTER" onclick="NewRegister();" />
+                        </div>
+                        @Html.HiddenFor(x => x.Portal)
+                        @Html.HiddenFor(x => x.SendWelcomeEmail)
+                        @*</form>*@
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="register-body" id="registersuccess" style="display:none;">
+            <div class="row">
+                <div class="col">
+                    <div class="registersuccess-body-form">
+                        <div class="row">
+                            <div class="col email-tgap">
+                                <h4 class="title">Registration is completed successfully. An email has been sent to your registered email address with new password.</h4>
+                            </div>
+                        </div>
+                        <div class="row-12">
+                            <input class="pwd-tgap text-center btn-reg" type="button" style="float:right;" value="Go Back To Login" onclick="BackToLogin();" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <environment names="Development">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
+    </environment>
+    <environment names="Staging,Production">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+                asp-fallback-src="~/lib/bootstrap/js/bootstrap.min.js"
+                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"></script>
+        <script src="~/js/popper.js"></script>
+    </environment>
+    <script src="~/lib/jquery-easing/jquery.easing.min.js" asp-append-version="true"></script>
+    <script src="~/js/layout.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="~/lib/loading-overlay/loading-overlay.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-context-menu/dist/jquery.contextMenu.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-context-menu/dist/jquery.ui.position.min.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="~/lib/jquery-context-menu/dist/jquery.contextMenu.min.css" asp-append-version="true" />
+
+
+    <script src="~/Themes/HR/js/jquery.nicescroll.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="~/Themes/HR/js/jquery-ui-1.9.2.custom.min.js" asp-append-version="true"></script>
+    <script src="~/Themes/HR/js/scripts.js" asp-append-version="true"></script>
+</body>
+
+
+</html>

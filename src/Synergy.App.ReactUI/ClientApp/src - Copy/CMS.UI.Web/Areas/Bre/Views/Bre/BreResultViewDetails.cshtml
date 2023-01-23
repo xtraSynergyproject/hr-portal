@@ -1,0 +1,864 @@
+﻿@using Syncfusion.EJ2.Navigations;
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI
+@{
+    ViewData["Title"] = "BRE Result View Details";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@model BreResultViewModel
+
+
+
+<style>
+
+    .left {
+        min-width: 300px;
+        width: 743px;
+        max-width: 750px;
+    }
+    #inputtreeview {
+        padding-left: 25px;
+        padding-bottom: 65px;
+    }
+
+    .tree-item-status {
+        cursor: pointer;
+    }
+
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 85vh !important;
+        width: 100%;
+        /*position:fixed;*/
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+
+    .k-floating-label-container {
+        width: 100%;
+    }
+</style>
+
+
+<div class="text-danger" asp-validation-summary="All"></div>
+<div class="row no-gutters pad-10">
+    <div class="col-12 pad-10">
+        <div class="form-label-group">
+            <input asp-for="ProcessName" type="text" class="form-control" placeholder="ProcessName" required="required" autocomplete="off" />
+            <label for="ProcessName">ProcessName</label>
+        </div>
+    </div>
+    <div class=" col-12 pad-10">
+        <div class="col-12">Execute a Method </div>
+        <div class="form-label-group">
+            @*@(Html.Kendo().DropDownList().Name("ExecuteType")
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .Events(e=>e.Change("onChangeExecuteMethod"))
+                        .OptionLabel("--Select--")
+                        .DataSource(source =>
+                        {
+                        source.Read(read =>
+                        {
+                            read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "BreExecuteMethodTypeEnum" });
+                        });
+                        })
+                        .HtmlAttributes(new { @class = "form-control" })
+                        )*@
+            <input id="ExecuteType" class="form-control" />
+
+        </div>
+    </div>
+</div>
+
+<script id="treeview-template1" type="text/kendo-ui-template">
+                    #: item.Name #
+
+</script>
+<script type="text/kendo-template" id="checkbox-template">
+                            #if(item.hasChildren == false){#  <input type='checkbox' #= item.checked ? 'checked' : '' #>#}#
+</script>
+
+<div id="predefinedDiv" style="display:none;">
+    <br />
+    <div class="" style="margin:10px;border-width:2px;border-color:lightgrey;border-style:solid">
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="left">
+
+                    @*@(Html.Kendo().TreeView()
+            .Name("inputtreeview").HtmlAttributes(new { @class = "treeview1" })
+            .DataTextField("Name")
+            .ExpandAll(true)
+             .Events(e => e.DataBound("OnInputTreeViewBound").Expand("onExpand").Select("OnSelect"))
+            .TemplateId("ct-tv-template")
+            .Checkboxes(checkboxes => checkboxes
+                    .Name("InputField")
+                    .CheckChildren(false)
+                     .TemplateId("chk-treeview")
+                )
+             .Events(events => events
+            .Check("onCheck")
+        )
+            .HtmlAttributes(new { @style = "width:600px" })
+            .DataSource(dataSource => dataSource
+                .Read(read => read
+                    .Action("GetFolderStructure", "Bre", new { @area = "Bre" }).Data("AddDataToTree")
+                )
+            )
+        )*@
+
+                    <div id="inputtreeview"></div>
+
+
+
+                    <script id="chk-treeview" type="text/kendo-ui-template">
+                        #if(item.hasChildren == false){#  <input type='checkbox' #= item.Checked ? 'checked' : '' #>#}#
+                    </script>
+
+                    <script id="ct-tv-template" type="text/kendo-ui-template">
+                        <span style="width:100%" id="#: item.id #" class="tree-item-#:item.Type.toLowerCase()#">#: item.Name #</span>
+
+                    </script>
+
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="right pad-l-t-15" id="inbox-content-div" style="width:100%;">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+<div id="CustomDiv" style="display:none;">
+    <div class="row no-gutters pad-10">
+        <div class="col-12">
+            <span style="color:#0E00FF">public&nbsp;bool</span>&nbsp;<span style="color:#74531F;">DecisionScript</span>&nbsp;(<span style="color:#2B91AF">TaskTemplateViewModel</span>&nbsp;<span style="color:#1F377F">taskViewModel</span>,&nbsp;<span style="color:#2B91AF">ServiceTemplateViewModel</span> <span style="color:#1F377F">serviceViewModel</span>, <span style="color:#2B91AF">NoteTemplateViewModel</span> <span style="color:#1F377F">noteViewModel</span>, <span style="color:#2B91AF">Dictionary<span style="color:#0E00FF">&lt;string, object&gt;</span></span> <span>udf</span> )
+            {
+            <div class="form-label-group">
+                <textarea asp-for="CustomMethodScript" class="form-control" placeholder="Script" autocomplete="off" style="width:100%; height:400px;"></textarea>
+            </div>
+
+            }
+        </div>
+
+    </div>
+</div>
+<div style="margin:10px">
+
+    <div class="row">
+        <div class="col-sm">
+            <label><input id="returnWithMessage" type='checkbox' onclick='returnWithMessageClick(this);'>&nbsp; Return With Message</label>
+
+        </div>
+        <div class="row col-sm">
+            <div id="returnIfMethodReturnsdiv">
+                <label><input type='checkbox' id="returnIfMethodReturns" onclick='ReturnIfMethodReturnsClick(this);'>&nbsp; Return If Method Returns</label>
+            </div>
+            <div id="MethodReturnValuediv" style="display:none">
+
+
+                @*@(Html.Kendo().DropDownList().Name("MethodReturn")
+                        .DataTextField("Name")
+                        .DataValueField("EnumId")
+                        //.Events(e=>e.Change("onChangeExecuteMethod"))
+                        //.OptionLabel("--Select--")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "TrueOrFalseEnum" });
+                            });
+                        })
+                        .HtmlAttributes(new { @class = "form-control" })
+                        )*@
+                <input id="MethodReturn" class="form-control" />
+
+            </div>
+        </div>
+       
+    </div>
+
+    <div id="ReturnWithMessageGrid" style="display:none">
+        <div class="row" style="padding:10px;">
+            <div class="col-md-12">
+
+                <div class="form-label-group">
+                    <label for="result">Result</label>
+                </div>
+                <div class="form-label-group">
+                    <label for="summary" style="margin-top:-10px !important;">Summary</label>
+                </div>
+                <div class="form-label-group">
+                    <label for="detail" style="margin-top: -20px !important;">Detail</label>
+                    @*@(Html.Kendo().Grid((IEnumerable<IdNameViewModel>)ViewBag.DataSource)
+                    .Name("kgrdDetail")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(c => c.Name).Title("Message").Width(100);
+                        columns.Command(command => command.Destroy().IconClass("fa fas fa-trash-alt").Text(" ")).Width(50);
+                    })
+                        .ToolBar(toolbar =>
+                        {
+                            toolbar.Create().Text("Add");
+                        })
+
+                    .Pageable(pageable => pageable
+                    .Refresh(true)
+                    .PageSizes(true)
+                    .ButtonCount(5))
+                    .AutoBind(true)
+                    .Editable(editable => editable.Mode(GridEditMode.InCell).DisplayDeleteConfirmation(false))
+                    .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .PageSize(5)
+                    .Batch(true)
+                    .ServerOperation(false)
+                    )
+                )*@
+                </div>
+
+                <br />
+                <br />
+            </div>
+            @Html.HiddenFor(x => x.BusinessRuleNodeId)
+        </div>
+
+        <br />
+
+    </div>
+    <div class="col-sm-12">
+        <button class="btn btn-success" onclick="onSaveResult(event);">Save</button>
+        <button class="btn btn-light" onclick="OnClosePopup();">Close</button>
+    </div>
+    <br />
+</div>
+
+<script type="text/javascript">
+    function OnClosePopup()
+    {
+        if ('@ViewBag.IsBusinessDiagram' == 'True') {
+            var win = GetMainWindow();
+                win.CloseWindow({ MethodName: "TemplateChangeCallback", Prms: { TemplateId: '@Model.TemplateId' } });
+                return false;
+        }
+        else
+        {
+            
+            var win = GetMainWindow();
+            win.CloseWindow();
+            return false;
+        }
+    }
+    function onCheck(e) {
+
+        paramList = [];
+        var dataItem = this.dataItem(e.node);
+        var rootNodes = $("#inputtreeview").getKendoTreeView().dataSource.data();
+        traverse(rootNodes, function (node) {
+            if (node != dataItem) {
+                node.set("checked", false);
+            }
+        });
+        selectedMethod = dataItem;
+        document.getElementById("inbox-content-div").innerText = "";
+        var main = document.getElementById("inbox-content-div");
+        main.appendChild(document.createElement("br"));
+        var methodId = dataItem.id;
+        var namespaceString = dataItem.Namespace;
+        setParam(methodId, namespaceString, null);
+
+    }
+
+    $(document).ready(function () {
+
+        $("#ExecuteType").kendoDropDownList({
+            optionLabel: "--Select--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            change: onChangeExecuteMethod,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=BreExecuteMethodTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#MethodReturn").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "EnumId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=TrueOrFalseEnum",
+                    }
+                }
+            }
+        });
+
+        $("#inputtreeview").kendoTreeView();
+        var treeview = $("#inputtreeview").data("kendoTreeView");
+        //treeview.collapse(document.getElementById("firstItem"));
+        treeview.expand(".k-item");
+
+        if ('@Model' != null) {
+
+            $("#ExecuteType").data("kendoDropDownList").value('@Model.BreExecuteMethodType');
+            onChangeExecuteMethod();
+
+            //document.getElementById("contentHeading").innerText = '@Model.MethodName';
+
+            setParam('@Model.MethodName', '@Model.MethodNamespace', '@Model.MethodParamJson');
+
+
+            if ('@Model.ReturnWithMessage' == "True") {
+                document.getElementById("returnWithMessage").checked = true;
+                document.getElementById("ReturnWithMessageGrid").style.display = "";
+            }
+            if ('@Model.ReturnIfMethodReturns' == "True") {
+                document.getElementById("returnIfMethodReturns").checked = true;
+                document.getElementById("MethodReturnValuediv").style.display = "";
+            }
+            console.log('@Model.MethodReturnValue');
+            @*$("#methodReturnValue").data("kendoTextBox").value('@Model.MethodReturnValue');*@
+            var MethodReturn = '@Model.MethodReturn.ToString()' == "True" ? "1" : "0";
+            $("#MethodReturn").data("kendoDropDownList").value(MethodReturn);
+        }
+
+        getInputTree();
+    });
+
+
+
+    function getInputTree() {
+        $("#inputtreeview").fancytree({
+            checkbox: true,
+            selectMode: 1,
+            source: $.ajax({
+                url: "/bre/bre/GetFolderStructureFancyTree",
+                dataType: "json"
+            }),
+            lazyLoad: function (event, data) {
+                var node = data.node;
+                debugger;
+       
+                data.result = {
+                    url: "/bre/bre/GetFolderStructureFancyTree",
+                    data: {
+                        id: node.key,
+                        type: node.data.type,
+                        parentId: node.data.parentId,
+                        namespaces: node.data.namespaces,
+                        methodName: '@Model.MethodName',
+                        templateType: '@Model.TemplateTypeText'
+                    }
+                }
+
+            },
+            select: function (event, data) {
+                debugger;
+                var s = data.tree.getSelectedNodes().join(", ");
+                var selectedNodes = data.tree.getSelectedNodes();
+                //var selectedNames = [];
+                //var selectedKey = [];
+                //for (var i = 0; i <= selectedNodes.length - 1; i++) {
+                //    selectedKey.push(selectedNodes[i].key);
+                //    selectedNames.push(selectedNodes[i].title);
+                //}
+                //if (selectedKey.length == 0 || selectedKey.includes("All")) {
+                //    $("#moduleStatus").html("All");
+                //}
+                //else {
+                //    $("#moduleStatus").html(selectedNames.join(", "));
+                //}
+                //$("#ModuleId").val(selectedKey.join(","));
+                //var search = FilterGrid();
+                //$("#kgrdTask").data("kendoListView").dataSource.read(search);
+
+                var methodId = data.node.title;
+                var namespaceString = data.node.data.namespaces;
+                setParam(methodId, namespaceString, null);
+                selectedMethod = data.node.data;
+                selectedMethod.id = methodId;
+                selectedMethod.Namespace = namespaceString;
+            },
+            renderNode: function (event, data) {
+                // Optionally tweak data.node.span
+                var node = data.node;
+                node.renderTitle();
+            },
+            dblclick: function (event, data) {
+                var node = data.node;
+            },
+            contextMenu: {
+                menu: function (data) {
+                    debugger;
+                    return {
+                    }
+                },
+                actions: function (node, action, options) {
+                }
+            }
+        });
+    }
+
+    function onSaveResult(e) {
+        debugger;
+        var selectedMethodName = selectedMethod != undefined ? selectedMethod.id : '@Model.MethodName';
+        if ($("#ExecuteType").data("kendoDropDownList").value() == "CustomMethod" && $("#CustomMethodScript").val() == "") {
+
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Custom Method  is required");
+            e.preventDefault();
+            return false;
+
+        }
+        else if ($("#ExecuteType").data("kendoDropDownList").value() == "PredefinedMethod" && selectedMethodName == "") {
+
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Please select a method");
+            e.preventDefault();
+            return false;
+
+        }
+        if ('@ViewBag.IsBusinessDiagram' == 'True' @*&& '@Model.DataAction' == '@DataActionEnum.Create'*@) {
+            if ($("#ProcessName").val() == "") {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("Process Name is required");
+                e.preventDefault();
+                return false;
+            }
+            else {
+
+                $.ajax({
+                    url: '/bre/BusinessRuleDiagram/CreateBusinessDiagramNode',
+                    type: "POST",
+                    data:
+                    {
+                        Id: '@Model.BusinessRuleNodeId',
+                        Type: "Process",
+                        Name: $("#ProcessName").val(),
+                        ParentNodeId: '@Model.NodeParentId',
+                        TemplateId: '@Model.TemplateId',
+                        BusinessRuleId: '@Model.BusinessRuleId',
+                        IsStarter: false,
+                        DataAction:'@Model.DataAction'
+                    },
+                    dataType: "json",
+                    success: function (result) {
+
+                        if (result.success) {
+
+                            var message = [];
+                            if ($("#kgrdDetail").length > 0) {
+                                var detail = $("#kgrdDetail").data().kendoGrid.dataSource.data();
+                                for (var x = 0; x <= detail.length - 1; x++) {
+                                    message.push(detail[x].Name);
+                                }
+                            }
+                            var executeType = $("#ExecuteType").data("kendoDropDownList");
+                            var methodReturnValue = $("#MethodReturn").data("kendoDropDownList"); //$("#methodReturnValue").data("kendoTextBox");
+
+                            var BusinessRuleNodeId = '@Model.BusinessRuleNodeId';
+                            var BreExecuteMethodType = executeType.value();
+                            var MethodName = selectedMethod != undefined ? selectedMethod.id : '@Model.MethodName';
+                            var MethodNamespace = selectedMethod != undefined ? selectedMethod.Namespace : '@Model.MethodNamespace';
+                            var paramData = [];
+                            //if (paramList.length > 0) {
+                            //    for (var i = 0; i <= paramList.length - 1; i++) {
+                            //        var pval = document.getElementById(paramList[i].Id).value;
+                            //        //paramData += paramList[i].Id + ":" + pval;
+                            //        //if (i < paramList.length - 1) {
+                            //        var obj = {};
+                            //        obj[paramList[i].Id] = pval;
+                            //        paramData.push(obj);
+                            //        //}
+                            //    }
+                            //    //paramData += "}";
+                            //    paramData = JSON.stringify(paramData)
+                            //} else {
+                                paramData = '@Model.MethodParamJson';
+                            //}
+                            var MethodParamJson = paramData;
+                            var ReturnWithMessage = document.getElementById("returnWithMessage").checked;//$("#returnWithMessage").val();
+                            var ReturnIfMethodReturns = document.getElementById("returnIfMethodReturns").checked;//$("#returnIfMethodReturns").val();
+                            var MethodReturnValue = methodReturnValue.value();
+                            var Message = message;
+
+                            var data = {
+                                Id: '@Model.Id',
+                                BusinessRuleNodeId: BusinessRuleNodeId,
+                                BreExecuteMethodType: BreExecuteMethodType,
+                                MethodName: MethodName,
+                                MethodNamespace: MethodNamespace,
+                                MethodParamJson: MethodParamJson,
+                                ReturnWithMessage: ReturnWithMessage,// == "on" ? true : false,
+                                ReturnIfMethodReturns: ReturnIfMethodReturns,// == "on" ? true : false,
+                                MethodReturnValue: MethodReturnValue == "1" ? true : false,
+                                Message: Message,
+                                CustomMethodScript: $("#CustomMethodScript").val()
+                            };
+                            console.log(data);
+                            //  return false;
+                            $.ajax({
+                                type: "POST",
+                                url: "/bre/bre/BreResultViewDetails",
+                                data: data,
+                                dataType: "json",
+                                success: function (result) {
+                                    HideLoader($('#page-top'));
+                                    window.parent.ShowNotification("Data Saved Successfully", "success");
+                                   
+                                    var win = GetMainWindow();
+                                    win.CloseWindow({ MethodName: "TemplateChangeCallback", Prms: { TemplateId: '@Model.TemplateId' } });
+                                    return false;
+                                },
+                                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                                    alert(customErrorMessage);
+                                    HideLoader($('#page-top'));
+                                }
+                            });
+                        }
+
+                        else
+                        {
+                            HideLoader($('#page-top'));
+                        }
+
+
+
+
+
+
+                    }
+                }
+                );
+            }
+        }
+        else
+        {
+
+             var message = [];
+        if ($("#kgrdDetail").length > 0) {
+            var detail = $("#kgrdDetail").data().kendoGrid.dataSource.data();
+            for (var x = 0; x <= detail.length - 1; x++) {
+                message.push(detail[x].Name);
+            }
+        }
+        var executeType = $("#ExecuteType").data("kendoDropDownList");
+            var methodReturnValue = $("#MethodReturn").data("kendoDropDownList");//.data("kendoTextBox");
+
+        var BusinessRuleNodeId = '@Model.BusinessRuleNodeId';
+        var BreExecuteMethodType = executeType.value();
+            var MethodName = selectedMethod != undefined ? selectedMethod.id : '@Model.MethodName';
+
+            var MethodNamespace = selectedMethod != undefined ? selectedMethod.Namespace : '@Model.MethodNamespace';
+        var paramData = [];
+        if (paramList.length > 0) {
+            for (var i = 0; i <= paramList.length - 1; i++) {
+                var pval = document.getElementById(paramList[i].Id).value;
+                //paramData += paramList[i].Id + ":" + pval;
+                //if (i < paramList.length - 1) {
+                    var obj = {};
+                    obj[paramList[i].Id] = pval;
+                    paramData.push(obj);
+                //}
+            }
+            //paramData += "}";
+            paramData = JSON.stringify(paramData)
+        } else {
+            paramData = '@Model.MethodParamJson';
+        }
+            var MethodParamJson = paramData;
+            var ReturnWithMessage = document.getElementById("returnWithMessage").checked;//$("#returnWithMessage").val();
+            var ReturnIfMethodReturns = document.getElementById("returnIfMethodReturns").checked;//$("#returnIfMethodReturns").val();
+        //var ReturnWithMessage = $("#returnWithMessage").val();
+        //var ReturnIfMethodReturns = $("#returnIfMethodReturns").val();
+        var MethodReturnValue = methodReturnValue.value();
+        var Message = message;
+            //alert(MethodReturnValue);
+        var data = {
+            Id: '@Model.Id',
+            BusinessRuleNodeId: BusinessRuleNodeId,
+            BreExecuteMethodType: BreExecuteMethodType,
+            MethodName: MethodName,
+            MethodNamespace: MethodNamespace,
+            MethodParamJson: MethodParamJson,
+            ReturnWithMessage: ReturnWithMessage,// == "on" ? true : false,
+            ReturnIfMethodReturns: ReturnIfMethodReturns,// == "on" ? true : false,
+            MethodReturnValue: MethodReturnValue=="1"?true:false,
+            Message: Message,
+            CustomMethodScript: $("#CustomMethodScript").val()
+            };
+            console.log(data);
+            ShowLoader($('#page-top'));
+        $.ajax({
+            type: "POST",
+            url: "/bre/bre/BreResultViewDetails",
+            data: data,
+            dataType: "json",
+            success: function (result) {
+                HideLoader($('#page-top'));
+                window.parent.ShowNotification("Data Saved Successfully", "success");
+               
+                var win = GetMainWindow();
+                win.CloseWindow();
+                return false;
+            },
+            error: function (xhr, httpStatusMessage, customErrorMessage) {
+                alert(customErrorMessage);
+                HideLoader($('#page-top'));
+            }
+        });
+        }
+
+    }
+
+    //$(".k-grid-save-changes").click(function (e) {
+    //    alert("Hello Dev");//put custom logic here
+    //    e.preventDefault();
+    //    alert("Hello Dev");//put custom logic here
+    //});
+    //$(".k-grid-save-changes").on('click', function (event) {
+    //    alert("Hello Dev");//put custom logic here
+    //    e.preventDefault();
+    //    alert("Hello Dev");//put custom logic here
+
+    //});
+
+    function CloseExecuteMethod() {
+     
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function setParam(methodId, namespaceString, methodParamJson) {
+        if (methodId) {
+            $.ajax({
+                url: "/bre/bre/GetMethodParameters?methodId=" + methodId + "&namespaceString=" + namespaceString,
+                success: function (res) {
+                    var inputContainer = document.getElementById("inbox-content-div");
+
+                    var div = document.createElement("div");
+                    div.setAttribute("id", "divId");
+                    div.innerText = methodId;
+                    inputContainer.appendChild(div);
+                    inputContainer.appendChild(document.createElement("br"));
+
+                    for (var i = 0; i <= res.length - 1; i++) {
+                        if (res[i].Id == "summary" || res[i].Id == "method") {
+                            var text = "";
+                            if (res[i].Id == "summary") {
+                                text = "Summary : ";
+                            } else if (res[i].Id == "method") {
+                                text = "Namespace : ";
+                            }
+                            var paraminfo = document.createElement("span");
+                            paraminfo.setAttribute("id", res[i].Id);
+                            paraminfo.innerText = text + res[i].Name;
+                            paraminfo.style.fontSize = "13px";
+                            inputContainer.appendChild(paraminfo);
+                            inputContainer.appendChild(document.createElement("br"));
+
+                        }
+                    else if (res[i].Id != "summary" && res[i].Id != "method" && res[i].Id != "xmlName") {
+                            paramList.push(res[i]);
+                            //inputContainer.appendChild(document.createElement("br"));
+
+                            //var label = document.createElement("label");
+                            //label.innerText = res[i].Id;
+                            //inputContainer.appendChild(label);
+                            //inputContainer.appendChild(document.createElement("br"));
+
+                            //var newForm = document.createElement("input");
+                            //newForm.setAttribute("type", "text");
+                            //newForm.setAttribute("id", res[i].Id);
+                            //inputContainer.appendChild(newForm);
+
+                            //inputContainer.appendChild(document.createElement("br"));
+                            //var paraminfo = document.createElement("span");
+                            //paraminfo.innerText = res[i].Name;
+                            //paraminfo.style.fontSize = "10px";
+                            //inputContainer.appendChild(paraminfo);
+                            //$("#" + res[i].Id).kendoTextBox({
+                            //    value: "",
+                            //    //label: {
+                            //    //    content: res[i].Id,
+                            //    //    floating: false
+                            //    //}
+                            //});
+
+
+                        }
+                    }
+                    if (methodParamJson) {
+                        var paramJson = JSON.parse(methodParamJson.replace(/&quot;/g, '"'));
+                        for (var key in paramJson) {
+                            var k = ""; var value = "";
+                            for (var i in paramJson[key]) {
+                                k = i; // alerts key
+                                value = paramJson[key][i];
+                                document.getElementById(k).value = value;//alerts key's value
+                            }
+                        }
+                    }
+                },
+                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                    alert(customErrorMessage);
+                }
+            });
+        }
+    }
+
+</script>
+<script>
+    var expandedItem = null;
+    var expandedDataItem = [];
+    var expandedObjlist = [];
+    function onExpand(e) {
+        expandedItem = this.dataItem(e.node);
+        //if (expandedItem.Type != "BATCH") {
+        expandedDataItem.push(expandedItem);
+        //}
+    }
+    function AddDataToTree() {
+       var exp = JSON.stringify(expandedObjlist);
+        //alert(expandedItem.Namespace);
+        debugger;
+        //expandedObjlist = [];
+        if (expandedItem == null) {
+            return { directory: null, id: null, type: null, parentId: null };
+        }
+        else {
+            return {
+                type: expandedItem.Type,
+                parentId: expandedItem.ParentId,
+               // directory: expandedItem.Directory,
+                id: expandedItem.id,
+                namespaces: expandedItem.Namespace,
+                methodName: '@Model.MethodName',
+                templateType: '@Model.TemplateTypeText'
+            };
+        }
+    }
+
+    function OnSelect(e) {
+    }
+
+    function OnInputTreeViewBound(e) {
+        var rootNodes = $("#inputtreeview").data("kendoTreeView").dataSource.data();
+        traverse(rootNodes, function (node) {
+            if (node.Type == "Class") {
+                node.set("checked", true);
+            }
+        });
+    }
+    function traverse(nodes, callback) {
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
+            var children = node.hasChildren && node.children.data();
+            callback(node);
+            if (children) {
+                traverse(children, callback);
+            }
+        }
+    }
+    var paramList = [];
+    var selectedMethod;
+    function onMethodCheck(e) {
+        var dataItem = this.dataItem(e.node);
+
+
+        var rootNodes = $("#inputtreeview").getKendoTreeView().dataSource.data();
+        traverse(rootNodes, function (node) {
+            console.log(node);
+            if (node != dataItem) {
+                node.set("checked", false);
+            }
+        });
+    }
+    function onChangeExecuteMethod() {
+
+        var executeType = $("#ExecuteType").data("kendoDropDownList");
+        var executeTypeValue = executeType.value();
+        if (executeTypeValue == "PredefinedMethod") {
+            document.getElementById("predefinedDiv").style.display = "";
+            document.getElementById("CustomDiv").style.display = "none";
+            $("#CustomMethodScript").val('');
+        }
+        else if (executeTypeValue != "PredefinedMethod" && executeTypeValue != "CustomMethod") {
+            addConfig();
+
+            //document.getElementById("returnIfMethodReturns").style.display = "";
+        }
+        else {
+            document.getElementById("predefinedDiv").style.display = "none";
+            document.getElementById("CustomDiv").style.display = "";
+        }
+        var returnMessage = document.getElementById("returnWithMessage").checked;
+
+        if (returnMessage == true && executeTypeValue != "") {
+            document.getElementById("returnIfMethodReturnsdiv").style.display = "";
+            document.getElementById("MethodReturnValuediv").style.display = "";
+        }
+    }
+
+    function addConfig() {
+        document.getElementById("returnIfMethodReturns").checked = false;
+        document.getElementById("returnIfMethodReturnsdiv").style.display = "none";
+        document.getElementById("MethodReturnValuediv").style.display = "none";
+        document.getElementById("predefinedDiv").style.display = "none";
+        document.getElementById("CustomDiv").style.display = "none";
+        document.getElementById("returnWithMessage").checked = false;
+    }
+
+    function returnWithMessageClick(cb) {
+        if (cb.checked == true) {
+            document.getElementById("ReturnWithMessageGrid").style.display = "";
+        }
+        else {
+            document.getElementById("ReturnWithMessageGrid").style.display = "none";
+        }
+        var exeType = $("#ExecuteType").data("kendoDropDownList").value();
+        if (cb.checked == true && exeType != "") {
+            document.getElementById("returnIfMethodReturnsdiv").style.display = "";
+            document.getElementById("returnIfMethodReturns").checked = false;
+            $("#MethodReturn").data("kendoDropDownList").value('0');
+            $('#returnIfMethodReturns').trigger('click');
+            //document.getElementById("MethodReturnValuediv").style.display = "";
+        }
+    }
+
+    function ReturnIfMethodReturnsClick(cb) {
+        if (cb.checked == true) {
+            document.getElementById("MethodReturnValuediv").style.display = "";
+            document.getElementById("returnWithMessage").checked = false;
+            $('#returnWithMessage').trigger('click');
+        } else {
+            document.getElementById("MethodReturnValuediv").style.display = "none";
+        }
+    }
+
+
+</script>

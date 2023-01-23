@@ -1,0 +1,158 @@
+﻿@using CMS.UI.ViewModel
+@using CMS.Common
+
+@{
+    ViewData["Title"] = "Manage Language";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model CandidateLanguageProficiencyViewModel
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .cms-managecandedu-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+</style>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+    <form asp-controller="CandidateProfile" asp-action="ManageCandidateLanguageProf" method="post" class="form-horizontal">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="SequenceOrder" type="number" min="0" step="1" title="Enter digits only." class="form-control" placeholder="Sl. No." autocomplete="off" style="width:80%;" />
+                    <label for="SequenceOrder">Sl. No. <span class="required">*</span></label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="Language">Language <span class="required">*</span></label>
+                    </div>
+                    @(Html.Kendo().DropDownListFor(x=>x.Language)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                 .Filter(FilterType.Contains)
+                                //.Events(e => e.Change("OnPageTypechange"))
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetListOfValueList", "ListOfValue", new { @area = "Recruitment", @type = "LOV_LANGUAGE" });
+                                    });
+                                })
+                                 //.Value()
+                                 .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+                    )
+
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="proficiencyLevel">Proficiency Level <span class="required">*</span></label>
+                    </div>
+                    @(Html.Kendo().DropDownListFor(x=>x.ProficiencyLevel)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                 .Filter(FilterType.Contains)
+                                //.Events(e => e.Change("OnPageTypechange"))
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetListOfValueList", "ListOfValue", new { @area = "Recruitment", @type = "LOV_PROFICIENCYLEVEL" });
+                                    });
+                                })
+                                //.Value()
+                                .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+                    )
+
+                </div>
+            </div>
+
+            <div class="col-12 pad-15">
+                &nbsp;
+            </div>
+
+            <div class="cms-slidebar-footer">
+                <input type="button" class="btn btn-light" value="Close" onclick="closeNav()" />
+                <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.CandidateProfileId)
+    </form>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+          //  
+            //window.parent.parent.$("#kgrdCandidateLanguage").data("kendoGrid").dataSource.read();
+            closeNav();
+        }
+    });
+
+    function closeNav() {
+       // window.parent.CloseIframePopup();
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'RefreshCLP' });
+        return false;
+    }
+    function OnSave(evt) {
+
+        if ($("#Language").val() == "") {
+            //  
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Languages is required");
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#ProficiencyLevel").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Proficiency level is required");
+            evt.preventDefault();
+            return false;
+        }
+       
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+    }
+
+
+
+</script>
+
+

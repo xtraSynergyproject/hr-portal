@@ -1,0 +1,366 @@
+﻿@{
+	ViewData["Title"] = "ROIP Report";
+	Layout = null;
+	//Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.BusinessAnalyticsController> Resource
+
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+<style>
+    #time-range p {
+        font-family: "Arial", sans-serif;
+        font-size: 14px;
+        color: #333;
+        margin-bottom:0.5rem;
+    }
+
+    .ui-slider-horizontal {
+        height: 8px;
+        background: #D7D7D7;
+        border: 1px solid #BABABA;
+        box-shadow: 0 1px 0 #FFF, 0 1px 0 #CFCFCF inset;
+        clear: both;
+        margin: 8px 0;
+        -webkit-border-radius: 6px;
+        -moz-border-radius: 6px;
+        -ms-border-radius: 6px;
+        -o-border-radius: 6px;
+        border-radius: 6px;
+    }
+
+    .ui-slider {
+        position: relative;
+        text-align: left;
+    }
+
+    .ui-slider-horizontal .ui-slider-range {
+        top: -1px;
+        height: 100%;
+    }
+
+    .ui-slider .ui-slider-range {
+        position: absolute;
+        z-index: 1;
+        height: 8px;
+        font-size: .7em;
+        display: block;
+        border: 1px solid #5BA8E1;
+        box-shadow: 0 1px 0 #AAD6F6 inset;
+        -moz-border-radius: 6px;
+        -webkit-border-radius: 6px;
+        -khtml-border-radius: 6px;
+        border-radius: 6px;
+        background: #81B8F3;
+        background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgi…pZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');
+        background-size: 100%;
+        background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(0%, #A0D4F5), color-stop(100%, #81B8F3));
+        background-image: -webkit-linear-gradient(top, #A0D4F5, #81B8F3);
+        background-image: -moz-linear-gradient(top, #A0D4F5, #81B8F3);
+        background-image: -o-linear-gradient(top, #A0D4F5, #81B8F3);
+        background-image: linear-gradient(top, #A0D4F5, #81B8F3);
+    }
+
+    .ui-slider .ui-slider-handle {
+        border-radius: 50%;
+        background: #F9FBFA;
+        background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgi…pZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');
+        background-size: 100%;
+        background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(0%, #C7CED6), color-stop(100%, #F9FBFA));
+        background-image: -webkit-linear-gradient(top, #C7CED6, #F9FBFA);
+        background-image: -moz-linear-gradient(top, #C7CED6, #F9FBFA);
+        background-image: -o-linear-gradient(top, #C7CED6, #F9FBFA);
+        background-image: linear-gradient(top, #C7CED6, #F9FBFA);
+        width: 22px;
+        height: 22px;
+        -webkit-box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+        -moz-box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+        box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.6), 0 -1px 0 1px rgba(0, 0, 0, 0.15) inset, 0 1px 0 1px rgba(255, 255, 255, 0.9) inset;
+        -webkit-transition: box-shadow .3s;
+        -moz-transition: box-shadow .3s;
+        -o-transition: box-shadow .3s;
+        transition: box-shadow .3s;
+    }
+
+    .ui-slider .ui-slider-handle {
+        position: absolute;
+        z-index: 2;
+        width: 22px;
+        height: 22px;
+        cursor: default;
+        border: none;
+        cursor: pointer;
+    }
+
+        .ui-slider .ui-slider-handle:after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            top: 50%;
+            margin-top: -4px;
+            left: 50%;
+            margin-left: -4px;
+            background: #30A2D2;
+            -webkit-box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 #FFF;
+            -moz-box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 white;
+            box-shadow: 0 1px 1px 1px rgba(22, 73, 163, 0.7) inset, 0 1px 0 0 #FFF;
+        }
+
+    .ui-slider-horizontal .ui-slider-handle {
+        top: -.5em;
+        margin-left: -.6em;
+    }
+
+    .ui-slider a:focus {
+        outline: none;
+    }
+
+    #slider-range {
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    #time-range {
+        width: 400px;
+    }
+</style>
+<script>
+	$(document).ready(function() {	
+        loadDates();	
+        loadRoipDistrict();
+	});
+   function loadDates() {
+        $("#roipdates").kendoDropDownList({
+            dataTextField: "Code",
+            dataValueField: "CreatedDate",
+            //filter: "contains",
+            //change: onChangeRoipdates,
+            //optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                serverFiltering: false,
+                transport: {
+                    read: {
+                        url: "/CMS/BusinessAnalytics/GetDates",
+                    }
+                }
+            }
+        });
+    }
+    function loadRoipDistrict() {
+        $("#roipDistrict").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Code",            
+            dataSource: {
+                serverFiltering: false,
+                transport: {
+                    read: {
+                        url: "/CMS/BusinessAnalytics/GetRoipChanel",
+                    }
+                }
+            }
+        });
+    }
+	
+     function OnRoipSearch() {
+        getRoipData();
+    }
+    var columnDefs5 = [
+
+                  {
+                    field: "View",
+                    headerName: "View",
+                    minWidth: 100,
+                    maxWidth: 100,
+                    cellRenderer: params => {
+                        return "<span class='fal fa-volume' onclick='onRoipView(\"" + params.data.file_name + "\")'>";
+                    },
+
+        },
+        {
+            field: "channel_name",
+            headerName: 'Chanel Name',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.channel_name+" </div>";
+            }
+        },
+        {
+            field: "date_value",
+            headerName: 'Date',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.date_value + " </div>";
+            }
+        },
+        {
+            field: "start_time",
+            headerName: 'Start Time',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                //return "<div class='text-justify' >" + params.data.start_time.split('T')[1].replace('Z', '') + " </div>";
+                return "<div class='text-justify' >" + params.data.start_time + " </div>";
+            }
+        },
+        {
+            field: "end_time",
+            headerName: 'End Time',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.end_time + " </div>";
+            }
+        },
+        {
+            field: "Duration",
+            headerName: 'Duration',
+            minWidth: 150,
+            maxWidth: 300,
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.data.dur_time + " </div>";
+            }
+        },
+       
+
+
+    ];
+    function getRoipData() {
+        var from = $('#fromTime').val();
+        var to =  $('#toTime').val();
+        document.getElementById("kgrdRoip").innerHTML = "";
+        var date=$("#roipdates").val();
+        var roipDis = $("#roipDistrict").val();
+
+                gridConfig(
+                    "kgrdRoip",
+            "/Cms/BusinessAnalytics/ReadRoipData?date=" + date + "&disCode="+ roipDis + "&from="+from+"&to="+to,
+                    columnDefs5,
+                    false,
+                    true,
+                    true,
+                    true,
+                    1,
+                    true,
+                    10);
+
+    }
+    function onRoipView(fileName) {
+        var url = '/Cms/BusinessAnalytics/ROIPaudio?fileName='+fileName;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'ROIP', Width: 1000, Height: 600 });
+        return false;
+    }
+    $("#slider-range").slider({
+        range: true,
+        min: 0,
+        max: 1440,
+        step: 15,
+        values: [600, 840],
+        slide: function (e, ui) {
+            var hours1 = Math.floor(ui.values[0] / 60);
+            var minutes1 = ui.values[0] - (hours1 * 60);
+            $('#fromTime').val(ui.values[0]);
+            if (hours1.length == 1) hours1 = '0' + hours1;
+            if (minutes1.length == 1) minutes1 = '0' + minutes1;
+            if (minutes1 == 0) minutes1 = '00';
+            if (hours1 >= 12) {
+                if (hours1 == 12) {
+                    hours1 = hours1;
+                    minutes1 = minutes1 + " PM";
+                } else {
+                    hours1 = hours1 - 12;
+                    minutes1 = minutes1 + " PM";
+                }
+            } else {
+                hours1 = hours1;
+                minutes1 = minutes1 + " AM";
+            }
+            if (hours1 == 0) {
+                hours1 = 12;
+                minutes1 = minutes1;
+            }
+
+
+
+            $('.slider-time').html(hours1 + ':' + minutes1);
+
+            var hours2 = Math.floor(ui.values[1] / 60);
+            var minutes2 = ui.values[1] - (hours2 * 60);
+            $('#toTime').val(ui.values[1]);
+            if (hours2.length == 1) hours2 = '0' + hours2;
+            if (minutes2.length == 1) minutes2 = '0' + minutes2;
+            if (minutes2 == 0) minutes2 = '00';
+            if (hours2 >= 12) {
+                if (hours2 == 12) {
+                    hours2 = hours2;
+                    minutes2 = minutes2 + " PM";
+                } else if (hours2 == 24) {
+                    hours2 = 11;
+                    minutes2 = "59 PM";
+                } else {
+                    hours2 = hours2 - 12;
+                    minutes2 = minutes2 + " PM";
+                }
+            } else {
+                hours2 = hours2;
+                minutes2 = minutes2 + " AM";
+            }
+
+            $('.slider-time2').html(hours2 + ':' + minutes2);
+        }
+    });
+</script>
+<div class="container-fluid hr-pad-top-10">
+	<h4>ROIP Report</h4>
+	<hr />
+	
+            <div class="row">
+                <div class="col-2" style="margin-right: -125px;">
+                    <label style=" margin-top: 6px; font-weight: 400;">Date</label>
+                </div>
+                <div class="col-2">
+                    <input id="roipdates" style="width: 100%" />
+                </div>
+                <div class="col-2" style="margin-right: -125px;">
+                    <label style=" margin-top: 6px; font-weight: 400;">District</label>
+                </div>
+                <div class="col-2">
+                    <input id="roipDistrict" style="width: 100%" />
+                </div>
+                <div class="col-4">
+                    <div id="time-range">
+                        <p>
+                            Time Range: <span class="slider-time">10:00 AM</span> - <span class="slider-time2">2:00 PM</span>
+
+                        </p>
+                        <div class="sliders_step1">
+                            <div id="slider-range"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <input type="button" class="btn btn-primary" value="Search" onclick="OnRoipSearch()" />
+                </div>
+            </div>
+           <br />
+            <div id="kgrdRoip" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+    <input type="hidden" id="fromTime" value="600" />
+    <input type="hidden" id="toTime" value="840" />
+</div>
+
+
+
+
+
+
+
+
+
+

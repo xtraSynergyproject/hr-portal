@@ -1,0 +1,277 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "License";
+   
+}
+@model LicenseViewModel
+<style>
+    .card {
+        margin-left: 10px;
+        float: left;
+        width: 700px;
+        height: 350px;
+        /*height:400px;*/
+    }
+
+    .control-label {
+        padding-right: 10px;
+        font-weight: 400;
+        color: dodgerblue;
+        font-style: italic;
+    }
+
+    .submit-button {
+        background: none !important;
+        border: none;
+        padding-right: 10px !important;
+        /*optional*/
+        font-family: arial, sans-serif;
+        /*input has OS specific font-family*/
+        color: #069;
+        cursor: pointer;
+    }
+
+        .submit-button:hover {
+            color: #069;
+        }
+</style>
+<div class="row  pad-10 no-gutters page-content">
+    <form asp-controller="SynergySales" asp-action="ValidateLicense" method="post" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+
+        <div class="text-danger hr-v-summary" asp-validation-summary="All"></div>
+
+        <div class="row" style="background-color:aliceblue">
+            <div class="col-sm-12" style="text-align:center;padding-left: 0px;">
+                <h3 style="color:dodgerblue">License details</h3>
+            </div>
+        </div><br /><br />
+
+        <div class="row col-12 pad-10" id="l-display">
+            <div class="col-6">
+                @Html.LabelFor(m => m.LicenseKey, new { @class = "control-label" })
+            </div>
+            <div class="col-6">
+                @Html.DisplayFor(m => m.LicenseKey, new { @class = "control-label" })
+                <a href="#" onclick="return OnEdit()">Change</a>
+            </div>
+        </div>
+        <div class="row col-12 pad-10" id="l-edit" style="display:none;">
+            <div class="col-6">
+                @Html.LabelFor(m => m.LicenseKey, new { @class = "control-label" })
+            </div>
+            <div class="col-6">
+                @Html.TextAreaFor(m => m.LicenseKey, new { @class = "k-textbox hr-xxx-large", rows = "5" })
+                <input type="submit" class="btn btn-primary" value="Validate" name="btnUpdate" />
+                <a href="#" onclick="return OnCancelEdit()">Cancel</a>
+            </div>
+        </div>
+
+        @*<div class="form-group col-xs-12 col-sm-12">
+            <div class="col-md-3 label-div">
+                @Html.LabelFor(m => m.LicenseType, new { @class = "control-label" })
+            </div>
+            <div class="col-md-9">
+                @Html.DisplayFor(m => m.LicenseType, new { @class = "control-label" })
+            </div>
+        </div>*@
+
+        <div class="row col-12 pad-10">
+            <div class="col-6">
+                @Html.LabelFor(m => m.UserCount, new { @class = "control-label" })
+            </div>
+            <div class="col-6">
+                @Html.DisplayFor(m => m.UserCount, new { @class = "control-label" })
+            </div>
+        </div>
+        @*<div class="form-group col-xs-12 col-sm-12">
+            <div class="col-md-3 label-div">
+                @Html.LabelFor(m => m.EffectiveStartDate, new { @class = "control-label" })
+            </div>
+            <div class="col-md-9">
+                @Html.DisplayFor(m => m.EffectiveStartDate)
+            </div>
+        </div>*@
+
+       
+        <div class="row col-12 pad-10">
+            <div class="col-6">
+                @Html.LabelFor(m => m.ExpiryDate, new { @class = "control-label" })
+            </div>
+            <div class="col-6">
+                @Html.DisplayFor(m => m.ExpiryDate)
+            </div>
+        </div>
+
+
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+    </form>
+    </div>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+    });
+         var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            ShowNotification("Validated Successfully");
+         }
+        else {
+            showError1(res.error);
+        }
+        HideLoader($('.page-content'));
+    };
+    var showError1 = function (error) {
+        //#validation-summary-manageform
+        $(".hr-v-summary").html(error);
+        $(".hr-v-summary").css("display", "block");
+        HideLoader($('.page-content'));
+    }
+    function OnCancelEdit() {
+        $("#l-display").show();
+        $("#l-edit").hide();
+        return false;
+    }
+    function OnEdit() {
+        $("#l-display").hide();
+        $("#l-edit").show();
+        return false;
+    }
+
+    function OnSuccess(response) {
+        if (response.success) {
+            alert('License updated successfully');
+            window.location.href = window.location.href;
+        }
+        else {
+            ShowErrors(response.errors);
+        }
+    }
+    function OnCancel(e) {
+        window.parent.CloseProject(false);
+    }
+    function SetTemplateAction(action) {
+        var sub = $("#Subject").val();
+        var pcode = $("#ProjectCode").val();
+        if (sub == null || sub == "") {
+            //alert(sub);
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            var msg = "The Subject field is required.";
+            $(".hr-v-summary ul").html(msg);
+            return false;
+        } else {
+            $(".hr-v-summary").addClass("validation-summary-valid");
+            $(".hr-v-summary").removeClass("validation-summary-errors");
+            $("#TemplateAction").val(action);
+        }
+        if (pcode == null || pcode == "") {
+            //alert(sub);
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            var msg = "The Project Code field is required.";
+            $(".hr-v-summary ul").html(msg);
+            return false;
+        } else {
+            $(".hr-v-summary").addClass("validation-summary-valid");
+            $(".hr-v-summary").removeClass("validation-summary-errors");
+            $("#TemplateAction").val(action);
+        }
+    }
+
+    function StartDateChange() {
+
+        //var startDate = this.value();
+        //var sla = $("#SLA").val();
+        //if (startDate && sla) {
+        //    startDate = new Date(startDate);
+        //    startDate.setDate(startDate.getDate());
+        //    $("#DueDate").data("kendoDatePicker").min(startDate);
+
+        //    var endDate = new Date(startDate);
+        //    endDate.setDate(endDate.getDate() + eval(sla));
+        //    $("#DueDate").data("kendoDatePicker").value(endDate);
+        //}
+
+        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        var ed = kendo.toString($("#DueDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        if (new Date(ed) > new Date(sd)) {
+            var days = GetSLA(sd, ed);
+            $("#SLA").val(days);
+            $("#SLAText").val(days);
+        }
+    }
+        function DueDateChange() {
+        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+            var ed = kendo.toString($("#DueDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+                    if (new Date(ed) > new Date(sd)) {
+            var days = GetSLA(sd, ed);
+            $("#SLA").val(days);
+            $("#SLAText").val(days);
+        }
+        if (new Date(ed) < new Date(sd)) {
+            $("#DueDate").data("kendoDateTimePicker").value(kendo.toString(kendo.parseDate(sd), '@ApplicationConstant.DateAndTime.DefaultDateFormat'));
+        }
+        else {
+            //var days = DateDiffInDays(sd, ed);
+            //if (days < 0) {
+            //    days = 0;
+            //}
+            //$("#SLA").data("kendoNumericTextBox").value(days);
+            var days = GetSLA(sd, ed);
+            $("#SLA").val(days);
+
+            $("#SLAText").val(days);
+            //alert(days);
+
+        }
+    }
+    function SLAChange() {
+
+    var startDate = $("#StartDate").data("kendoDatePicker").value();
+        var sla = $("#SLA").val();
+        if (startDate && sla) {
+            var endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + eval(sla));
+            $("#DueDate").data("kendoDatePicker").value(endDate);
+        }
+
+    }
+
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+    }
+
+    function onFileUploadSuccess(e) {
+        //debugger;
+        if (e.response.success) {
+            $("#UploadLogoId").val(e.response.fileId);
+        }
+        else {
+            var msg = ExtractError(e.response.errors, true);
+            alert(msg);
+        }
+        return true;
+    }
+
+    function OnCountryChange() {
+        var filtercity = FilterCity();
+        $("#CityId").data("kendoDropDownList").dataSource.read(filtercity);
+    }
+    function FilterCity() {
+        return {
+            countryId: $("#CountryId").val(),
+        };
+
+    }
+</script>

@@ -1,0 +1,433 @@
+﻿@using Synergy.App.ViewModel;
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.Common;
+
+@{
+    ViewBag.Title = "Requirement Dashboard";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    Layout = "/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+@model RecruitmentPayElementViewModel
+<style>
+    .bold-text {
+        font-weight: bold;
+        color: black;
+    }
+
+    .left-column-property {
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 1px;
+        border-color: black;
+    }
+
+    .right-column-property {
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 0px;
+    }
+
+    .middle-column-property-1 {
+        border-width: 1px;
+        border-style: solid;
+    }
+
+    .middle-column-property-2 {
+        border-width: 1px;
+        border-style: solid;
+        border-top-width: 1px;
+        border-right-width: 1px;
+        border-bottom-width: 0px;
+        border-left-width: 1px;
+    }
+
+    .inputcss {
+        width: 100%;
+        color: #d7d6d6;
+        border-radius: 4px;
+        border: 1px solid #d7d6d6;
+    }
+
+    .pdf-page {
+        position: relative;
+        margin: 0 auto;
+        padding: .4in .3in;
+        color: #333;
+        background-color: #fff;
+        /* box-shadow: 0 5px 10px 0 rgba(0,0,0,.3);
+        box-sizing: border-box;*/
+    }
+
+    .size-a4 {
+        width: 6.2in;
+        height: 8.7in;
+    }
+
+    @@media print {
+        #printPageButton {
+            display: none;
+        }
+
+        #downloadPageButton {
+            display: none;
+        }
+
+        a[href]:after {
+            content: none !important;
+        }
+
+        @@page {
+            size: auto;
+            margin: 0;
+        }
+    }
+</style>
+<script>
+    function getPDF(selector) {
+
+        kendo.drawing.drawDOM($(selector)).then(function (group) {
+            kendo.drawing.pdf.saveAs(group, "IntentToOffer.pdf");
+        });
+    }
+</script>
+<input type="button" id="printPageButton" value="Print" class="btn btn-dark" onclick="window.print();return false;" />
+<button class="export-pdf k-button" onclick="getPDF('.container')" id="downloadPageButton">Download</button>
+<div class="container mt-5 mb-5" style="border-radius: 6px;border: 2px solid #d7d6d6 ;">
+    <p class="mt-5"><strong><span style="text-decoration: underline;">Informal Offer Letter</span></strong><br></p>
+    <p style="margin-top: 50px;">Dear @Model.ApplicantName,</p>
+    <p>Referring to the interview you had with our seniors, sending herewith our informal offer. Based on your acceptance we will proceed:<br></p>
+    <div class="row" style="margin: 0;/*margin-left: 0px;*//*margin-right: 0px;*/">
+        <div class="col-6 col-sm-4 d-sm-flex align-items-sm-center left-column-property"><span style="font-weight: bold;">Designation<br></span></div>
+        <div class="col d-flex align-items-center align-items-sm-center right-column-property">
+            @*<input type="text" style="width: 100%;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+            @Html.DisplayFor(x => x.Desigination)
+        </div>
+    </div>
+    <div class="row" style="margin: 0;">
+        <div class="col-6 col-sm-4 d-flex align-items-center left-column-property"><span style="font-weight: bold;">Grade<br></span></div>
+        <div class="col d-flex d-sm-flex align-items-center align-items-sm-center right-column-property">
+            @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+            @Html.DisplayFor(x => x.Grade)
+        </div>
+    </div>
+    <div class="row" style="margin: 0;">
+        <div class="col-12 middle-column-property-1"><span>&nbsp;</span></div>
+    </div>
+    <div class="row" style="margin: 0;">
+        <div class="col-12 text-center middle-column-property-2"><span>&nbsp;</span><span style="font-weight: bold;">Monthly Salary (In QAR)<br></span></div>
+    </div>
+    <div class="row" style="margin: 0;">
+        <div class="col-6 col-sm-4 text-right left-column-property"><span>Basic</span></div>
+        <div class="col right-column-property">
+            @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+
+            @Html.DisplayFor(x => x.Basic)
+        </div>
+    </div>
+    <div class="row" style="margin: 0;">
+        <div class="col-6 col-sm-4 text-right left-column-property"><span>Professional Allowance<br></span></div>
+        <div class="col d-flex align-items-center right-column-property">
+            @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+            @*@Html.Kendo().NumericTextBoxFor(x => x.ProfessionalAllowance).HtmlAttributes(new { @class = "inputcss" });*@
+            @Html.DisplayFor(x => x.ProfessionalAllowance)
+        </div>
+    </div>
+    @if (Model.Grade != null && Int32.Parse(Model.Grade) <= 16 && Model.AccommodationName != null && Model.AccommodationName == "Own Accommodation")
+    {
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-right left-column-property"><span>FRA<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                @*@Html.Kendo().NumericTextBoxFor(x => x.UtilityAllowance).HtmlAttributes(new { @class = "inputcss" });*@
+                @Html.DisplayFor(x => x.FRA)
+            </div>
+        </div>
+
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-right left-column-property"><span>Transportation Allowances<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                @*@Html.Kendo().NumericTextBoxFor(x => x.UtilityAllowance).HtmlAttributes(new { @class = "inputcss" });*@
+                @if (Model.TransportationText.IsNotNullAndNotEmpty())
+                {
+                    @Html.DisplayFor(x => x.TransportationText)
+                }
+                else
+                {
+                    @Html.DisplayFor(x => x.Transportation)
+                }
+            </div>
+        </div>
+    }
+    @if (Model.Grade != null && Int32.Parse(Model.Grade) > 16)
+    {
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-right left-column-property"><span>HRA *<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                @*@Html.Kendo().NumericTextBoxFor(x => x.UtilityAllowance).HtmlAttributes(new { @class = "inputcss" });*@
+                @Html.DisplayFor(x => x.HRA)
+            </div>
+        </div>
+
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-right left-column-property"><span>Utility Allowance *<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                @*@Html.Kendo().NumericTextBoxFor(x => x.UtilityAllowance).HtmlAttributes(new { @class = "inputcss" });*@
+                @Html.DisplayFor(x => x.UtilityAllowance)
+            </div>
+        </div>
+
+    }
+    <div class="row" style="margin: 0;">
+        <div class="col-6 col-sm-4 text-right left-column-property"><span class="bold-text">Total<br></span></div>
+        <div class="col right-column-property">
+            @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">
+                @Html.Kendo().NumericTextBoxFor(x => x.Basic).HtmlAttributes(new { @class = "inputcss" });*@
+            @Html.DisplayFor(x => x.Total)
+        </div>
+    </div>
+    @if (Model.SalaryRevision == true)
+    {
+        if (Model.SalaryRevisionComment.IsNotNullAndNotEmpty())
+        {
+            <div class="row" style="margin: 0;">
+                <div class="col-12 middle-column-property-2">
+                    <span>
+                        @Model.SalaryRevisionComment
+                        <br />
+                    </span>
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <div class="row" style="margin: 0;">
+                <div class="col-12 middle-column-property-2">
+                    <span>
+                        After successful completion of Probation period, if your performance being rated is EXCELLENT category, salary revision of Qrs. @Model.SalaryRevisionAmount/- will be considered.
+                        <br />
+                    </span>
+
+                </div>
+
+            </div>
+        }
+    }
+    @*<div class="row" style="margin: 0;">
+            <div class="col-12 middle-column-property-1"><span>&nbsp;</span></div>
+        </div>*@
+    @if (Model.Grade != null && Int32.Parse(Model.Grade) <= 16)
+    {
+        <div class="row" style="margin: 0;">
+            <div class="col-12 text-center middle-column-property-2"><span style="font-weight: bold;">Benefits<br></span></div>
+        </div>
+        @if (Model.AccommodationName != null && Model.AccommodationName == "Company Provided Accommodation")
+        {
+            <div class="row" style="margin: 0;">
+                <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text" style="font-weight: bold;">Accommodation<br></span></div>
+                <div class="col right-column-property">
+                    @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                    @*@Html.Kendo().NumericTextBoxFor(x => x.Accommodation).HtmlAttributes(new { @class = "inputcss" });*@
+                    @*@Html.DisplayFor(x => x.AccommodationName)*@
+                    Company Provided Bachelor Status
+                </div>
+            </div>
+            <div class="row" style="margin: 0;">
+                <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Food<br></span></div>
+                <div class="col right-column-property">
+                    @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                    @*@Html.Kendo().NumericTextBoxFor(x => x.Food).HtmlAttributes(new { @class = "inputcss" });*@
+                    @*@Html.DisplayFor(x => x.Food)*@
+                    Company Provided
+                </div>
+            </div>
+            <div class="row" style="margin: 0;">
+                <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Transportation for Official Purpose<br></span></div>
+                <div class="col right-column-property">
+                    @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                    @*@Html.Kendo().NumericTextBoxFor(x => x.Transportation).HtmlAttributes(new { @class = "inputcss" });*@
+                    @*@Html.DisplayFor(x => x.Transportation)*@
+                    Company Provided
+                </div>
+            </div>
+
+            <div class="row" style="margin: 0;">
+                <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Laundry<br></span></div>
+                <div class="col right-column-property">
+                    @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                    @*@Html.Kendo().NumericTextBoxFor(x => x.Laundry).HtmlAttributes(new { @class = "inputcss" });*@
+                    @*@Html.DisplayFor(x => x.Laundry)*@
+                    Company Provided
+                </div>
+            </div>
+        }
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Mobile Allowance<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                @*@Html.Kendo().NumericTextBoxFor(x => x.Basic).HtmlAttributes(new { @class = "inputcss" });*@
+                @*@Html.DisplayFor(x => x.MobileAllowance)*@
+                Company Provided
+
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-12 middle-column-property-1"><span>&nbsp;</span></div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-12 text-center middle-column-property-2"><span style="font-weight: bold;">Annual Benefits<br></span></div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Gratuity<br></span></div>
+            <div class="col right-column-property">
+                @*@Html.DisplayFor(x => x.Gratuity)*@<span>21 days of Basic Salary for each year<br></span>
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Annual Leave<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+
+                @*@Html.DisplayFor(x => x.AnnualLeave)*@
+                30 days paid leave with air ticket for Self
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left" style="border-width: 1px;border-style: solid;border-color:black;"><span class="bold-text">Bonus<br></span></div>
+            <div class="col" style="border-width: 1px;border-style: solid;border-left-width: 0px;">
+                <span>Annual Performance incentive will be based on the performance of the Company and the individual’s contribution<br></span>
+                @*@Html.DisplayFor(x => x.Bonus)*@
+                <br />
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row" style="margin: 0;">
+            <div class="col-12 middle-column-property-2">
+                <span style="font-weight: bold;">
+                    *Not applicable if you are staying in Company Provided facilities.
+                    <br />
+                </span>
+                @if (Model.IsEligibleAfterProbation && Model.VisaCategoryName != "Local Visa Transfer" && Model.VisaCategoryName != "Local Work Permit")
+                {
+                    <span style="font-weight: bold;">
+                        *Eligible only after successful completion of Probation Period
+                    </span>
+                }
+
+                <br>
+
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+        <div class="row" style="margin: 0;">
+            <div class="col-12 middle-column-property-1"><span>&nbsp;</span></div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-12 text-center middle-column-property-2"><span style="font-weight: bold;">Other Benefits<br></span></div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Mobile Allowance<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                @*@Html.Kendo().NumericTextBoxFor(x => x.Basic).HtmlAttributes(new { @class = "inputcss" });*@
+                @*@Html.DisplayFor(x => x.MobileAllowance)*@
+                Company Provided
+
+            </div>
+        </div>
+
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Transportation for Official Purpose<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+                @*@Html.Kendo().NumericTextBoxFor(x => x.Transportation).HtmlAttributes(new { @class = "inputcss" });*@
+                @*@Html.DisplayFor(x => x.Transportation)*@
+                Company Maintained Vehicle
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Gratuity<br></span></div>
+            <div class="col right-column-property">
+                @*@Html.DisplayFor(x => x.Gratuity)*@<span>21 days of Basic Salary for each year<br></span>
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left left-column-property"><span class="bold-text">Annual Leave<br></span></div>
+            <div class="col right-column-property">
+                @*<input type="text" style="width: 100%;color: #d7d6d6;border-radius: 4px;border: 1px solid #d7d6d6 ;">*@
+
+                @*@Html.DisplayFor(x => x.AnnualLeave)*@
+                30 days paid leave with air ticket for Self & for your spouse and two children under age of 18 years
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left" style="border-width: 1px;border-style: solid;border-color:black;"><span class="bold-text">Bonus<br></span></div>
+            <div class="col" style="border-width: 1px;border-style: solid;border-left-width: 0px;">
+                <span>Annual Performance incentive will be based on the performance of the Company and the individual’s contribution<br></span>
+                @*@Html.DisplayFor(x => x.Bonus)*@
+                <br />
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left" style="border-width: 1px;border-style: solid;border-color:black;"><span class="bold-text">Visa<br></span></div>
+            <div class="col" style="border-width: 1px;border-style: solid;border-left-width: 0px;">
+                <span>Company will provide Visa charges for Self & for your spouse and two children under age of 18 years<br></span>
+                @*@Html.DisplayFor(x => x.Bonus)*@
+                <br />
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left" style="border-width: 1px;border-style: solid;border-color:black;"><span class="bold-text">Furnishing Allowance<br></span></div>
+            <div class="col" style="border-width: 1px;border-style: solid;border-left-width: 0px;">
+                <span>Furnishing Allowance QR. @Model.FurnishingAllowance/- after shifting to own accommodation (for 5 years period)<br></span>
+                @*@Html.DisplayFor(x => x.Bonus)*@
+                <br />
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left" style="border-width: 1px;border-style: solid;border-color:black;"><span class="bold-text">Insurance<br></span></div>
+            <div class="col" style="border-width: 1px;border-style: solid;border-left-width: 0px;">
+                <span>All employees are covered under Workmen Compensation and Group Life Insurance.<br></span>
+                @*@Html.DisplayFor(x => x.Bonus)*@
+                <br />
+            </div>
+        </div>
+        <div class="row" style="margin: 0;">
+            <div class="col-6 col-sm-4 text-left" style="border-width: 1px;border-style: solid;border-color:black;"><span class="bold-text">Medical<br></span></div>
+            <div class="col" style="border-width: 1px;border-style: solid;border-left-width: 0px;">
+                <span>During service period, you and your family’s (spouse and up to two children under age of 18 years) medical expenses in State of Qatar, except cost of spectacles, contact lens and dental cosmetic treatment incurred by you, shall be borne by the Company or you will get medical attention from the Govt. Hospital as decided by the Company.<br></span>
+                @*@Html.DisplayFor(x => x.Bonus)*@
+                <br />
+            </div>
+        </div>
+    }
+    <p class="mt-5">Do not consider this as our Final Employment Contract.<br></p>
+    <p class="mb-5">Commencement of your employment with Galfar is subject to issuance of your visa by Government of Qatar.<br></p>
+</div>
+@Html.HiddenFor(x => x.ApplicationId)
+
+
+
+

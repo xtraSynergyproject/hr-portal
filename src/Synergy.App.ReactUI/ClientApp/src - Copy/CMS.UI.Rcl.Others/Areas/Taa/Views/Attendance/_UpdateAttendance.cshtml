@@ -1,0 +1,171 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.TAA.Controllers.AttendanceController> Resource
+@using Kendo.Mvc.UI;
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using CMS.Business;
+@model AttendanceViewModel
+@{
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+
+}
+<style>
+    .k-input[readonly] {
+        background-color: #ceced259;
+    }
+</style>
+@*@using (Ajax.BeginForm("Manage", "Attendance",
+    new AjaxOptions
+    {
+       OnBegin = "OnBegin",
+       OnComplete = "OnComplete",
+       OnSuccess = "OnSuccess",
+       OnFailure = "OnError"
+    }))
+    {*@
+<form asp-controller="Attendance" asp-action="Manage" method="post" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+      data-ajax="true" data-ajax-method="POST">
+    <div class="text-danger" asp-validation-summary="All"></div>
+    <div id="appWrapper">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12">
+                <div class="col-xs-12 col-sm-12 label-div">
+                    <h5 style="color:#3965de;">@Model.EmployeeName</h5>
+                </div>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-xs-12 col-sm-12">
+                <div class="col-xs-12 col-sm-12 label-div">
+                    @*@Html.Label("Attendance", new { @class = "control-label" })*@
+                    @Resource["Attendance"]
+                </div>
+                <div class="col-xs-12 col-sm-12">
+                    @*@(Html.Kendo().DropDownListFor(x => x.OverrideAttendanceId)
+                                            .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                            .DataTextField("Name")
+                                            .DataValueField("Id")
+                                            .DataSource(source => {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("GetLOVIdNameList", "LOV", new { @area = "Cms", lovType = "AttendanceType" });
+                                                });
+                                            })
+                                            .HtmlAttributes(new { style = "width: 100%" })
+                    //.BindTo(EnumExtension.SelectListFor(typeof(AttendanceTypeEnum)))
+                    )*@
+                    <input asp-for="OverrideAttendanceId" id="OverrideAttendanceId" style="width:100%" />
+
+                </div>
+            </div>
+            <div class="form-group col-xs-12 col-sm-12">
+                <div class="col-xs-12 col-sm-12 label-div">
+                    @*@Html.Label("Over Time Hours", new { @class = "control-label" })*@
+                    @Resource["OverTimeHours"]
+                </div>
+                <div class="form-group col-xs-12 col-sm-12">
+                    @*@(Html.Kendo().TimePickerFor(x => x.OverrideOTHours)
+                                    //.Name("ScheduleTime")
+                                    //.Value(Model.Duty1EndTime)
+                                    .HtmlAttributes(new { style = "width: 100%", title = "timepicker" })
+                //.DateInput()
+        )*@
+                    <input asp-for="OverrideOTHours" id="OverrideOTHours" title="timepicker" style="width: 100%;" />
+                </div>
+            </div>
+            <div class="form-group col-xs-12 col-sm-12">
+                <div class="col-xs-12 col-sm-12 label-div">
+                    @*@Html.Label("Deduction Hours", new { @class = "control-label" })*@
+                    @Resource["DeductionHours"]
+                </div>
+                <div class="form-group col-xs-12 col-sm-12">
+                    @*@(Html.Kendo().TimePickerFor(x => x.OverrideDeductionHours)
+                                     //.Name("ScheduleTime")
+                                     //.Value(Model.Duty1EndTime)
+                                     .HtmlAttributes(new { style = "width: 100%", title = "timepicker" })
+                //.DateInput()
+        )*@
+                    <input asp-for="OverrideDeductionHours" id="OverrideDeductionHours" title="timepicker" style="width: 100%;" />
+                </div>
+            </div>
+
+        </div>
+        <hr />
+
+        <div class="row">
+            <div class="form-group col-xs-12 col-sm-6" style="text-align:right">
+                <div class="col-lg-3 label-div" style="display:none">
+                    @*@(Html.Kendo().DatePickerFor(x => x.AttendanceDate))*@
+                    <input asp-for="AttendanceDate" id="AttendanceDate" />
+                </div>
+                <div class="col-lg-9">
+                    @*@Html.Kendo().Button().Name("btnSubmit").Content(@SharedResource["Save"]).Icon("check-outline").HtmlAttributes(new { @class = "k-primary" })*@
+                    <button type="button" id="btnSubmit" class="btn btn-primary">@SharedResource["Save"]</button>
+                </div>
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.UserId)
+        @Html.HiddenFor(x => x.EmployeeName)
+        @Html.HiddenFor(x => x.Mode)
+    </div>
+</form>
+
+<script type="text/javascript">
+            $(document).ready(function () {
+
+                // $("#SystemAttendance").data("kendoDropDownList").readonly();
+                // $("#SystemDeductionHours").data("kendoTimePicker").readonly();
+                //$("#SystemOTHours").data("kendoTimePicker").readonly();
+
+            $("#OverrideAttendanceId").kendoDropDownList({
+                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                dataTextField: "Name",
+                dataValueField: "Id",
+                value: "@Model.OverrideAttendanceId",
+                filter: "contains",
+                autoBind: true,
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: "/Cms/LOV/GetLOVIdNameList?lovType=AttendanceType",
+                        }
+                    }
+                }
+            });
+
+                     $("#OverrideDeductionHours").kendoTimePicker({
+                        // dateInput: true,
+                         value:'@Model.OverrideDeductionHours'
+                    });
+                    $("#OverrideOTHours").kendoTimePicker({
+                      //  dateInput: true,
+                         value:'@Model.OverrideOTHours'
+                    });
+                $("#AttendanceDate").kendoDatePicker({ value: '@Model.AttendanceDate' });
+
+
+            });
+            var onAjaxSuccess = function (response) {
+                if (response.success) {
+                    //window.parent.RefreshGrid();
+                    var win = GetMainWindow();
+                    win.CloseWindow({ MethodName: 'OnCloseUpdateAttendance'});
+                    return false;
+                }
+                else {
+                    ShowErrors(response.errors);
+                }
+            }
+
+            function ShowErrors(err) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                var msg = ExtractError(err);
+                $(".text-danger ul").html(msg);
+            }
+
+</script>

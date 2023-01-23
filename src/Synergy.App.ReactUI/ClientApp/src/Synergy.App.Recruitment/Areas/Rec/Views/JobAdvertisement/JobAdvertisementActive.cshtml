@@ -1,0 +1,151 @@
+﻿
+@using CMS.UI.ViewModel
+@using CMS.Common
+
+@{
+    ViewData["Title"] = "Manage Job Advertisement";
+    Layout = null;
+    // Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //  Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+
+@model JobAdvertisementViewModel
+
+
+    <script type="text/javascript">
+
+        function OnEditJobAdvt(e) {
+            //e.preventDefault();
+            //  
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+            var url = "/Recruitment/JobAdvertisement/Index?jobId=" + dataItem.JobId + "&id=" + dataItem.Id ;
+            //  window.location.href = url;
+            LoadPartailView(url, $('#cms-content'));
+
+        }
+        function back() {
+
+            //window.location.href = "/recruitment/manpowerrequirementsummary/index";
+            var url = "/recruitment/jobadvertisement/jobadvertisement";
+            LoadPartailView(url, $('#cms-content'));
+
+        }
+
+
+    </script>
+    <style>
+        .k-grid td, .k-grid th {
+            font-size: 14px !important;
+        }
+
+        .tb-bg {
+            /*background-color:cadetblue;*/
+            background-color: #17a2b8 !important;
+            color: #fff;
+            font-weight: 500 !important;
+            text-align: center !important;
+        }
+
+        .tb-bg1 {
+            /*background-color: cornflowerblue;*/
+            background-color: #ffc107 !important;
+            color: #000;
+            font-weight: 500 !important;
+            text-align: center !important;
+        }
+
+        .tb-bg2 {
+            /* background-color: darkcyan;*/
+            background-color: #17a2b8 !important;
+            color: #fff;
+            font-weight: 500 !important;
+            text-align: center !important;
+        }
+
+        .k-footer-template {
+            background-color: #DAEDFF
+        }
+
+        .k-grid-header .k-header, .k-grid-header thead, .k-grid-header .k-hierarchy-cell {
+            background-color: #527ab8;
+        }
+
+            .k-grid-header thead a {
+                color: #fff !important;
+            }
+    </style>
+ 
+    <div class="row" style="margin-left:15px;">
+        <div class="col-12">
+           
+                <input type="button" class="btn btn-dark float-right" value="Back" onclick="back()" />
+            
+        </div>
+        <div class="row" style="padding:10px;">
+
+            @(Html.Kendo().Grid<JobAdvertisementViewModel>()
+    .Name("grid").Width(1440)
+    //.ToolBar(toolbar =>
+    //toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateBatch();'><i class='fa fas fa-plus'></i>&nbsp;Create Batch</button>"))
+
+    .Columns(columns =>
+
+    {
+        columns.Command(command =>
+        {
+            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditJobAdvt").HtmlAttributes(new { @class = "action-icon" });
+           // command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteBatch").HtmlAttributes(new { @class = "action-icon" });
+        }).Width(100);
+
+        columns.Bound(c => c.JobName).Title("Position").Width(150);
+        columns.Bound(c => c.Description).Width(150);
+        columns.Bound(c => c.QualificationName).Width(200);
+        columns.Bound(c => c.NoOfPosition).Width(200);
+        columns.Bound(c => c.Experience).Width(200);
+        columns.Bound(c => c.NationalityName).Width(200);
+        columns.Bound(c => c.ManpowerTypeName).Width(200);
+        columns.Bound(c => c.JobCategoryName).Width(200);
+        columns.Bound(c => c.LocationName).Width(200);
+        columns.Bound(c => c.ExpiryDate).Width(120);
+        columns.Bound(c => c.NeededDate).Width(120);
+        //columns.Bound(c => c.TargetBatchCount).Width(120);
+        //columns.Bound(c => c.Id).Title("Send Batch").Width(120).ClientTemplate("#if(BatchStatusName=='Draft'){#<button class='btn btn-info' onclick='UpdateBatch(\"#:Id#\")'>Send To Hiring Manager</button>#}#").Width(280);
+    })
+    .Scrollable(x => x.Enabled(true))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                //.Events(events => events.Error("OnError"))
+                .Read(read => read.Action("ReadJobadvtDataA", "JobAdvertisement",new { jobid=Model.JobId}))
+                .Model(model => model.Id(p => p.Id))
+                )
+          )
+
+
+
+
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @*@Html.HiddenFor(x => x.ManpowerRecruitmentSummaryId)*@
+        @*@Html.HiddenFor(x => x.OrganizationId)*@
+
+
+
+    </div>

@@ -1,0 +1,256 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRCoreController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+
+
+@{
+    ViewBag.Title = "Business Trip";
+    Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-body {
+        padding: 0px 15px 0px 15px;
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+            padding-left: 15px;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+            padding-left: 15px;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+            padding-left: 15px;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff !important;
+            background-color: #428bca !important;
+            border-color: #428bca !important;
+            padding-left: 15px !important;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+            padding-left: 15px;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+
+    .k-grid thead {
+        color: #fff !important;
+        background-color: #428bca !important;
+    }
+
+    table tr th {
+        color: #fff !important;
+    }
+
+    .k-datepicker .k-picker-wrap {
+        width: 90%;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+
+        $("#ddlmployee").kendoDropDownList({
+            dataTextField: "EmployeeName",
+            dataValueField: "UserId",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",            
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/CHR/HRCore/GetAllEmployee",
+                    }
+                }
+            },
+        });
+    });
+</script>
+
+<div class="row" style="padding-top:10px;">
+
+    <div class=" col-md-9">
+        <div style="font-size:18px;padding-top:0px;">
+            @Resource["TaskTemplate"]
+
+            <div class="project-dropdown" id="dropdown" title="Task Template">
+
+                @*@(Html.Kendo().DropDownList()
+                    .Name("ddlmployee")
+                    .DataTextField("UserId")
+                    .DataValueField("EmployeeName")
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetAllEmployee", "HRCore", new { @area = "CHR" });
+                        });
+                    })
+                    //.Events(x => x.Change("OnTemplateChange"))
+                    .HtmlAttributes(new { @class = "form-control" , @style="width:80%" })
+                    )*@
+
+                <input id="ddlmployee" class = "form-control" style="width:80%" /> 
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+@*<div id="appWrapper" class="hr-pad-top-15">
+
+        <div class="row">
+            <div class="col-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Details</div>
+                    <div class="panel-body">
+                        @(Html.Kendo().Grid<ProjectGanttTaskViewModel>()
+                                    .Name("GrdDet")
+                                    .Columns(columns =>
+                                    {
+                                        //columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+                                        columns.Bound(p => p.TaskNo).Title("Task No").Width(170);
+                                        columns.Bound(p => p.Title).Title("Task Name").Width(300);
+                                        columns.Bound(p => p.OwnerName).Title("Requested By").Width(250);
+                                        columns.Bound(p => p.Priority).Width(150);
+                                        columns.Bound(p => p.NtsStatus).Title("Status").Width(150);
+                                        columns.Bound(p => p.Start).Title("Start Date").Format("{0:dd MMM yyyy}").Width(150);
+                                        columns.Bound(p => p.End).Title("End Date").Format("{0:dd MMM yyyy}").Width(150);
+                                    })
+                                    .ToolBar(toolbar =>
+                                    {
+                                        //toolbar.Excel();
+                                        //toolbar.Pdf();
+                                        toolbar.Search();
+                                    })
+                                    //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+                                    //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+                                    .ColumnMenu(col=>col.Filterable(false))
+                                    .Height(700)
+                                    .Editable()
+                                    .Pageable()
+                                    .Sortable()
+                                    .Navigatable()
+                                    .Resizable(r=>r.Columns(true))
+                                    .Reorderable(r => r.Columns(true))
+                                    .Groupable(g=>g.ShowFooter(false))
+                                    .Filterable()
+                                    .Scrollable()
+                                    //.Events(events => events.DataBound("onDataBound"))
+                                    .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                        .Batch(true)
+                                        .PageSize(10)
+                                        .AutoSync(true)
+                                        .ServerOperation(false)
+                                        //.Events(events => events.Error("error_handler"))
+                                        .Model(model =>
+                                        {
+                                            model.Id(p => p.Id);
+                                        })
+                                        //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+                                        //.Create("DetailProducts_Create", "Grid")
+                                        .Read("ReadTaskGridViewData", "TaskCollection", new { @area = "PJM", projectId = Model.Id })
+                                        //.Update("DetailProducts_Update", "Grid")
+                                        //.Destroy("DetailProducts_Destroy", "Grid")
+                                    )
+                    )
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>*@

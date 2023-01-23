@@ -1,0 +1,304 @@
+﻿@using System.Text
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model MenuGroupViewModel
+
+@{
+    ViewData["Title"] = "Copy Page";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 10px;
+    }
+</style>
+
+<script>
+    $(function () {
+
+        $("#PortalId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel:"@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.PortalId',
+            /*change: OnChangePortal,*/
+           // filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Content/GetPortalList",
+                    }
+                }
+            }
+        });
+
+        $("#ToPortalId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel:"@ApplicationConstant.PlaceHolder_SelectOption",
+            @*value: '@Model.PortalId',*@
+            /*change: OnChangePortal,*/
+            //filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Content/GetPortalList",
+                    }
+                }
+            }
+        });
+
+        //function OnChangePortal() {
+        //    debugger;
+        //    var search = $("#ToPortalId").data("kendoDropDownList").value();
+        //    var portal = $("#ToPortalId").val();
+        //    var url = "/cms/menugroup/GetMenuGroupListByPortal?portalId=" + portal;
+
+        //    var menuGrpDataSource = new kendo.data.HierarchicalDataSource({
+        //        transport: {
+        //            read: {
+        //                url: url,
+        //                dataType: "json"
+        //            }
+        //        },
+        //        schema: {
+        //            model: {
+        //                id: "id",
+        //                hasChildren: "hasChildren"
+        //            }
+        //        }
+        //    });
+
+        //    var dropdownlist = $("#ToMenuGroupId").data("kendoDropDownTree");
+        //    /*dropdownlist.enable(true);*/
+        //    dropdownlist.setDataSource(menuGrpDataSource);
+        //}
+
+
+
+
+        //$("#ToMenuGroupId").kendoDropDownTree({
+        //    placeholder: "Select ...",
+        //    /*dataSource: homogeneous,*/
+        //    height: "150px",
+        //    dataTextField: "Name",
+        //    dataValueField: "id",
+        //    /*enable: false,*/
+        //});
+
+        $("#MenuGroup").kendoDropDownList({
+            placeholder: "Select ...",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/menugroup/GetMenuGroupListByPortal?portalId=@Model.PortalId",
+                        dataType: "json"
+                    }
+                },
+            },
+            value: '@Model.Id',
+            dataTextField: "Name",
+            dataValueField: "id",
+            enable: false,
+        });
+
+
+        $("input.noSpace").on({
+            keydown: function (e) {
+                if (e.which === 32)
+                    return false;
+            },
+            change: function () {
+                this.value = this.value.replace(/\s/g, "");
+            }
+        });
+
+
+    });
+
+
+    var onAjaxSuccess = function (res) {
+        debugger;
+        HideLoader($("#formContainer"));
+        if (res.success) {
+            // success
+            ShowNotification("Menu Group Copied Successfully", "success");
+            closeCopyWindow();
+         }
+        else {
+            // error
+            alert(res.error);
+        }
+
+
+    };
+
+    function closeCopyWindow() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function onCopy(e) {
+        debugger;
+        var isValid = $("#copyMenuGrpForm").valid();
+        ShowLoader($("#formContainer"));
+
+        if (!isValid) {
+            HideLoader($("#formContainer"));
+            e.preventDefault();
+            alert("Fill all details.");
+            return false;
+        }
+
+        var res = htmlData();
+        if (!res) {
+            HideLoader($("#formContainer"));
+            e.preventDefault();
+            alert("Fill all the Page details.");
+            return false;
+        }
+    }
+
+    function htmlData() {
+        // USED TO EXTRACT TABLE DATA
+        var Rows = [];
+        var $headers = $("th");
+        var flag = 1;
+        var $rows = $("tbody tr").each(function (index) {
+            $cells = $(this).find("td");
+            Rows[index] = {};
+
+            $cells.each(function (cellIndex) {
+                /*debugger;*/
+                if ($(this).find("input").length == 0) {
+                    Rows[index][$($headers[cellIndex]).html()] = $(this).html();
+                } else {
+                    /*debugger;*/
+                    var inputVal = $(this).find("input").val();
+                    if (inputVal == "") {
+                        flag = 0;
+                        return false;
+                    }
+                    Rows[index][$($headers[cellIndex]).html()] = inputVal;
+                }
+            });
+        });
+
+        if (flag == 0) {
+            return false;
+        }
+        var str = "";
+        if (Rows.length != 0) {
+            str = JSON.stringify(Rows);
+        }
+        document.getElementById("PageJson").value = str;
+        return true;
+    }
+
+
+
+</script>
+
+<div id="formContainer">
+    <form asp-controller="Content" asp-action="ManageCopyMenuGroupData" class="form-horizontal"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST" id="copyMenuGrpForm">
+
+        <div class="row" style="padding:10px 30px;">
+
+            <input asp-for="Id" id="Id" type="text" class="form-control" value="@Model.Id" autocomplete="off" hidden />
+
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label>From Portal</label>
+                </div>
+                <div class="col-9">
+                    <input id="PortalId" disabled style="width:100%" />
+                </div>
+            </div>
+
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label>Menu Group</label>
+                </div>
+                <div class="col-9">
+                    <input id="MenuGroup" disabled style="width:100%" />
+                </div>
+            </div>
+
+
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label class="required">To Portal</label>
+                </div>
+                <div class="col-9">
+                    <input asp-for="ToPortalId" required style="width:100%" />
+                </div>
+            </div>
+
+            <div class="row col-12 pad-10">
+                <div class="col-3">
+                    <label class="required">New Page Name</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" asp-for="NewName" class="form-control" autocomplete="off" required style="width:100%" />
+                </div>
+            </div>
+
+            
+            @if (ViewBag.PageList.Count != 0)
+                {
+                    <div class="row col-12 pad-10">
+                        <div style="padding-left: 15px; padding-top: 15px;">
+                            <table id="PermissionTable">
+                                <thead>
+                                    <tr>
+                                        <th hidden>Old Page Id</th>
+                                        <th style="width: 20%;">Old Page Name</th>
+                                        <th>New Page Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (var i = 0; i < ViewBag.PageList.Count; i++)
+                                    {
+                                        <tr>
+                                            <td hidden><input type="text" class="form-control" value="@ViewBag.PageList[i].Id" hidden /></td>
+                                            <td>@ViewBag.PageList[i].Name</td>
+                                            <td><input type="text" class="form-control noSpace" required /></td>
+                                        </tr>
+
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                }
+            <input type="text" asp-for="PageJson" id="PageJson" value="" hidden />
+
+
+            <div class="row col-12 pad-10">
+                <div class="col-6"></div>
+                <div class="col-6">
+                    <button type="submit" class="btn btn-primary" style="float:right;" onclick="onCopy(event)">Submit</button>
+
+                </div>
+            </div>
+
+        </div>
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.PageJson)
+    </form>
+</div>
+

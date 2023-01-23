@@ -1,0 +1,50 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+  postgresql-master:
+    image: docker.io/bitnami/postgresql:11
+    container_name: synergy-pgsql
+    dns:
+      - 8.8.8.8
+      - 4.2.2.4
+    restart: always
+    environment:
+      #POSTGRES_PASSWORD: Synergywelcome1
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=Synergywelcome1
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=Synergywelcome1
+      - POSTGRESQL_DATABASE=my_database
+      #- ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - 'pgsql_data:/bitnami/postgresql'
+      #- ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+    ports:
+      - "5432:5432"
+
+  pgbouncer:
+    dns:
+      - 8.8.8.8
+      - 4.2.2.4
+    depends_on:
+      - postgresql-master
+    volumes:
+      - ./userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    restart: always
+    image: pgbouncer/pgbouncer
+    env_file:
+      - ./env/pgbouncer.env
+    ports:
+      - 6432:6432
+
+volumes: 
+  data:
+    driver: local
+    name: pgsql_data
+
+networks:
+  default:
+    external:
+      name: cmssynergy_default

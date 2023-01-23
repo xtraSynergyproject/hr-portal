@@ -1,0 +1,461 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+    Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model MemberViewModel
+<style>
+    .left {
+        min-width: 350px;
+        max-width: 600px;
+    }
+
+    a {
+        color: #252525;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+    /*Portal Start*/
+    .sidenav {
+        height: 100%; /* 100% Full-height */
+        width: 0; /* 0 width - change this with JavaScript */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Stay on top */
+        top: 0; /* Stay at the top */
+        right: 0;
+        background-color: #fff; /* Black*/
+        border-left: 1px solid silver;
+        overflow-x: hidden; /* Disable horizontal scroll */
+        padding-top: 30px; /* Place content 60px from the top */
+        transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    }
+
+
+
+        /* Position and style the close button (top right corner) */
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            font-size: 30px;
+            font-weight: bold;
+            margin-left: 20px;
+            color: gray;
+            border: none;
+            text-decoration: none;
+        }
+
+            .sidenav .closebtn:hover {
+                color: red;
+            }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Portal End*/
+</style>
+
+
+
+<div class="splitter-container">
+    <div class="left pad-l-t-15">
+        @*<h5>Content</h5>*@
+        @*@(Html.Kendo().TreeView()
+        .Name("treeview")
+        .Events(e=>e.Select("OnSelect"))
+        .DataTextField("Name")
+        .TemplateId("ct-tv-template")
+        .DataSource(dataSource => dataSource
+            .Read(read => read
+                .Action("GetMemberTreeList", "Member",new { @area="Cms"})
+            )
+        )
+    )*@
+
+
+        <div id="treeview" class="demo treeview"></div>
+
+
+        <script id="ct-tv-template" type="text/kendo-ui-template">
+            <span style="width:100%">   #: item.Name #</span>
+            <span data-id="#:item.id#" data-type="#:item.Type#" data-portal-name="#:item.Name#" data-parent-id="#:item.ParentId#" data-portal-id="#:item.PortalId#" class="tree-menu" data-level="#:item.Level#"><i class="fa fa-ellipsis-h"></i></span>
+
+        </script>
+
+    </div>
+
+<div class="right pad-l-t-15" id="page-content">
+
+</div>
+
+</div>
+
+
+<div id="portal-div">
+    <div id="mySidenavPortal" class="sidenav">
+        <h1 class="cms-panel-header-name">Member</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavPortal()" title="Close">&times;</a>
+        <hr />
+        <div id="portal-content" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+<div id="pagecontent-style-div">
+    <div id="mySidenavPageContentStyle" class="sidenav">
+        <h1 class="cms-panel-header-name">Page Settings</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavPageContentStyle()" title="Close">&times;</a>
+        <hr />
+        <div id="pagecontent-style-content" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+<div id="overlay" class=""></div>
+
+
+<script>
+
+    $('#treeview')
+        .jstree({
+            'core': {
+                'data': function (node, cb) {
+                    if (node.id === "#") {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/cms/Member/GetMemberTreeList",
+                            //url: "/cms/template/GetNtsTemplateTreeList",
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                        //cb([{ "text": "Root", "id": "1", "children": true }]);
+                    }
+                    else {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/cms/Member/GetMemberTreeList?id=" + node.id,
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+
+
+    $(document).ready(function () {
+       LoadPartailView('@Url.Action("Memberlist", "Member", new { @area="Cms"})', $('#page-content'));
+    });
+    // $('.splitter-container').SplitterBar();
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+
+
+    $(function () {
+        $.contextMenu({
+            selector: '.tree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                //var id = $trigger.data('id');
+                //var type = $trigger.data('type');
+                ////  var parentId = $trigger.data('parent-id');
+                var id = $trigger.attr('data_id');
+                var type = $trigger.attr('data_type');
+                var selectParentId = $trigger.attr('data_parentId');
+                switch (type) {
+                    case 'Root':
+                        return {
+
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'createPortal':
+                                       // alert('Create Portal')
+                                        openNavPortal(id);
+
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "createPortal": { name: "Create New Portal", icon: "fas fa-chart-area" },
+
+                            }
+                        };
+                    case 'Portal':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'editPortal':
+                                        editNavPortal(id);
+                                        break;
+                                    case 'addPage':
+                                        LoadPartailView('@Url.Action("CreatePage", "Content", new { @area="Cms"})?parentId='+id, $('#page-content'));
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "addPage": { name: "Add New Page", icon: "fas fa-album-collection" },
+                                "editPortal": { name: "Edit Portal", icon: "fas fa-chart-area" },
+
+
+                            }
+                        };
+                    case 'ContentPage':
+                        return {
+
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'editPage':
+                                        LoadPartailView('@Url.Action("EditPage", "Content", new { @area="Cms"})?pageId='+id, $('#page-content'));
+                                        break;
+
+                                    case 'addChildPage':
+                                       LoadPartailView('@Url.Action("CreatePage", "Content", new { @area="Cms"})?parentId='+id, $('#page-content'));
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "editPage": { name: "Edit Page", icon: "fas fa-album-collection" },
+                                "addChildPage": { name: "Add New Page", icon: "fas fa-ball-pile" },
+
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+
+    function OnSelect(e) {
+        e.preventDefault();
+
+        var data = $("#treeview").data("kendoTreeView").dataItem(e.node);
+        if (data.id == "Member") {
+            ViewMember();
+        }
+        else {
+            ViewMemberGroup();
+        }
+
+        //if (data.ItemType == "BusinessRule") {
+
+        //    var tabStrip1 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+        //    $(".k-link:contains('BUSINESS RULE INPUT DATA')").data('contentUrl', '/businessrule/BusinessRuleInputData?ruleId=' + data.id);
+        //    tabStrip1.reload("li:eq(0)");
+
+        //    var tabStrip2 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+        //    $(".k-link:contains('BUSINESS RULE MASTER DATA')").data('contentUrl', '/businessrule/BusinessRuleMasterData?ruleId=' + data.id);
+        //    tabStrip2.reload("li:eq(1)");
+
+        //    var tabStrip3 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+        //    $(".k-link:contains('BUSINESS RULE FLOW')").data('contentUrl', '/businessRuleDiagram/businessFlowDiagram?ruleId=' + data.id);
+        //    tabStrip3.reload("li:eq(2)");
+
+
+        //}
+    }
+    function ViewMember() {
+       LoadPartailView('@Url.Action("Memberlist", "Member", new { @area="Cms"})', $('#page-content'));
+    }
+
+    function ViewMemberGroup() {
+       LoadPartailView('@Url.Action("MemberGroupList", "MemberGroup", new { @area="Cms"})', $('#page-content'));
+    }
+     function OnCreate() {
+         
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateMember", "Member", new { @area="Cms"})';
+         win.OpenWindow({ Title: 'Member', Width: 450, Height: 800 });
+        return false;
+    }
+
+    function OnCreateGroup() {
+         
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateMemberGroup", "MemberGroup", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Manage Member Group', Width: 450, Height: 800 });
+        return false;
+
+    }
+
+    function OnEditGroup(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("EditMemberGroup", "MemberGroup", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Member Group', Width: 450, Height: 800 });
+        return false;
+    }
+
+     function OnEdit(e) {
+        
+         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("EditMember", "Member", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Member', Width: 450, Height: 800 });
+        return false;
+    }
+    //Portal Script Start
+    function openNavPortal(ppid) {
+        document.getElementById("mySidenavPortal").style.width = "450px";
+        LoadPartailView('@Url.Action("CreatePortal", "Content", new { @area="Cms"})?parentId='+ppid, $('#portal-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    function editNavPortal(id) {
+        document.getElementById("mySidenavPortal").style.width = "450px";
+        LoadPartailView('@Url.Action("EditPortal", "Content", new { @area="Cms"})?id='+id, $('#portal-content'));
+        $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+
+    function closeNavPortal() {
+    
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        //document.getElementById("mySidenavPortal").style.width = "0";
+        //$("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+    //Portal Script End
+
+    //Style Script Start
+    function openNavStyle(sid,stype) {
+        //alert("Hello " + pcid);
+        document.getElementById("mySidenavStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("CreateStyle", "Content", new { @area="Cms"})?sourceId=' + sid +'&sourceType='+stype, $('#page-style-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    function editNavStyle(sid, stype) {
+        document.getElementById("mySidenavStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("ManageStyle", "Content", new { @area="Cms"})?sourceId=' + sid + '&sourceType=' + stype, $('#page-style-content'));
+        $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+
+    function closeNavStyle() {
+        document.getElementById("mySidenavStyle").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-mybackgroundimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BackgroundImage").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    //Style Script End
+
+    //Pagecontent Style Start
+   function OpenManageSettings(sid,stype) {
+        document.getElementById("mySidenavPageContentStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("ManageSettings", "Content", new { @area="Cms"})?sourceId=' + sid +'&sourceType='+stype, $('#pagecontent-style-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    
+
+    function closeNavPageContentStyle() {
+        document.getElementById("mySidenavPageContentStyle").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+
+    function onFileUploadSuccessPageStyle(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".pagestyle-mybackgroundimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BackgroundImage").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    //Pagecontent Style End
+</script>
+

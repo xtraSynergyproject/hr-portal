@@ -1,0 +1,609 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+    Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+<style>
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    a {
+        color: #252525;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+    /*Portal Start*/
+    .sidenav {
+        height: 100%; /* 100% Full-height */
+        width: 0; /* 0 width - change this with JavaScript */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Stay on top */
+        top: 0; /* Stay at the top */
+        right: 0;
+        background-color: #fff; /* Black*/
+        border-left: 1px solid silver;
+        overflow-x: hidden; /* Disable horizontal scroll */
+        padding-top: 30px; /* Place content 60px from the top */
+        transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    }
+
+
+
+        /* Position and style the close button (top right corner) */
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            font-size: 30px;
+            font-weight: bold;
+            margin-left: 20px;
+            color: gray;
+            border: none;
+            text-decoration: none;
+        }
+
+            .sidenav .closebtn:hover {
+                color: red;
+            }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+
+    .k-treeview .k-item {
+        padding: 0px;
+    }
+    /*Portal End*/
+</style>
+
+
+
+<div class="splitter-container">
+    <div class="left">
+        @*<h5>Content</h5>*@
+        @*@(Html.Kendo().TreeView()
+            .Name("treeview")
+            .Events(e=>e.Select("OnSelect"))
+            .DataTextField("Name")
+            .TemplateId("ct-tv-template")
+             .Items(treeview =>
+             {
+                 treeview.Add().Text("Module").Id("Module");
+                 treeview.Add().Text("Sub Module").Id("SubModule");
+                 treeview.Add().Text("Menu Group").Id("MenuGroup");
+                 treeview.Add().Text("User").Id("User");
+                 treeview.Add().Text("User Role").Id("UserRole");
+                 treeview.Add().Text("User Group").Id("UserGroup");
+                 treeview.Add().Text("User Hierarchy").Id("UserHierarchy");
+                 treeview.Add().Text("Permission").Id("Permission");
+                 treeview.Add().Text("Team").Id("Team");
+                 treeview.Add().Text("Notification Template").Id("NotificationTemplate");
+                 treeview.Add().Text("Notification").Id("Notification");
+                 treeview.Add().Text("Hierarchy").Id("HierarchyMaster");
+                 treeview.Add().Text("ListOfValue").Id("ListOfValue");
+                 treeview.Add().Text("LOV").Id("LOV");
+                 treeview.Add().Text("Company").Id("Company");
+                 treeview.Add().Text("LegalEntity").Id("LegalEntity");
+                 treeview.Add().Text("UserRoleStage").Id("UserRoleStage");
+                 treeview.Add().Text("TableMetadata").Id("TableMetadata");
+                 treeview.Add().Text("Business Diagram").Id("BusinessDiagram");
+                 treeview.Add().Text("NtsGroup").Id("NtsGroup");
+                 treeview.Add().Text("UserSet").Id("UserSet");
+                 treeview.Add().Text("Tag Category").Id("TagCategory");
+                 treeview.Add().Text("Template Stage").Id("TemplateStage");
+                 treeview.Add().Text("Portal Details").Id("PortalDetails");
+                 treeview.Add().Text("Delete Template").Id("TemplateDelete");
+             })
+
+        )*@
+        <div id="treeview" class="demo treeview"></div>
+
+        <script id="ct-tv-template" type="text/kendo-ui-template">
+            <span style="width:100%">   #: item.text #</span>
+        </script>
+
+    </div>
+
+    <div class="right pad-l-t-15" id="page-content">
+
+    </div>
+
+</div>
+
+
+<div id="portal-div">
+    <div id="mySidenavPortal" class="sidenav">
+        <h1 class="cms-panel-header-name">Member</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavPortal()" title="Close">&times;</a>
+        <hr />
+        <div id="portal-content" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+<div id="pagecontent-style-div">
+    <div id="mySidenavPageContentStyle" class="sidenav">
+        <h1 class="cms-panel-header-name">Page Settings</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavPageContentStyle()" title="Close">&times;</a>
+        <hr />
+        <div id="pagecontent-style-content" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+<div id="overlay" class=""></div>
+
+
+<script>
+    $(document).ready(function () {
+       LoadPartailView('@Url.Action("Index", "Module", new { @area="Cms"})', $('#page-content'));
+    });
+    // $('.splitter-container').SplitterBar();
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+    $('#treeview')
+         .on('changed.jstree', function (e, data) {
+            var i, j, r = [];
+            for (i = 0, j = data.selected.length; i < j; i++) {
+
+                nodetype = data.instance.get_node(data.selected[i]).text;
+                OnSelect(nodetype);
+            }
+
+        })
+        .jstree({
+        'core': {
+            'data': [
+                { "text": "Module", "id": "Module" },
+                { "text": "Sub Module", "id": "SubModule" },
+                { "text": "Menu Group", "id": "MenuGroup" },
+                { "text": "User", "id": "User" },
+                { "text": "User Role", "id": "UserRole" },
+                { "text": "User Group", "id": "UserGroup" },
+                { "text": "User Hierarchy", "id": "UserHierarchy" },
+                { "text": "Permission", "id": "Permission" },
+                { "text": "Team", "id": "Team" },
+                { "text": "Notification Template", "id": "NotificationTemplate" },
+                { "text": "Notification", "id": "Notification" },
+                { "text": "Hierarchy", "id": "HierarchyMaster" },
+                { "text": "LOV", "id": "LOV" },
+                { "text": "Company", "id": "Company" },
+                { "text": "Company Setting", "id": "CompanySetting" },
+                { "text": "LegalEntity", "id": "LegalEntity" },
+                { "text": "UserRoleStage", "id": "UserRoleStage" },
+                { "text": "TableMetadata", "id": "TableMetadata" },
+                { "text": "Business Diagram", "id": "BusinessDiagram" },
+                { "text": "NtsGroup", "id": "NtsGroup" },
+                { "text": "UserSet", "id": "UserSet" },
+                { "text": "Tag Category", "id": "TagCategory" },
+                { "text": "Template Stage", "id": "TemplateStage" },
+                { "text": "Portal Details", "id": "PortalDetails" },
+                { "text": "Delete Template", "id": "TemplateDelete" },
+                { "text": "Application Document", "id": "ApplicationDocument" },
+                 { "text": "Application Error", "id": "ApplicationError" },
+            ]
+        }
+    });
+
+    function OnSelect(e) {
+        
+       // e.preventDefault();
+        //var data = $("#treeview").data("kendoTreeView").dataItem(e.node);
+        if (e == "Module") {
+            LoadPartailView('@Url.Action("Index", "Module", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "Sub Module") {
+            LoadPartailView('@Url.Action("Index", "SubModule", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "Menu Group"){
+             LoadPartailView('@Url.Action("Index", "MenuGroup", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "User"){
+             LoadPartailView('@Url.Action("Index", "User", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "User Role"){
+             LoadPartailView('@Url.Action("Index", "UserRole", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "User Group"){
+             LoadPartailView('@Url.Action("Index", "UserGroup", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "Tag Category"){
+             LoadPartailView('@Url.Action("Index", "TagCategory", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "User Hierarchy"){
+             LoadPartailView('@Url.Action("Index", "UserHierarchy", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "Permission"){
+             LoadPartailView('@Url.Action("Index", "Permission", new { @area="Cms"})', $('#page-content'));
+        }
+         else if (e == "Team"){
+             LoadPartailView('@Url.Action("Index", "Team", new { @area="Cms"})', $('#page-content'));
+        }
+
+        else if (e == "Notification Template"){
+             LoadPartailView('@Url.Action("Index", "NotificationTemplate", new { @area="Cms"})', $('#page-content'));
+        }
+else if (e == "Notification"){
+             LoadPartailView('@Url.Action("Index", "Notification", new { @area= "Recruitment" })', $('#page-content'));
+        }
+        else if (e == "Hierarchy"){
+             LoadPartailView('@Url.Action("Index", "HierarchyMaster", new { @area="Cms"})', $('#page-content'));
+        }
+        else if (e == "ListOfValue"){
+             LoadPartailView('@Url.Action("Index", "ListOfValue", new { @area= "Recruitment" })', $('#page-content'));
+        }
+          else if (e == "LOV"){
+             LoadPartailView('@Url.Action("Index", "LOV", new { @area= "Cms" })', $('#page-content'));
+        }
+         else if (e == "Company"){
+             LoadPartailView('@Url.Action("AdminCompany", "Company", new { @area = "" })', $('#page-content'));
+        }
+        else if (e == "Company Setting"){
+             LoadPartailView('@Url.Action("CompanySettingIndex", "Company", new { @area = "" })', $('#page-content'));
+        }
+         else if (e == "LegalEntity"){
+             LoadPartailView('@Url.Action("Index", "LegalEntity", new { @area = "Cms" })', $('#page-content'));
+        }
+        else if (e == "UserRoleStage"){
+             LoadPartailView('@Url.Action("Index", "UserRoleStage", new { @area = "Cms" })', $('#page-content'));
+        }
+        else if (e == "TableMetadata"){
+             LoadPartailView('@Url.Action("Index", "TableMetadata", new { @area = "Cms" })', $('#page-content'));
+        }
+        else if (e == "Business Diagram") {
+             LoadPartailView('@Url.Action("Index", "BusinessDiagram", new { @area = "Cms" })', $('#page-content'));
+        }
+         else if (e == "NtsGroup") {
+             LoadPartailView('@Url.Action("Index", "NtsGroup", new { @area = "Cms" })', $('#page-content'));
+        }
+         else if (e == "UserSet") {
+             LoadPartailView('@Url.Action("Index", "UserSet", new { @area = "Cms" })', $('#page-content'));
+        }
+        else if (e == "Template Stage") {
+            LoadPartailView('@Url.Action("Index", "TemplateStage", new { @area = "Cms" })', $('#page-content'));
+        }
+        else if (e == "Portal Details") {
+            LoadPartailView('@Url.Action("Index", "PortalDetails", new { @area = "Cms" })', $('#page-content'));
+
+        }
+        else if (e == "Delete Template") {
+            LoadPartailView('@Url.Action("TemplateDelete", "Template", new { @area = "Cms" })', $('#page-content'));
+        }
+        else if (e == "Application Document") {
+            LoadPartailView('@Url.Action("Index", "ApplicationDocument", new { @area = "Cms" })', $('#page-content'));
+        }
+         else if (e == "Application Error") {
+            LoadPartailView('@Url.Action("Index", "ApplicationError", new { @area = "Cms" })', $('#page-content'));
+        }
+
+
+    }
+    function ViewMember() {
+       LoadPartailView('@Url.Action("Memberlist", "Member", new { @area="Cms"})', $('#page-content'));
+    }
+
+    function ViewMemberGroup() {
+       LoadPartailView('@Url.Action("MemberGroupList", "MemberGroup", new { @area="Cms"})', $('#page-content'));
+    }
+     function OnCreate() {
+
+            var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateMember", "Member", new { @area="Cms"})';
+         win.OpenWindow({ Title: 'Manage Member', Width: 450, Height: 800 });
+        return false;
+    }
+
+    function OnCreateGroup() {
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateMemberGroup", "MemberGroup", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Manage Member Group', Width: 450, Height: 800 });
+        return false;
+
+    }
+
+    function OnEditGroup(id) {
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("EditMemberGroup", "MemberGroup", new { @area="Cms"})?Id=' + id;
+        win.OpenWindow({ Title: 'Manage Member Group', Width: 450, Height: 800 });
+        return false;
+    }
+
+    function OnCreateMenuGroup() {
+
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateMenuGroup", "MenuGroup", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Manage Menu Group', Width: 450, Height: 550});
+        return false;
+    }
+
+
+
+      function OnCreateUserRole() {
+
+
+             var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateUserRole", "UserRole", new { @area="Cms"})';
+          win.OpenWindow({ Title: 'Manage User Role', Width: 450, Height: 550 });
+        return false;
+
+    }
+
+
+
+      function OnCreateUserGroup() {
+
+
+             var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateUserGroup", "UserGroup", new { @area="Cms"})';
+          win.OpenWindow({ Title: 'Manage User Group', Width: 450, Height: 550 });
+        return false;
+
+    }
+
+
+
+     function OnEdit(e) {
+
+         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+            var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("EditMember", "Member", new { @area="Cms"})?Id=' + dataItem.Id;
+         win.OpenWindow({ Title: 'Manage Member', Width: 450, Height: 800 });
+        return false;
+    }
+    //Portal Script Start
+    function openNavPortal(ppid) {
+        document.getElementById("mySidenavPortal").style.width = "450px";
+        LoadPartailView('@Url.Action("CreatePortal", "Content", new { @area="Cms"})?parentId='+ppid, $('#portal-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    function editNavPortal(id) {
+        document.getElementById("mySidenavPortal").style.width = "450px";
+        LoadPartailView('@Url.Action("EditPortal", "Content", new { @area="Cms"})?id='+id, $('#portal-content'));
+        $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+
+    function closeNavPortal() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+
+    }
+    //Portal Script End
+
+    //Style Script Start
+    function openNavStyle(sid,stype) {
+        //alert("Hello " + pcid);
+        document.getElementById("mySidenavStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("CreateStyle", "Content", new { @area="Cms"})?sourceId=' + sid +'&sourceType='+stype, $('#page-style-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    function editNavStyle(sid, stype) {
+        document.getElementById("mySidenavStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("ManageStyle", "Content", new { @area="Cms"})?sourceId=' + sid + '&sourceType=' + stype, $('#page-style-content'));
+        $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+
+    function closeNavStyle() {
+        document.getElementById("mySidenavStyle").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+    function OnCreateModule() {
+
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Create", "Module", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Manage Module', Width: 450, Height: 550 });
+        return false;
+
+    }
+
+    function OnEditModule(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Edit", "Module", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Module', Width: 450, Height: 800 });
+        return false;
+    }
+    function OnCreateSubModule() {
+
+
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Create", "SubModule", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Manage SubModule', Width: 450, Height: 550 });
+        return false;
+
+    }
+    function OnEditSubModule(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Edit", "SubModule", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage SubModule', Width: 450, Height: 800 });
+        return false;
+
+    }
+     function OnEditPermission(e) {
+         var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("EditPermission", "Permission", new { @area="Cms"})?Id=' + dataItem.Id;
+         win.OpenWindow({ Title: 'Manage Permission', Width: 450, Height: 550 });
+        return false;
+    }
+     function OnCreateTeam() {
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Create", "Team", new { @area="Cms"})';
+         win.OpenWindow({ Title: 'Manage Team', Width: 450, Height: 550 });
+        return false;
+
+
+    }
+    function OnEditTeam(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Edit", "Team", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Team', Width: 450, Height: 550 });
+        return false;
+    }
+
+    function OnCreateNotificationTemplate() {
+
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("ManageNotification", "NotificationTemplate", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Manage Notification Template', Width: 450, Height: 550 });
+        return false;
+    }
+    function OnCreateCompany() {
+
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateComp", "Company", new { @area=""})';
+        win.OpenWindow({ Title: 'Manage Company', Width: 800, Height: 800 });
+        return false;
+
+    }
+    function OnEditCompany(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("EditComp", "Company", new { @area=""})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Company', Width: 800, Height: 800 });
+        return false;
+    }
+     
+    function OnCreateTable() {
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateTableMetadata", "TableMetadata", new { @area="Cms"})';
+        win.OpenWindow({ Title: 'Create Table', Width: 450, Height: 800 });
+        return false;
+
+    }
+    function OnEditTable(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("EditTableMetadata", "TableMetadata", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Table', Width: 450, Height: 800 });
+        return false;
+    }
+    function OnManageTableCol(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        LoadPartailView('@Url.Action("TableColumn", "TableMetadata", new { @area = "Cms"})?tableMetadataId='+dataItem.Id , $('#page-content'));
+    }
+    function OnCreateColumn(tablemetadataId) {
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("CreateColumnMetadata", "TableMetadata", new { @area="Cms"})?tableMetadataId=' + tablemetadataId;
+        win.OpenWindow({ Title: 'Create Column', Width: 600, Height: 600 });
+        return false;
+
+    }
+    function OnEditColumn(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("EditColumnMetadata", "TableMetadata", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Column', Width: 450, Height: 800 });
+        return false;
+    }
+
+    function onBackTableMetadata() {
+    LoadPartailView('@Url.Action("Index", "TableMetadata", new { @area = "Cms" })', $('#page-content'));
+    }
+      function OnCreateNtsGroup() {
+
+             var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CreateNtsGroup", "NtsGroup", new { @area="Cms"})';
+          win.OpenWindow({ Title: 'Manage NtsGroup', Width: 450, Height: 900 });
+        return false;
+
+    }
+    function OnEditNtsGroup(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("EditNtsGroup", "NtsGroup", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage NtsGroup', Width: 450, Height: 1000 });
+        return false;
+    }
+      function OnCreateUserSet() {
+
+             var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Create", "UserSet", new { @area="Cms"})';
+          win.OpenWindow({ Title: 'Manage UserSet', Width: 600, Height: 600 });
+        return false;
+
+    }
+    function OnEditUserSet(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Edit", "UserSet", new { @area="Cms"})?Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage UserSet', Width: 450, Height: 800 });
+        return false;
+    }
+</script>
+

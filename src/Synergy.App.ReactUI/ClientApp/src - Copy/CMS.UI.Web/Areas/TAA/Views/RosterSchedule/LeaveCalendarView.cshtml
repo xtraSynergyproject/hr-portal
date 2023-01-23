@@ -1,0 +1,76 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.TAA.Controllers.RosterScheduleController> Resource
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+
+@{
+
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model UserHierarchyViewModel
+
+
+
+
+<style>
+    .k-scheduler-layout tbody tr:nth-child(1) .k-scheduler-table tbody tr:nth-child(2) {
+        display: none !important;
+    }
+
+    .k-scheduler-table tbody tr {
+        height: 30px !important;
+    }
+</style>
+<div style="padding:5px;">
+    @*@if (Model.Colleagues==null ||Model.Colleagues.Count<=0)
+        {
+            <span>The selected user does not have a team as per the hierarchy</span>
+        }*@
+
+    @(Html.Kendo().Scheduler<TeamLeaveRequestViewModel>()
+                    .Name("scheduler")
+                    .Date(DateTime.Now.Date)
+                    .StartTime(DateTime.Now.Date)
+                    .Height(700)
+                    .Views(views =>
+                    {
+
+                        views.TimelineMonthView(timeline => timeline.Editable(false).MinorTickCount(1).DateHeaderTemplateId("title").MajorTick(1440).ColumnWidth(50).ShowWorkHours(false).EventHeight(30).EventTemplateId("titleTemplate"));
+
+                    })
+                    .Group(group => { group.Resources("Colleagues").Orientation(SchedulerGroupOrientation.Vertical); })
+                    .Resources(resource =>
+                    {
+                        resource.Add(m => m.PersonId)
+                        .Title("Colleagues")
+                        .Name("Colleagues")
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        // .DataColorField("Color")
+                        .BindTo(Model.Colleagues);
+
+                    })
+                    .DataSource(d => d
+                    .Model(m =>
+                    {
+                        m.Id(f => f.Id);
+                        m.Field(f => f.Title).DefaultValue("No title");
+
+                    })
+                .Read("ReadLeaveCalendarView", "RosterSchedule", new { orgId = ViewBag.OrganizationId })
+
+                    )
+    )
+
+</div>
+
+<script type="text/x-kendo-tmpl" id="titleTemplate">
+    <div title="#:data.title#( #= kendo.toString(start, 'dd MMM yyyy') # - #= kendo.toString(end, 'dd MMM yyyy') #, #= LeaveStatus #)" class="#=LeaveStatusCode#" style="text-align:center;padding-top:5px;height:30px;border-radius:3px;"></div>
+</script>
+<script type="text/x-kendo-tmpl" id="title">
+    <div>#=kendo.toString(date,'dd')#</div>
+</script>
+<script type="text/x-kendo-tmpl" id="header">
+    <div>#=kendo.toString(date,'MMM')#</div>
+</script>

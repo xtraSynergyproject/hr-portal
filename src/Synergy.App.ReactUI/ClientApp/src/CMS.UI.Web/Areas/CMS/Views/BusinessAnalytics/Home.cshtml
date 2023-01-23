@@ -1,0 +1,566 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@model Synergy.App.ViewModel.DashboardMasterViewModel
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@{
+    ViewData["Title"] = "Home";
+    Layout = null;
+
+}
+<style>
+    #IIPPHQDail100 {
+        border-radius: 25px;
+    }
+
+    .k-listview {
+        border: none;
+    }
+
+    .k-listview-content {
+        overflow: unset;
+    }
+
+    .modal-content {
+        top: 100px;
+        right: 120px;
+        width: 800px;
+    }
+
+    .button-text {
+        margin-left: 5px;
+        font-size: 12px;
+    }
+
+    btn-primary {
+        background-color: #006bb4;
+        border-color: #006bb4;
+        color: #fff;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0060a2;
+        top: -2px;
+    }
+
+        .btn-primary:hover .button-text {
+            text-decoration: underline;
+        }
+
+    .text-wrap {
+        font-size: 12px;
+    }
+
+    #listview_AlertNotification::-webkit-scrollbar {
+        display: none;
+    }
+
+    #listview_Notification::-webkit-scrollbar {
+        display: none;
+    }
+
+    .control-section {
+        border: 1px solid rgba(0,0,0,.125);
+        padding: 3px;
+        border-radius: 28px;
+    }
+</style>
+<style>
+    #AlertModal {
+        font-family: 'Inter', sans-serif;
+    }
+
+
+    .img-style {
+        height: 75px;
+        width: 75px;
+        margin-top: 15px;
+    }
+
+    .notification-item {
+        /*padding: 10px;  */
+        margin-bottom: 5px !important;
+    }
+
+    .notification-heading {
+        padding: 0px !important;
+        border-left-style: solid;
+        border-left-width: 20px;
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+        border-radius: 10px !important;
+    }
+
+    .panel {
+        margin-top: 0px !important;
+        font-size: 12px;
+    }
+
+        .panel .panel-heading {
+            line-height: unset !important;
+        }
+
+            .panel .panel-heading i {
+                width: unset !important;
+                display: inline-block;
+                font-size: 14px;
+                border-right: none !important;
+                right: -25px;
+                position: absolute;
+                font-size: 17px;
+                color: black;
+            }
+
+    .panel-heading, .modal-header {
+        background: #fff;
+        color: #212529;
+    }
+</style>
+<style>
+    .semi-donut1 {
+        --percentage: 0;
+        --fill: #ff0;
+        width: 250px;
+        height: 94px;
+        position: relative;
+        color: #fff;
+        font-size: 18px;
+        font-weight: 600;
+        overflow: hidden;
+        color: var(--fill);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+
+        .semi-donut1:after {
+            content: '';
+            width: 250px;
+            height: 250px;
+            border: 30px solid;
+            border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.15) var(--fill) var(--fill);
+            position: absolute;
+            border-radius: 50%;
+            left: 0;
+            top: 0;
+            box-sizing: border-box;
+            transform: rotate( calc( 1deg * ( -60 + var(--percentage) * 1.8 ) ) );
+            animation: fillAnimation 1s ease-in;
+        }
+
+        .semi-donut1:hover {
+            opacity: 0.8;
+        }
+
+            .semi-donut1:hover:after {
+                opacity: 1;
+            }
+
+
+    /*===================Semi Donut Chart model-2========================*/
+
+    .semi-donut2 {
+        --percentage: 0;
+        --fill: #ff0;
+        width: 250px;
+        height: 94px;
+        position: relative;
+        color: #fff;
+        font-size: 18px;
+        font-weight: 600;
+        overflow: hidden;
+        color: var(--fill);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+
+        .semi-donut2:after {
+            content: '';
+            width: 250px;
+            height: 250px;
+            border: 30px solid;
+            border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.15) var(--fill) var(--fill);
+            position: absolute;
+            border-radius: 50%;
+            left: 0;
+            top: 0;
+            box-sizing: border-box;
+            transform: rotate( calc( 1deg * ( -60 + var(--percentage) * 1.8 ) ) );
+            animation: fillAnimation 1s ease-in;
+        }
+
+        .semi-donut2:hover {
+            opacity: 0.8;
+        }
+
+            .semi-donut2:hover:after {
+                opacity: 1;
+            }
+</style>
+<script>
+    $(document).ready(function () {
+       $("#listview_AlertNotification").data("kendoListView").dataSource.read();
+        $.ajax({
+            type: "GET",
+            url: "/Cms/BusinessAnalytics/GetChartDataByItemNameWithParams?itemName=IIPPHQ Dail100",
+            success: function (response) {
+                if (response != "" && response != null) {
+                    eval(response);
+                }
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });
+    });
+
+    
+    cubejsWsApi.subscribe(
+        {
+            measures: ["IipAlertData.count"],
+            dimensions: ["IipAlertData.queryTableId", "IipAlertData.summary", "IipAlertData.colorCode", "IipAlertData.NoteDescription", "IipAlertData.alertid"],
+            timeDimensions: [
+                {
+                    dimension: 'IipAlertData.alert_date',
+                    granularity: 'second',
+                    //dateRange: 'last 1440 minutes',
+                },
+            ],
+        },
+        ws_options,
+        (error, resultSet) => {
+            if (!error) {
+                //debugger;
+                // handle the update
+                var list = resultSet.loadResponses[0].data;
+                list.forEach(function (item,index) {
+                    if (document.getElementById(item["IipAlertData.alertid"]) == undefined || document.getElementById(item["IipAlertData.alertid"]) == null) {
+                        var str = "<div class='panel notification-item' id='#=Id#'><div class='panel-heading notification-heading row no-gutters'  style='border-width: 1px 1px 1px 10px; border-style: solid; border-color:#=colorCode# ; border-image: initial;'><div class='col-10 row p-1' style='padding: 5px; color: gray;'>    <div class='col-12 highlight' style='margin-left: 10px; margin-bottom: 5px;'>	<b> Summary : </b>#=summary#</div>    <div class='col-12' style='margin-left: 10px; margin-bottom: 5px;'><b>Description : </b>#=NoteDescription#</div>    <div class='col-12' style='margin-left: 10px; margin-bottom: 5px;'><b>Source : </b>Dail 100</div><div class='col-12' style='margin-left: 10px;'><b>Date &amp; Time : </b>#=alert_date#</div>  </div><div class='col-2  p-1'>    <span style='float: right; cursor: pointer;'>       <i class='fal fa-close' title='close' onclick='onClose(\"#=Id#\")'></i>    </span>    <button class='btn btn-primary shadow-sm' style='float: right; top: 50px; right: -25px; position: absolute;' onclick='viewDetails(\"#=Id#\")'><span class='fal fa-eye'></span></button></div></div></div>";
+                        str = str.replaceAll("#=Id#", item["IipAlertData.alertid"]);
+                        str = str.replaceAll("#=colorCode#", item["IipAlertData.colorCode"]);
+                        str = str.replaceAll("#=summary#", item["IipAlertData.summary"]);
+                        str = str.replaceAll("#=NoteDescription#", item["IipAlertData.NoteDescription"]);
+                        str = str.replaceAll("#=alert_date#", kendo.toString(kendo.parseDate(item["IipAlertData.alert_date"]), 'dddd, dd MMMM yyyy hh:mm tt'));
+                        $('.k-listview-content').prepend($.parseHTML(str));
+                    }
+                })
+            }
+            else { debugger;}
+        }
+    );
+        //var dataSource = new kendo.data.DataSource({
+        //    transport: {
+        //        read: {
+        //            url: "/Cms/BusinessAnalytics/ReadNotificationData",
+        //        }
+        //    },
+        //});
+
+        //$("#listview_Notification").kendoListView({
+        //    dataSource: dataSource,
+        //    tagName: "div",
+        //    template: kendo.template($("#templateYoutube").html())
+        //});
+    var dataSource1 = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: "/Cms/BusinessAnalytics/ReadIIPAlertData",
+            }
+        },
+    });
+
+    $("#listview_AlertNotification").kendoListView({
+        dataSource: dataSource1,
+        autoBind:false,
+        tagName: "div",
+        template: kendo.template($("#template_notification").html())
+    });
+    function viewDetails(id) {
+        debugger;
+        //document.getElementById(id).remove();
+        //e.parentElement.parentElement.parentElement.remove();
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("CCTV", "BusinessAnalytics", new { @area="Cms"})?id='+id;
+        win.OpenWindow({ Title: 'Details', Width: 1200, Height: 800 });
+        return false;
+    }
+
+    function onClose(id) {
+        debugger;
+        document.getElementById(id).remove();
+        //e.parentElement.parentElement.parentElement.remove();
+        //$('#AlertModal').modal('hide');
+    }
+    $(document).ready(function () {
+    //$('#AlertModal').modal({ backdrop: 'static', keyboard: false })
+    //$('#AlertModal').modal('toggle');
+    //$('#AlertModal').modal('show');
+
+    });
+     function OnOk() {
+            $.ajax({
+                url: '@Url.Action("PushCCTNSApiDataToElasticDB", "BusinessAnalytics", new { @area="Cms"})',
+                    type: 'GET',
+                    success: function (result) {
+
+
+                    },
+                    error: function (ert) {
+
+
+                    }
+                });
+        }
+</script>
+<div class="container-body">
+    @*<input type="button" class="btn btn-primary" name="test" value="View Details" onclick="viewDetails()" />
+        <input type="button" class="btn btn-primary" name="alert" value="Alert" onclick="myfunction()" />*@
+    @*<input type="button" class="btn btn-primary" name="ok" onclick="OnOk()" value="Ok" />*@
+    <br />
+    <div class="row">
+
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card" style="border-radius: 28px; padding: 15px; padding-left: 100px;">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <span style="font-weight:900;left: -70px;position: absolute;">OPEN</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="semi-donut1"
+                                     style="--percentage : 80; --fill: #FF3D00 ;">
+                                    <span id="count-open">180</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card" style="border-radius: 28px; padding: 15px; padding-left: 100px;">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <span style="font-weight:900;left: -70px;position: absolute;">CLOSE</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="semi-donut2" data-name="Close"
+                                     style="--percentage : 90; --fill: #039BE5 ;">
+                                    <span id="count-close">120</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*<div class="col-md-12">
+                        <div class="multi-graph margin">
+                            Incidents
+                            <div class="graph" data-name="Close"
+                                 style="--percentage : 90; --fill: #0669AD ;">
+                            </div>
+                            <div class="graph" data-name="Open"
+                                 style="--percentage : 80; --fill: #E62A39 ;">
+                            </div>
+                        </div>
+                    </div>*@
+                @*<div class="col-md-6">
+                        <div class="card" style="border-radius: 28px; padding: 15px; height: 100px;">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <span style="font-weight:900">Incidents</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6" style="top: 12px; left:5px;">
+                                    <span style="color:darkorange;font-weight:900;cursor:pointer"
+                                onclick="taskHomePage()">@ViewBag.InProgressCount
+                                392</span><br />
+                        <span>Open</span>
+                    </div>
+                    <div class="col-md-6" style="top: 12px">
+                        <span style="color:darkorange;font-weight:900;cursor:pointer"
+                                onclick="taskHomePage()">@ViewBag.InCompletedCount
+                                192</span><br />
+                                    <span>Close</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                <div class="col-md-6">
+                            <div class="card" style="border-radius: 28px; padding: 15px; height: 100px;">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <span style="font-weight:900">Calls Received</span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12" style="top: 12px; left: 25px;">
+                                        <span style="color:darkorange;font-weight:900">50</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>*@
+
+            </div>
+            <div class="row pad-t-15">
+                <div class="col-md-12">
+                    <div class="control-section">
+                        <div id="IIPPHQDail100"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="row" style="margin-bottom:5px">
+                <div class="col-md-12">
+                    <div class="card" style="border-radius: 28px; padding: 15px;min-height:640px">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6>Recents Alerts</h6>
+                                <hr />
+                                <div id="listview_AlertNotification" style="overflow-y: auto; max-height: 575px;"></div>
+                            </div>
+                            <div id="abc"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*<div class="row">
+                    <div class="col-md-12">
+                        <div class="card" style="border-radius: 28px; padding: 15px;min-height:260px">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h6>Recents Happenings</h6>
+                                    <hr />
+                                    <div id="listview_Notification" style="overflow-y: auto; max-height: 240px;"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+        </div>
+    </div>
+</div>
+
+
+<script type="text/x-kendo-tmpl" id="templateYoutube">
+    <div style="padding:2px">
+        <span class='e-list-item-header text-wrap'><b>#=Subject# </b></span>
+        <div class="text-wrap" >#=Body# </div>
+        </div>
+    </div>
+</script>
+@*<script type="text/x-kendo-tmpl" id="template_notification">
+    <div style="padding:2px">
+        <span class='e-list-item-header text-wrap'><b>#=Name# </b></span>
+        
+        </div>
+    </div>
+</script>*@
+<script type="text/x-kendo-tmpl" id="template_notification">
+    <div class="panel notification-item" id="#=alertid#">
+         <div class="panel-heading notification-heading row no-gutters" data-toggle="collapse" data-target="\\#Collapse_#=alertid#" style="border-width: 1px 1px 1px 10px; border-style: solid; border-color:#=colorCode# ; border-image: initial;">
+             <div class="col-10 row p-1" style="padding: 5px; color: gray;">
+                 <div class="col-12 highlight" style="margin-left: 10px; margin-bottom: 5px;">	<b> Summary : </b>#=summary#</div>
+                 <div class="col-12" style="margin-left: 10px; margin-bottom: 5px;"><b>Description : </b>#=NoteDescription#</div>
+                 <div class="col-12" style="margin-left: 10px; margin-bottom: 5px;"><b>Source : </b>Dail 100</div>
+                 @*<div class="col-12" style="margin-left: 10px;"><b>Source : </b>#=queryTableId#</div>*@
+                 <div class="col-12" style="margin-left: 10px;"><b>Date &amp; Time : </b>#=kendo.toString(kendo.parseDate(alert_date), 'dddd, dd MMMM yyyy hh:mm tt')#</div>
+             </div>
+             <div class="col-2  p-1">
+                 <span style="float: right; cursor: pointer;">
+                    <i class="fal fa-close" title="close" onclick="onClose('#=alertid#')"></i>
+                 </span>
+                 <button class="btn btn-primary shadow-sm" style="float: right; top: 50px; right: -25px; position: absolute;" onclick="viewDetails('#=alertid#')">
+                     <span class="fal fa-eye"></span>
+                     @*<span class="button-text">View Details</span>*@
+                 </button>
+             </div>
+         </div>
+         @*<div id="Collapse_#=IncidentNumber#" class="panel-collapse collapse">
+             <div class="panel-body p-2">
+                <p>#=Remark#</p>
+             </div>
+        </div>*@
+     </div>
+
+</script>
+<!-- Modal -->
+<!--<div id="AlertModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+<!--<div class="modal-content">
+    <div class="modal-header">
+        <h4 class="modal-title">Alert</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body" id="alert-body" style="overflow-y:auto;height:500px;">
+        <div id="listview_AlertNotification"></div>
+    </div>-->
+<!--<div class="modal-footer">
+    <button type="button" class="btn btn-primary" onclick="viewDetails()">View Details</button>-->
+
+<!--@* <button type="button" class="btn btn-default" data-dismiss="modal" onclick="MarkAlerted()">Ok</button>*@-->
+<!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+</div>-->
+<!--</div>
+
+    </div>
+</div>-->
+@*<script>
+        @{
+            string webApiUrl = ApplicationConstant.AppSettings.WebApiUrl(Configuration);
+            string url = webApiUrl + "signalr";
+         }
+
+
+            var connection = new signalR.HubConnectionBuilder()
+                //.withUrl('http://localhost:52922/signalr')
+                .withUrl('@url')
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+            connection.on("progress",
+                (json) => {
+                    debugger;
+                    var list = JSON.parse(json);
+                    if (list.length > $("#listview_AlertNotification").data("kendoListView").dataSource.total()) {
+                        var modal = $('#AlertModal').hasClass('show');
+                        if (!modal) {
+                            $('#AlertModal').modal({ backdrop: 'static', keyboard: false })
+                            $('#AlertModal').modal('toggle');
+                            $('#AlertModal').modal('show');
+                            $("#listview_AlertNotification").data("kendoListView").dataSource.read();
+                        }
+                        else {
+                            $("#listview_AlertNotification").data("kendoListView").dataSource.read();
+                        }
+                    }
+
+                });
+            connection.onclose(() => setTimeout(startSignalRConnection(connection), 5000));
+            connection.start()
+                .then(_ => connection.invoke("PrintJob", "123"))
+            .catch(err => console.log(err.toString()));
+
+
+        const startSignalRConnection = connection => connection.start()
+            .then(() => console.info('Websocket Connection Established'))
+            .catch(err => console.error('SignalR Connection Error: ', err));
+
+       
+    </script>*@
+
+

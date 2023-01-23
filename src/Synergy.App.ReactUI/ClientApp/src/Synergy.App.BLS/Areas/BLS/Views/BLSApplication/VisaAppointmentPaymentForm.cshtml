@@ -1,0 +1,360 @@
+﻿@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model BLSVisaAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Visa Appointment Form";
+    Layout = null;
+}
+
+<script>
+    $(function () {
+        debugger;
+        var applicantNo = parseInt(@Model.ApplicantsNo);
+
+        for (var i = 0; i < @ViewBag.ValueAddedServices.Count; i++)
+        {
+            debugger;
+            var charge = $("#charges" + i).html();            
+            var flag = applicantNo * parseInt(charge);
+            $("#value"+i).html(flag);
+            $("#vasvalue"+i).html(flag);
+        }
+
+        var visaFee = applicantNo * @ViewBag.VisaFee;
+        $("#visafee").html(visaFee);
+        
+
+
+    });
+    function getRow(n) {
+        debugger;
+        var row = n.parentNode.parentNode;
+        var cols = row.getElementsByTagName("td");
+        var x = cols[4].textContent;
+        var y = $("#totalCharges").html();        
+        if (n.checked) {
+            var z = parseInt(x) + parseInt(y);
+            $("#totalCharges").html(z);
+            $("#totalvasCharges").html(z);
+        }
+        else {
+            var z = parseInt(y) - parseInt(x);
+            $("#totalCharges").html(z);
+            $("#totalvasCharges").html(z);
+            $('#VAS' + n.id).prop('checked', false);
+            $('#VAS' + n.id).prop('disabled', false);
+        }
+    }
+
+    function getVASRow(n) {
+        debugger;
+        var row = n.parentNode.parentNode;
+        var cols = row.getElementsByTagName("td");
+        var x = cols[4].textContent;
+        var y = $("#totalCharges").html(); 
+
+        const chkId = n.id.substring(3);
+        if (n.checked) {
+            var z = parseInt(x) + parseInt(y);
+            $("#totalCharges").html(z);
+            $("#totalvasCharges").html(z);
+            $('#' + chkId).prop('checked', true);
+        }
+        else {
+            var z = parseInt(y) - parseInt(x);
+            $("#totalCharges").html(z);
+            $("#totalvasCharges").html(z);
+            $('#' + chkId).prop('checked', false);
+        }
+    }
+
+    function onFeeSubmit() {
+        debugger;
+        var totalFee = $("#totalCharges").html();
+        var selected = [];
+        $('#paymentDetails input:checked').each(function () {
+            var cb = $(this);
+            if (cb.is(':enabled')) {
+                selected.push($(this).attr('value'));
+            }            
+        });
+        var selVAS = selected.join(',');
+            $('#vasModal').modal('hide');
+            ShowLoader($("#cms-content"));
+            $.ajax({
+                type: "POST",
+                url: "/BLS/BLSApplication/TotalFeeUpdate?id=@Model.Id&serviceId=@Model.ServiceId&totalAmount=" + totalFee + "&selVAS=" + selVAS,
+                success: function (data) {
+                    debugger;
+                    HideLoader($("#cms-content"));
+                    var el2 = document.querySelector('[data-target="#test-l-4"]');
+                    el2.classList.remove("active");
+                    el2.classList.add("success");
+
+                    ShowNotification("Service Completed", "success");
+                    OnPaymentClick();
+                },
+                error: function (err) {
+                    HideLoader($("#cms-content"));
+                }
+            });
+
+        @*if (totalFee > 0) {
+            OnPaymentClick();
+        }
+        else {
+            ShowLoader($("#cms-content"));
+        $.ajax({
+            type: "POST",
+            url: "/BLS/BLSApplication/TotalFeeUpdate?totalFee=" + totalFee + "&id=@Model.Id&serviceId=@Model.ServiceId",
+            success: function (data) {
+                debugger;
+                HideLoader($("#cms-content"));
+                ShowNotification("Saved Successfull", "success");
+            },
+            error: function (err) {
+                HideLoader($("#cms-content"));
+            }
+            });
+        }*@
+
+    }
+
+    function OnPayment(id, tableId, amount,assigneeUserId) {
+
+        ShowLoader($('#container'));
+        var returnUrl = "/Portal/BLSCustomer/AppointmentReceipt";
+        $.ajax({
+            type: "POST",
+            url: "/BLS/BLSApplication/OnlinePayment",
+            data: { 'ntsId': id, 'noteTableId': tableId, 'amount': amount, 'ntsType': '@NtsTypeEnum.Service', 'assigneeUserId': assigneeUserId, 'returnUrl': returnUrl },
+            success: function (res) {
+
+                if (res.success) {
+                    if (res.requestURL === null || res.requestURL === '' || res.requestURL === undefined) {
+                        HideLoader($('#container'));
+                        alert('Payment gateway not found');
+                        return false;
+                    }
+                    else {
+                        window.top.location.href = res.requestURL;
+                    }
+                } else {
+                    ShowNotification(res.error, "error");
+                    HideLoader($('#container'));
+                }
+            },
+            dataType: "json",
+        });
+    }
+
+    var gId, gTableId, gAmount, gAssigneeUserId;
+    function OnPaymentClick() {
+        gId = "@Model.ServiceId";
+        gTableId = "@Model.Id";
+        gAmount = $("#totalCharges").html();
+        gAssigneeUserId = "@Model.OwnerUserId";
+        $('#payConfirmModal').modal('show');
+    }
+
+    function OnPaymentConfirm() {
+        $('.payment-body').html('Please wait while we are redirecting to payment gateway...');
+        document.getElementById("payConfirm").disabled = true;
+        document.getElementById("payCancel").disabled = true;
+         OnPayment(gId, gTableId, gAmount, gAssigneeUserId);
+         return false;
+    }
+
+    function OnVASConfirmation() {
+        debugger;
+        var selected = [];
+        $('#paymentDetails input:checked').each(function () {
+            selected.push($(this).attr('id'));
+        });
+
+        for (var i = 2; i < selected.length; i++) {
+            $('#VAS' + selected[i]).prop('checked', true);
+            $('#VAS' + selected[i]).prop('disabled', true);
+        }
+        $('#vasModal').modal('show');
+    }
+
+</script>
+
+<div class="table-responsive">
+    <table class="table" id="paymentDetails">
+        <thead>
+            <tr>
+                <th></th>
+                <th> Items </th>
+                <th> Amount </th>
+                <th> No of Items </th>
+                <th> Total Amount </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="align-middle col-checker">
+                    <input type="checkbox" onclick="getRow(this)" checked disabled />
+                </td>
+                <td class="align-middle"> Applicant Fee </td>
+                <td class="align-middle"> @ViewBag.ApplicationFee </td>
+                <td class="align-middle"> 1 </td>
+                <td class="align-middle"> @ViewBag.ApplicationFee </td>
+            </tr>
+            <tr>
+                <td class="align-middle col-checker">
+                    <input type="checkbox" onclick="getRow(this)" checked disabled />
+                </td>
+                <td class="align-middle"> Visa Fee </td>
+                <td class="align-middle"> @ViewBag.VisaFee </td>
+                <td class="align-middle"> @Model.ApplicantsNo </td>
+                <td class="align-middle" id="visafee"></td>
+            </tr>
+            @for (var i = 0; i < ViewBag.ValueAddedServices.Count; i++)
+            {
+                <tr>
+                    <td class="align-middle col-checker">
+                        @if (ViewBag.ValueAddedServices[i].IsSelected)
+                        {
+                        <input type="checkbox" class="VAS" onclick="getRow(this)" id="Checkbox@(i)" name="@ViewBag.ValueAddedServices[i].ServiceType" value="@ViewBag.ValueAddedServices[i].Id" checked disabled />
+                        }
+                        else
+                        {
+                        <input type="checkbox" class="VAS" onclick="getRow(this)" id="Checkbox@(i)" name="@ViewBag.ValueAddedServices[i].ServiceType" value="@ViewBag.ValueAddedServices[i].Id" />
+                        }
+                        
+                    </td>
+                    <td class="align-middle"> @ViewBag.ValueAddedServices[i].ServiceType </td>
+                    <td class="align-middle" id="charges@(i)"> @ViewBag.ValueAddedServices[i].ServiceCharges </td>
+                    <td class="align-middle"> @Model.ApplicantsNo </td>
+                    <td class="align-middle" id="value@(i)"></td>
+                </tr>
+             }
+            </tbody>
+        </table>
+    <hr />
+    <div class="p-2" style="display:flex; justify-content:right;">
+        <div>
+            <span class="text-dark">Total Fee Charges :</span>
+            <span id="totalCharges">@Model.TotalAmount</span>
+        </div>
+
+    </div>
+    <div class="p-2" style="display:flex; justify-content:right;">
+        @*<button class="btn btn-success" onclick="onFeeSubmit()">Submit</button>*@
+        <button class="btn btn-success" onclick="OnVASConfirmation()">Submit</button>
+        
+    </div>
+</div>
+
+
+<div class="modal fade" id="payConfirmModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="exampleModalLabel">Ready To Pay?</h6>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body payment-body">Are you sure you want to proceed to payment gateway to pay the amount?</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" id="payCancel" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="payConfirm" onclick="return OnPaymentConfirm();">Proceed To Pay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="vasModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="exampleModalLabel">Value Added Services</h6>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body payment-body">                
+                <p>Please confirm selected Value Added Services below</p>
+                <table class="table" id="vasDetails" style="width: 100%">
+                    <colgroup>
+                        <col span="1" style="width: 5%;">
+                        <col span="1" style="width: 50%;">
+                        <col span="1" style="width: 15%;">
+                        <col span="1" style="width: 15%;">
+                        <col span="1" style="width: 15%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th> Items </th>
+                            <th> Amount </th>
+                            <th> No of Items </th>
+                            <th> Total Amount </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @*<tr>
+                    <td class="align-middle col-checker">
+                        <input type="checkbox" onclick="getRow(this)" checked disabled />
+                    </td>
+                    <td class="align-middle"> Applicant Fee </td>
+                    <td class="align-middle"> @ViewBag.ApplicationFee </td>
+                    <td class="align-middle"> 1 </td>
+                    <td class="align-middle"> @ViewBag.ApplicationFee </td>
+                </tr>
+                <tr>
+                    <td class="align-middle col-checker">
+                        <input type="checkbox" onclick="getRow(this)" checked disabled />
+                    </td>
+                    <td class="align-middle"> Visa Fee </td>
+                    <td class="align-middle"> @ViewBag.VisaFee </td>
+                    <td class="align-middle"> @Model.ApplicantsNo </td>
+                    <td class="align-middle" id="visafee"></td>
+                </tr>*@
+                        @for (var i = 0; i < ViewBag.ValueAddedServices.Count; i++)
+                        {
+                            <tr>
+                                <td class="align-middle col-checker">
+                                    @*@if (ViewBag.ValueAddedServices[i].IsSelected)
+                            {
+                                <input type="checkbox" onclick="getRow(this)" id="VASCheckbox@(i)" checked disabled />
+                            }
+                            else
+                            {
+                                <input type="checkbox" onclick="getRow(this)" id="VASCheckbox@(i)" />
+                            }*@
+
+                                    <input type="checkbox" onclick="getVASRow(this)" id="VASCheckbox@(i)" value="@ViewBag.ValueAddedServices[i].ServiceType" />
+                                </td>
+                                <td class="align-middle"> @ViewBag.ValueAddedServices[i].ServiceType<br /><small style="color:grey;">@ViewBag.ValueAddedServices[i].VASDescription</small> </td>
+                                <td class="align-middle" id="vascharges@(i)"> @ViewBag.ValueAddedServices[i].ServiceCharges </td>
+                                <td class="align-middle"> @Model.ApplicantsNo </td>
+                                <td class="align-middle" id="vasvalue@(i)"></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <hr />
+                <div class="p-2" style="display:flex; justify-content:right;">
+                    <div>
+                        <span class="text-dark">Total Fee Charges :</span>
+                        <span id="totalvasCharges">@Model.TotalAmount</span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" id="vasCancel" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="vasConfirm" onclick="return onFeeSubmit();">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>

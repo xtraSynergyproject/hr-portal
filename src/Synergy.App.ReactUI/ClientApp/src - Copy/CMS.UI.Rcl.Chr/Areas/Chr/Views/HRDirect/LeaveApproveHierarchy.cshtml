@@ -1,0 +1,222 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRDirectController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+
+@model UserHierarchyViewModel
+@{
+    /**/
+
+    ViewBag.Title = @Resource["ApprovalHierarchy"];
+    // Layout = "~/Views/Shared/_LayoutPopup.cshtml";
+    Layout = null;
+}
+<style>
+    .rowChange {
+        /*padding: 6px;
+        border: 1px;
+        border-style: solid;
+        border-color: #bfbfbf;
+        text-align: left;
+        width:5px;*/
+        width: 200px;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $("#HierarchyId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            change: OnHierarchyChange,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/CMS/UserHierarchy/GetIdNameListByType?hierarchyTypeCode=User",
+                    }
+                }
+            }
+        });
+    });
+
+
+    function OnHierarchyChange() {
+        var hchyId = $("#HierarchyId").val();
+
+        //var url = "/chr/hrdirect/LeaveApproveHierarchy?hierarchyId=" + hchyId;
+        var portalId = $('#GlobalPortalId').val();
+        $("#manageperson-div").hide();
+        $("#inbox-content-div").show();
+        LoadPartailView('@Url.Action("LeaveApproveHierarchy", "HRDirect", new { @area = "CHR" })?hierarchyId=' + hchyId+'&portalId=' + portalId, $('#inbox-content-div'));
+
+        //window.location.href = url;
+        @*if ('@ViewBag.Layout'== '') {
+            var tabStrip = $("#tabstripTemplate1").kendoTabStrip().data("kendoTabStrip");
+            $(".k-link:contains('Approval Hierarchy')").data('contentUrl', '/Hrs/UserHierarchy/Index?userId=@Model.UserId&hierarchyId=' + hierarchyId + '&layoutMode=Iframe');
+            tabStrip.reload("li:eq(2)");
+        }
+        else {
+            window.location.href = url;
+        }*@
+    }
+</script>
+<div id="appWrapper">
+    <div class="row no-gutter hr-pad-top-15">
+        <div class="col-lg-2 label-div">
+            @*<span class="required">*</span>*@
+            @*@Html.LabelFor(m => m.HierarchyId, new { @class = "control-label" })*@
+            @Resource["Hierarchy"]
+        </div>
+        <div class="col-lg-10">
+            @*@(Html.Kendo().DropDownListFor(x => x.HierarchyId)
+                        .OptionLabel("Select")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("GetIdNameListByType", "UserHierarchy", new {@area="CMS", hierarchyTypeCode = "User" });
+                            });
+                        })                        
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .Filter(FilterType.Contains)
+                        .AutoBind(true)
+                        .Events(e => e.Change("OnHierarchyChange"))
+                        .HtmlAttributes(new { @class = "hr-xx-large" })
+                        )*@
+
+            <input asp-for="HierarchyId" id="HierarchyId" class = "hr-xx-large"/>
+
+        </div>
+    </div>
+
+</div>
+<br />
+<section class="about">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+
+            <b>@Resource["ApprovalHierarchy"]</b>
+
+        </div>
+
+        <table class="table table-striped table-bordered">
+
+            <tr>
+                <td class="rowChange">@Resource["HierarchyAdmin"]</td>
+                <td class="rowChange"><span class="badge">@Model.AdminUserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level1Name, @Resource[": Option1"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level1ApproverOption1UserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level1Name, @Resource[": Option2"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level1ApproverOption2UserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level1Name, @Resource[": Option3"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level1ApproverOption3UserName</span></td>
+            </tr>
+
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level2Name, @Resource[": Option1"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level2ApproverOption1UserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level2Name, @Resource[": Option2"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level2ApproverOption2UserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level2Name, @Resource[": Option3"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level2ApproverOption3UserName</span></td>
+            </tr>
+
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level3Name, @Resource[": Option1"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level3ApproverOption1UserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level3Name, @Resource[": Option2"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level3ApproverOption2UserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level3Name, @Resource[": Option3"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level3ApproverOption3UserName</span></td>
+            </tr>
+
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level4Name, @Resource[": Option1"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level4ApproverOption1UserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level4Name, @Resource[": Option2"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level4ApproverOption2UserName</span></td>
+            </tr>
+            <tr>
+                <td class="rowChange">@string.Concat(Model.Level4Name, @Resource[": Option3"])</td>
+                <td class="rowChange"><span class="badge">@Model.Level4ApproverOption3UserName</span></td>
+            </tr>
+
+            @if (Model.Level5Name.IsNotNullAndNotEmpty())
+            {
+                <tr>
+                    <td class="rowChange">@string.Concat(Model.Level5Name, @Resource[": Option1"])</td>
+                    <td class="rowChange"><span class="badge">@Model.Level5ApproverOption1UserName</span></td>
+                </tr>
+                <tr>
+                    <td class="rowChange">@string.Concat(Model.Level5Name, @Resource[": Option2"])</td>
+                    <td class="rowChange"><span class="badge">@Model.Level5ApproverOption2UserName</span></td>
+                </tr>
+                <tr>
+                    <td class="rowChange">@string.Concat(Model.Level5Name, @Resource[": Option3"])</td>
+                    <td class="rowChange"><span class="badge">@Model.Level5ApproverOption3UserName</span></td>
+                </tr>
+            }
+        </table>
+
+
+
+
+
+        @*<ul class="list-group">
+                <li class="list-group-item">Hierarchy Admin<span  class="badge rowChange">@Model.AdminUserName</span></li>
+                @if (Model.Level1Name.IsNotNullAndNotEmpty())
+                {
+                    <li class="list-group-item">@string.Concat(Model.Level1Name, ": Option 1")<span class="badge badge-info">@Model.Level1ApproverOption1UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level1Name, ": Option 2")<span  class="badge rowChange">@Model.Level1ApproverOption2UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level1Name, ": Option 3")<span  class="badge rowChange">@Model.Level1ApproverOption3UserName</span></li>
+                }
+                @if (Model.Level2Name.IsNotNullAndNotEmpty())
+                {
+                    <li class="list-group-item">@string.Concat(Model.Level2Name, ": Option 1")<span  class="badge rowChange">@Model.Level2ApproverOption1UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level2Name, ": Option 2")<span  class="badge rowChange">@Model.Level2ApproverOption2UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level2Name, ": Option 3")<span  class="badge rowChange">@Model.Level2ApproverOption3UserName</span></li>
+                }
+                @if (Model.Level3Name.IsNotNullAndNotEmpty())
+                {
+                    <li class="list-group-item">@string.Concat(Model.Level3Name, ": Option 1")<span  class="badge rowChange">@Model.Level3ApproverOption1UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level3Name, ": Option 2")<span  class="badge rowChange">@Model.Level3ApproverOption2UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level3Name, ": Option 3")<span  class="badge rowChange">@Model.Level3ApproverOption3UserName</span></li>
+                }
+                @if (Model.Level4Name.IsNotNullAndNotEmpty())
+                {
+                    <li class="list-group-item">@string.Concat(Model.Level4Name, ": Option 1")<span  class="badge rowChange">@Model.Level4ApproverOption1UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level4Name, ": Option 2")<span  class="badge rowChange">@Model.Level4ApproverOption2UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level4Name, ": Option 3")<span  class="badge rowChange">@Model.Level4ApproverOption3UserName</span></li>
+                }
+                @if (Model.Level5Name.IsNotNullAndNotEmpty())
+                {
+                    <li class="list-group-item">@string.Concat(Model.Level5Name, ": Option 1") <span  class="badge rowChange">@Model.Level5ApproverOption1UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level5Name, ": Option 2") <span  class="badge rowChange">@Model.Level5ApproverOption2UserName</span></li>
+                    <li class="list-group-item">@string.Concat(Model.Level5Name, ": Option 3") <span  class="badge rowChange">@Model.Level5ApproverOption3UserName</span></li>
+                }
+            </ul>*@
+    </div>
+
+</section>

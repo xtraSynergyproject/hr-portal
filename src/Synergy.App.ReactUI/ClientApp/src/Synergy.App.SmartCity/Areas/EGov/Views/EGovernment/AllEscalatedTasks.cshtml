@@ -1,0 +1,350 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model StepTaskEscalationDataViewModel
+
+@{
+    ViewData["Title"] = "AllEscalatedTasks";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+<style>
+    #body-row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    #sidebar-container {
+        min-height: 100vh;
+        background-color: rgb(216 228 251);
+        padding: 0;
+    }
+
+    /* Sidebar sizes when expanded and expanded */
+    .sidebar-expanded {
+        width: 270px;
+    }
+
+    .sidebar-collapsed {
+        width: 30px;
+    }
+
+    /* Menu item*/
+    #sidebar-container .list-group a {
+        height: 50px;
+        color: white;
+    }
+
+    /* Submenu item*/
+    #sidebar-container .list-group .sidebar-submenu a {
+        height: 45px;
+        padding-left: 30px;
+    }
+
+    .sidebar-submenu {
+        font-size: 0.9rem;
+    }
+
+    /* Separators */
+    .sidebar-separator-title {
+        background-color: #333;
+        height: 35px;
+    }
+
+    .sidebar-separator {
+        background-color: #333;
+        height: 25px;
+    }
+
+    .logo-separator {
+        background-color: #333;
+        height: 60px;
+    }
+
+    /* Closed submenu icon */
+    #sidebar-container .list-group .list-group-item[aria-expanded="false"] .submenu-icon::after {
+        content: " \f0d7";
+        font-family: FontAwesome;
+        display: inline;
+        text-align: right;
+        padding-left: 10px;
+    }
+    /* Opened submenu icon */
+    #sidebar-container .list-group .list-group-item[aria-expanded="true"] .submenu-icon::after {
+        content: " \f0da";
+        font-family: FontAwesome;
+        display: inline;
+        text-align: right;
+        padding-left: 10px;
+    }
+</style>
+<style>
+    .jstree-default .jstree-open > .jstree-ocl:before {
+        content: none !important;
+        color: #fff;
+    }
+    /*.jstree-default .jstree-leaf > .jstree-ocl {
+         background-position: 0px 0px;
+    }*/
+    /*.list-group-messages .list-group-item {
+         padding-top: 0rem !important;
+         padding-bottom: 0rem !important;
+    }*/
+    .required {
+        color: red;
+    }
+
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 84.5vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+
+
+
+
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+
+
+    .cell-overdue {
+        background-color: #ffc107;
+        color: #fff;
+    }
+
+    .Completed {
+        background-color: #13b713;
+        color: #fff;
+    }
+    .cell-completed {
+        background-color: #13b713;
+    }
+
+    .cell-pending {
+        background-color: #007bff;
+    }
+
+    .cell-reject{
+        background-color: red;
+    }
+    .group-item-title {
+        font-size: 14px !important;
+    }
+    /*Portal End*/
+</style>
+
+<script>
+    $(document).ready(function () {
+
+
+        var url1 = "/EGov/EGovernment/GetAllEscalatedTasks?portalIds='@ViewBag.PortalIds'";
+
+        inboxGrid(url1);
+
+    });
+
+
+
+   function OpenService(id, templateCode,tid,ttype) {
+
+        var portalId =  $("#GlobalPortalId").val();
+       var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + id + '&targetId=' + tid + '&targetType=' + ttype;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View', Width: 1200, Height: 700 });
+        return false;
+    }
+
+
+
+
+    function inboxGrid(url) {
+
+        var source ={
+            datatype: "json",
+            id: 'TargetId',
+            url: url
+        };
+        var dataAdapter = new $.jqx.dataAdapter(source);
+        $("#allEscaltedgrid").jqxGrid(
+            {
+                width: '100%',
+                height:'600px',
+                source: dataAdapter,
+                columnsresize: true,
+                showcolumnlines: false,
+                showcolumnheaderlines: false,
+                filterable: true,
+                sortable: true,
+                groupable: true,
+                columns: [
+                    { datafield: "TemplateName", text: "Name", width: "280px" },
+                    { datafield: "CategoryName", text: "Category", width: "280px" },
+                        {
+                           datafield: "ServiceNo", text: "ServiceNo", width: "150px",
+                            cellsrenderer: function (row, column, value) {
+                                var datarow = $("#allEscaltedgrid").jqxGrid('getrowdata', row);
+                                return "<div class='p-2'><a href=\"javascript:OpenService('" + datarow.NtsServiceId + "','" + datarow.TemplateCode + "')\">" + value + "</a></div>";
+                            }
+                    },
+                    { datafield: "ServiceName", text: "Service Name", width: "280px" },
+                    { datafield: "RequestedBy", text: "Requested By", width: "280px" },
+                    {
+                        datafield: "ServiceStatus", text: "Service Status", width: "200px", cellclassname: function (row, columnfield, value) {
+                            if (value == "Completed") {
+                                return "cell-completed text-light";
+                            } else if (value == "In Progress") {
+                                return "cell-pending text-light";
+                            } else if (value == "Overdue") {
+                                return "cell-overdue text-light";
+                            }
+                            else if (value == "Rejected") {
+                                return "cell-reject text-light";
+                            }
+                        },
+                        cellsrenderer: function (row, column, value) {
+                            return "<div class='p-2'>" + value + "</div>";
+                        }
+
+                    },
+                     {
+                         datafield: "ServiceCreatedDate",
+            text: "Service Created Date", width:"200px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+        },
+                    {
+                       datafield: "TaskNo", text: "TaskNo", width: "150px",
+                        cellsrenderer: function (row, column, value) {
+                            var datarow = $("#allEscaltedgrid").jqxGrid('getrowdata', row);
+                            return "<div class='p-2'><a href=\"javascript:OpenService('" + datarow.TaskId + "','" + datarow.TaskTemplateCode +  "')\">" + value + "</a></div>";
+                        }
+                    },
+                    { datafield: "TaskSubject", text: "Task Subject", width: "280px" },
+                    { datafield: "TaskAssignee", text: "Task Assignee", width: "280px" },
+
+        {
+             datafield: "TaskStatus", text: "Task Status", width: "200px", cellclassname: function (row, columnfield, value) {
+                if (value == "Completed") {
+                    return "cell-completed text-light";
+                } else if (value == "In Progress") {
+                    return "cell-pending text-light";
+                } else if (value == "Overdue") {
+                    return "cell-overdue text-light";
+                }
+                else if (value == "Rejected") {
+                    return "cell-reject text-light";
+                }
+            },
+            cellsrenderer: function (row, column, value) {
+                return "<div class='p-2'>" + value+"</div>";
+                            }
+
+        },
+        {
+           datafield: "StartDate",
+            text: "Task Start Date", width:"200px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+        },
+        {
+             datafield: "DueDate",
+            text: "Task Due Date", width:"200px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+                    },
+         {
+              datafield: "EscalatedDate",
+             text: "Escalated Date", width:"200px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+                    },
+                    { datafield: "EscalatedToUserName", text: "Escalated To User", width: "280px" },
+                    { datafield: "EscalationComment", text: "Escalation Comment", width: "280px" },
+
+                ]
+            }
+        );
+    }
+
+    function onExport()
+            {
+        location.href = "@Url.Action("ExportAllEscalatedTasks", "EGovernment", new { @area= "EGov" })?portalIds='@ViewBag.PortalIds'";
+            }
+
+</script>
+
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="page-section">
+                <div class="row no-gutters p-2">
+                    <div class="col-12">
+                        <br />
+                        <h4 style="font-weight:bold"> All Escalated Tasks</h4>
+                    </div>
+                    <div class="col-12">
+                        <button type="button" class="btn btn-dark" style="float:right" onclick="javascript:onExport();">
+                            Export
+                        </button>
+                    </div>
+                    <br />
+                    <div class="col-12">
+                        <br />
+ 
+                        <div id="allEscaltedgrid">
+                        </div>
+                    </div>
+                </div>
+             </div>
+        </div>
+    </div>
+</div>
+
+
+
+                        <div id="overlay" class=""></div>
+
+

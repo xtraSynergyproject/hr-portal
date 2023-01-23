@@ -1,0 +1,142 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+
+
+@model ApplicationStateCommentViewModel;
+
+@{
+    ViewBag.Title = "";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    .required {
+        display: contents;
+    }
+    .k-grid {
+        border-color: #2d9fca;
+    }
+
+    .k-grid-header .k-header {
+        color: #2d9fca;
+        font-weight: 700;
+    }
+
+    .k-pager-wrap .k-link.k-state-disabled {
+        border-radius: 40px;
+        margin-left: 5px;
+    }
+
+    .k-pager-numbers .k-state-selected {
+        border-radius: 40px;
+        margin-left: 5px;
+    }
+
+    .k-pager-wrap .k-pager-refresh {
+        border-color: transparent;
+        background-color: #f8f9fa;
+        color: black;
+    }
+
+    .k-grid td {
+        /*border-color: #2d9fca;*/
+        border-color: transparent;
+    }
+
+    .k-grid-pager {
+        border-color: #2d9fca;
+    }
+
+    .k-grid thead {
+        background-color: transparent;
+    }
+
+    /*.k-grid td:first-child {
+        text-align: center;
+    }*/
+    span {
+        padding: 0px !important;
+    }
+</style>
+
+<div class="container">
+    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+    <div class="row">
+        @if(ViewBag.type != "view" || ViewBag.type ==null) 
+        {
+        <div class="col-10 pad-10">
+            <div class="row">
+                <label for="Comment">Comment<span class="required">*</span></label>
+                <textarea asp-for="Comment" class="form-control" required="required" autocomplete="off" style="width:80%"></textarea>
+            </div>
+          
+        </div>
+        <div class="col-1 pad-10">
+            <button onclick="AddApplicationStateComment();" class="btn-success">Add Comment</button>
+        </div>
+        }
+    </div>
+    <div>
+        @(Html.Kendo().Grid<ApplicationStateCommentViewModel>
+    ().Name("kgrdStateComment")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Comment).Title("Comment").Width(150);
+        columns.Bound(p => p.CommentedBy).Title("Commented By").Width(150);
+        columns.Bound(p => p.CreatedDate).Title("Commented Date").Width(150).Format("{0:MM/dd/yyyy}");
+    })
+    .Sortable()
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("ReadApplicationStateComment", "CandidateShortlist",new { appId=Model.ApplicationId,appStateId=Model.ApplicationStateId}))
+    .Model(model => model.Id(p => p.Id))
+    )
+    )
+    </div>
+    @Html.HiddenFor(x => x.ApplicationId)
+    @Html.HiddenFor(x => x.ApplicationStateId)
+</div>
+
+<script type="text/javascript">
+    function AddApplicationStateComment()
+    {
+        if ($("#Comment").val() != "") {
+            $.ajax({
+                url: '@Url.Action("ManageApplicationStateComment", "CandidateShortList", new { @area="Recruitment"})?Comment=' + $("#Comment").val() + "&appId=" + $("#ApplicationId").val() + "&appStateId=" + $("#ApplicationStateId").val(),
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    
+                    if (result.success) {
+                        $("#kgrdStateComment").data("kendoGrid").dataSource.read();
+                    }
+                    $("#Comment").val('');
+                },
+                error: function (ert) {
+                    $("#kgrdStateComment").data("kendoGrid").dataSource.read();
+                }
+            });
+        }
+        else
+        {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Comment is required");
+            return false;
+        }
+    }
+</script>

@@ -1,0 +1,423 @@
+﻿@inject IStringLocalizer<Synergy.App.WebUtility.Resources.Areas.Csc.Controllers.CommonServiceController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using System.Web;
+@model IList<ServiceChargeViewModel>
+@{
+    ViewBag.Title = "Service Charge Details";
+    Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@inject IUserContext usercontext;
+
+
+    <style>
+        .dropdown-toggle::after {
+            content: none;
+        }
+
+        .iconwothtext {
+            display: flex;
+            cursor: pointer;
+            align-items: center;
+        }
+
+        .leftmenustyle {
+            font-size: 14px;
+            color: #4b4f56;
+            margin-bottom: 6px;
+            font-weight: normal;
+            margin-top: 6px;
+            padding-left: 5px;
+            border-bottom: 1px medium rgba(255, 255, 255, .5);
+        }
+
+        .col-1 {
+            flex: none !important;
+        }
+        /* The hero image */
+        .head-image {
+            object-fit: fill;
+        }
+
+        /* Place text in the middle of the image */
+        .head-text {
+            text-align: left;
+            position: absolute;
+            top: 28%;
+            color: white;
+        }
+
+        .head-img {
+            max-width: 100%;
+            max-height: 149px;
+            width: 100%;
+            object-fit: none;
+        }
+
+        .main {
+            margin-top: 1%;
+            text-align: right;
+        }
+
+        /* Bootstrap 4 text input with search icon */
+
+        .has-search .form-control {
+            padding-left: 2.375rem;
+            /*width: 100%;*/
+        }
+
+        .form-group {
+            width: 40%;
+        }
+
+        .has-search .form-control-feedback {
+            position: absolute;
+            z-index: 2;
+            display: block;
+            width: 2.375rem;
+            height: 2.375rem;
+            line-height: 2.375rem;
+            text-align: center;
+            pointer-events: none;
+            color: #aaa;
+        }
+
+        .task-card {
+            margin-left: 15px;
+            margin-bottom: 30px;
+            margin-top: 1%;
+            border-radius: 6px;
+            color: #333;
+            background: #fff;
+            width: 98%;
+            box-shadow: 0 4px 20px 0 rgb(0 0 0 / 14%), 0 7px 10px -5px #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            word-wrap: break-word;
+            background-color: #fff;
+            background-clip: border-box;
+            border: 1px solid #eee;
+            min-height: 160px;
+        }
+
+        .sub-div {
+            overflow-y: scroll;
+            height: 260px;
+            overflow-x: hidden;
+        }
+
+        .card-heading {
+            margin-left: 1%;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        .item-hover:hover {
+            background-color: #d3d3d340;
+            cursor: pointer !important;
+        }
+
+        .no-data {
+            text-align: center;
+            margin-top: 5%;
+            font-size: 16px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .no-data-icon {
+            color: #c8aa4d;
+            font-size: 40px;
+        }
+
+        .k-dropdown:hover {
+            transform: none !important;
+        }
+
+        .k-select:hover {
+            transform: none !important;
+        }
+
+        .k-input:hover {
+            transform: none !important;
+        }
+
+        .k-state-hover :hover {
+            transform: none !important;
+        }
+
+        span:hover {
+            transform: none !important;
+        }
+
+        .k-link:hover {
+            transform: none !important;
+        }
+
+        h6:hover {
+            transform: none !important;
+        }
+
+        .form-control:hover {
+            transform: none !important;
+        }
+
+        input:hover {
+            transform: none !important;
+        }
+
+        .task-title {
+            padding: 10px;
+            background-color: #1c4893;
+            font-weight: bold;
+            text-align: left;
+            color: #ffffff;
+            margin-left: 0px;
+            margin-right: 10px;
+        }
+
+        .tableheader {
+            font-weight: 500;
+            text-align: center;
+            font-size: medium;
+            background-color: #006699;
+            color: #f2f2f2 !important;
+            border-style: solid;
+            border-width: 1px;
+            border-color: lightgrey;
+            padding: 5px 0px 5px 0px;
+        }
+
+        tbody > tr:nth-of-type(even) {
+            background-color: #e0f0ff;
+        }
+    </style>
+
+    <script type="text/javascript">
+    function onBack()
+    {
+        window.location.href = "@ViewBag.SmartCityUrl";
+    }
+
+    $(document).ready(function () {
+        $("#paymentMode").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: '@Html.Raw(SharedResource["Select"])',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/LOV/GetLOVIdNameList?lovType=CSC_PAYMENT_MODE",
+                    }
+                }
+            }
+    });
+    });
+
+
+    var isFiltered = false;
+
+    function OpenTask(taskId, tempCode) {
+
+        var id = taskId;
+        var source = '@RequestSourceEnum.View.ToString()';
+        var action = '@DataActionEnum.View.ToString()';
+
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&pageType=Task&cbm=IframePostbackScript&source=' + source + '&dataAction=' + action + '&templateCodes=' + tempCode + '&portalId=' + portalId + '&recordId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title:  '@Html.Raw(SharedResource["Task"])', Width: 1200, Height: 600 });
+        return false;
+    }
+    function IframePostbackScript() {
+        getService();
+        getService1();
+    }
+
+    function OnPayment(id, tableId, amount,assigneeUserId) {
+
+        ShowLoader($('#container'));
+        var returnUrl = "/Portal/CSC/MyPayments/";
+        $.ajax({
+            type: "POST",
+            url: "/CSC/CommonService/OnlinePayment",
+            data: { 'ntsId': id, 'noteTableId': tableId, 'amount': amount, 'ntsType': '@NtsTypeEnum.Task', 'assigneeUserId': assigneeUserId, 'returnUrl': returnUrl },
+            success: function (res) {
+
+                if (res.success) {
+                    if (res.requestURL === null || res.requestURL === '' || res.requestURL === undefined) {
+                        HideLoader($('#container'));
+                        alert('Payment gateway not found');
+                        return false;
+                    }
+                    else {
+                        window.top.location.href = res.requestURL;
+                    }
+                } else {
+                    ShowNotification(res.error, "error");
+                    HideLoader($('#container'));
+                }
+            },
+            dataType: "json",
+        });
+    }
+
+    var gId, gTableId, gAmount, gAssigneeUserId;
+    function OnPaymentClick(id, tableId, amount, assigneeUserId) {
+        gId = id;
+        gTableId = tableId;
+        gAmount = amount;
+        gAssigneeUserId = assigneeUserId;
+        $('#payConfirmModal').modal('show');
+    }
+
+    function OnPaymentConfirm() {
+        $('.payment-body').html('Please wait while we are redirecting to payment gateway...');
+         OnPayment(gId, gTableId, gAmount, gAssigneeUserId);
+         return false;
+    }
+
+    function OnSubmit() {
+        debugger;
+        var paymentmode = $("#paymentMode").data("kendoDropDownList").text();
+
+        if (paymentmode == "Select") {
+            ShowNotification("Select Payment Mode", "error");
+        }
+        else if (paymentmode == "Payment Gateway") {
+            OnPaymentClick();
+        }
+    }
+
+    //payment
+    var gId, gTableId, gAmount, gAssigneeUserId;
+    function OnPaymentClick() {
+        gId = '@ViewBag.ServiceId';
+        gTableId = '@ViewBag.TableId';
+        gAmount = '@ViewBag.TotalAmount';
+        gAssigneeUserId = '@ViewBag.UserId';
+        $('#payConfirmModal').modal('show');
+    }
+
+    function OnPaymentConfirm() {
+        $('.payment-body').html('Please wait while we are redirecting to payment gateway...');
+         OnPayment(gId, gTableId, gAmount, gAssigneeUserId);
+         return false;
+    }
+
+    function OnPayment(id, tableId, amount,assigneeUserId) {
+
+        ShowLoader($('#container'));
+        var returnUrl = "/Portal/CSCEmployee/Home/";
+        $.ajax({
+            type: "POST",
+            url: "/CSC/CommonService/OnlinePayment",
+            data: { 'ntsId': id, 'noteTableId': tableId, 'amount': amount, 'ntsType': '@NtsTypeEnum.Service', 'assigneeUserId': assigneeUserId, 'returnUrl': returnUrl },
+            success: function (res) {
+
+                if (res.success) {
+                    if (res.requestURL === null || res.requestURL === '' || res.requestURL === undefined) {
+                        HideLoader($('#container'));
+                        alert('Payment gateway not found');
+                        return false;
+                    }
+                    else {
+                        window.top.location.href = res.requestURL;
+                    }
+                } else {
+                    ShowNotification(res.error, "error");
+                    HideLoader($('#container'));
+                }
+            },
+            dataType: "json",
+        });
+    }
+
+    </script>
+
+
+
+
+<div class="row main">
+    <div class="col-sm-6 form-group" style="text-align:left;">
+        @*<input type="button" value="Return To Home Page" onclick="onBack()" class="btn btn-link" />*@
+    </div>
+    <!-- Actual search box -->
+    @*<div class="col-sm-6 form-group has-search pull-right">
+            <span class="fa fa-search form-control-feedback"></span>
+            <input id="mysearch" type="text" class="form-control" placeholder="Search by task subject or number">
+        </div>*@
+
+</div>
+
+<div class="row-12">
+
+    <div class="row-12">
+        <h4>@Resource["Charge Details"]</h4>
+        <br />
+    </div>
+
+    <div class="row-12" style="padding:10px;">
+        <table style="width:100%">
+            <tr>
+                @*<th class="tableheader">@Resource["S.No"]</th>*@
+                <th class="tableheader">@Resource["Charge Description"]</th>
+                <th class="tableheader">@SharedResource["Amount"]</th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    @*<td></td>*@
+                    <td>@item.ChargeName</td>
+                    <td>@item.Amount</td>
+                </tr>
+            }
+            <tr>
+                @*<td></td>*@
+                <td style="text-align:end;padding-right:20px;font-weight:bold;">Total</td>
+                <td style="font-weight:bold">@ViewBag.TotalAmount</td>
+            </tr>
+
+        </table>
+    </div>
+    <br />
+
+    <div class="row">
+        <div class="col-4"></div>
+        <div class="col-4"></div>
+        <div class="col-4">
+            <div>@Resource["Payment Mode"] <input type="text" id="paymentMode" /></div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-4"></div>
+        <div class="col-4" style="text-align:center;"><button class="btn btn-primary" onclick="OnSubmit();">@SharedResource["SUBMIT"]</button></div>
+        <div class="col-4"></div>
+    </div>
+
+
+    <div class="modal fade" id="payConfirmModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="exampleModalLabel">@Resource["Ready To Pay?"]</h6>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body payment-body">@Resource["Are you sure you want to proceed to payment gateway to pay the amount?"]</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">@SharedResource["Cancel"]</button>
+                    <button class="btn btn-primary" onclick="return OnPaymentConfirm();">@Resource["Proceed To Pay"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,142 @@
+﻿@{
+	ViewData["Title"] = "Dashboard";
+	Layout = null;
+	//Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.BusinessAnalyticsController> Resource
+
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+<style>
+	.btn-primary {
+        background-color: #006bb4;
+        border-color: #006bb4;
+        color: #fff;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;        
+    }
+
+        .btn-primary:hover {
+            background-color: #0060a2;
+            top: -2px;
+        }
+
+            .btn-primary:hover .button-text {
+                text-decoration: underline;
+            }
+
+    .button-text {
+        margin-left: 5px;
+        font-size: medium;
+    }
+</style>
+<script>
+	$(document).ready(function() {		
+		$("#fromDate").kendoDatePicker({
+			format: "yyyy-MM-dd",
+		});
+        $("#toDate").kendoDatePicker({
+			format: "yyyy-MM-dd",
+		});
+		$("#cctnsapi").kendoDropDownList({
+			dataTextField: "Name",
+			dataValueField: "Id",
+			filter: "contains",
+			optionLabel: "--Select--",
+			//change: OnApiChange,
+			dataSource: {
+				serverFiltering: true,
+				transport: {
+					read: {
+						url: "/cms/BusinessAnalytics/GetCCTNSApiData",
+					}
+				}
+			}
+		});
+	});
+	function loadCCTNSGrid() {
+		var id = $("#cctnsapi").val();
+		var _fromdate = $("#fromDate").val();
+        var _todate = $("#toDate").val();
+        var queryStr = $("#queryStr").val();
+        var url = "/cms/BusinessAnalytics/CCTNSApiDetails?id=" + id + "&fromDate=" + _fromdate + "&todate=" + _todate + "&queryStr=" + queryStr;
+		url = url.replaceAll(" ", "^");
+		$("#cctnsGridDetails").load(url,
+			function() { });
+
+	}
+	function OnApiChange() {
+        if ($("#cctnsapi").val() != null && $("#cctnsapi").val() != "") {
+            loadCCTNSGrid();
+        }
+		else {
+            alert("Please select CCTNS Table");
+		}
+        if ($("#fromDate").val() > $("#toDate").val()) {
+			alert("From Date can not be greater than To Date!");
+		}
+        
+		
+	}
+
+</script>
+<div class="container-fluid hr-pad-top-10">
+	<h4>CCTNS Report</h4>
+	<hr />
+	@*<div class="row col-12 pad-10">*@
+        <div class="row" style="align-items: center;">
+            <div class="col-2">
+                <label for="chartTypeId">CCTNS Table <span style="color: red">*</span></label>
+            </div>
+            <div class="col-4">
+                <input id="cctnsapi" style="width: 100%" />
+            </div>
+            <div class="col-1">
+                <label for="queryStr">Search</label>
+            </div>
+            <div class="col-5">
+                <input id="queryStr" type="text" class="form-control" style="width: 100%" />
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px; margin-bottom: 20px; align-items: center;">
+            <div class="col-2">
+                <label>From Date</label>
+            </div>
+            <div class="col-3">
+                <input id="fromDate" style="width: 100%" value="@DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-2">
+                <label>To Date</label>
+            </div>
+            <div class="col-3">
+                <input id="toDate" style="width: 100%" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-2">
+                <button type='button' class='btn btn-primary shadow-sm' style="float: right;" onclick='OnApiChange()'>
+                    <span class="button-body">
+                        <span class="fa fa-search"></span>
+                        <span class="button-text">Search</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+	@*</div>*@
+	<hr />
+	<div class="row col-12 pad-10">
+		<div class="col-12">
+			<div id="cctnsGridDetails"></div>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+
+
+
+
+

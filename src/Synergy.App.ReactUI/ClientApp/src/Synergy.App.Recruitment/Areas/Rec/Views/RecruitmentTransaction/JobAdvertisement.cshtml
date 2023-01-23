@@ -1,0 +1,1957 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using System.Web;
+@using Newtonsoft.Json;
+
+@model JobAdvertisementViewModel
+@{
+    ViewBag.Title = "Job Advertisement";
+    Layout = ViewBag.Layout;
+    // Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+
+<script>
+    var flag = false;
+
+    var totalweightage = 0;
+
+    $(document).ready(function () {
+
+        //$('.content').richText();
+
+        $("#ExpiryDate").kendoDatePicker({
+            value: '@Model.ExpiryDate', //new Date(),
+            format: "@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat"
+        });
+
+        $("#RequiredDate").kendoDatePicker({
+            value: '@Model.RequiredDate', //new Date(),
+            format: "@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat"
+        });
+
+        $("#JobId").kendoDropDownList({
+            dataTextField: "JobTitle",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            value: "@Model.JobId",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Rec/RecruitmentTransaction/GetJobIdNameList",
+                    }
+                }
+            }
+        });
+
+        $("#JobLocationId").kendoDropDownList({
+            dataTextField: "LocationName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Rec/RecruitmentTransaction/GetLocationIdNameList",
+                    }
+                }
+            }
+        });
+
+        $("#QualificationId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=LOV_QUALIFICATION",
+                    }
+                }
+            }
+        });
+
+        $("#NationalityId").kendoDropDownList({
+            dataTextField: "NationalityName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Rec/RecruitmentTransaction/GetNationallityIdNameList",
+                    }
+                }
+            }
+        });
+
+        $("#Status").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StatusEnum",
+                    }
+                }
+            }
+        });
+
+        $("#JobCategoryId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=REC_JOB_CATEGORY",
+                    }
+                }
+            }
+        });
+
+        $("#AgencyIds").kendoMultiSelect({
+            dataTextField: "AgencyName",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/Rec/RecruitmentTransaction/ReadAgencyList",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select agency...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.Agencies)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: "Contains",
+        });
+
+        //Criteria grid
+
+       $.ajax({
+            type: "GET",
+            url: "/Cms/LOV/GetListOfValueList?type=CRITERIA_TYPE&includePlaceHolder=true",
+
+            dataType: "json",
+            success: function (data) {
+                $("#JobCriteriaGrid").jsGrid({
+                    width: "100%",
+                    inserting: false,
+                    editing: true,
+                    sorting: true,
+                    paging: true,
+                    autoload: true,
+                    pageSize: 14,
+                    pageButtonCount: 5,
+                    controller: {
+                        loadData: function (filter) {
+
+                            return $.ajax({
+                                type: "GET",
+                                url: "/Rec/RecruitmentTransaction/ReadJobAdvCriteriaData?jobadvtid=" + '@Model.Id',
+                                data: filter,
+                                dataType: "json"
+                            });
+                        },
+                        onItemEditing: function (e) {
+                            debugger;
+                            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                                //
+                                e.grid.updateItem();
+                            }
+                        },
+                        updateItem: function (item) {
+                            debugger;
+                        },
+                    },
+                    fields: [
+                        {
+                            name: "Criteria",
+                            type: "text",
+                            editing: true
+                        },
+                        {
+                            name: "Weightage",
+                            type: "text",
+                            editing: true
+                        },
+                        {
+                            name: "CriteriaTypeId",
+                            title: "Criteria Type",
+                            type: "select",
+                            editing: true,
+                            items: data, valueField: "Id", textField: "Name",
+                        },
+                        {
+                            type: "control", deleteButton: false,
+                        },
+                        { name: "Id", type: "text", editing: false, visible: false },
+                        { name: "NtsNoteId", type: "text", editing: false, visible: false },
+                    ]
+                });
+            }
+
+        });
+
+        //Skills grid
+
+        $.ajax({
+            type: "GET",
+            url: "/Cms/LOV/GetListOfValueList?type=CRITERIA_TYPE&includePlaceHolder=true",
+
+            dataType: "json",
+            success: function (data) {
+                $("#SkillsGrid").jsGrid({
+                    width: "100%",
+                    inserting: false,
+                    editing: true,
+                    sorting: true,
+                    paging: true,
+                    autoload: true,
+                    pageSize: 14,
+                    pageButtonCount: 5,
+                    controller: {
+                        loadData: function (filter) {
+
+                            return $.ajax({
+                                type: "GET",
+                                url: "/Rec/RecruitmentTransaction/ReadJobAdvSkillsData?jobadvtid=" + '@Model.Id',
+                                data: filter,
+                                dataType: "json"
+                            });
+                        },
+                        onItemEditing: function (e) {
+                            debugger;
+                            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                                //
+                                e.grid.updateItem();
+                            }
+                        },
+                        updateItem: function (item) {
+                            debugger;
+                        },
+                    },
+                    fields: [
+                        {
+                            name: "Criteria",
+                            type: "text",
+                            editing: true
+                        },
+                        {
+                            name: "Weightage",
+                            type: "text",
+                            editing: true
+                        },
+                        {
+                            name: "CriteriaTypeId",
+                            title: "Criteria Type",
+                            type: "select",
+                            editing: true,
+                            items: data, valueField: "Id", textField: "Name",
+                        },
+                        {
+                            type: "control", deleteButton: false,
+                        },
+                        { name: "Id", type: "text", editing: false, visible: false },
+                        { name: "NtsNoteId", type: "text", editing: false, visible: false },
+                    ]
+                });
+            }
+
+        });
+
+        //OtherInfo grid
+
+        $.ajax({
+            type: "GET",
+            url: "/Cms/LOV/GetListOfValueList?type=Criteria_Type_Otherinfo&includePlaceHolder=true",
+
+            dataType: "json",
+            success: function (data) {
+
+                $.ajax({
+                    type: "GET",
+                    url: "/Rec/RecruitmentTransaction/GetListOfValueTypeList?type=LIST_OF_VALUE_TYPE&includePlaceHolder=true&refTypeId=" + '@Model.JobId',
+
+                    dataType: "json",
+                    success: function (res) {
+
+ $("#OtherInfoGrid").jsGrid({
+                    width: "100%",
+                    inserting: false,
+                    editing: true,
+                    sorting: true,
+                    paging: true,
+                    autoload: true,
+                    pageSize: 14,
+                    pageButtonCount: 5,
+                    controller: {
+                        loadData: function (filter) {
+
+                            return $.ajax({
+                                type: "GET",
+                                url: "/Rec/RecruitmentTransaction/ReadJobAdvOtherInfoData?jobadvtid=" + '@Model.Id',
+                                data: filter,
+                                dataType: "json"
+                            });
+                        },
+                        onItemEditing: function (e) {
+                            debugger;
+                            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                                //
+                                e.grid.updateItem();
+                            }
+                        },
+                        updateItem: function (item) {
+                            debugger;
+                        },
+                    },
+                    fields: [
+                        {
+                            name: "Criteria",
+                            type: "text",
+                            editing: true
+                        },
+                        {
+                            name: "CriteriaTypeId",
+                            title: "Criteria Type",
+                            type: "select",
+                            editing: true,
+                            items: data, valueField: "Id", textField: "Name",
+                        },
+                        {
+                            name: "ListOfValueTypeId",
+                            title: "List Of Value Type",
+                            type: "select",
+                            editing: true,
+                            items: res, valueField: "Id", textField: "Name",
+                        },
+                        {
+                            type: "control", deleteButton: false,
+                        },
+                        { name: "Id", type: "text", editing: false, visible: false },
+                        { name: "NtsNoteId", type: "text", editing: false, visible: false },
+                    ]
+                });
+                    }
+                });
+
+            }
+        });
+
+        //Kendo Jquery editor
+
+        $("#Description").kendoEditor({
+            stylesheets: [
+                "../content/shared/styles/editor.css",
+            ],
+            tools: [
+                "bold",
+                "italic",
+                "underline",
+                "undo",
+                "redo",
+                "justifyLeft",
+                "justifyCenter",
+                "justifyRight",
+                "insertUnorderedList",
+                "createLink",
+                "unlink",
+                "insertImage",
+                "tableWizard",
+                "createTable",
+                "addRowAbove",
+                "addRowBelow",
+                "addColumnLeft",
+                "addColumnRight",
+                "deleteRow",
+                "deleteColumn",
+                "mergeCellsHorizontally",
+                "mergeCellsVertically",
+                "splitCellHorizontally",
+                "splitCellVertically",
+                "tableAlignLeft",
+                "tableAlignCenter",
+                "tableAlignRight",
+                "formatting",
+                {
+                    name: "fontName",
+                    items: [
+                        { text: "Andale Mono", value: "\"Andale Mono\"" }, // Font-family names composed of several words should be wrapped in \" \"
+                        { text: "Arial", value: "Arial" },
+                        { text: "Arial Black", value: "\"Arial Black\"" },
+                        { text: "Book Antiqua", value: "\"Book Antiqua\"" },
+                        { text: "Comic Sans MS", value: "\"Comic Sans MS\"" },
+                        { text: "Courier New", value: "\"Courier New\"" },
+                        { text: "Georgia", value: "Georgia" },
+                        { text: "Helvetica", value: "Helvetica" },
+                        { text: "Impact", value: "Impact" },
+                        { text: "Symbol", value: "Symbol" },
+                        { text: "Tahoma", value: "Tahoma" },
+                        { text: "Terminal", value: "Terminal" },
+                        { text: "Times New Roman", value: "\"Times New Roman\"" },
+                        { text: "Trebuchet MS", value: "\"Trebuchet MS\"" },
+                        { text: "Verdana", value: "Verdana" },
+                    ]
+                },
+                "fontSize",
+                "foreColor",
+                "backColor",
+            ]
+        });
+
+        $("#Responsibilities").kendoEditor({
+            stylesheets: [
+                "../content/shared/styles/editor.css",
+            ],
+            tools: [
+                "bold",
+                "italic",
+                "underline",
+                "undo",
+                "redo",
+                "justifyLeft",
+                "justifyCenter",
+                "justifyRight",
+                "insertUnorderedList",
+                "createLink",
+                "unlink",
+                "insertImage",
+                "tableWizard",
+                "createTable",
+                "addRowAbove",
+                "addRowBelow",
+                "addColumnLeft",
+                "addColumnRight",
+                "deleteRow",
+                "deleteColumn",
+                "mergeCellsHorizontally",
+                "mergeCellsVertically",
+                "splitCellHorizontally",
+                "splitCellVertically",
+                "tableAlignLeft",
+                "tableAlignCenter",
+                "tableAlignRight",
+                "formatting",
+                {
+                    name: "fontName",
+                    items: [
+                        { text: "Andale Mono", value: "\"Andale Mono\"" }, // Font-family names composed of several words should be wrapped in \" \"
+                        { text: "Arial", value: "Arial" },
+                        { text: "Arial Black", value: "\"Arial Black\"" },
+                        { text: "Book Antiqua", value: "\"Book Antiqua\"" },
+                        { text: "Comic Sans MS", value: "\"Comic Sans MS\"" },
+                        { text: "Courier New", value: "\"Courier New\"" },
+                        { text: "Georgia", value: "Georgia" },
+                        { text: "Helvetica", value: "Helvetica" },
+                        { text: "Impact", value: "Impact" },
+                        { text: "Symbol", value: "Symbol" },
+                        { text: "Tahoma", value: "Tahoma" },
+                        { text: "Terminal", value: "Terminal" },
+                        { text: "Times New Roman", value: "\"Times New Roman\"" },
+                        { text: "Trebuchet MS", value: "\"Trebuchet MS\"" },
+                        { text: "Verdana", value: "Verdana" },
+                    ]
+                },
+                "fontSize",
+                "foreColor",
+                "backColor",
+            ]
+        });
+
+    });
+
+
+    function validateExpiryDate() {
+      //
+        var date1 = $("#ExpiryDate").val();
+       // alert(date1);
+        if (date1!="" && !Date.parse(date1)) {
+            alert("Invalid Expiry Date");
+            $("#ExpiryDate").val("");
+        }
+
+    }
+
+    function validateNeededDate() {
+      //
+        var date2 = $("#NeededDate").val();
+
+        if (date2 != "" && !Date.parse(date2)) {
+            alert("Invalid Required Date");
+            $("#NeededDate").val("");
+        }
+
+    }
+
+    var onAjaxSuccess = function (res) {
+        debugger;
+        if (res.success) {
+            ShowNotification("Saved Successfully", "success");
+            LoadPartailView('@Url.Action("JobAdvertisementIndex", "RecruitmentTransaction", new { @area = "Rec" })', $('#cms-content'));
+        }
+        else {
+            //alert(res.error);
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+
+        }
+        btnShow();
+    };
+
+
+
+    function OnDeleteCriteria(e) {
+        e.preventDefault();
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        var jobgrid = $("#GridJobCriteria").data("kendoGrid").dataSource.data();
+        var flag = confirm('Do you really want to delete?');
+
+        if (flag && dataItem.RowId == "") {
+            var index = jobgrid.map(x => {
+                return x.Id;
+            }).indexOf(dataItem.Id);
+            jobgrid.splice(index, 1);
+            kendo.alert("Deleted Successfully");
+            return false;
+        }
+        else {
+            var index = jobgrid.map(x => {
+                return x.RowId;
+            }).indexOf(dataItem.RowId);
+            jobgrid.splice(index, 1);
+            kendo.alert("Deleted Successfully");
+
+        }
+    }
+    function OnDeleteSkills(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var jobgrid = $("#GridSkills").data("kendoGrid").dataSource.data();
+        var index = jobgrid.map(x => {
+            return xModelRowId;
+        }).indexOf(dataItem.RowId);
+
+        var flag = confirm('Do you really want to delete?');
+
+        if (flag && dataItem.RowId == "") {
+
+            $.ajax({
+                url:'@Url.Action("DeleteCriteria", "JobAdvertisement", new { @area = "Recruitment" })?Id=' + dataItem.id,
+
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    console.log(result.success);
+                    //
+                    if (result.success) {
+                        var index = jobgrid.map(x => {
+                            return x.Id;
+                        }).indexOf(dataItem.Id);
+                        jobgrid.splice(index, 1);
+                        kendo.alert("Deleted Successfully");
+                    }
+                },
+                error: function (ert) {
+                    kendo.alert("Can't delete this record");
+                }
+            });
+            return false;
+        }
+        else {
+            jobgrid.splice(index, 1);
+            kendo.alert("Deleted Successfully");
+
+        }
+    }
+    function OnDeleteInfo(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var jobgrid = $("#GridOtherInformation").data("kendoGrid").dataSource.data();
+        var index = jobgrid.map(x => {
+            return x.RowId;
+        }).indexOf(dataItem.RowId);
+        var flag = confirm('Do you really want to delete?');
+
+        if (flag && dataItem.RowId == "") {
+
+            $.ajax({
+                url:'@Url.Action("DeleteCriteria", "JobAdvertisement", new { @area = "Recruitment" })?Id=' + dataItem.id,
+               // url:"/Recruitment/JobAdvertisement/DeleteCriteria?Id=" + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    console.log(result.success);
+                    //
+                    if (result.success) {
+                        var index = jobgrid.map(x => {
+                            return x.Id;
+                        }).indexOf(dataItem.Id);
+                        jobgrid.splice(index, 1);
+                       // $("#GridOtherInformation").data("kendoGrid").dataSource.read();
+                        kendo.alert("Deleted Successfully");
+                    }
+                },
+                error: function (ert) {
+                    //
+                   // jobgrid.splice(index, 1);
+                   // $("#GridOtherInformation").data("kendoGrid").dataSource.read();
+                    kendo.alert("Can't delete this record");
+                }
+            });
+            return false;
+        }
+        else {
+            jobgrid.splice(index, 1);
+            kendo.alert("Deleted Successfully");
+
+        }
+    }
+    var jobcriteria=[];
+    var jobcriteriaindex=1;
+    var skillcriteriaindex=1;
+    var infocriteriaindex = 1;
+    var tempSavedRecords = null;
+    var tempSavedRecords2 = null;
+    var tempSavedRecords3 = null;
+
+
+    function onGridSaveCriteria(arg) {
+
+        if (arg.model.Weightage != "" && arg.model.Weightage>100) {
+            arg.preventDefault();
+            kendo.alert("Weightage should not be greater than 100");
+
+            return false;
+        }
+        if (arg.model.Criteria == "") {
+            arg.preventDefault();
+            kendo.alert("Please Enter Criteria Name");
+            return false;
+        }
+        if (arg.model.CriteriaType == "") {
+            arg.preventDefault();
+            kendo.alert("Please Select Criteria Type");
+            return false;
+        }
+        if (arg.model.CriteriaType != "" && arg.model.Criteria != "") {
+
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/Recruitment/JobAdvertisement/GetCriteriaNameById?id=" + arg.model.CriteriaType + '&type=CRITERIATYPE',
+                success: function (name) {
+                    //alert(tablename);
+
+                    arg.model.CriteriaTypeName = name;
+                    tempSavedRecords = $('#GridJobCriteria').data('kendoGrid').dataSource.data();
+                    tempSavedRecords = tempSavedRecords.toJSON();
+                },
+            });
+        }
+    }
+
+    function onGridSaveSkills(arg) {
+
+        if (arg.model.Weightage != "" && arg.model.Weightage > 100) {
+            arg.preventDefault();
+            kendo.alert("Weightage should not be greater than 100");
+
+          //
+            return false;
+        }
+        if (arg.model.Criteria == "") {
+            arg.preventDefault();
+            kendo.alert("Please Enter Skill Name");
+            return false;
+        }
+        if (arg.model.CriteriaType == "") {
+            arg.preventDefault();
+            kendo.alert("Please Select Criteria Type");
+
+              // arg.preventDefault()
+            return false;
+        }
+        if (arg.model.CriteriaType != "" && arg.model.Criteria != "") {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/Recruitment/JobAdvertisement/GetCriteriaNameById?id=" + arg.model.CriteriaType + '&type=CRITERIATYPE',
+                success: function (name) {
+                    //alert(tablename);
+                    arg.model.CriteriaTypeName = name;
+                    tempSavedRecords2 = $('#GridSkills').data('kendoGrid').dataSource.data();
+                    tempSavedRecords2 = tempSavedRecords2.toJSON();
+                },
+            });
+
+        }
+
+        //console.log(arg);
+    }
+    function onGridSaveInfo(arg) {
+
+        debugger;
+        if (arg.model.Criteria == "") {
+            arg.preventDefault();
+            kendo.alert("Please Enter Criteria Name");
+            return false;
+        }
+        if (arg.model.CriteriaType == "") {
+            arg.preventDefault();
+            kendo.alert("Please Select Criteria Type");
+            return false;
+        }
+
+        var cty = $("#CriteriaType").data("kendoDropDownList").text();
+        if (cty == "List of Value" && arg.model.ListOfValueTypeId == "") {
+            arg.preventDefault();
+            kendo.alert("Please Select List Of Value Type");
+            return false;
+        }
+
+        if (arg.model.CriteriaType != "" && arg.model.Criteria != "") {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/Recruitment/JobAdvertisement/GetCriteriaNameById?id=" + arg.model.CriteriaType + '&type=CRITERIATYPE',
+                success: function (name) {
+                    //alert(tablename);
+                    arg.model.CriteriaTypeName = name;
+
+                    tempSavedRecords3 = $('#GridOtherInformation').data('kendoGrid').dataSource.data();
+                    tempSavedRecords3 = tempSavedRecords3.toJSON();
+                },
+            });
+
+        }
+
+        if (arg.model.ListOfValueTypeId != "" && arg.model.ListOfValueTypeId != null) {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/Recruitment/JobAdvertisement/GetOtherLOVNameById?id=" + arg.model.ListOfValueTypeId,
+                success: function (name) {
+                   // alert(name);
+                    arg.model.LovTypeName = name;
+                    tempSavedRecords3 = $('#GridOtherInformation').data('kendoGrid').dataSource.data();
+                    tempSavedRecords3 = tempSavedRecords3.toJSON();
+                },
+            });
+
+        }
+    }
+
+    function DraftData(e,type) {
+        debugger;
+        var criteriaItems = [];
+        var skillsItems = [];
+        var otherinfoItems = [];
+
+
+        if ($("#JobLocationId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Location is required");
+            window.scrollTo(0, 0);
+            e.preventDefault();
+            return false;
+        }
+        else if ($("#JobCategoryId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Job Category is required");
+            window.scrollTo(0, 0);
+            e.preventDefault();
+            return false;
+        }
+        else if ($("#Description").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Description is required");
+            window.scrollTo(0, 0);
+            e.preventDefault();
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+            $(".text-danger").html("");
+        }
+
+        totalweightage = 0;
+        var criteriaGrid = $("#JobCriteriaGrid").data("JSGrid");
+        if (criteriaGrid._editingRow != null) {
+            criteriaGrid.updateItem();
+        }
+
+        var skillsGrid = $("#SkillsGrid").data("JSGrid");
+        if (skillsGrid._editingRow != null) {
+            skillsGrid.updateItem();
+        }
+
+        var otherinfoGrid = $("#OtherInfoGrid").data("JSGrid");
+        if (otherinfoGrid._editingRow != null) {
+            otherinfoGrid.updateItem();
+        }
+
+        for (var i = 0; i < criteriaGrid.data.length; i++) {
+            totalweightage += parseInt(criteriaGrid.data[i].Weightage);
+        }
+        for (var i = 0; i < skillsGrid.data.length; i++) {
+            totalweightage += parseInt(skillsGrid.data[i].Weightage);
+        }
+
+        if (totalweightage > 100) {
+            ShowNotification("Weightage should not be greater than 100","error")
+            totalweightage = 0;
+            e.preventDefault();
+            return false;
+        }
+
+        for (var i = 0; i < criteriaGrid.data.length; i++) {
+            if (criteriaGrid.data[i].Criteria == null || criteriaGrid.data[i].Criteria == "") {
+                ShowNotification("Enter Criteria Name in job criteria", "error");
+                e.preventDefault();
+                return false
+                break;
+            }
+            else if (parseInt(criteriaGrid.data[i].Weightage) == 0 || criteriaGrid.data[i].Weightage == "") {
+                ShowNotification("Weightage value should not be zero or empty", "error");
+                e.preventDefault();
+                return false
+                break;
+            }
+            else if (criteriaGrid.data[i].CriteriaTypeId == null || criteriaGrid.data[i].CriteriaTypeId == "" || parseInt(criteriaGrid.data[i].CriteriaTypeId) == 0) {
+                ShowNotification("Select Criteria Type", "error");
+                e.preventDefault();
+                return false
+                break;
+            }
+            else {
+                criteriaItems.push(criteriaGrid.data[i]);
+            }
+        }
+        $("#JobCriteria").val(JSON.stringify(criteriaItems));
+
+        for (var i = 0; i < skillsGrid.data.length; i++) {
+            if (skillsGrid.data[i].Criteria == null || skillsGrid.data[i].Criteria == "") {
+                ShowNotification("Enter Criteria Name for skills", "error");
+                e.preventDefault();
+                return false
+                break;
+            }
+            else if (parseInt(skillsGrid.data[i].Weightage) == 0 || skillsGrid.data[i].Weightage == "") {
+                ShowNotification("Weightage value should not be zero or empty", "error");
+                e.preventDefault();
+                return false
+                break;
+            }
+            else if (skillsGrid.data[i].CriteriaTypeId == null || skillsGrid.data[i].CriteriaTypeId == "" || parseInt(skillsGrid.data[i].CriteriaTypeId) == 0) {
+                ShowNotification("Select Criteria Type", "error");
+                e.preventDefault();
+                return false
+                break;
+            }
+            else {
+                skillsItems.push(skillsGrid.data[i]);
+            }
+        }
+        $("#Skills").val(JSON.stringify(skillsItems));
+
+        for (var i = 0; i < otherinfoGrid.data.length; i++) {
+            if (otherinfoGrid.data[i].Criteria == null || otherinfoGrid.data[i].Criteria == "") {
+                ShowNotification("Enter Criteria Name for skills", "error");
+                e.preventDefault();
+                return false
+                break;
+            }
+            else if (otherinfoGrid.data[i].CriteriaTypeId == null || otherinfoGrid.data[i].CriteriaTypeId == "" || parseInt(otherinfoGrid.data[i].CriteriaTypeId) == 0) {
+                ShowNotification("Select Criteria Type", "error");
+                e.preventDefault();
+                return false
+                break;
+            }
+            //else if (otherinfoGrid.data[i].ListOfValueTypeId == null || otherinfoGrid.data[i].ListOfValueTypeId == "" || parseInt(otherinfoGrid.data[i].ListOfValueTypeId) == 0) {
+            //    ShowNotification("Select List fo value Type", "error");
+            //    e.preventDefault();
+            //    return false
+            //    break;
+            //}
+            else {
+                otherinfoItems.push(otherinfoGrid.data[i]);
+            }
+        }
+        $("#OtherInformation").val(JSON.stringify(otherinfoItems));
+
+        if (type == "DRAFT") {
+            $("#SaveType").val("JOBADVTACTION_DRAFT");
+            $("#flag").val(true);
+        }
+        else {
+            $("#SaveType").val("JOBADVTACTION_APPROVE");
+            var value = $("#JobId").data("kendoDropDownList").text();
+
+            $("#JobName").val(value);
+        }
+
+        $("#ExpiryDate").val(kendo.toString($("#ExpiryDate").data("kendoDatePicker").value(), 'yyyy-MM-dd'));
+        $("#RequiredDate").val(kendo.toString($("#RequiredDate").data("kendoDatePicker").value(), 'yyyy-MM-dd'));
+
+        return true;
+    }
+
+    function SaveData(e) {
+        totalweightage = 0;
+        var criteriaItems = [];
+        var skillsItems = [];
+        var otherinfoItems = [];
+
+        var errmsg = "";
+        var msgcount = 0;
+        var loc = $("#JobLocationId").val();
+        if (loc == '') {
+            errmsg = errmsg + "<li>Location is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var desc = $("#Description").val();
+        if (desc == '') {
+            errmsg = errmsg + "<li>Description is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var pos = $("#NoOfPosition").val();
+        if (pos == '') {
+            errmsg = errmsg + "<li>No Of Position is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var exp = $("#Experience").val();
+        if (exp == '') {
+            errmsg = errmsg + "<li>Experience is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var jobcat = $("#JobCategoryId").val();
+        if (jobcat == '') {
+            errmsg = errmsg + "<li>Job Category is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        if (msgcount > 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(errmsg);
+            e.preventDefault();
+            return false;
+        } else {
+
+            var criteriaGrid = $("#JobCriteriaGrid").data("JSGrid");
+            if (criteriaGrid._editingRow != null) {
+                criteriaGrid.updateItem();
+            }
+
+            var skillsGrid = $("#SkillsGrid").data("JSGrid");
+            if (skillsGrid._editingRow != null) {
+                skillsGrid.updateItem();
+            }
+
+            var otherinfoGrid = $("#OtherInfoGrid").data("JSGrid");
+            if (otherinfoGrid._editingRow != null) {
+                otherinfoGrid.updateItem();
+            }
+
+            for (var i = 0; i < criteriaGrid.data.length; i++) {
+                totalweightage += criteriaGrid.data[i].Weightage;
+            }
+            for (var i = 0; i < skillsGrid.data.length; i++) {
+                totalweightage += skillsGrid.data[i].Weightage;
+            }
+            if (totalweightage > 100) {
+                alert("Weightage should not be greater than 100")
+
+                btnShow();
+                e.preventDefault();
+                return false;
+            }
+
+            criteriaItems.push(criteriaGrid.data[i]);
+            $("#JobCriteria").val(JSON.stringify(criteriaItems));
+
+            skillsItems.push(skillsGrid.data[i]);
+            $("#Skills").val(JSON.stringify(skillsItems));
+
+            otherinfoItems.push(otherinfoGrid.data[i]);
+            $("#OtherInformation").val(JSON.stringify(otherinfoItems));
+
+
+            $("#SaveType").val("JOBADVTACTION_SUBMIT");
+            $("#flag").val(true);
+
+        }
+    }
+
+    function ApprovData(e) {
+        var criteriaItems = [];
+        var skillsItems = [];
+        var otherinfoItems = [];
+
+        btnHide();
+        totalweightage = 0;
+        var errmsg = "";
+        var msgcount = 0;
+        var loc = $("#JobLocationId").val();
+        if (loc == '') {
+            errmsg = errmsg + "<li>Location is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var desc = $("#Description").val();
+        if (desc == '') {
+            errmsg = errmsg + "<li>Description is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var pos = $("#NoOfPosition").val();
+        if (pos == '') {
+            errmsg = errmsg + "<li>No Of Position is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var exp = $("#Experience").val();
+        if (exp == '') {
+            errmsg = errmsg + "<li>Experience is required.</li>"
+            msgcount = msgcount + 1;
+        }
+        var jobcat = $("#JobCategoryId").val();
+        if (jobcat == '') {
+            errmsg = errmsg + "<li>Job Category is required.</li>"
+            msgcount = msgcount + 1;
+        }
+
+        if (msgcount > 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(errmsg);
+
+            btnShow();
+            e.preventDefault();
+            return false;
+        }
+        else
+        {
+            var criteriaGrid = $("#JobCriteriaGrid").data("JSGrid");
+            if (criteriaGrid._editingRow != null) {
+                criteriaGrid.updateItem();
+            }
+
+            var skillsGrid = $("#SkillsGrid").data("JSGrid");
+            if (skillsGrid._editingRow != null) {
+                skillsGrid.updateItem();
+            }
+
+            var otherinfoGrid = $("#OtherInfoGrid").data("JSGrid");
+            if (otherinfoGrid._editingRow != null) {
+                otherinfoGrid.updateItem();
+            }
+
+            for (var i = 0; i < criteriaGrid.data.length; i++) {
+                totalweightage += criteriaGrid.data[i].Weightage;
+            }
+            for (var i = 0; i < skillsGrid.data.length; i++) {
+                totalweightage += skillsGrid.data[i].Weightage;
+            }
+            if (totalweightage > 100) {
+                alert("Weightage should not be greater than 100")
+
+                btnShow();
+                e.preventDefault();
+                return false;
+            }
+
+            if (flag) {
+                $("#flag").val(true);
+            }
+            else {
+                var value = $("#JobId").data("kendoDropDownList").text();
+
+                $("#JobName").val(value);
+
+                criteriaItems.push(criteriaGrid.data[i]);
+                $("#JobCriteria").val(JSON.stringify(criteriaItems));
+
+                skillsItems.push(skillsGrid.data[i]);
+                $("#Skills").val(JSON.stringify(skillsItems));
+
+                otherinfoItems.push(otherinfoGrid.data[i]);
+                $("#OtherInformation").val(JSON.stringify(otherinfoItems));
+
+                $("#SaveType").val("JOBADVTACTION_APPROVE");
+            }
+        }
+    }
+
+
+    function back() {
+        var url = "/Rec/RecruitmentTransaction/JobAdvertisementIndex?permissions=@ViewBag.Permission";
+        LoadPartailView(url, $('#cms-content'));
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function OnJobdescription(e) {
+        var dataItem = this.dataItem(e.item);
+
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/Recruitment/JobAdvertisement/GetJobDescriptionbyId?Id=" + dataItem.Id,
+            success: function (data) {
+
+                if (data != null) {
+
+                    var desceditor = $("#Description").data("kendoEditor");
+                    desceditor.value(data.Description);
+                    var reseditor = $("#Responsibilities").data("kendoEditor");
+                    reseditor.value(data.Responsibilities);
+                  //  $('#JobCategoryId').val(data.JobCategoryId);
+                    var numerictextbox = $("#Experience").data("kendoNumericTextBox");
+                    var jobcategory = $("#JobCategoryId").data("kendoDropDownList");
+                    var qualification = $("#Qualification").data("kendoDropDownList");
+                    //var value = numerictextbox.value();
+                    numerictextbox.value(data.Experience);
+                   // $('#Experience').val(data.Experience);
+                    qualification.value(data.Qualification);
+                    jobcategory.value(data.JobCategoryId);
+                }
+            },
+        });
+    }
+
+    function btnShow() {
+        var btndraft = document.getElementById("btnDraft");
+        if (btndraft != null) {
+            //document.getElementById("btnDraft").disabled = false;
+            $("#btnDraft").show();
+        }
+        var btnsubmit = document.getElementById("btnSubmit");
+        if (btnsubmit!=null) {
+            //document.getElementById("btnSubmit").disabled = false;
+            $("#btnSubmit").show();
+        }
+        var btnsave = document.getElementById("btnSave");
+        if (btnsave!=null) {
+            //document.getElementById("btnSave").disabled = false;
+            $("#btnSave").show();
+        }
+
+    }
+    function btnHide() {
+        var btndraft = document.getElementById("btnDraft");
+        if (btndraft != null) {
+            //document.getElementById("btnDraft").disabled = true;
+            $("#btnDraft").hide();
+        }
+        var btnsubmit = document.getElementById("btnSubmit");
+        if (btnsubmit != null) {
+            //document.getElementById("btnSubmit").disabled = true;
+            $("#btnSubmit").hide();
+        }
+        var btnsave = document.getElementById("btnSave");
+        if (btnsave != null) {
+            //document.getElementById("btnSave").disabled = true;
+            $("#btnSave").hide();
+        }
+    }
+
+    function LOVdata(jobid) {
+        return {
+            type: 77,
+            jobid: jobid,
+           // ddlvalue: ddlvalue
+        }
+    }
+
+    function onDataBound() {
+        var type = this.text();
+        if (type == "List of Value") {
+            $("#addlov").show();
+        }
+        else {
+            $("#addlov").hide();
+        }
+    }
+
+    function onOtherChange() {
+
+        var type = this.text();
+        if (type == "List of Value") {
+            $("#addlov").show();
+        }
+        else {
+             var search = LOVdata('@Model.JobId')
+            $("#ListOfValueTypeId").data("kendoDropDownList").dataSource.read(search);
+            $("#addlov").hide();
+        }
+    }
+
+    function AddCriteria() {
+        $("#JobCriteriaGrid").jsGrid("insertItem", { Criteria: "", Weightage: "", CriteriaTypeId: "" }).done(function () {
+
+        });
+    }
+    function AddSkills() {
+        $("#SkillsGrid").jsGrid("insertItem", { Criteria: "", Weightage: "", CriteriaTypeId: "" }).done(function () {
+
+        });
+    }
+    function AddOtherInfo() {
+        $("#OtherInfoGrid").jsGrid("insertItem", { Criteria: "", CriteriaTypeId: "", ListOfValueTypeId: "" }).done(function () {
+
+        });
+    }
+
+    function ViewLOV() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("ViewListOfValue", "RecruitmentTransaction", new { @area = "Rec" })?jobid='+ '@Model.JobId';
+        win.OpenWindow({ Title: 'Manage List Of Value', Width: 1000, Height: 750 });
+        return false;
+    }
+
+</script>
+
+<style>
+    .Description {
+        width: 100%;
+        height: 150px;
+        border-radius: 6px;
+        border-color: aliceblue;
+    }
+
+    .manpowertype {
+        color: black;
+        font-size: medium;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .form-control-plaintext {
+        padding-top: 0px;
+    }
+
+    .k-editable-area {
+        background-color: #fff;
+    }
+</style>
+
+<div>
+
+    <div class="p-4">
+        <div class="row">
+            <div class="col-8 fa-2x">
+                Job Advertisement
+            </div>
+            @if (Model.Layout != "popup")
+            {
+                <div class="col-4">
+                    <input type="button" class="btn btn-dark float-right" value="Back" onclick="back()" />
+                </div>
+
+            }
+
+        </div>
+        <form asp-area="Rec" asp-controller="RecruitmentTransaction" asp-action="ManageJobAdvertisement"
+              method="post" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+              data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+              data-ajax="true" data-ajax-method="POST">
+            <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+
+            <div class="col">
+                <div class="row row-body-head">
+
+                    <div class="col">
+                        <br />
+                        <div class="row row-cols-sm-2 row-cols-md-2 row-cols-lg-4 row-cols-xl-4 row_head">
+                            <div class="col-3">
+                                <p class="text_left_side_head">Position</p>
+                            </div>
+                            <div class="col-9">
+                                <input type="text" asp-for="JobId" id="JobId" class="form-control" readonly="readonly" />
+
+                                @*@(Html.Kendo().DropDownListFor(model => model.JobId)
+                                .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                            {
+                                                read.Action("GetJobIdNameList", "ManpowerRequirementSummary");
+                                            });
+                                    })
+                            //.OptionLabel("Select")
+                            .DataTextField("Name")
+                            .DataValueField("Id")
+                            .Filter(FilterType.Contains)
+                            .HtmlAttributes(new { @class = "form-control-plaintext txt-desc k-state-disabled", @style = "width:80%;" })
+                            )*@
+                            </div>
+
+                        </div>
+                        <br />
+                        <div class="row row-cols-sm-2 row-cols-md-2 row-cols-lg-4 row-cols-xl-4 row_head">
+                            <div class="col-3">
+                                <p class="text_left_side_head">ManPower Type</p>
+                            </div>
+                            <div class="col-9 manpowertype">
+                                @Model.ManpowerType
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <br />
+                        <div class="row row-cols-sm-2 row-cols-md-2 row-cols-lg-4 row-cols-xl-4 row_head">
+                            <div class="col-3">
+                                <p class="text_left_side_head">@*<i class="material-icons icon-head">location_on</i>*@Job Location<span class="required"> *</span></p>
+                            </div>
+                            <div class="col-9">
+                                <input type="text" asp-for="JobLocationId" id="JobLocationId" class="form-control" />
+
+                                @*@(Html.Kendo().DropDownListFor(x => x.LocationId)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetLocationtList", "RecruitmentDashboard");
+                                    });
+                                })
+                                .Filter(FilterType.Contains)
+                                .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                .HtmlAttributes(new { @class = "form-control-plaintext ip_text", @style = "width:80%;" })
+                            )*@
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row row-cols-sm-2 row-cols-md-2 row-cols-lg-4 row-cols-xl-4">
+                            <div class="col-3">
+                                <p class="text_left_side_head">@*ManPower Type*@</p>
+                            </div>
+                            <div class="col-9 manpowertype">
+                                @*@Model.ManpowerType*@
+                            </div>
+                        </div>
+                        <br />
+                    </div>
+                </div>
+
+                <div class="row" style="margin-right:0px;">
+
+                    <div class="col-12 col-body-1-1">
+                        <br />
+                        <div class="row-12">
+                            <label class="form-control-plaintext text_left_side" style="font-size:16px;">
+                                Description <span class="required"> *</span><br>
+                            </label>
+                        </div>
+                        <div class="row-12">
+                            <textarea class="content" asp-for="Description" id="Description"></textarea>
+
+                            @*@(Html.Kendo().EditorFor(x => x.Description)
+                            .HtmlAttributes(new { style = "width: 100%; height:300px", @required = "required" })
+
+                            .Tools(tools => tools
+                            .Clear()
+                            .Bold().Italic().Underline()
+                            .JustifyLeft().JustifyCenter().JustifyRight()
+                            .InsertUnorderedList().InsertOrderedList()
+                            //.Outdent().Indent()
+                            .CreateLink().Unlink()
+                            .ViewHtml()
+                            //.TableEditing()
+                            .ForeColor().BackColor()
+                            .FontName()
+                            .FontSize()
+                        )
+                                            )*@
+
+                        </div><br />
+                        <div class="row-12">
+                            <label class="form-control-plaintext text_left_side" style="font-size:16px;">
+                                Responsibilities @*<span class="required"> *</span>*@<br>
+                            </label>
+                        </div>
+                        <div class="row-12">
+                            <textarea class="content" asp-for="Responsibilities" id="Responsibilities"></textarea>
+
+                            @*@(Html.Kendo().EditorFor(x => x.Responsibilities)
+                        .HtmlAttributes(new { style = "width: 100%; height:300px" })
+
+                        .Tools(tools => tools
+                        .Clear()
+                        .Bold().Italic().Underline()
+                        .JustifyLeft().JustifyCenter().JustifyRight()
+                        .InsertUnorderedList().InsertOrderedList()
+                        //.Outdent().Indent()
+                        .CreateLink().Unlink()
+                        .ViewHtml()
+
+                        .ForeColor().BackColor()
+                        .FontName()
+                        .FontSize()
+                        )
+                                    )*@
+
+                        </div>
+                        <br />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col col-body-1-1">
+                        <div class="row">
+                            <div class="col-12 col-lg-12 col-xl-12 visible">
+
+                                <div class="row">
+                                    <div class="col-12 col-md-6 col-lg-6 col-xl-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            Qualification<br>
+                                        </label>
+                                    </div>
+                                    <div class="col col-right-cell">
+                                        <input type="text" asp-for="QualificationId" id="QualificationId" class="form-control" />
+
+                                        @*@(Html.Kendo().DropDownListFor(x => x.Qualification)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetListOfValueList", "ListOfValue", new { type = "LOV_QUALIFICATION" });
+                                        });
+                                    })
+                                    .Filter(FilterType.Contains)
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                    .HtmlAttributes(new { @class = "form-control-plaintext ip_text", style = "width:80%;" })
+                                                                )*@
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            Nationality<br>
+                                        </label>
+                                    </div>
+                                    <div class="col col-right-cell">
+                                        <input type="text" asp-for="NationalityId" id="NationalityId" class="form-control" />
+
+                                        @*@(Html.Kendo().DropDownListFor(x => x.NationalityId)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetNationalityIdNameList", "CandidateProfile");
+                                        });
+                                    })
+                                    .Filter(FilterType.Contains)
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                    .HtmlAttributes(new { @class = "form-control-plaintext ip_text", style = "width:80%;" })
+                                                                )*@
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            Status<br>
+                                        </label>
+                                    </div>
+                                    <div class="col col-right-cell">
+                                        @if (Model.UserRoleCodes.Contains("HR"))
+                                        {
+
+                                            <input type="text" asp-for="Status" id="Status" class="form-control" />
+
+                                            @*@(Html.Kendo().DropDownListFor(x => x.Status)
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        //.Events(e => e.Change("OnPageTypechange"))
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "StatusEnum" });
+                                            });
+                                        })
+                                        .Filter(FilterType.Contains)
+                                        .Value(Model.Status.ToString())
+                                        .HtmlAttributes(new { @class = "form-control-plaintext ip_text", style = "width:80%;" })
+                                                                    )*@
+                                        }
+
+                                        else
+                                        {
+                                            <input type="text" asp-for="Status" id="Status" class="form-control" />
+
+                                            @*@(Html.Kendo().DropDownListFor(x => x.Status)
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        //.Events(e => e.Change("OnPageTypechange"))
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "StatusEnum" });
+                                            });
+                                        })
+                                        .Value(Model.Status.ToString())
+                                        .HtmlAttributes(new { @class = "form-control-plaintext ip_text k-state-disabled", style = "width:80%;" })
+                                                                )*@
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 col-md-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            Job Category<span class="required"> *</span><br>
+                                        </label>
+                                    </div>
+                                    <div class="col col-right-cell">
+
+                                        <input type="text" asp-for="JobCategoryId" id="JobCategoryId" class="form-control" />
+
+                                        @*@(Html.Kendo().DropDownListFor(x => x.JobCategoryId)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetListOfValueList", "ListOfValue", new { type = "JOB_CATEGORY" });
+                                        });
+                                    })
+                                    .Filter(FilterType.Contains)
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                    .HtmlAttributes(new { @class = "form-control-plaintext ip_text", style = "width:80%;" })
+                                                                )*@
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 col-md-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            Agency<br>
+                                        </label>
+                                    </div>
+                                    <div class="col col-right-cell">
+                                        <select asp-for="AgencyIds" id="AgencyIds" data-placeholder="Select Agency..."></select>
+
+                                        @*@(Html.Kendo().MultiSelectFor(x => x.AgencyIds)
+                                           .AutoClose(false)
+                                           .Placeholder("Select Agency...")
+                                           .DataSource(source =>
+                                           {
+                                               source.Read(read =>
+                                               {
+                                                   read.Action("GetIdNameList", "Agency",new { @area= "Recruitment" });
+                                               });
+
+                                           })
+                                           .DataTextField("AgencyName")
+                                           .DataValueField("Id")
+                                           .AutoBind(true)
+                                           .HtmlAttributes(new { @class = "form-control" })
+                                           .ValuePrimitive(true)
+                                           .Height(300)
+                                    )*@
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-body-1-1 ml-lg-1 mr-lg-3">
+                        <div class="row">
+                            <div class="col visible">
+
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 col-md-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            No. Of Job Position<span class="required"> *</span><br>
+                                        </label>
+                                    </div>
+                                    <div class="col col-right-cell">
+                                        <input type="number" asp-for="NoOfPosition" class="form-control" required />
+                                        @*@Html.Kendo().NumericTextBoxFor(x => x.NoOfPosition).HtmlAttributes(new { @class = "form-control-plaintext ip_text", style = "width:80%;" })*@
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 col-md-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            Experience<span class="required"> *</span><br>
+                                        </label>
+                                    </div>
+                                    <div class="col col-right-cell">
+                                        <input type="number" asp-for="Experience" class="form-control" required />
+                                        @* @Html.Kendo().NumericTextBoxFor(x => x.Experience).HtmlAttributes(new { @class = "form-control-plaintext ip_text", style = "width:80%;" })*@
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 col-md-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            Expiry Date<br>
+                                        </label>
+
+                                    </div>
+                                    <div class="col col-right-cell">
+                                        <input type="text" asp-for="ExpiryDate" id="ExpiryDate" class="form-control" />
+                                        @*@Html.Kendo().DatePickerFor(x => x.ExpiryDate).HtmlAttributes(new { onfocusout = "validateExpiryDate();", style = "width:80%;" }).Format("dd MMM yyyy").Min(DateTime.Today)*@
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12 col-sm-6 col-md-6 col-left-cell">
+                                        <label class="form-control-plaintext text_left_side">
+                                            Required Date<br>
+                                        </label>
+                                    </div>
+                                    <div class="col col-right-cell">
+                                        <input type="text" asp-for="RequiredDate" id="RequiredDate" class="form-control" />
+                                        @*@Html.Kendo().DatePickerFor(x => x.NeededDate).Format("dd MMM yyyy").Min(DateTime.Today).HtmlAttributes(new { @style = "width:80%;" })*@
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row job_criteria">
+                    <div class="col"><span class="job_criteria_span">Job Criteria</span></div>
+                </div>
+                <div class="row row-body-1">
+                    <div class="col col-body-1-1">
+                        <div class="row">
+                            <div class="col visible">
+                                <div style="padding: 5px 0px;">
+                                    <input type="button" class="btn btn-primary" onclick="AddCriteria();" value="Add Criteria" />
+                                </div>
+                                <div id="JobCriteriaGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+                                @*@(Html.Kendo().Grid<JobCriteriaViewModel>
+                            (Model.JobCriteria)
+                            .Name("GridJobCriteria")
+                            // .ToolBar(toolbar =>
+                            // toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateJobCriteria();'><i class='fa fas fa-plus'></i>&nbsp;Add Job Criteria</button>"))
+                            .ToolBar(toolbar =>
+                            {
+                                toolbar.Create().Text("Add Job Criteria");
+
+                            })
+                            //toolbar.Custom().Text("Create Group").HtmlAttributes(new { href = "javascript:OnCreateGroup();" }))
+                            .Columns(columns =>
+                            {
+                                //columns.Command(command =>
+                                //{
+                                //    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditJobCriteria").HtmlAttributes(new { @class = "action-icon" });
+                                //    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                                //}).Title("Action").Width(100);
+                                columns.Command(command => { command.Edit().Text(" ").UpdateText(" ").CancelText(" ");
+                                    command.Destroy()/*.IconClass("fa fas fa-trash-alt")*/.Text(" ");
+                                    // command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteCriteria").HtmlAttributes(new { @class = "action-icon" });
+                                }).Width(120);
+
+                                columns.Bound(c => c.Criteria);
+                                //columns.Bound(c => c.Type);
+                                columns.Bound(c => c.Weightage);
+                                //  columns.Bound(c => c.CriteriaType).ClientTemplateId("criteriatype_template");
+                                columns.Bound(c => c.CriteriaType).EditorTemplateName("JobAdvtCriteriaType")/*.ClientTemplate("#:CriteriaType.Name#")*/.ClientTemplateId("criteriatype_template");
+                                // columns.Bound(c => c.CriteriaType).ClientTemplate("#=CriteriaType#");
+
+
+                            })
+                            .Events(e => e.Save("onGridSaveCriteria"))
+                            //  .Events(e=>e.Change("onGridSaveCriteria"))
+                            .Editable(editable => editable.Mode(GridEditMode.InLine).DisplayDeleteConfirmation(true)
+                            //.ConfirmDelete("Continue to delete this record?")
+                            //.DisplayDeleteConfirmation("Continue to delete this record?")
+                            )
+                            .Scrollable(x => x.Enabled(false))
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(false))
+                            .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                            .Pageable(pageable => pageable
+                            .Refresh(true)
+
+                            .PageSizes(true)
+                            .ButtonCount(5))
+                            .AutoBind(true)
+                            .DataSource(
+                            dataSource => dataSource
+                            .Ajax()
+                            .PageSize(10)
+                            .Batch(true)
+                            .ServerOperation(false)
+                            //.Events(events => events.Error("OnError"))
+                            .Read(read => read.Action("ReadJobCriteriaData", "JobAdvertisement", new { jobadvtid = Model.Id, jobdesc = Model.ShowJobDesc }))
+                            //  .Destroy(update => update.Action("EditingInline_Destroy", "JobAdvertisement"))
+                            // .Model(model => model.Id(p => p.Id))
+                            .Model(model =>
+                            {
+                                model.Id(p => p.Id);
+                                // model.Field(p => p.CriteriaType);
+                                //model.Field(p => p.CriteriaTypeName);
+                            }
+                            ))
+                                      )*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row job_criteria">
+                    <div class="col"><span class="job_criteria_span">Skills</span></div>
+                </div>
+                <div class="row row-body-1">
+                    <div class="col col-body-1-1">
+                        <div class="row">
+                            <div class="col visible">
+                                <div style="padding: 5px 0px;">
+                                    <input type="button" class="btn btn-primary" onclick="AddSkills();" value="Add Skills" />
+                                </div>
+                                <div id="SkillsGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+                                @*@(Html.Kendo().Grid<JobCriteriaViewModel>
+                            (Model.Skills)
+                            .Name("GridSkills")
+                            //.ToolBar(toolbar =>
+                            //  toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateSkills();'><i class='fa fas fa-plus'></i>&nbsp;Add Skills</button>"))
+                            .ToolBar(toolbar =>
+                            {
+                                toolbar.Create().Text("Add Skills");
+                                //toolbar.Save();
+                            })
+                            //toolbar.Custom().Text("Create Group").HtmlAttributes(new { href = "javascript:OnCreateGroup();" }))
+                            .Columns(columns =>
+                            {
+                                //columns.Bound(c => c.Id).Width(140).Hidden(true);
+                                //  columns.Bound(c => c.Id).Title(" ").Width(100).ClientTemplate("<a class='btn btn-success' onclick='return OnEditGroup(\"#=Id#\");'><i class='fad fa-edit'></i> Edit</a>");
+                                //columns.Command(command =>
+                                //{
+                                //    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditSkills").HtmlAttributes(new { @class = "action-icon" });
+                                //    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                                //}).Title("Action").Width(100);
+                                columns.Command(command => { command.Edit().Text(" ").UpdateText(" ").CancelText(" ");
+                                    command.Destroy()/*.IconClass("fa fas fa-trash-alt")*/.Text(" "); }).Width(120);
+                                //   command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteSkills").HtmlAttributes(new { @class = "action-icon" });
+                                //     }).Width(120);
+
+                                columns.Bound(c => c.Criteria).Title("Skills");
+                                //columns.Bound(c => c.Type);
+                                columns.Bound(c => c.Weightage);
+                                //  columns.Bound(c => c.CriteriaType).ClientTemplateId("criteriatype_template");
+                                columns.Bound(c => c.CriteriaType).EditorTemplateName("JobAdvtCriteriaType")/*.ClientTemplate("#:CriteriaType.Name#")*/.ClientTemplateId("criteriatype_template");
+
+                                //columns.Bound(c => c.GroupPortals).ClientTemplate("#= GroupPortals.join(', ')  #").Width(140);
+
+                            })
+                            .Events(e => e.Save("onGridSaveSkills"))
+                            .Editable(editable => editable.Mode(GridEditMode.InLine).DisplayDeleteConfirmation(true)
+                            //.ConfirmDelete("Continue to delete this record?")
+                            //.DisplayDeleteConfirmation("Continue to delete this record?")
+                            )
+                            .Scrollable(x => x.Enabled(false))
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(false))
+                            .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                            .Pageable(pageable => pageable
+                            .Refresh(true)
+
+                            .PageSizes(true)
+                            .ButtonCount(5))
+                            .AutoBind(true)
+                            .DataSource(
+                            dataSource => dataSource
+                            .Ajax()
+                            .PageSize(10)
+                            //.Events(events => events.Error("OnError"))
+                            .Read(read => read.Action("ReadSkillsData", "JobAdvertisement", new { jobadvtid = Model.Id, jobdesc = Model.ShowJobDesc }))
+                            .Model(model => { model.Id(p => p.Id);
+                                // model.Field(p => p.CriteriaType);
+                            }
+                            )
+                            )
+                                      )*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row job_criteria">
+                    <div class="col"><span class="job_criteria_span">Other Information</span></div>
+                </div>
+                <div class="row row-body-1">
+                    <div class="col col-body-3-1">
+                        <div style="padding: 5px 0px;">
+                            <input type="button" class="btn btn-primary" onclick="AddOtherInfo();" value="Add Other Info" />
+                            <input type="button" class="btn btn-primary" onclick="ViewLOV();" value="View List Of Value" />
+                        </div>
+                        <div id="OtherInfoGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+                        @*@(Html.Kendo().Grid<JobCriteriaViewModel>
+                    (Model.OtherInformation)
+                    .Name("GridOtherInformation")
+                    //.ToolBar(toolbar =>
+                    //toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateInfo();'><i class='fa fas fa-plus'></i>&nbsp;Add Other Information</button>"))
+                    .ToolBar(toolbar =>
+                    {
+                        toolbar.Create().Text("Add Other Information");
+                        toolbar.Custom().Text("View List Of Value").HtmlAttributes(new { href = "javascript:viewlistofvalue();" });
+                        //toolbar.Save();
+                    })
+                    //toolbar.Custom().Text("Create Group").HtmlAttributes(new { href = "javascript:OnCreateGroup();" }))
+                    .Columns(columns =>
+                    {
+
+                        columns.Command(command => { command.Edit().Text(" ").UpdateText(" ").CancelText(" ");
+                            command.Destroy()/*.IconClass("fa fas fa-trash-alt")*/.Text(" "); }).Width(120);
+
+
+                        columns.Bound(c => c.Criteria);
+
+
+                        columns.Bound(c => c.CriteriaType).EditorTemplateName("JobAdvtOtherCriteriaType")/*.ClientTemplate("#:CriteriaType.Name#")*/.ClientTemplateId("criteriatype_template");
+                        columns.Bound(c => c.ListOfValueTypeId).Title("List Of Value Type").EditorTemplateName("JobAdvtOtherLOVType").ClientTemplateId("lov_template");
+
+
+                    })
+                    .Events(e => e.Save("onGridSaveInfo"))
+                    .Editable(editable => editable.Mode(GridEditMode.InLine).DisplayDeleteConfirmation(true)
+                        //.ConfirmDelete("Continue to delete this record?")
+                        //.DisplayDeleteConfirmation("Continue to delete this record?")
+                        )
+                    .Scrollable(x => x.Enabled(false))
+                    .Sortable(srt => srt.Enabled(true))
+                    .Selectable(select => select.Enabled(false))
+                    .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                    .Pageable(pageable => pageable
+                    .Refresh(true)
+
+                    .PageSizes(true)
+                    .ButtonCount(5))
+                    .AutoBind(true)
+                    .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .PageSize(10)
+                    //.Events(events => events.Error("OnError"))
+                    .Read(read => read.Action("ReadInfoData", "JobAdvertisement", new { jobadvtid = Model.Id, jobdesc = Model.ShowJobDesc }))
+                    .Model(model => model.Id(p => p.Id))
+                    )
+                              )*@
+                    </div>
+                </div>
+
+            </div>
+            @Html.HiddenFor(x => x.Id)
+            @Html.HiddenFor(x => x.JobCriteria)
+            @Html.HiddenFor(x => x.Skills)
+            @Html.HiddenFor(x => x.OtherInformation)
+            @Html.HiddenFor(x => x.SaveType)
+            @Html.HiddenFor(x => x.ActionId)
+            @Html.HiddenFor(x => x.ActionName)
+            @Html.HiddenFor(x => x.DataAction)
+            @Html.HiddenFor(x => x.DraftId)
+            @Html.HiddenFor(x => x.SubmitId)
+            @Html.HiddenFor(x => x.ApprovalId)
+            @Html.HiddenFor(x => x.JobName)
+            @Html.HiddenFor(x => x.ServiceId)
+            @Html.HiddenFor(x => x.ServiceStatusCode)
+            @Html.HiddenFor(x => x.JobAdvNoteId)
+
+            <div class="row-md-12" id="divjobAdv" style="padding:10px;">
+
+                @if (!Model.IsView)
+                {
+                    @if (Model.UserRoleCodes.Contains("HR"))
+                    {
+                        <input type="submit" id="btnSubmit" class="btn btn-primary" style="float:right;margin-left:10px;" value="Submit" onclick="DraftData(event,'SUBMIT')" />
+                        @if (Model.ServiceStatusCode == null || Model.ServiceStatusCode == "SERVICE_STATUS_DRAFT")
+                        {
+                            <input type="submit" id="btnDraft" class="btn btn-info" style="float:right" value="Draft" onclick="DraftData(event,'DRAFT')" />
+                        }
+
+                        @*@if (Model.ActionId != Model.ApprovalId)
+                    {
+                        <input type="submit" id="btnDraft" class="btn btn-info" style="float:right" value="Draft" onclick="DraftData(event)" />
+                    }
+                    @if (Model.ActionId != Model.ApprovalId)
+                    {
+
+                        <input type="submit" id="btnSubmit" class="btn btn-primary" style="float:right" value="Submit" onclick="ApprovData(event)" />
+
+                    }
+                    @if (Model.ActionId == Model.ApprovalId)
+                    {
+
+                        <input type="submit" id="btnSave" class="btn btn-primary" style="float:right" value="Save" onclick="ApprovData(event)" />
+                    }*@
+
+                    }
+                }
+                @*@if (Model.UserRoleCodes.Contains("CORPCOMP"))
+            {
+                <input type="submit" class="btn btn-success" value="Approval" onclick="ApprovData(event)" />
+            }*@
+                <br />
+                <br />
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+
+
+

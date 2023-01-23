@@ -1,0 +1,569 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRCoreController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@using Kendo.Mvc.UI
+@using Synergy.App.Common
+
+
+@model ResignationTerminationViewModel
+@{
+    ViewBag.Title = Resource["Resignation"];
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .date {
+        margin-left: 1%;
+        margin-right: 1%
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+</style>
+
+
+<script>
+
+    $(document).ready(function () {
+
+        var empid = '@Model.Id';//parent.jQuery("#PersonId").val();
+        var userid = '@Model.UserId';
+
+        if (empid.length > 0 && userid.length == 0) {
+
+            var Status = {
+                Id: empid,
+                Empuserid: '0#',
+            };
+
+            kendo.alert("@Resource["Pleasecreateuserforthisperson"]");
+        }
+    })
+
+    //    function OnEditListOfValue(e) {
+    //        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+    //        var Id = dataItem.Id;
+    //        var displayName = dataItem.DisplayName;
+    //        Edit(Id, DisplayName)
+    //}
+
+    function Edit(id, PageName) {
+
+        var portalId = $('#GlobalPortalId').val();
+
+        //function gotoService(NoteId, Pagename) {
+        //    var portalId = $('#GlobalPortalId').val();
+        //    // var url = '/Cms/Page?source=Edit&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + id ;
+        //    var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&pageName=' + Pagename + '&portalId=' + portalId + '&recordId=' + NoteId;
+        //    var win = GetMainWindow();
+        //    win.iframeOpenUrl = url;
+        //    win.OpenWindow({ Title: "" + Pagename + "", Width: 1200, Height: 600 });
+        //    return false;
+        //}
+        // var url = '/Cms/Page?source=Edit&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + id ;
+        //var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Versioning&dataAction=Edit&pageName=' + PageName + '&portalId=' + portalId + '&recordId=' + id;
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&pageName=' + PageName + '&portalId=' + portalId + '&recordId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '' + PageName + '', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function OnService(pageName) {
+
+        var udfs, roudfs;
+
+        $.ajax({
+            url: "/Cms/LOV/GetLOVDetailsByCode?code=" + pageName,
+            dataType: "json",
+            type: "GET",
+            contentType: 'application/json; charset=utf-8',
+            cache: false,
+            success: function (data) {
+                
+                if (data != null) {
+
+                    udfs = encodeURIComponent('ReasonId=' + data.Id);
+                    roudfs = encodeURIComponent('ReasonId=true');
+
+                    var Empid = '@Model.Id';
+                    var userid = '@Model.UserId';
+                    if (Empid.length > 0 && userid.length == 0) {
+                        kendo.alert("@Resource["Pleasecreateuserforthisperson"]");
+                    } else
+                    {
+                    var portalId = $('#GlobalPortalId').val();
+                    var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=' + pageName + '&portalId=' + portalId + '&udfs=' + udfs + '&roudfs=' + roudfs;
+
+                    if (userid.length > 0)
+                    {
+                        var prms = encodeURIComponent('ownerUserId=' + '@Model.UserId');
+                        url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=' + pageName + '&portalId=' + portalId + '&prms=' + prms + '&udfs=' + udfs + '&roudfs=' + roudfs;
+                    }
+                    //return false;
+                    var win = GetMainWindow();
+                    win.iframeOpenUrl = url;
+                    win.OpenWindow({ Title: '' + pageName + '', Width: 1200, Height: 700 });
+                    return false;
+                    }
+                }
+            },
+            error: function (xhr) {
+                alert('error');
+            }
+        });
+
+    }
+
+    function OnAfterServiceCreate(service) {
+       // $("#BusinessTripGridView").data("kendoGrid").dataSource.read();
+        //Window.Parent.getDataSeparation();
+        getDataBusinessTreeGrid();
+    }
+
+    function OnEmployeechange(e) {
+        var dataItem = e.sender.dataItem();
+        var id = dataItem.UserId;
+        var Status = {
+            Id: id,
+        };
+        $("#BusinessTripGridView").data("kendoGrid").dataSource.read(Status);
+    }
+
+    function Databounds() {
+        var data = $("#BusinessTripGridView").data("kendoGrid").dataSource.data();
+        if (data.length == 0) {
+            $('#divButtons').show();
+        } else {
+            $('#divButtons').hide();
+        }
+    }
+
+</script>
+<script>
+ //var columnDefs = [
+ //  {
+ //           headerName: "Actions",
+ //           field: "Id",
+ //           cellRenderer: params => {
+ //               return "<div class='btn-group grid-menu' id='tree-menuBinSeparation' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\"><i class='fas fa-ellipsis-v'></i></div>"
+ //           }
+ //       },
+ //    {
+ //        field: "ServiceNo",
+ //        cellRenderer: params => {
+ //            
+ //            return "<a style='cursor:pointer;color:blue;' href='javascript:Edit(\"" + params.data.Id + "\",\"" + params.data.pagename + "\");'>" + params.value + " </a>";
+ //            //"<a target='_self' class='hover' style='cursor:pointer' onclick=\"OnEdit('# =ServiceId#')\">#=ServiceNo#</a>"
+
+ //        }
+ //    },
+ //    { field: "Subject" },
+ //    {
+ //        field: "ResignationTerminationDate",
+ //        cellRenderer: params => {
+ //            var date = new Date(params.value);
+ //            return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+ //        }
+ //    },
+ //    {
+ //        field: "LastWorkingDate",
+ //        cellRenderer: params => {
+ //            var date = new Date(params.value);
+ //            return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+ //        }
+ //    },
+ //    { field: "ServiceStatus" }, 
+    //    { field: "ClearanceForm" },
+
+ //   ];
+
+    //$(function () {
+    //    getDataSeparation();
+
+    //    //$.contextMenu('update');
+    //    //$('.context-menu-list').trigger('contextmenu:refresh');
+
+    //    $.contextMenu({
+    //        selector: '#tree-menuBinSeparation',
+    //        trigger: 'left',
+    //        build: function ($trigger, e) {
+    //            var id = $trigger.data('idvalue');            
+    //            var PageName = $trigger.data('PageName');
+    //            //var portalName = $trigger.data('portal-name');
+    //            switch (0) {
+    //                case 0:
+    //                    return {
+    //                        callback: function (key, options) {
+    //                            switch (key) {
+    //                                case 'edit':
+    //                                    Edit(id, PageName);
+    //                                    break;
+    //                                default:
+    //                            }
+    //                        },
+    //                        items: {
+    //                            "edit": { name: "Edit", icon: "fas fa-edit" },                          
+
+    //                        }
+    //                    };
+    //            }
+    //        }
+    //    });
+
+
+    //});
+
+    function OnEditListOfValue(id, displayName) {
+        
+          //  var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            ////var Id = Id;
+            ////var displayName = DisplayName;
+
+        Edit(id, displayName)
+    }
+
+    @*function getDataSeparation() {
+        document.getElementById("separationGrid").innerHTML = "";
+        gridConfig(
+        "separationGrid",
+        "@Url.Action("GetGridData", "HRCore", new { @area = "CHR", Id=Model.Id, UserId=Model.UserId})",
+        columnDefs,
+        false,
+        true,
+        true,
+        true,
+        1,
+        true,
+        10);
+    }*@
+
+</script>
+
+<div>
+    <h4>@ViewBag.Title</h4>
+    <hr />
+        <!--<div class="row">
+        <div class="col-12">-->
+             @*<button type='button' class='btn btn-primary' onclick='OnCreateSubModule();'><i class='fa fas fa-plus'></i>&nbsp;Create SubModule</button>
+             <br /><br />*@
+             <!--<div id="separationGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+         </div>
+         </div>-->
+</div>
+
+
+        @*<div id="banner" role="group" style="width:100%;color:#FFFFFF;background: #17a2b8;padding-left: 5px;">
+                   <div class="row" style="padding-top:10px;">
+                       <div class=" col-md-9">
+                           <div style="font-size:.8em;padding-top:0px;">
+                               select Employee
+                               <div class="project-dropdown" id="dropdown" title="Task Template">
+                                   @(Html.Kendo().DropDownList()
+                             .Name("ddlTemplate")
+                                   .DataTextField("EmployeeName")
+                                   .DataValueField("UserId")
+                                   .Filter(FilterType.Contains)
+                                   .OptionLabel("Select Employee")
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetAllEmployee", "BusinessTrip", new { @area = "Cms"});
+                                       });
+                                   })
+                                   .Events(x => x.Change("OnEmployeechange"))
+                                   .HtmlAttributes(new { @class = "form-control" , @style="width:80%" })
+                                   )
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+
+                <div class="btn banner-item banner-item-date col-sm-2">&nbsp;</div>
+            </div>*@
+
+
+<div class="row">
+     <div class="col-12">
+         <div id="divButtons">
+             @if (Model.Id != null)
+             {
+                 @*@if (ViewBag.Role == "HR" && ViewBag.ShowSeperation==true)
+                 {
+                     <button class="btn btn-filter-reset" onclick="OnService('Termination')" title="@Resource["TerminationRequest"]">@Resource["TerminationRequest"]</button>
+                 }
+                 else*@
+                 if (ViewBag.Role == "Employee" && ViewBag.ShowSeperation == true)
+                 {
+                    <button class="btn btn-filter-reset" onclick="OnService('Resignation')" title="@Resource["Resignation"]">@Resource["Resignation"]</button>
+                 }                 
+             }
+         </div>
+         <br />
+        <div>                   
+                    
+                        <script>
+                            var columnDefs1 = [
+                                {
+                                    headerName: "Actions",
+                                    field: "Id",
+                                    cellRenderer: params => {
+                                        return "<div class='btn-group grid-menu' id='tree-menuRT' data-idvalue='" + params.value + "' data-pagename='" + params.data.DisplayName+"' data-status=\"0\" data-noteid=\"#:NoteId#\"><i class='fas fa-ellipsis-v'></i></div>"
+                                    }
+                                },
+                                {
+                                    field: "ServiceNo",
+                                    cellRenderer: params => {
+                                        
+                                        return "<a style='cursor:pointer;color:blue;' href='javascript:Edit(\"" + params.data.Id + "\",\"" + params.data.DisplayName + "\");'>" + params.value + " </a>";
+                                        //"<a target='_self' class='hover' style='cursor:pointer' onclick=\"OnEdit('# =ServiceId#')\">#=ServiceNo#</a>"
+
+                                    }
+                                },
+                                { field: "Subject" },
+                                {
+                                    field: "ResignationTerminationDate",
+                                    cellRenderer: params => {
+
+                                        var date = new Date(params.value);
+                                        return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+                                    }
+                                },
+                                {
+                                    field: "LastWorkingDate",
+                                    cellRenderer: params => {
+
+                                        var date = new Date(params.value);
+                                        return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+                                    }
+                                },
+                                {
+                                    field: "ServiceStatus",
+                                    headerNae: "@Resource["ServiceStatus"]"
+                                },
+                                {
+                                    field: "ClearanceForm",
+                                    headerNae: "@Resource["ClearanceForm"]"
+                                },
+                            ];
+
+
+                            $(function () {
+
+                                getDataBusinessTreeGrid();
+
+                                $.contextMenu({
+                                    selector: '#tree-menuRT',
+                                    trigger: 'left',
+                                    build: function ($trigger, e) {
+
+                                        var id = $trigger.data('idvalue');
+                                        var pageName = $trigger.data('pagename');
+
+                                        //var portalName = $trigger.data('portal-name');
+
+                                        switch (0)
+                                        {
+                                            case 0:
+                                                return {
+                                                    callback: function (key, options) {
+                                                        switch (key) {
+                                                            case 'edit':
+                                                                OnEditListOfValue(id, pageName);
+                                                                break;
+                                                            default:
+                                                        }
+                                                    },
+                                                    items: {
+                                                        "edit": { name: "Edit", icon: "fas fa-edit" },
+                                                    }
+                                                };
+
+                                        }
+                                    }
+                                });
+
+
+                            });
+
+                            function getDataBusinessTreeGrid() {
+                                  document.getElementById("BusinessTripGridView").innerHTML = "";
+                                    gridConfig(
+                                    "BusinessTripGridView",
+                                    "@Url.Action("GetGridData", "HRCore", new { @area = "CHR", Id=Model.Id, UserId=Model.UserId})",
+                                    columnDefs1,
+                                    false,
+                                    true,
+                                    true,
+                                    true,
+                                    1,
+                                    true,
+                                    10);
+                            }
+
+
+                        </script>
+
+                        <div id="BusinessTripGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                        @*@(Html.Kendo().Grid<ResignationTerminationViewModel>()
+                                        .Name("BusinessTripGridView")
+                                        .Columns(columns =>
+                                        {
+                                            columns.Command(command =>
+                                            {
+                                                command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditListOfValue").HtmlAttributes(new { @class = "action-icon" });
+                                                //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteListOfValue").HtmlAttributes(new { @class = "action-icon" });
+                                            }).Title(@SharedResource["Action"]).Width(100);
+                                            //columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+                                            columns.Bound(p => p.ServiceNo).Title(@SharedResource["ServiceNo"]).Width(170);
+                                            columns.Bound(p => p.Subject).Title(@SharedResource["Subject"]).Width(170);
+                                            columns.Bound(p => p.ResignationTerminationDate).Title(@Resource["Resignation/TerminationDate"]).Format("{0:dd MMM yyyy}").Width(250);
+                                            columns.Bound(p => p.LastWorkingDate).Title(@Resource["LastWorkingDate"]).Format("{0:dd MMM yyyy}").Width(220);
+                                            columns.Bound(p => p.ServiceStatus).Title(@Resource["ServiceStatus"]).Format("{0:dd MMM yyyy}").Width(170);
+                                            columns.Bound(p => p.ClearanceForm).Title(Resource["ClearanceForm"]).Width(250);
+
+                                        })
+                                        .ToolBar(toolbar =>
+                                        {
+                                            //toolbar.Excel();
+                                            //toolbar.Pdf();
+                                            toolbar.Search().Text(@SharedResource["Search"]);
+                                        })
+
+            .ColumnMenu(col=>col.Filterable(false))
+            .Height(700)
+            .Editable()
+            .Pageable()
+            .Sortable()
+            .Navigatable()
+            .Resizable(r=>r.Columns(true))
+            .Reorderable(r => r.Columns(true))
+            .Groupable(g=>g.ShowFooter(false))
+            .Filterable()
+            .Scrollable()
+            .Events(events => events.DataBound("Databounds"))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Batch(true)
+                .PageSize(20)
+                .AutoSync(true)
+                .ServerOperation(false)
+                   .Model(m =>
+                   {
+                       m.Id(model => model.Id);
+                       m.Id(model => model.DisplayName);
+
+
+                   })
+                .Read("GetGridData", "HRCore", new { @area = "CHR", Id=Model.Id, UserId=Model.UserId})
+            )
+        )*@
+                    
+                </div>
+            </div>
+        </div>
+
+
+
+

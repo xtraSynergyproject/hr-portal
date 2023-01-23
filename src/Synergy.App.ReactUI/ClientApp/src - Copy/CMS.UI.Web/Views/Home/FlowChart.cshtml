@@ -1,0 +1,392 @@
+﻿@using Kendo.Mvc.UI
+@model ChartViewModel
+@{
+    ViewBag.Title = "Position Hierarchy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/js/positionchartmenu.js" type="text/javascript"></script>
+
+<link href="~/css/orgchart.css" rel="stylesheet" type="text/css" />
+
+<style>
+    .k-button.k-primary {
+        border-color: #ff6358;
+        color: #fff;
+        background-color: #ff6358;
+        background-image: linear-gradient(rgba(255,138,88,0),rgba(255,138,88,.2));
+    }
+</style>
+
+
+<script type="text/javascript">
+    var reset = true, chartMode = 'Normal', hierarchyId, asonDate,
+        allowedParentId, hierarchyRootNodeId, isAsOnDate, permissionCSV, isAdmin, loggedInEmpId
+        , loggedInPositionId, loggedInUserOrganizationMapping
+        , loggedInOrgId, isAdmin, orgAllowedParentId, orgHierarchyRootNodeId;
+
+    $(document).ready(function () {
+        asonDate = $("#AsOnDate").val();
+        hierarchyId = $("#HierarchyId").val();
+        //assignmentId = $("#AssignmentId").val();
+        allowedParentId ='@Model.Id';
+        hierarchyRootNodeId = '@Model.Id';
+        chartMode='@ViewBag.ChartMode';
+        permissionCSV = '@ViewBag.PermissonCSV';
+        isAsOnDate = '@ViewBag.IsAsOnDate' =='True';
+        isAdmin = '@ViewBag.IsAdmin'=='True';
+        loggedInEmpId = '@ViewBag.LoggedInEmpId';
+        loggedInPositionId = '@ViewBag.LoggedInPositionId';
+        loggedInUserOrganizationMapping = '@ViewBag.LoggedInUserOrganizationMapping';
+        loggedInOrgId = '@ViewBag.LoggedInOrgId';
+
+        orgAllowedParentId ='@ViewBag.OrgAllowedRootNodeId';
+        orgHierarchyRootNodeId = '@ViewBag.OrgHierarchyRootNodeId';
+        $("#menu").find("ul").addClass("dropdown-menu");
+
+        InitialLoad(allowedParentId);
+
+    });
+
+    function showLegend() {
+        $("#menu-legend").html($("#legend-content").html());
+    }
+
+    function ExportToPdf() {
+        $("#Width").val($(".root-li").width());
+        $("#Height").val($(".root-li").height());
+        var html = $('.tree').prop('outerHTML');
+        $("#Content").val($('<div/>').text(html).html());
+        document.getElementById('exportToPdf').submit();
+        return true;
+    }
+    function OnAsOnDateChange(e) {
+        var params = window.location.search;
+        params = RemoveParams(params, 'date');
+        var url = window.location.pathname + '?' + params + '&date='+kendo.toString(this.value(), 'yyyy-MM-dd');
+        window.location.href = url;
+        return false;
+    }
+    function InitialLoad(posId) {
+            var url = "GetFlowChart?parentId=" + allowedParentId ;
+        var li = $('.root-li');
+        GetChildList(url, li, allowedParentId, true, null);
+    }
+    $(document).on('click', function (e) {
+        if ($(e.target).closest("#menu").length === 0 && $(e.target).closest(".hr-org-menu").length === 0) {
+            $("#menu").hide();
+        }
+    });
+
+     function closeNav() {
+            document.getElementById("mymodernsidebar").style.width = "0";
+              $("#modernnavopen").show();
+            $("#modernnavclose").hide();
+    }
+
+
+    function Goto(type) {
+    }
+    function PositionChartSearchCallBack(Positions) {
+        CloseIframePopup();
+        Search(Positions.replace(',', ''));
+        return false;
+    }
+    function Search(posId) {
+        var url = "/hrs/positionchart/GetParentHierarchyWithAllChild?posId=" + posId
+            + "&hierarchyId=" + hierarchyId + "&hierarchyRootId=" + hierarchyRootNodeId
+            + "&allowedRootId=" + allowedParentId + "&date=" + asonDate;
+        var li = $('.root-li');
+        GetChildList(url, li, allowedParentId, true, posId);
+    }
+    function OnSearch() {
+        iframeOpenUrl = "/hrs/positionchart/search?hierarchyId=" + hierarchyId;
+        OpenIframePopup(1200, 650, "Search Position");
+    }
+    function FillNode(data, liData, parentLvl) {
+        liData.Level = parentLvl;
+        var html = "";
+        var template = kendo.template($("#template-org").html());
+        html = template(liData);
+        var items = $.grep(data, function (element, index) {
+            return element.ParentId == liData.Id;
+        });
+        //var parentLvl = eval(liData.Level);
+        if (items != null && items.length > 0) {
+            html = html.replace('hr-org-expand', 'hr-org-collapse');
+            html += "<ul class='" + parentLvl + "'>"
+            for (var i = 0; i < items.length; i++) {
+                html += "<li id='" + items[i].Id +"' lvl='" + (eval(parentLvl) + 1) + "'>";
+                html += FillNode(data, items[i], (eval(parentLvl) + 1));
+                html += "</li>"
+            }
+            html += "</ul>";
+        }
+        return html;
+    }
+
+    function GetChildList(url, li, posId, includeParent, searchId) {
+      //  OnBegin();
+        $.ajax({
+            url: url,
+            type: 'GET',
+            cache: false,
+            //async: false,
+            success: function (data) {
+
+                if (includeParent) {
+                    var parentData = $.grep(data, function (element, index) {
+                        return element.Id == posId;
+                    });
+
+                    if (parentData != null && parentData.length > 0) {
+                        var parentLvl = eval(li.attr('lvl'));
+                        li.html(FillNode(data, parentData[0], parentLvl));
+                    }
+                }
+                else {
+
+                    var childData = $.grep(data, function (element, index) {
+                        return element.ParentId == posId;
+                    });
+
+                    if (childData != null && childData.length > 0) {
+                        var parentLvl = eval(li.attr('lvl'));
+                        var html = "<ul class='" + parentLvl + "'>"
+                        for (var i = 0; i < childData.length; i++) {
+                            html += "<li id='" + childData[i].Id+"' lvl='" + (eval(parentLvl) + 1) + "'>";
+                            html += FillNode(data, childData[i], (eval(parentLvl) + 1));
+                            html += "</li>"
+                        }
+                        html += "</ul>";
+                        li.append(html);
+                    }
+                }
+                //OnComplete();
+                //if (searchId!=null) {
+                //    $("#org-" + searchId).addClass('focus');
+                //    FocusSearchResultNode();
+                //}
+            },
+            error: function (errData) {
+                console.log(errData)
+                OnError(errData);
+                OnComplete();
+            }
+        });
+        return false;
+    }
+    function Expand(e, rootli) {
+        var node = $(e).parent('div').parent('li');
+        var lvl = eval(node.attr('lvl'));
+        var id = eval(node.attr('id'));
+        var ul = node.find('ul[class=' + lvl + ']');
+        if (ul.length <= 0) {
+              hierarchyId = $("#HierarchyId").val();
+            var url = "/hrs/positionchart/GetChildList?parentId=" + id + "&parentLevel=" + lvl
+                + "&includeParent=false&uptoLevel=1&hierarchyId=" + hierarchyId + "&hierarchyRootId=" + hierarchyRootNodeId
+                + "&allowedRootId=" + allowedParentId + "&date=" + asonDate;
+            var rootli = $('.root-li');
+            GetChildList(url, node, id,false,null)
+        }
+        else {
+            ul.show();
+            OnComplete();
+        }
+
+
+    }
+    function MultiLevelExpandCollapse(posId, level) {
+        var node = $('#org-' + posId).parent('li');
+        var lvl = eval(node.attr('lvl'));
+        var id = eval(node.attr('id'));
+        var ul = node.find('ul[class=' + lvl + ']');
+
+        var ec = node.find('.hr-ec');
+        ec.removeClass("hr-org-expand");
+        ec.addClass("hr-org-collapse");
+        if (ul.length > 0) {
+            ul.remove();
+        }
+        hierarchyId = $("#HierarchyId").val();
+        var url = "/hrs/positionchart/GetChildList?parentId=" + id + "&parentLevel=" + lvl
+            + "&includeParent=false&uptoLevel=" + level+"&hierarchyId=" + hierarchyId + "&hierarchyRootId=" + hierarchyRootNodeId
+            + "&allowedRootId=" + allowedParentId + "&date=" + asonDate;
+        GetChildList(url, node, id, false, null)
+    }
+    function CollapseAll(posId) {
+        var node = $('#org-' + posId).parent('li');
+        var lvl = eval(node.attr('lvl'));
+        var ec = node.find('.hr-ec');
+        ec.removeClass("hr-org-collapse");
+        ec.addClass( "hr-org-expand");
+        var ul = node.find('ul[class=' + lvl + ']');
+        ul.remove();
+        OnComplete();
+    }
+    function Collapse(e, rootli) {
+        var node = $(e).parent('div').parent('li');
+        var lvl = eval(node.attr('lvl'));
+        var ul = node.find('ul[class=' + lvl + ']');
+        ul.remove();
+        OnComplete();
+    }
+    function OnExpandCollapseClick(e) {
+        var rootli = $('.root-li');
+        OnBegin();
+        var isExpand = $(e).hasClass('hr-org-expand');
+        $(e).toggleClass('hr-org-expand hr-org-collapse');
+        if (isExpand) {
+            Expand(e, rootli);
+        }
+        else {
+            Collapse(e, rootli);
+        }
+
+    }
+
+    function OnManage(source, posId, relationshipId, hierarchyId) {
+        var rsv = encodeURIComponent("/hrs/positionchart/index?a=1");
+        if (type1 == "PositionExcel") {
+            rsv = encodeURIComponent("/hrs/positionchart/index?type=PositionExcel");
+        }
+        var url = "/hrs/positionhierarchy/" + source + (posId == null ? "" : "?posId=" + posId) + "&relationshipId=" + relationshipId + "&hierarchyId=" + hierarchyId  + "&ru=" + rsv;
+        window.location.href = url;
+        return false;
+    }
+    function OnPositionManage(source, id) {
+        var rsv = encodeURIComponent("/hrs/positionchart/index?a=1");
+        if (type1 == "PositionExcel") {
+            rsv = encodeURIComponent("/hrs/positionchart/index?type=PositionExcel");
+        }
+        var url = "/hrs/position/" + source + (id == null ? "" : "?id=" + id + "&ru=" + rsv + "&empId=" + empId + "&posId=" + posId + "&hierarchyId=" + hierarchyId + "&orgId=" + orgId + "&date=" + asonDate);
+        window.location.href = url;
+    }
+    function OnAssignmnetManage(source, id) {
+        var rsv = encodeURIComponent("/hrs/positionchart/index?a=1");
+        if (type1 == "PositionExcel") {
+            rsv = encodeURIComponent("/hrs/positionchart/index?type=PositionExcel");
+        }
+        var url = "/hrs/assignment/" + source + (id == null ? "" : "?id=" + id + "&ru=" + rsv + "&empId=" + empId + "&posId=" + posId + "&hierarchyId=" + hierarchyId + "&orgId=" + orgId + "&date=" + asonDate);
+        window.location.href = url;
+    }
+    function OnPersonManage(source, id) {
+        var rsv = encodeURIComponent("/hrs/positionchart/index?posId=" + posId);
+        if (type1 == "PositionExcel") {
+            rsv = encodeURIComponent("/hrs/positionchart/index?type=PositionExcel");
+        }
+        var url = "/hrs/person/" + source + (id == null ? "" : "?id=" + id + "&ru=" + rsv + "&empId=" + empId + "&posId=" + posId + "&hierarchyId=" + hierarchyId + "&orgId=" + orgId + "&date=" + asonDate);
+        window.location.href = url;
+    }
+    function CloseNote(redirect, tempId) {
+        var rsv = encodeURIComponent("/hrs/positionchart/index?posId=" + posId);
+        if (type1 == "PositionExcel") {
+            rsv = encodeURIComponent("/hrs/positionchart/index?type=PositionExcel");
+        }
+        window.CloseIframePopup();
+        if (redirect)
+            window.location.href = "/nts/Note/Manage?tagtotype=Person&tagtoid=" + empId + "&templateMasterId=" + tempId + "&ru=" + rsv;
+    }
+    function CloseTask(redirect, tempId) {
+        var rsv = encodeURIComponent("/hrs/positionchart/index?posId=" + posId);
+        if (type1 == "PositionExcel") {
+            rsv = encodeURIComponent("/hrs/positionchart/index?type=PositionExcel");
+        }
+        window.CloseIframePopup();
+        if (redirect)
+            window.location.href = "/nts/Task/Manage?assignTo=" + userId + "&templateMasterId=" + tempId + "&ru=" + rsv;
+    }
+    function CloseService(redirect, tempId) {
+        var rsv = encodeURIComponent("/hrs/positionchart/index?posId=" + posId);
+        if (type1 == "PositionExcel") {
+            rsv = encodeURIComponent("/hrs/positionchart/index?type=PositionExcel");
+        }
+        window.CloseIframePopup();
+        if (redirect)
+            window.location.href = "/nts/Service/Manage?userId=" + userId + "&templateMasterId=" + tempId + "&ru=" + rsv;
+    }
+    function SelectCallBack(posId, jobId, empId, orgId) {
+
+        var rs = $("#RequestSource").val();
+        if (rs == "Recruitment") {
+            debugger;
+            var ru = "/rec/rechome/recsummary";
+            ru = encodeURIComponent(ru);
+            window.location.href = "/nts/service/serviceflow?layoutMode=Iframe&templateMasterCode=JOB_REQUEST&udfName1=positionId&udfValue1=" + posId + "&udfCode1=" + posId + "&udfName2=jobId&udfValue2=" + jobId + "&udfCode2=" + jobId + "&udfName3=orgId&udfValue3=" + orgId + "&udfCode3=" + orgId + "&udfName4=noOfPosition&udfValue4=1&udfCode4=1&ru=" + ru;
+        }
+    }
+</script>
+<div id="appWrapper">
+    @(Html.Kendo().Menu()
+        .Name("menu")
+        .Events(e => e.Select("OnMenuClick"))
+        .HtmlAttributes(new { @class = "dropdown-menu" })
+        .Items(items =>
+        {
+            items.Add().Text("Add").HtmlAttributes(new { @id = "Add" })
+            .Items(children =>
+            {
+                children.Add().Text("Process").HtmlAttributes(new { @id = "Process" });
+                children.Add().Text("Decision").HtmlAttributes(new { @id = "Decision" });
+                children.Add().Text("End").HtmlAttributes(new { @id = "End" });
+
+            });
+            items.Add().Text("If Yes, Add").HtmlAttributes(new { @id = "IfYes" })
+            .Items(children =>
+            {
+                children.Add().Text("Process").HtmlAttributes(new { @id = "IfYesProcess" });
+                children.Add().Text("Decision").HtmlAttributes(new { @id = "IfYesDecision" });
+                children.Add().Text("End").HtmlAttributes(new { @id = "IfYesEnd" });
+
+            });
+            items.Add().Text("If No, Add").HtmlAttributes(new { @id = "IfNo" })
+             .Items(children =>
+             {
+                 children.Add().Text("Process").HtmlAttributes(new { @id = "IfNoProcess" });
+                 children.Add().Text("Decision").HtmlAttributes(new { @id = "IfNoDecision" });
+                 children.Add().Text("End").HtmlAttributes(new { @id = "IfNoEnd" });
+
+             });
+
+            items.Add().Text("Edit").HtmlAttributes(new { @id = "Edit" }) ;
+            items.Add().Text("Remove").HtmlAttributes(new { @id = "Remove" });
+        })
+        .Orientation(MenuOrientation.Vertical)
+
+    )
+    <script type="text/x-kendo-template" id="template-org">
+        <div class="org-node #:data.CssClass# node-#:data.NodeType#" id="org-#:data.Id#">
+            <div>
+                <span id="hr-org-menu-#:data.Id#" hc="#:data.DirectChildCount#" lvl="#:data.Level#"
+                      parentId="#:data.ParentId#" nodeType="#:data.NodeType#"
+                      class="hr-org-menu k-icon k-i-more-horizontal" onclick="OpenContextMenu(this)">
+                </span>
+            </div>
+
+            # if (data.Name != null) { #
+            <div class="chartText" style="white-space:normal;">
+                #: Name #
+            </div>
+            # } #
+
+
+        </div>
+    </script>
+
+
+
+    <div class="tree" style="display:inline-flex;min-width:100%;text-align:center;">
+        <ul class="0">
+            <li class="root-li" lvl='0' id="@Model.Id">
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div id="mymodernmain">
+
+
+</div>
+
+
+
+

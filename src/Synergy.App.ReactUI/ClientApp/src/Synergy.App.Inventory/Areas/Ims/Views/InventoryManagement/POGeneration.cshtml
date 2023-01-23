@@ -1,0 +1,522 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Direct Sales";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@model PurchaseOrderViewModel
+
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+    .jsgrid-grid-body {
+        height:auto!important;
+    }
+
+
+    .required {
+        color: red;
+    }
+
+    .avatar-myProfile {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .avatar-mysign {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .bold {
+        font: bold
+    }
+</style>
+
+<div class="row" style="margin:10px;margin-bottom:60px;">
+
+    <form asp-controller="InventoryManagement" asp-action="ManagePOGeneration" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div style="width: 100%;" class="p-3">
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Item Details</legend>
+                <div id="POItemsGrid" style="width: 100%;" class="ag-theme-alpine"></div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Vendor Details</legend>
+                <div class="card pad-10" style="padding-top:0px;">
+                    <div class="row col-12" style="padding:10px;">
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>PO Date<span class="required">*</span></label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" asp-for="PoDate" class="form-control" required />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Bill To Unit<span class="required">*</span></label>
+                        </div>
+                        <div class="col-6" style="padding-bottom:10px;">
+                            <input type="text" asp-for="POLegalEntityId" class="form-control" required />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Vendor<span class="required">*</span></label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" asp-for="VendorId" class="form-control" required />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Contact Person<span class="required">*</span></label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" asp-for="ContactPersonId" class="form-control" required />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Contact No<span class="required">*</span></label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" asp-for="ContactNo" class="form-control" required />
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+
+
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Shipping Details</legend>
+                <div class="card pad-10" style="padding-top:0px;">
+
+                    <div class="row col-12" style="padding:10px;">
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Ship To<span class="required">*</span></label>
+                        </div>
+                        <div class="col-6" style="padding-bottom:10px;">
+                            <input type="text" class="form-control" asp-for="ShipTo" required />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Phone No</label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" class="form-control" asp-for="PhoneNo" />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Country<span class="required">*</span></label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" class="form-control" asp-for="CountryId" required />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>State<span class="required">*</span></label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" class="form-control" asp-for="StateId" required />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>City<span class="required">*</span></label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" class="form-control" asp-for="CityId" required />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Shipping Address</label>
+                        </div>
+                        <div class="col-6" style="padding-bottom:10px;">
+                            <input type="text" class="form-control" asp-for="ShippingAddress" />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>GST No.</label>
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <input type="text" class="form-control" asp-for="GstNo" />
+                        </div>
+                        <div class="col-2" style="padding-bottom:10px;">
+                            <label>Remark</label>
+                        </div>
+                        <div class="col-10" style="padding-bottom:10px;">
+                            <input type="text" class="form-control" asp-for="Remark" />
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="fieldset">
+                <div class="row pad-10">
+                    <div class="row col-5">
+                        <input type="checkbox" style="margin-top: 5px;" asp-for="AllowMoreThanApprovedQuantity" /><label> Allow more PO quantity than approved quantity.</label>
+                    </div>
+                    <div class="row col-4">
+                        <input type="checkbox" id="IsConfirmed" style="margin-top: 5px;" onchange="IsConfirmedChanged(event)" /><label> Are you sure?</label>
+                    </div>
+                    <div class="col-3" style="float:right;">
+                        <input id="btnSave" type="submit" class="btn btn-primary" value="Save" style="margin:5px;" onclick="SaveData(event)" disabled />
+                        <input type="button" class="btn btn-danger" value="Close" style="margin:5px;" onclick="closeNav()" />
+                    </div>
+
+                </div>
+            </fieldset>
+            </div>
+
+                @Html.HiddenFor(x => x.DataAction)
+                @Html.HiddenFor(x => x.ServiceId)
+                @Html.HiddenFor(x => x.UdfNoteTableId)
+                @Html.HiddenFor(x => x.POItemsData)
+                @Html.HiddenFor(x => x.ItemHeadId)
+                @Html.HiddenFor(x => x.IssueFromIds)
+</form>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $("#PoDate").kendoDatePicker({
+        value: new Date()
+         });
+        $("#POLegalEntityId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+
+             optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            change: function (e)
+            {
+                var dataItem = this.dataItem();
+               // $("#CountryId").data("kendoDropDownList").value(dataItem.CountryId);
+               /// $("#StateId").data("kendoDropDownList").value(dataItem.StateId);
+               // $("#CityId").data("kendoDropDownList").value(dataItem.CityId);
+                $("#ShippingAddress").val(dataItem.Address);
+                $("#GSTNo").val(dataItem.GSTNo);
+                $("#ShipTo").val(dataItem.Name);
+            },
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LegalEntity/GetIdNameList",
+                    }
+                }
+            }
+        });
+          $("#CountryId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+              filter: "contains",
+             optionLabel: "--Select--",
+            change: function (e)
+            {
+                debugger
+                $("#StateId").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+               // serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCountryList",
+                    }
+                }
+            }
+        });
+
+        $("#StateId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--Select--",
+          
+            filter: "contains",
+            autoBind: false,
+           // cascadeFrom: "CountryId",
+
+            change: function (e)
+            {
+                $("#CityId").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+                //serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetStateList",//+ $("#Country").data("kendoDropDownList").value(),
+                        data: filterState,
+                    },
+                }
+            }
+        });
+         $("#CityId").kendoDropDownList({
+            dataTextField: "Name",
+             dataValueField: "Id",
+            optionLabel: "--Select--",
+          
+             filter: "contains",
+             autoBind: false,
+             //cascadeFrom: "StateId",
+             dataSource: {
+                 //serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCityList",
+                        data: filterCity,
+                    }
+                }
+            }
+         });
+      $("#VendorId").kendoDropDownList({
+            dataTextField: "VendorName",
+          dataValueField: "Id",
+             optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+          @*value: "@Model.VendorId",*@
+          change: function (e) {
+              var dataItem = this.dataItem();
+              $("#ContactPersonId").data("kendoDropDownList").dataSource.read({ vendorId: this.value() });
+
+          },
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetVendorsList",
+                    }
+                }
+            }
+      });
+    $("#ContactPersonId").kendoDropDownList({
+        dataTextField: "ContactPersonName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+        autoBind: false,
+        change: function (e) {
+            var dataItem = this.dataItem();
+            $("#ContactNo").val(dataItem.ContactNo1);
+        },
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetVendorContactList",
+                    }
+                }
+            }
+        });
+    $("#POItemsGrid").jsGrid({
+        width: "100%",
+
+
+        inserting: false,
+        editing: true,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        controller: {
+            loadData: function (filter) {
+
+                return $.ajax({
+                    type: "GET",
+                    url: "/IMS/InventoryManagement/GetRequisistionItemsByRequisitionId?requisitionIds=@Model.RequisitionIds",
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+            onItemEditing: function (e) {
+                debugger;
+                if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                    //
+                    e.grid.updateItem();
+                }
+            },
+            updateItem: function (item) {
+                debugger;
+            },
+            //deleteItem: function (item) {
+            //    onDeleteItem(item.NoteId);
+            //}
+        },
+        fields: [
+
+            { name: "Select", type: "checkbox", width: 60,},
+            {
+                name: "ItemName",
+                title: "Item Name",
+                type: "text",
+                editing: false
+            },
+
+            {
+                name: "ItemQuantity",
+                title: "Req Qty",
+                type: "text",
+                editing: false
+            },
+            {
+                name: "ApprovedQuantity",
+                title: "Approved Qty",
+                type: "text",
+                editing: false
+            },
+            {
+                name: "POQuantity",
+                title: "PO Qty",
+                type: "text",
+                editing: true
+            },
+            {
+                name: "PurchaseRate",
+                title: "Purchase Rate",
+                type: "text",
+                editing: true
+            },
+            {
+                name: "SalesRate",
+                title: "Sales Rate",
+                type: "text",
+                editing: true
+            },
+            {
+
+                type: "control", deleteButton: false,
+
+            },
+        ]
+    })
+    });
+    function IsConfirmedChanged(e)
+    {
+        if ($('input[id=IsConfirmed]:checked') == false) {
+            e.preventDefault();
+            $("#btnSave").prop('disabled', true);
+
+        }
+        else
+        {
+            $("#btnSave").prop('disabled', false);
+        }
+    }
+    function filterState() {
+        debugger
+        return {
+            countryId: $("#CountryId").data("kendoDropDownList").value()
+        };
+    }
+    function filterCity() {
+        debugger
+        return {
+            stateId: $("#StateId").data("kendoDropDownList").value()
+        };
+    }
+
+    function SaveData(e) {
+        var selectedDataItems = [];
+        debugger;
+        var entityGrid = $("#POItemsGrid").data("JSGrid");
+        if (entityGrid._editingRow != null) {
+            entityGrid.updateItem();
+        }
+
+        for (var i = 0; i < entityGrid.data.length; i++) {
+            if (entityGrid.data[i].Select == true) {
+                selectedDataItems.push(entityGrid.data[i]);
+                if ($('input[name=AllowMoreThanApprovedQuantity]:checked') == false) {
+                    if (parseFloat(entityGrid.data[i].ApprovedQuantity) < parseFloat(entityGrid.data[i].POQuantity))
+                    {
+                        ShowNotification("["+entityGrid.data[i].ItemName + "] Total PO Quantity is exceeding Approved Quantity [" + entityGrid.data[i].ApprovedQuantity+"]","error");
+                        $(".text-danger").removeClass("validation-summary-valid");
+                        $(".text-danger").addClass("validation-summary-errors");
+                        e.preventDefault();
+                        return false
+                        break;
+
+                    }
+                    if ((parseFloat(entityGrid.data[i].ExistingPOQuantity) + parseFloat(entityGrid.data[i].POQuantity)) > parseFloat(entityGrid.data[i].ApprovedQuantity)) {
+                        ShowNotification("[" + entityGrid.data[i].ItemName + "] Current PO Quantity and existing PO Quantity is exceeding Approved Quantity [" + entityGrid.data[i].ApprovedQuantity + "]", "error");
+                        $(".text-danger").removeClass("validation-summary-valid");
+                        $(".text-danger").addClass("validation-summary-errors");
+                        e.preventDefault();
+                        return false
+                        break;
+
+                    }
+                }
+            }
+
+        }
+        $("#POItemsData").val(JSON.stringify(selectedDataItems));
+
+        if (selectedDataItems.length == 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("select at leaset one column");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#ContactPersonId").data("kendoDropDownList").value() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Contact Person is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#BillToUnit").data("kendoDropDownList").value() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Bill To Unit is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#ContactNo").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Contact No is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#VendorId").data("kendoDropDownList").value()=="") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Vendor is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#CountryId").data("kendoDropDownList").value() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Country is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#StateId").data("kendoDropDownList").value() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("State is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#CityId").data("kendoDropDownList").value() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("City is required");
+            e.preventDefault();
+            return false;
+        }
+    }
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            closeNav()
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+
+
+    function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+</script>

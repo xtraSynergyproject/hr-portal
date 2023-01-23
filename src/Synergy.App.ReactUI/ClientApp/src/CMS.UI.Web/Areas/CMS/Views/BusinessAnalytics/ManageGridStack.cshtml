@@ -1,0 +1,95 @@
+﻿@using Synergy.App.Common;
+@using Synergy.App.ViewModel
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Grid Stack";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model Synergy.App.ViewModel.DashboardMasterViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+
+<script type="text/javascript">
+
+     $(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+            window.parent.getDataGridStack();
+        }
+     });
+
+     var onAjaxSuccess = function (res) {
+         var id = res.result.Item.NoteId;
+         /*console.log(id);*/
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("@SharedResource["UpdatedSuccessfully"]", "success");
+            }
+            
+            closeNavMemberGroup(id);
+        }
+        else {
+
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+
+        }
+    };
+
+    
+
+    function closeNavMemberGroup(id) {
+        var win = GetMainWindow();
+        var x = win.window[0];
+        win.CloseWindow({ MethodName: "redirectToPage", Prms: id });
+        return false;
+    }
+
+</script>
+
+<div class="row-12" style="margin-left:15px;">
+    <form asp-controller="BusinessAnalytics" asp-action="ManageGridStack" method="post" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="NoteSubject" type="text" class="form-control" placeholder="Enter Name" title="Name is required." required="required" autocomplete="off" style="width:100%" />
+                    <label for="NoteSubject">Name <span class="required">*</span></label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="NoteDescription" type="text" class="form-control" placeholder="Enter Description" title="Description is required." required="required" autocomplete="off" style="width:100%" />
+                    <label for="NoteDescription">Description <span class="required">*</span></label>
+                </div>
+            </div>
+            <div class="col-12" style="text-align:right;">
+                <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">Close</button>
+                <input type="submit" class="btn btn-primary" value="Save" id="submitBtn" />
+            </div>
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.layoutMetadata)
+    </form>
+</div>
+
+

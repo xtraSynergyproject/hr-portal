@@ -1,0 +1,264 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+
+@{
+    ViewData["Title"] = "Tasks";
+    Layout = null;
+}
+<script>
+        function OnDeleteListOfValue(e) {
+        var flag = confirm('Do you really want to delete the ListOfValue?');
+        //alert("..Delete");
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "LOV", new { @area= "Cms" })?Id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                        kendo.alert("ListOfValue Deleted Successfully.");
+                    } else {
+                        $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+      function OnCreateListOfValue() {
+
+       
+            var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("Create", "LOV", new { @area="Cms"})';
+          win.OpenWindow({ Title: 'Manage ListOfValue', Width: 450, Height: 850 });
+        return false;
+
+    }
+    function OnEditListOfValue(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+       
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Edit", "LOV", new { @area="Cms"})?Id=' + dataItem.Id;
+          win.OpenWindow({ Title: 'Manage ListOfValue', Width: 450, Height: 850 });
+        return false;
+    }
+
+    function OnAfterTaskCreate() {
+       
+        $("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+        $("#inboxTreeView").data("kendoTreeView").dataSource.read();
+    }
+
+
+    function OnView(id) {
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var source = '@RequestSourceEnum.View.ToString()';
+        var action = '@DataActionEnum.View.ToString()';
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var win = GetMainWindow();
+        var url = '/Cms/Page?lo=Popup&pageType=Task&cbm=OnAfterTaskCreate&source=' + source + '&dataAction=' + action + '&templateCodes=@ViewBag.TemplateCode&portalId=' + portalId + '&recordId=' + id;
+        win.iframeOpenUrl = url;@*'@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?lo=Popup&cbm=OnAfterServiceCreate&serviceId=' + id + '&dataAction=' + action + '&portalId=' + portalId+'&pageName=NtsServiceTest';*@
+        win.OpenWindow({ Title: 'View', Width: 1200, Height: 600 });
+    }
+
+
+</script>
+<script>
+
+
+    var columnDefs = [
+        {
+            field: "TemplateName",
+
+        },
+        {
+            field: "TaskNo",
+
+        },
+        {
+            field: "TaskSubject",
+
+        },
+           {
+               field: "ServiceNo",
+           },
+           {
+               field: "ServiceName",
+               headerName: "Service Subject"
+           },
+           {
+               field: "OwnerUserName",
+               headerName:"Owner"
+           },
+        {
+            field: "AssigneeDisplayName", 
+            headerName: "Assigned User Name"
+        },
+        {
+            field: "TaskStatusName",
+           
+        },
+        {
+            field: "StartDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+
+        {
+            field: "DueDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBin11' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    $(function () {
+
+        getTaskData();
+        $.contextMenu({
+            selector: '#tree-menuBin',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'view':
+                                        OnView(id);
+                                        break;
+
+                                    case 'delete':
+
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "view": { name: "View", icon: "fas fa-eye" },
+
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+    function getTaskData() {
+        document.getElementById("ListOfValuegrid").innerHTML = "";
+        gridConfig(
+            "ListOfValuegrid",
+            "/cms/Inbox/ReadTaskDataList?templateCode=@ViewBag.TemplateCode&statusName=@ViewBag.StatusName",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+<div>
+    <h4>@ViewBag.Title</h4>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-12">
+
+            @*@(Html.Kendo().Grid<TaskViewModel>
+    ()
+    .Name("ListOfValuegrid")
+    ////.ToolBar(toolbar =>
+    ////toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateListOfValue();'><i class='fa fas fa-plus'></i>&nbsp;Create ListOfValue</button>"))
+
+    .Columns(columns =>
+
+    {
+        columns.Command(command =>
+        {
+            command.Custom("View").Text("<i class='fa fas fa-eye'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+            //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteListOfValue").HtmlAttributes(new { @class = "action-icon" });
+        }).Title("Action").Width(100);
+        columns.Bound(c => c.TemplateName);
+        columns.Bound(c => c.TaskNo);
+        columns.Bound(c => c.TaskSubject);
+        columns.Bound(c => c.ServiceNo);
+        columns.Bound(c => c.ServiceName).Title("Service Subject");
+        columns.Bound(c => c.OwnerUserName);
+        columns.Bound(c => c.AssigneeDisplayName).Title("Assigned User Name");
+        columns.Bound(c => c.TaskStatusName);
+        columns.Bound(c => c.StartDate).Format("{0:dd MMM yyyy}");
+        columns.Bound(c => c.DueDate).Format("{0:dd MMM yyyy}");
+
+
+    })
+    .Scrollable(x => x.Enabled(false))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                .Operators(o => o.ForString(s => s.Clear()
+                .Contains("Contains")
+                .IsEqualTo("Is equal to")
+                )))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                //.Events(events => events.Error("OnError"))
+                .Read(read => read.Action("ReadTaskData", "Inbox",new { templateCode=ViewBag.TemplateCode,statusName= ViewBag.StatusName }))
+                .Model(model => model.Id(p => p.Id))
+                )
+          )*@
+
+        </div>
+    </div>
+</div>

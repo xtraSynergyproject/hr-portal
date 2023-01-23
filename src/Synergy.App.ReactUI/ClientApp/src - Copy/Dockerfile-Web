@@ -1,0 +1,75 @@
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+
+#ENV http_proxy http://192.168.75.3:8080
+#ENV https_proxy http://192.168.75.3:8080
+
+
+WORKDIR /app
+COPY *.sln .
+COPY NuGet.Config .
+COPY CMS.UI.Web/*.csproj ./CMS.UI.Web/
+COPY CMS.Data.Repository/MigrationScript/ ./MigrationScript/
+COPY CMS.UI.Web/LocalDependencies/ ./CMS.UI.Web/LocalDependencies/
+COPY CMS.Business/*.csproj ./CMS.Business/
+COPY CMS.Common/*.csproj ./CMS.Common/
+COPY CMS.Data.Model/*.csproj ./CMS.Data.Model/
+COPY CMS.Data.Repository/*.csproj ./CMS.Data.Repository/
+COPY CMS.UI.ViewModel/*.csproj ./CMS.UI.ViewModel/
+COPY ERP.Data.GraphModel/*.csproj ./ERP.Data.GraphModel/
+COPY CMS.Web.Scheduler/*.csproj ./CMS.Web.Scheduler/
+COPY ERP.UI.ViewModel/*.csproj ./ERP.UI.ViewModel/
+COPY ERP.Translation/*.csproj ./ERP.Translation/
+COPY ERP.Utility/*.csproj ./ERP.Utility/
+COPY CMS.Business.Test/*.csproj ./CMS.Business.Test/
+COPY CMS.Web.Api/*.csproj ./CMS.Web.Api/
+RUN dotnet restore
+
+COPY . .
+
+WORKDIR /app/CMS.UI.ViewModel
+RUN dotnet publish -c WebRelease -o /out --no-restore
+
+WORKDIR /app/CMS.Data.Repository
+RUN dotnet publish -c WebRelease -o /out --no-restore
+
+WORKDIR /app/CMS.Data.Model
+RUN dotnet publish -c WebRelease -o /out --no-restore
+
+WORKDIR /app/CMS.Common
+RUN dotnet publish -c WebRelease -o /out --no-restore
+
+WORKDIR /app/CMS.Business
+RUN dotnet publish -c WebRelease -o /out --no-restore
+
+#WORKDIR /app/CMS.ReportLibrary
+#RUN dotnet publish -c WebRelease -o /out --no-restore
+
+WORKDIR /app/CMS.UI.Web
+RUN dotnet publish -c WebRelease -o /out --no-restore
+
+#WORKDIR /app/CMS.Web.Api
+#RUN dotnet publish -c WebRelease -o /out --no-restore
+
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS runtime
+
+#ENV http_proxy http://192.168.75.3:8080
+#ENV https_proxy http://192.168.75.3:8080
+
+RUN apt-get update \ 
+    && apt-get install -y --allow-unauthenticated \ 
+        libc6-dev \ 
+        libgdiplus \ 
+        libx11-dev \ 
+    && rm -rf /var/lib/apt/lists/*
+
+RUN sed -i'.bak' 's/$/ contrib/' /etc/apt/sources.list
+RUN apt-get update; apt-get install -y ttf-mscorefonts-installer fontconfig
+#RUN apt-get update && apt-get install -y libreoffice
+
+WORKDIR /app 
+
+COPY --from=build /out ./
+
+ENV ASPNETCORE_ENVIRONMENT Production
+ENV ASPNETCORE_URLS http://*:5000
+ENTRYPOINT ["dotnet", "CMS.UI.Web.dll"]

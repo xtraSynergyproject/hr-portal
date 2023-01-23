@@ -1,0 +1,228 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+
+@{
+    //ViewData["Title"] = ViewBag.PageName;
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        $.contextMenu({
+            selector: '#tree-menuissuerequisitionitem',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                // var serno = $trigger.data('serviceno');
+                // var status = $trigger.data('status');
+                var serviceId = $trigger.data('serviceid');
+                switch (0) {
+                    case 0:
+                        //
+                        //var Items;
+                        //if (status == "SERVICE_STATUS_DRAFT") {
+                        //    Items = {
+                        //        "items": { name: "Issued Items", icon: "fas fa-edit" },
+                        //        "edit": { name: "Edit", icon: "fas fa-edit" },
+                        //        "submit": { name: "Submit", icon: "fas fa-edit" },
+                        //    };
+                        //}
+                        //else {
+                        //    Items = {
+                        //        "items": { name: "Issued Items", icon: "fas fa-edit" },
+                        //    };
+                        //}
+
+
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'items':
+                                        ViewIssuedItems(id)
+                                        break;
+                                    case 'submit':
+                                       // onSubmitIssue(serviceId)
+                                        break;
+
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "items": { name: "Issued Items", icon: "fas fa-edit" },
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+        getItemsListData();
+
+    });
+
+    function OnSearch(e) {
+        getItemsListData();
+    }
+    function ViewIssuedItems(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryManagement/ViewIssueItems?requisitionIssueId=' + id + '&issueType=@ViewBag.ImsIssueType';
+        win.OpenWindow({ Title: 'Issued Items', Width: 1000, Height: 800 });
+    }
+    function OnCreateIssue(e) {
+        if ('@ViewBag.ImsIssueType' == '@ImsIssueTypeEnum.Requisition') {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '/IMS/InventoryManagement/RequisitionIssue?id=@ViewBag.RequisitionId&warehouseId=@ViewBag.WarehouseId&type=@ImsIssueTypeEnum.Requisition';
+            win.OpenWindow({ Title: 'Issue Item For Requisition', Width: 700, Height: 800 });
+            return false;
+        }
+        if ('@ViewBag.ImsIssueType' == '@ImsIssueTypeEnum.StockTransfer') {
+            $.ajax({
+                url: '/IMS/InventoryManagement/CheckIfStockTransferItemsAreIssued?stockTransferId=@ViewBag.RequisitionId',
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    if (result.success) {
+                        var win = GetMainWindow();
+                        win.iframeOpenUrl = '/IMS/InventoryManagement/ManageStockTransferIssue?stockTransferId=@ViewBag.RequisitionId&warehouseId=@ViewBag.WarehouseId&type=@ImsIssueTypeEnum.Requisition';
+                        win.OpenWindow({ Title: 'Issue Item For Stock Transfer', Width: 700, Height: 800 });
+                        return false;
+                    }
+                    else
+                    {
+                        kendo.alert("No item available to issue, as all the available items are already issued");
+                    }
+                },
+                error: function (ert) {
+                    kendo.alert("Please try again");
+                }
+            });
+
+        }
+        else
+        {
+             var win = GetMainWindow();
+            win.iframeOpenUrl = '/IMS/InventoryManagement/StockAdjustmentIssues?stockAdjustmentId=@ViewBag.RequisitionId&warehouseId=@ViewBag.WarehouseId&type=@ImsIssueTypeEnum.StockAdjustment';
+            win.OpenWindow({ Title: 'Issue Item For Stock Adjustment', Width: 700, Height: 800 });
+            return false;
+        }
+    }
+
+
+    function OnAfterNoteCreate1(note) {
+        getItemsListData();
+    }
+    var columnDefs = [
+        {
+            field: "ServiceNo",
+            headerName: "Issue No",
+
+
+        },
+        {
+            field: "IssueType",
+            headerName: "Issue Type",
+
+
+        },
+
+        {
+            field: "IssuedOn",
+            headerName: "Issued On",
+            cellRenderer: params => {
+                var d = new Date(params.value);
+                return d.getDate() + "." + (d.getMonth() + 1) + "." + + d.getFullYear();
+
+            }
+
+        },
+        {
+            field: "IssueTo",
+            headerName: "IssueTo",
+
+
+        },
+        {
+            field: "Remarks",
+            headerName: "Remarks",
+
+
+        },
+        {
+            field: "Id",
+            headerName: "Actions",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuissuerequisitionitem' data-idvalue='" + params.value + "' data-serviceid=" + params.data.ServiceId + "><i class='fas fa-ellipsis-v'></i></div>"
+        }
+
+        }
+    ];
+
+    function getItemsListData() {
+        document.getElementById("ItemGrid").innerHTML = "";
+        gridConfig(
+            "ItemGrid",
+            "/IMS/InventoryManagement/GetRequisistionIssue?requisitionId=@ViewBag.RequisitionId&issuetype=@ViewBag.ImsIssueType",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function onSubmitIssue(serviceId)
+    {
+        ShowLoader($("#cms-content"));
+              $.ajax({
+                  url: '/Ims/InventoryManagement/SubmitRequisitionIssue?serviceId=' + serviceId,
+                type: 'GET',
+                dataType: 'json',
+                  success: function (result) {
+                      HideLoader($("#cms-content"));
+                    console.log(result);
+                    if (result) {
+                        ShowNotification("Submitted Successfully", "success");
+                    }
+                    else {
+                        ShowNotification("Please submit again", "error");
+                    }
+                },
+                  error: function (ert) {
+                      HideLoader($("#cms-content"));
+                    ShowNotification("Add Item", "error");
+                }
+            });
+    }
+</script>
+
+<div style="width: 100%;" class="p-3">
+    <fieldset class="fieldset">
+        <legend class="fs-legend">Requisition Issue List</legend>
+        <div class="row col-12">
+            <div class="col-6">
+              
+            </div>
+            <div class="col-6" style="text-align:right;">
+                <input type="button" class="btn btn-primary" value="Create New Issue" style="margin:5px;" onclick="OnCreateIssue()" />
+            </div>
+
+
+        </div>
+
+
+
+<div class="col-12">
+    @*<input type="button" class="btn btn-warning" value="Add Item" style="margin:5px;color:white" onclick="AddItem()" />*@
+    <div id="ItemGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+</div>
+    </fieldset>
+
+</div>

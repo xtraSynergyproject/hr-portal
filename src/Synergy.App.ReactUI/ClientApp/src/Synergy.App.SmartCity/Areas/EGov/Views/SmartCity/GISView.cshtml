@@ -1,0 +1,177 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "GIS View";
+    Layout = null;
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" type="text/css" rel="stylesheet" />
+<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+<link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet" />
+<script src="/geojson/geojsonleafletconfig.js"></script>
+
+<div class="row">
+    <div class="col-3" style="margin:1%">
+       @* Filter: <input type="text" id="search" class="form-control" />
+        <br />
+        <button id="clear" class="btn btn-primary">Clear</button>
+       
+        <div id="colonyMapTreeView" class="demo treeview"></div>*@
+    </div>
+    <div class="col">
+        <div id="map-view" class="tab-pane">
+            <div class="card" style="padding:5px">
+                <div id="map"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+    var selectedColony = "";
+
+    loadColonyMapTrreView();
+
+    function loadColonyMapTrreView() {
+
+        $('#colonyMapTreeView')
+            .jstree({
+                checkbox: {
+                    three_state: false, // to avoid that fact that checking a node also check others
+                    whole_node: false,  // to avoid checking the box just clicking the node
+                    tie_selection: false, // for checking without selecting and selecting without checking
+                    keep_selected_style: true,
+                },
+                'plugins': ['search', 'checkbox', 'wholerow'],
+                'core': {
+                    'data': function (node, cb) {
+                        if (node.id === "#") {
+                            $.ajax({
+                                async: true,
+                                type: "GET",
+                                url: "/EGov/SmartCity/GetColonyMapViewTreeList",
+                                dataType: "json",
+                                success: function (json) {
+                                    cb(json);
+                                },
+
+                                error: function (xhr, ajaxOptions, thrownError) {
+                                    alert(xhr.status);
+                                    alert(thrownError);
+                                }
+                            });
+                        }
+                        else {
+                            $.ajax({
+                                async: true,
+                                type: "GET",
+                                url: "/EGov/SmartCity/GetColonyMapViewTreeList?id=" + node.id,
+                                dataType: "json",
+                                success: function (json) {
+                                    cb(json);
+                                },
+
+                                error: function (xhr, ajaxOptions, thrownError) {
+                                    alert(xhr.status);
+                                    alert(thrownError);
+                                }
+                            });
+                        }
+                    }
+                },
+                'search': {
+                    'show_only_matches': true,
+                    'show_only_matches_children': true
+                }
+            })
+            .on("check_node.jstree uncheck_node.jstree", function (e, data) {
+                debugger;
+                if (data.node.id == "COLONY") {
+                    if (data.node.state.checked == true) {
+                        $(".jstree-anchor").addClass(" jstree-checked");
+                        selectedColony = data.node.children.join("|")
+                    }
+                    else {
+                        $(".jstree-anchor").removeClass(" jstree-checked");
+                        selectedColony = "";
+                    }
+                } else {
+                    if (data.node.state.checked == true) {
+                        if (selectedColony != "") {
+                            selectedColony += "|"
+                        }
+                        selectedColony += data.node.id;
+                    } else {
+
+                        var res = selectedColony.split("|");
+                        var filtered = res.filter(function (value, index, arr) {
+                            return value != data.node.id;
+                        });
+                        if (filtered.length > 0) {
+                            selectedColony = filtered.join("|");
+                        } else {
+                            selectedColony = "";
+                        }
+                    }
+                }
+                getColoniesById(selectedColony);
+
+            }).bind("loaded.jstree", function (event, data) {
+                $(this).jstree("open_all");
+                $('#colonyMapTreeView').jstree("check_all");
+
+            }).on("ready.jstree", function (e, data) {
+                $(".jstree-anchor").addClass(" jstree-checked");
+            });
+    }
+
+    function checkAllNodes() {
+        $(".jstree-anchor").addClass(" jstree-checked");
+
+    }
+
+    $('#search').on("keyup change", function () {
+        $('#colonyMapTreeView').jstree(true).search($(this).val())
+    })
+
+    $('#clear').click(function (e) {
+        $('#search').val('').change().focus()
+    })
+    checkAllNodes();
+
+    var filteredColonyList = [];
+
+    loadMap(@Html.Raw(ViewBag.geoJson));
+
+
+    function getColoniesById(id) {
+        if (id != "") {
+            $.ajax({
+                type: "GET",
+                url: "/EGov/SmartCity/GetColoniesData?ids=" + id,
+                success: function (response) {
+                    loadMap(response);
+                }
+            });
+        } else {
+            emptyMap('map');
+        }
+    }
+
+
+    function onEachFeature(feature, layer) {
+        if (feature) {
+            layer.bindPopup(feature.col_name);
+        }
+    }
+
+   function loadMapParcel() {}
+
+   function loadMapColony() {}
+
+</script>

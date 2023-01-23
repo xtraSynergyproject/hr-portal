@@ -1,0 +1,758 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.NtsTaskController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+@inject CMS.Common.IUserContext _userContext
+@model ProjectDashboardViewModel;
+
+@{
+    ViewBag.Title = @Resource["TaskHomeDashboard"];
+
+    Layout = null;
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    .banner-container {
+        position: relative;
+        color: white;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 14px;
+        left: 60px;
+        font-size: 35px;
+    }
+
+    .SYN-task-pending {
+        height: 46px;
+        width: 40px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 6px;
+        text-align: center;
+        background: url(/images/pmt/task-pending.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-overdue {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/Notification.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-task-overdue {
+        height: 46px;
+        width: 40px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 4px;
+        text-align: center;
+        background: url(/images/pmt/task-overdue.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-task-completed {
+        height: 46px;
+        width: 40px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 6px;
+        text-align: center;
+        background: url(/images/pmt/task-completed.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-completed {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/Calendar.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-pending {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/Reminder.png);
+        background-repeat: no-repeat;
+    }
+
+    .k-event {        
+        background-color: transparent !important;
+    }
+
+    .k-scheduler-weekview tr:nth-child(2) .k-scheduler-table td,
+    .k-scheduler-monthview .k-scheduler-table td {
+        height: 110px !important;
+    }
+
+    .k-scheduler-table k-scheduler-header-all-day tr {
+        min-height: 120px !important;
+    }
+
+    .k-event, kendo-scheduler .k-event {
+        min-height: 110px !important;
+    }
+
+    .k-toolbar, .panelheader, .k-grid-pager {
+         background-color: #fff !important; 
+    }
+</style>
+<script>
+    function onDatewiseSearch() {
+
+        var dates = {
+            StartDate: kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            DueDate: kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+        };
+
+        $("#chartDateWiseSearch").data("kendoChart").dataSource.read(dates);
+    }
+
+    $(document).ready(function () {
+        $("#FromDate").kendoDatePicker();
+        $("#ToDate").kendoDatePicker();
+        $("#TrendDate").kendoDatePicker({ change: onChangeTrendDate,max:"@DateTime.Today"});
+        onDatewiseSearch();
+    });
+
+    function onTaskSeriesClick(e) {
+        console.log(e.dataItem);
+        var url = "/cms/NtsTask/TaskHome?mode=ASSIGN_TO&lo=Popup";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["Tasks"])', Width: 1000, Height: 1000 });
+        return false;
+    }
+
+    function onTaskAssignedSeriesClick(e) {
+
+        var selectvalue = e.dataItem.Id;
+        var multiselect = $("#mdlTaskOwner").data("kendoMultiSelect");
+        var mdlvalue = multiselect.value();
+        var newvalue = new Array();
+        newvalue = mdlvalue;
+        var addflag = true;
+        if (newvalue.length > 0) {
+            var i = 0;
+            for (i = 0; i < newvalue.length; i++) {
+                if (newvalue[i] == selectvalue) {
+                    addflag = false;
+                }
+            }
+            if (addflag) {
+                newvalue.push(selectvalue);
+            }
+        } else {
+            newvalue.push(selectvalue);
+        }
+        multiselect.value(newvalue);
+
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        //var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        //var stagevalue = multiselectTaskStages.value();
+
+        var search = {
+            TaskStatusIds: statusvalue,
+            TaskOwnerIds: newvalue,
+        };
+        $("#kgdTaskGridView").data("kendoGrid").dataSource.read(search);
+
+    }
+
+    function onChangeTaskStatus() {
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskOwner = $("#mdlTaskOwner").data("kendoMultiSelect");
+        var ownervalue = multiselectTaskOwner.value();
+        var multiselectTaskUser = $("#mdlTaskUser").data("kendoMultiSelect");
+        var uservalue = multiselectTaskUser.value();
+
+        var search = {
+            TaskStatusIds: statusvalue,
+            TaskOwnerIds: ownervalue,
+            TaskAssigneeIds: uservalue
+        };
+        $("#kgdTaskGridView").data("kendoGrid").dataSource.read(search);
+    }
+
+    function onChangeTaskOwner() {
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskOwner = $("#mdlTaskOwner").data("kendoMultiSelect");
+        var ownervalue = multiselectTaskOwner.value();
+        var multiselectTaskUser = $("#mdlTaskUser").data("kendoMultiSelect");
+        var uservalue = multiselectTaskUser.value();
+
+        var search = {
+            TaskStatusIds: statusvalue,
+            TaskOwnerIds: ownervalue,
+            TaskAssigneeIds: uservalue
+        };
+        $("#kgdTaskGridView").data("kendoGrid").dataSource.read(search);
+    }
+
+    function onChangeTaskAssigned() {
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskOwner = $("#mdlTaskOwner").data("kendoMultiSelect");
+        var ownervalue = multiselectTaskOwner.value();
+        var multiselectTaskUser = $("#mdlTaskUser").data("kendoMultiSelect");
+        var uservalue = multiselectTaskUser.value();
+
+        var search = {
+            TaskStatusIds: statusvalue,
+            TaskOwnerIds: ownervalue,
+            TaskAssigneeIds: uservalue
+        };
+        $("#kgdTaskGridView").data("kendoGrid").dataSource.read(search);
+    }
+
+    function OnDataBound(arg) {
+
+        document.getElementById('projectFiles').style.border = 'none';
+        var data = $("#projectFiles").data("kendoListView").dataSource.data();
+        var data1 = $("#ProjectTask12").data("kendoListView").dataSource.data();
+        if (data.length == 0) {
+            $('#no-data-file').show();
+        } else {
+            $('#no-data-file').hide();
+        }
+        if (data1.length == 0) {
+            $('#no-data-notifi').show();
+        } else {
+            $('#no-data-notifi').hide();
+        }
+    }
+
+    function OnTaskAssChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-taskchart').show();
+
+        } else {
+            $('#no-data-taskchart').hide();
+        }
+    }
+
+    function OnTaskStatusChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-chart').show();
+
+        } else {
+            $('#no-data-chart').hide();
+        }
+    }
+
+    function OnTaskDateChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-timechart').show();
+
+        } else {
+            $('#no-data-timechart').hide();
+        }
+    }
+    function OnProjectStageChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-stagechart').show();
+
+        } else {
+            $('#no-data-stagechart').hide();
+        }
+    }
+
+    function onFilterReset() {
+        var newvalue = new Array();
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        multiselectTaskStatus.value(newvalue);
+        var multiselectTaskOwner = $("#mdlTaskOwner").data("kendoMultiSelect");
+        multiselectTaskOwner.value(newvalue);
+        var multiselectTaskUser = $("#mdlTaskUser").data("kendoMultiSelect");
+        multiselectTaskUser.value(newvalue);
+
+        $("#kgdTaskGridView").data("kendoGrid").dataSource.read();
+    }
+    function onChangeRadioGroup() {
+        
+        var r = $('input[name=radiogroup]:checked').val();
+        //var radioGroup = $("#radiogroup").data("kendoRadioGroup");
+        //var r = radioGroup.value();
+        /*alert(r);*/
+        if (r == "Daily") {
+            var dp = $('#TrendDate').data('kendoDatePicker');
+            dp.setOptions({
+                start: "month",
+                depth: "month",
+                disableDates: []
+            });
+        } else if (r == "Weekly") {
+            var dp = $('#TrendDate').data('kendoDatePicker');
+            dp.setOptions({
+                start: "month",
+                depth: "month",
+                disableDates: ["mo", "tu", "we", "th", "fr", "sa"]
+            });
+
+        } else if (r == "Monthly") {
+            var dp = $('#TrendDate').data('kendoDatePicker');
+            dp.setOptions({
+                start: "year",
+                depth: "year",
+                disableDates: []
+            });
+        } else if (r=="Yearly") {
+            var dp = $('#TrendDate').data('kendoDatePicker');
+            dp.setOptions({
+                start: "decade",
+                depth: "decade"
+            });
+        }
+        //var dp = $('#TrendDate').data('kendoDatePicker');
+        //alert(dp.value());
+    }
+    function onChangeTrendDate(e) {
+        var date = this.value();
+        //alert(date);
+        //var radioGroup = $("#radiogroup").data("kendoRadioGroup");
+        //var r = radioGroup.value();
+
+        var r = $('input[name=radiogroup]:checked').val();
+        if (r == "Yearly") {
+            var year = date.getFullYear();
+            //alert(year);
+            date = new Date(year, 0, 1);
+            //alert(date);
+            $("#TrendDate").data("kendoDatePicker").value(date);
+        }
+        /*$("#chartTaskByStatus").data("kendoChart").dataSource.read();*/
+    }
+    function TrendFilter() {
+        //var radioGroup = $("#radiogroup").data("kendoRadioGroup");
+        //var r = radioGroup.value();
+        var r = $('input[name=radiogroup]:checked').val();
+        var d = $("#TrendDate").val();
+        return search = {
+            TrendType: r,
+            DueDate:  d,
+        };
+    }
+    function onTrendDateSearch() {
+        $("#chartTaskByStatus").data("kendoChart").dataSource.read();
+    }
+
+    function OnTask(date, status) {
+        var url = "/cms/NtsTask/TaskHome?taskStatus=" + status + "&lo=Popup&mode=ASSIGN_TO&moduleCodes=@Model.ModuleCode"+"&date="+date;
+        var win = GetMainWindow();
+        //var url = '/Cms/Page?popup=true&lo=Popup&pageType=Custom&source=Main&dataAction=None&pageName=ServiceHome&portalId=' + portalId /*+ '&prms=' + prms*/;
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["Task"])', Width: 1000, Height: 1000 });
+        return false;
+    }
+
+    function OnNotification(date) {
+        var url = "/PortalAdmin/NotificationTemplate/NotificationIndex?date=" + date + "&lo=Popup&refType=NTS_Task";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Notifications', Width: 1400, Height: 800 });
+        return false;
+    }
+</script>
+@*<div class="banner-container">
+        <img style="width:100%; height:100px" src="~/images/NTS/Task.jpeg" />
+        <div class="banner-text">@Resource["TaskHomeDashboard"]</div>
+    </div>
+    <div class="row hr-pad-top-10">
+        <div class="col-md-6">
+            <h4>
+            </h4>
+        </div>
+    </div>*@
+
+
+<div id="appWrapper" class="hr-pad-top-15" style="padding:10px;">
+
+    <div class="row">
+        <div class="col-12">
+
+            <div class="panel panel-success">
+                <div class="panel-heading">Performance Trend (@_userContext.LoggedInAsByUserName)@*@Resource["TaskStatus"]*@ </div>
+                <div class="row">
+                    <div class="col-12 d-flex justify-content-center">
+                        <div style="margin-right:20px;margin-top:10px;">
+                            @*@(Html.Kendo().RadioGroup()
+                                .Name("radiogroup")
+                                .Layout("horizontal")
+                                .Items(i =>
+                                {
+                                    i.Add().Label("Daily").Value("Daily");
+                                    i.Add().Label("Week").Value("Weekly");
+                                    i.Add().Label("Month").Value("Monthly");
+                                    i.Add().Label("Year").Value("Yearly");
+                                })
+                                .Value("Daily")
+                                .Events(e => e.Change("onChangeRadioGroup"))
+                                )*@
+
+                            <section class="section-preview">                               
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" class="custom-control-input" id="Daily" name="radiogroup" value="Daily" onchange="onChangeRadioGroup()" checked>
+                                    <label class="custom-control-label" for="Daily">Daily</label>
+                                </div>                                
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" class="custom-control-input" id="Weekly" name="radiogroup" value="Weekly" onchange="onChangeRadioGroup()">
+                                    <label class="custom-control-label" for="Weekly">Week</label>
+                                </div>                                
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" class="custom-control-input" id="Monthly" name="radiogroup" value="Monthly" onchange="onChangeRadioGroup()">
+                                    <label class="custom-control-label" for="Monthly">Month</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" class="custom-control-input" id="Yearly" name="radiogroup" value="Yearly" onchange="onChangeRadioGroup()">
+                                    <label class="custom-control-label" for="Yearly">Year</label>
+                                </div>
+
+                            </section>
+
+                        </div><div style="margin-left:20px;margin-top:5px;">
+    @*@(Html.Kendo().DatePicker()
+         .Name("TrendDate")
+         .Value(DateTime.Today).Max(DateTime.Today).Events(e=>e.Change("onChangeTrendDate")).HtmlAttributes(new { @class = "date" })
+        )*@
+    <input id="TrendDate" class="date" value="@DateTime.Today" />
+</div>
+                        <div style="margin-left:20px;margin-top:5px;"><button class="btn btn-filter-reset" onclick="onTrendDateSearch()" title="@SharedResource["Search"]"><i class="fa fa-search"></i></button></div>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                            .Name("chartTaskByStatus")
+                            .Legend(legend => legend
+                            .Position(ChartLegendPosition.Bottom)
+                            )
+                            .DataSource(ds => ds
+                            .Read(read => read.Action("GetTaskChartPerformanceTrend", "NtsTask", new { @area = "Cms" }).Data("TrendFilter"))
+                            )
+                            .SeriesColors(new string[] { "#ff0000", "#ff9800", "#4caf50" })
+                            .Series(series =>
+                            {
+                                series.Column(model => model.ValueB)
+                                .Labels(labels => labels
+                                    .Visible(true)
+                                    .Position(ChartBarLabelsPosition.Center)
+                                    //.Template("#= category # - #= kendo.format(' {0:n0}', value) # ")
+                                    .Background("transparent")
+                                ).Name("Backlog");
+
+                                series.Column(model => model.ValueO)
+                                .Labels(labels => labels
+                                    .Visible(true)
+                                    .Position(ChartBarLabelsPosition.Center)
+                                    //.Template("#= category # - #= kendo.format(' {0:n0}', value) # ")
+                                    .Background("transparent")
+                                ).Name("Open");
+
+                                series.Column(model => model.ValueC)
+                                .Labels(labels => labels
+                                    .Visible(true)
+                                    .Position(ChartBarLabelsPosition.Center)
+                                    //.Template("#= category # - #= kendo.format(' {0:n0}', value) # ")
+                                    .Background("transparent")
+                                ).Name("Close");
+                            })
+                            .CategoryAxis(axis => axis
+                            .Categories(model => model.Type)
+                            .MajorGridLines(lines => lines.Visible(false))
+                            )
+                            .HtmlAttributes(new { @style = "height:300px;" })
+                            .Tooltip(tooltip => tooltip
+                            .Visible(true)
+                            //.Template("#= category # - #= kendo.format('{0:P}', percentage) #")
+                            //.Template("#= series.stack.group #, #= series.name #")
+                            .Template("#= series.name #")
+                            //.Template("#= category # ")
+                            )
+                                .Events(events => events
+                                .SeriesClick("onTaskSeriesClick")
+                                .DataBound("OnTaskStatusChartDataBound")
+                            )
+                    )
+
+                    <div id="no-data-chart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>@SharedResource["NoDataFound"]</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-warning">
+                <div class="panel-heading">@Resource["TaskSLA"] (@_userContext.LoggedInAsByUserName)</div>
+                @*<div class="row">
+                        <div class="col-12 d-flex justify-content-center">
+                            @SharedResource["From"]
+                            @(Html.Kendo().DatePicker()
+                     .Name("FromDate")
+                     .Value(DateTime.Today.AddMonths(-1))
+                     .HtmlAttributes(new {@class="date" })
+                    )
+                            @SharedResource["To"]<br />
+                            @(Html.Kendo().DatePicker()
+                     .Name("ToDate")
+                     .Value(DateTime.Today).HtmlAttributes(new { @class = "date" })
+                    )<br />
+                            <button class="btn btn-filter-reset" onclick="onDatewiseSearch()" title="@SharedResource["Search"]"><i class="fa fa-search"></i></button>
+                        </div>
+                    </div>*@
+                <div class="panel-body">
+                    @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                                .Name("chartDateWiseSearch")
+                                .Legend(legend => legend
+                                .Position(ChartLegendPosition.Bottom)
+                                )
+                                .DataSource(ds => ds
+                                .Read(read => read.Action("ReadTaskPerformanceSLA", "NtsTask", new { @area = "Cms" }))
+                                )
+                                .Series(series =>
+                                {
+                                    series.Line(model => model.SLAValue, model => model.Type)
+                                    .Labels(labels => labels
+                                    .Visible(true)
+                                    .Background("transparent")
+                                    ).Name("Task SLA");
+                                })
+                                .CategoryAxis(axis => axis.Categories(model => model.Type).Labels(l => l.Rotation("auto")))
+                                .HtmlAttributes(new { @style = "height:300px;" })
+                                .Tooltip(tooltip => tooltip
+                                .Visible(true)
+                                .Template("#= category #"))
+                                .Events(e => e.DataBound("OnTaskDateChartDataBound"))
+
+                        )
+                    <div id="no-data-timechart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>@SharedResource["NoDataFound"]</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-primary">
+                @*<div class="panel-heading">@Resource["ServiceDetails"]</div>*@
+                <div class="panel-body">
+                    @(Html.Kendo().Scheduler<DashboardCalendarViewModel>()
+                                            .Name("scheduler")
+                                            //.Events(e => e.DataBound("OnSchedulerDataBound"))
+                                            .Date(DateTime.Now.Date)
+                                            .StartTime(DateTime.Now.Date)
+                                            .Height(600)
+                                            .Views(views =>
+                                            {
+                                                views.DayView(x => x.AllDaySlot(true).Title(SharedResource["Day"]).Editable(false).MajorTick(1440).AllDayEventTemplateId("DayTemplate")
+                                                                );
+                                                views.WeekView(x => x.AllDaySlot(true).Title(SharedResource["Week"]).Editable(false).MajorTick(1440).AllDayEventTemplateId("WeekTemplate")
+                                                );
+                                                views.MonthView(x => x.Selected(true).Title(SharedResource["Month"]).Editable(false).EventHeight("auto").EventTemplateId("MonthTemplate")
+                                                );
+                                                //views.AgendaView(x => x.Editable(false).Title(SharedResource["Agenda"]).EventTemplateId("ajendaTemplate")
+                                                //);
+                                            })
+                                                    //.Selectable(true)
+                                                    //.Events(e => e.Edit("OnTask"))
+                                                    .Resources(resource =>
+                                                    {
+                                                        resource.Add(m => m.NtsId)
+                                                        .Title("Nts")
+                                                        .Name("Nts")
+                                                        .DataTextField("Text")
+                                                        .DataValueField("Value")
+                                                        .DataColorField("Color")
+                                                        .BindTo(new[] {
+                                                                new { Text = "Task", Value = "T", Color = "#e6f2ff" } ,
+                                                                new { Text = "Service", Value = "S", Color = "#c6ecd9" } ,
+                                                                new { Text = "Note", Value = "N", Color = "#ffd9b3" }
+                                                        });
+
+                                                    })
+                                            .DataSource(d => d
+                                            .Read("ReadWorkPerformanceCalendarData", "NtsTask", new { moduleCodes = Model.ModuleCode })
+                                            )
+             )
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/x-kendo-tmpl" id="DayTemplate">
+    <div class="row">
+    <div class="col">
+        <div class="row">
+             <div>
+               <a class="SYN-task-overdue" href="javascript:void(0);" #if(BacklogCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_OVERDUE')" #}# title="Backlog"><label id="taskAssODue">#if(BacklogCount>0){# #: BacklogCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-pending" href="javascript:void(0);" #if(OpenCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_INPROGRESS')" #}# title="Open"><label id="taskAssPen">#if(OpenCount>0){# #: OpenCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-completed" href="javascript:void(0);" #if(ClosedCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_CLOSE')" #}# title="Closed"><label id="taskAssCom">#if(ClosedCount>0){# #: ClosedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+        <div class="row">
+             <div>
+               <a class="SYN-service-overdue" href="javascript:void(0);" #if(NotificationCount>0){# onclick="OnNotification('#= kendo.toString(start, 'yyyy-MM-dd') #','NOTIFICATION')" #}# title="Notification"><label id="taskAssODue">#if(NotificationCount>0){# #: NotificationCount# #}else{# 0 #}#</label></span></a>
+               <a class="SYN-service-pending" href="javascript:void(0);" #if(ReminderCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','REMINDER')" #}# title="Reminder"><label id="taskAssPen">#if(ReminderCount>0){# #: ReminderCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-completed" href="javascript:void(0);" #if(NotStartedCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_NOT_STARTED')" #}#  title="Planned"><label id="taskAssCom">#if(NotStartedCount>0){# #: NotStartedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+    </div>
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="WeekTemplate">
+    <div class="row" style="height:100px;">
+    <div class="col">
+        <div class="row">
+             <div>
+               <a class="SYN-task-overdue" href="javascript:void(0);" #if(BacklogCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_OVERDUE')" #}# title="Backlog"><label id="taskAssODue">#if(BacklogCount>0){# #: BacklogCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-pending" href="javascript:void(0);" #if(OpenCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_INPROGRESS')" #}# title="Open"><label id="taskAssPen">#if(OpenCount>0){# #: OpenCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-completed" href="javascript:void(0);" #if(ClosedCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_CLOSE')" #}# title="Closed"><label id="taskAssCom">#if(ClosedCount>0){# #: ClosedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+        <div class="row">
+             <div>
+               <a class="SYN-service-overdue" href="javascript:void(0);" #if(NotificationCount>0){# onclick="OnNotification('#= kendo.toString(start, 'yyyy-MM-dd') #','NOTIFICATION')" #}# title="Notification"><label id="taskAssODue">#if(NotificationCount>0){# #: NotificationCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-pending" href="javascript:void(0);" #if(ReminderCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','REMINDER')" #}# title="Reminder"><label id="taskAssPen">#if(ReminderCount>0){# #: ReminderCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-completed" href="javascript:void(0);" #if(NotStartedCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_NOT_STARTED')" #}#  title="Planned"><label id="taskAssCom">#if(NotStartedCount>0){# #: NotStartedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+    </div>
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="MonthTemplate">
+    <div class="row" >
+    <div class="col">
+        <div class="row">
+             <div>
+               <a class="SYN-task-overdue" href="javascript:void(0);" #if(BacklogCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_OVERDUE')" #}# title="Backlog"><label id="taskAssODue">#if(BacklogCount>0){# #: BacklogCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-pending" href="javascript:void(0);" #if(OpenCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_INPROGRESS')" #}# title="Open"><label id="taskAssPen">#if(OpenCount>0){# #: OpenCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-completed" href="javascript:void(0);" #if(ClosedCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_CLOSE')" #}# title="Closed"><label id="taskAssCom">#if(ClosedCount>0){# #: ClosedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+        <div class="row">
+             <div>
+               <a class="SYN-service-overdue" href="javascript:void(0);" #if(NotificationCount>0){# onclick="OnNotification('#= kendo.toString(start, 'yyyy-MM-dd') #','NOTIFICATION')" #}# title="Notification"><label id="taskAssODue">#if(NotificationCount>0){# #: NotificationCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-pending" href="javascript:void(0);" #if(ReminderCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','REMINDER')" #}# title="Reminder"><label id="taskAssPen">#if(ReminderCount>0){# #: ReminderCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-completed" href="javascript:void(0);" #if(NotStartedCount>0){# onclick="OnTask('#= kendo.toString(start, 'yyyy-MM-dd') #','TASK_STATUS_NOT_STARTED')" #}#  title="Planned"><label id="taskAssCom">#if(NotStartedCount>0){# #: NotStartedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+    </div>
+    </div>
+</script>

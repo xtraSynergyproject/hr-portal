@@ -1,0 +1,659 @@
+﻿@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    var bannerHeight = 65;
+    var returnUrl = "";
+    string viewBagPortalId = Convert.ToString(ViewBag.PortalId);
+    string footerText = Convert.ToString(ViewBag.Footer);
+    if (ViewBag.Portal != null)
+    {
+        bannerHeight = ViewBag.Portal.BannerHeight;
+        if (ViewBag.HideHeader != null && ViewBag.HideHeader == true)
+        {
+            bannerHeight = 10;
+        }
+        returnUrl = string.Concat("/portal/", Convert.ToString(ViewBag.Portal.Name));
+
+    }
+    Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@*<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/open-iconic/font/css/open-iconic-bootstrap.min.css" asp-append-version="true">*@
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme.min.css" data-skin="default" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme-dark.min.css" data-skin="dark" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.css" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/custom.css" asp-append-version="true">
+
+<link rel="stylesheet" href="~/Themes/LooperWebsiteSrinagar/css/Navbar-With-Button-icons.css" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/LooperWebsiteSrinagar/css/styles.css" asp-append-version="true">
+<style>
+    @@font-face {
+        font-family: Roboto;
+        src: url('/font/roboto/roboto-regular.ttf');
+    }
+
+    .nav-link {
+        color: #e6e8ed !important;
+        cursor: pointer !important;
+    }
+
+    .menu-active-item {
+        color: #fdf300 !important;
+        font-weight: bold !important;
+    }
+
+    .caret-icon {
+        top: 0rem !important;
+        padding-left: 1px !important;
+    }
+
+    .child-menu-item {
+        color: #343a40 !important;
+    }
+
+    .submenu-container {
+        margin-top: 3px !important;
+    }
+
+    .text-sm {
+        font-size: .75rem !important;
+    }
+
+    .dropdown-scroll {
+        height: 360px !important;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 15px;
+        left: 30px;
+        /*color: #fff;*/
+    }
+
+    .nts-d-none {
+        display: none;
+    }
+
+    .dropdown-menu {
+        z-index: 999 !important;
+    }
+
+    #cms-content {
+        min-height: calc(100vh - 125px) !important;
+    }
+
+    .app {
+        background-color: #fff;
+    }
+
+    .col-form-label {
+        color: #888c9b !important;
+    }
+
+    .lang-text {
+        font-size: .8rem;
+        font-weight: 400;
+        opacity: .8;
+    }
+
+    .lang-menu-text {
+        font-size: .85rem;
+        opacity: .8;
+    }
+
+    .lang-flag {
+        width: 1.2rem;
+        height: .8rem;
+        border-radius: 0px !important;
+    }
+
+    .container {
+        margin-right: 0px !important;
+        margin-left: 0px !important;
+        max-width:1200px !important;
+    }
+
+    .formio-error-wrapper {
+        background-color: transparent !important;
+    }
+
+    .formio-error-wrapper, .formio-warning-wrapper {
+        padding: 0px !important;
+    }
+
+    .top-bar-top {
+        display: flex;
+        width: 100%;
+        height: 2rem;
+        align-items: stretch;
+    }
+
+    .top-bar-mid {
+        display: flex;
+        width: 100%;
+        height: 6rem;
+        background-color: #fff;
+        align-items: stretch;
+    }
+
+    .container {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .ag-header-viewport {
+        background-image: linear-gradient(to bottom, #003366, #046CD3) !important;
+    }
+
+    .ag-header-cell-text {
+        color: #fff !important;
+    }
+    .top-header-font-12 {
+        font-size:13px !important;
+    }
+    .top-header-font-link {
+        text-decoration:none !important;
+        color: #fff !important;
+    }
+    .top-header-font-link:hover {
+        text-decoration:none !important;
+        color: #fff !important;
+        font-weight:600;
+    }
+    #toggleBtn{
+        background-color:#fff !important;
+    }
+</style>
+<script>
+    var skin = localStorage.getItem('skin') || 'default';
+    var isCompact = JSON.parse(localStorage.getItem('hasCompactMenu'));
+    var disabledSkinStylesheet = document.querySelector('link[data-skin]:not([data-skin="' + skin + '"])');
+    // Disable unused skin immediately
+    disabledSkinStylesheet.setAttribute('rel', '');
+    disabledSkinStylesheet.setAttribute('disabled', true);
+    // add flag class to html immediately
+    if (isCompact == true) document.querySelector('html').classList.add('preparing-compact-menu');
+    function IsPopupWindow() {
+        return (window.frameElement !== null && window.frameElement !== undefined && window.frameElement !== '');
+    }
+    if (IsPopupWindow()) {
+        $("<style>")
+            .prop("type", "text/css")
+            .html("\
+                .clear-padding {\
+                    margin-left: 0px !important;\
+                    padding-top: 0px!important;\
+                    padding-bottom: 0px!important;\
+                }\
+                .hide-in-popup {\
+                    display: none;\
+                }\
+                .app-main-popup {\
+                    padding-left: 0px !important;\
+                    padding-top: 0px !important;\
+                }")
+            .appendTo("head");
+    }
+
+    function MarkAllNotifications() {
+        debugger;
+        $.ajax({
+            url: '@Url.Action("MarkAllNotificationAsRead", "NotificationTemplate", new { @area= "PortalAdmin" })?userId=@_userContext.UserId&portalId=@_userContext.PortalId',
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        ShowNotification("Successfully marked as read", 'success');
+                    } else {
+                        ShowNotification("Update Failed", 'error');
+                    }
+                },
+                error: function (ert) {
+                    //
+                    ShowNotification("Update Failed", 'error');
+                }
+        });
+    }
+    function OnMainMenuClick(id, pageType, source, dataAction, recordId, popup, w, h, title, cbm, reload, templatecodes, portalId, container, iframe, pageName, isPageRedirect) {
+        $('.menu-nav-a').removeClass('menu-active-item');
+        $('#a-'+id).addClass('menu-active-item');
+        LoadPageById(id, pageType, source, dataAction, recordId, popup, w, h, title, cbm, reload, templatecodes, portalId, container, iframe, pageName, isPageRedirect);
+        return false;
+    }
+    function onknowcorporator(){
+                window.location.href = "/portal/EGovCustomer/HonbleCorporators";
+                LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Corporators");
+                return false;
+    }
+    function onknowward(){
+                window.location.href = "/portal/EGovCustomer/AdministrativeWards";
+                LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Administrative Wards");
+                return false;
+    }
+    function onknowward(){
+        window.location.href = "/portal/EGovCustomer/AdministrativeWards";
+        LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Administrative Wards");
+        return false;
+    }
+    function onknowwardofficers(){
+        window.location.href = "/portal/EGovCustomer/AdministrativeWardOfficers";
+        LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Administrative Ward Officers");
+        return false;
+    }
+    function oncontactus(){
+        window.location.href = "/portal/EGovCustomer/ContactUs";
+        LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Contact Us");
+        return false;
+    }
+
+    function onclickrti() {
+        window.location.href = "/portal/EGovCustomer/RightToInformation";
+        LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Right To Information");
+    }
+    function loadNewsPage() {
+        window.location.href = "/portal/EGovCustomer/News";
+        LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "News");
+    }
+    function loadWardMapPage() {
+        window.location.href = "/portal/EGovCustomer/WardMaps";
+        LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Maps");
+    }
+    function loadDownloadsPage() {
+        window.location.href = "/portal/EGovCustomer/Downloads";
+        LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Downloads");
+    }
+    function loadByeLawPage() {
+        window.location.href = "/portal/EGovCustomer/ActAndByeLaws";
+        LoadCmsPartialView(window.location.href, 'Custom', false, "", "", "Act and Bye-Laws");
+    }
+
+    function loadDoc(code) {
+       
+        $.ajax({
+             url: '@Url.Action("GetSrinagarSettingWithCode", "EGovernment", new { @area= "EGov" })?code='+code,
+                type: 'Get',
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.FileId != undefined && result.FileId!="") {
+                        var url2 = '/cms/Document/GetFileMongo?fileId=' + result.FileId;
+                        window.open(url2, '_blank');
+                    }
+                },
+                error: function (ert) {
+                    //
+                    ShowNotification('error');
+                }
+        });
+    }
+</script>
+<div class="app">
+    <div class="hide-in-popup mt-0">
+        <div class="know-your-header">
+            <span class="nav-bg py-3 round-bottom-right">
+                <span class="container text-white text-small">
+                    <span class="col-3"><a href="#" class="top-header-font-link" onclick="onknowcorporator();">Know you Corporator</a><span class="mx-2">/</span></span>
+                    <span class="col-3"><a href="#" class="top-header-font-link" onclick="onknowward();">Know your Ward</a><span class="mx-2">/</span></span>
+                    <span class="col-3"><a href="#" class="top-header-font-link" onclick="onknowwardofficers();">Know your Ward Officers</a><span class="mx-2">/</span></span>
+                    <span class="col-3"><i class="fas fa-phone-volume"></i><span class="mx-3">+91-194-2470465/2474499</span></span>
+                </span>
+            </span>
+        </div>
+        <div class="container">
+
+
+            @*<div class="theme-color-green top-header-font-12 mb-0 font-roboto text-left pt-1 pb-1 row">
+                <div class="col-6"><a href="#" class="top-header-font-link" onclick="onknowcorporator();">Know your Corporator / </a><a href="#" class="top-header-font-link" onclick="onknowward();">Know your Ward / </a><a href="#" class="top-header-font-link" onclick="onknowwardofficers();">Know your Ward Officers / </a><a href="#" class="top-header-font-link" onclick="oncontactus();">Contact Us </a></div>
+                <div class="col-6 align-right" style="float:right;text-align:right;"><i class="fas fa-phone-volume pr-2"></i>14420 / 1800 1807038 / +91-194-2474499 / 0194-2470465<i class="fas fa-envelope pr-2" style="padding-left:10px;"></i><a style="color: #363642;" href="mailto:commissioner-smc@jk.gov.in">commissioner-smc@jk.gov.in</a></div>
+            </div>*@
+        </div>
+    </div>
+    <div class="hide-in-popup text-center mt-0 bg-image-top">
+        @*<div class="container">
+            <div class="row">
+                <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 text-left pb-4 pt-4"><img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = ViewBag.Portal?.LogoId })" /></div>
+            </div>
+        </div>*@
+            <div class="container">
+                <div class="row">
+                    <div class="col-9 col-sm-7"><img class="img-fluid" src="~/images/EGOV/Srinagar-municipal-corporation.jpg"></div>
+                    <div class="col-1 col-sm-2"><img class="img-fluid" src="~/images/EGOV/srinagar-smart-city.jpg"></div>
+                    <div class="col-2 col-sm-3"><img class="img-fluid" src="~/images/EGOV/swach.jpg"></div>
+                </div>
+            </div>
+    </div>
+    <nav class="hide-in-popup navbar navbar-light navbar-expand-md py-1 nav-bg">
+        <div class="container">
+            <button data-toggle="collapse" class="navbar-toggler" data-target="#navcol-1" id="toggleBtn"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navcol-1">
+                <ul class="navbar-nav mr-auto py-3">
+                    @{
+                        var menus = (List<Synergy.App.ViewModel.MenuViewModel>)ViewBag.Menus;
+                        var menuGroups = menus.Where(x => x.PageType == TemplateTypeEnum.MenuGroup
+                        || (x.PageType != TemplateTypeEnum.MenuGroup && x.ShowOutsideMenuGroup))
+                        .OrderBy(x => x.MenuGroupSequenceOrder).ThenBy(x => x.SequenceOrder).ToList();
+
+                        foreach (var item in menuGroups)
+                        {
+                            if (item.PageType == TemplateTypeEnum.MenuGroup)
+                            {
+                                var childs = menus.Where(x => x.ParentId == item.Id && x.ShowOutsideMenuGroup == false && x.HideInMenu == false)
+                                    .OrderBy(x => x.SequenceOrder).ToList();
+                                if (childs.Any())
+                                {
+                                    @:<li class="nav-item dropdown">
+                                        @:<a class="nav-link active" href="#" id="@item.Id" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="mr-1">@item.DisplayName</span><span class="caret-icon fa fa-solid fa-caret-down"></span></a>
+                                        @: <ul class="dropdown-menu submenu-container" aria-labelledby="@item.Id">
+                                            foreach (var child in childs)
+                                            {
+                                                @: <li class="nav-item">
+                                                    @:   <a id="a-@child.Id" class="child-menu-item menu-nav-a nav-link @(ViewBag.PageId==child.Id?" menu-active-item":"")" href="javascript:OnMainMenuClick('@child.Id','@child.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()')">@*<span class="menu-icon @item.IconCss"></span>*@@child.DisplayName</a>
+                                                @: </li>
+                                            }
+                                        @: </ul>
+                                    @:</li>
+                                }
+                            }
+                            else
+                            {
+                                @: <li class="nav-item menu-nav-item">
+                                    @:   <a id="a-@item.Id" class="menu-nav-a nav-link @(ViewBag.PageId==item.Id?" menu-active-item":"")" href="javascript:OnMainMenuClick('@item.Id','@item.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()')">@item.DisplayName</a>
+                                @:</li>
+                            }
+                        }
+                    }
+                </ul>
+                <ul class="header-nav nav">
+                    @if (ViewBag.AllowedLanguages != null && ((List<Synergy.App.ViewModel.LOVViewModel>)ViewBag.AllowedLanguages).Any())
+                    {
+                        var allowedLangs = (List<Synergy.App.ViewModel.LOVViewModel>)ViewBag.AllowedLanguages;
+
+                        <li class="dropdown d-none d-md-flex">
+                            <a class="nav-link" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Notifications">
+                                <span class="pr-1 lang-text">@ViewBag.LanguageName</span>
+                                <span class="user-avatar lang-flag"><img class="lang-flag" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = @ViewBag.LanguageImageId })" alt="" /></span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-arrow d-lg-none" x-arrow=""></div>
+                                <div class="dropdown-arrow ml-3 d-none d-lg-block"></div>
+                                @foreach (var item in allowedLangs)
+                                {
+                                    @: <a class="dropdown-item" href="javascript:ChangeLanguage('@item.Code');"><span class="user-avatar lang-flag"><img class="lang-flag" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = item.ImageId })" alt="" /></span><span class="pl-2 lang-menu-text">@item.Name</span></a>
+                                }
+                            </div><!-- /.dropdown-menu -->
+                        </li>
+                    }
+                    @if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+                    {
+                        <li class="nav-item dropdown header-nav-dropdown has-notified">
+                            <a class="nav-link" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Notifications"><span class="fa fa-envelope-open"></span></a> <!-- .dropdown-menu -->
+                            <div class="dropdown-menu dropdown-menu-rich dropdown-menu-right">
+                                <div class="dropdown-arrow"></div>
+                                <h6 class="dropdown-header stop-propagation">
+                                    <span>Messages</span> <a href="javascript:MarkAllNotifications()">Mark all as read</a>
+                                </h6>
+                                <!-- .dropdown-scroll -->
+                                <div class="dropdown-scroll perfect-scrollbar">
+                                    @if (ViewBag.TopMessages != null && ((List<Synergy.App.ViewModel.NotificationViewModel>)ViewBag.TopMessages).Any())
+                                    {
+                                        var messages = (List<Synergy.App.ViewModel.NotificationViewModel>)ViewBag.TopMessages;
+                                        foreach (var msg in messages)
+                                        {
+                                            @:  <a href="#" class="dropdown-item unread">
+                                                @:     <div class="user-avatar"><img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = msg.PhotoId })" alt="" onerror='OnPhotoError(this);'></div>
+                                                @:     <div class="dropdown-item-body"><p class="subject">@Html.Raw(msg.From)</p><p class="text text-truncate"> @Html.Raw(msg.Subject) </p><span class="date">@msg.CreatedDate.Humanize()</span></div>
+                                            @:</a>
+                                        }
+                                    }
+                                </div>
+                                <!-- /.dropdown-scroll -->
+                                <a href="javascript:LoadPartailView('/PortalAdmin/notificationTemplate/NewNotificationIndex',$('#cms-content'))" class="dropdown-footer">All messages <i class="fas fa-fw fa-long-arrow-alt-right"></i></a>
+                            </div><!-- /.dropdown-menu -->
+                        </li>
+                    }
+                    @if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false && ViewBag.AllowedPortals != null && ((List<Synergy.App.ViewModel.PortalViewModel>)ViewBag.AllowedPortals).Any())
+                    {
+                        <li class="nav-item dropdown header-nav-dropdown">
+                            <a class="nav-link" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Applications"><span class="fa fa-th"></span></a> <!-- .dropdown-menu -->
+                            <div class="dropdown-menu dropdown-menu-rich dropdown-menu-right">
+                                <div class="dropdown-arrow"></div><!-- .dropdown-sheets -->
+                                <div class="dropdown-sheets dropdown-scroll perfect-scrollbar">
+
+                                    @{
+                                        var allowedPortals = (List<Synergy.App.ViewModel.PortalViewModel>)ViewBag.AllowedPortals;
+                                        foreach (var portal in allowedPortals)
+                                        {
+                                            @:  <div class="dropdown-sheet-item">
+                                                @:     <a href="javascript:OnMenuPortalChange('@portal.Id')" class="tile-wrapper"><span class="tile tile-lg bg-@portal.IconBgColorText"><i class="@portal.IconCssText"></i></span> <span class="text-sm tile-peek">@portal.DisplayName</span></a>
+                                            @:  </div>
+                                        }
+                                    }
+
+                                </div><!-- .dropdown-sheets -->
+                            </div><!-- .dropdown-menu -->
+                        </li>
+                    }
+                </ul>
+                @if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+                {
+                    <div class="navbar-nav dropdown d-flex mr-lg-n3">
+                        <button class="btn-account" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="user-avatar user-avatar-md">
+                                <img src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" alt="" onerror='OnPhotoError(this);'>
+                            </span> <span class="account-summary pr-lg-4 d-none d-lg-block"><span class="account-name text-white">@_userContext.Name</span></span>
+                        </button> <!-- .dropdown-menu -->
+                        <div class="dropdown-menu">
+                            <div class="dropdown-arrow d-lg-none" x-arrow=""></div>
+                            <div class="dropdown-arrow ml-3 d-none d-lg-block"></div>
+                            <h6 class="dropdown-header d-none d-md-block d-lg-none">@_userContext.Name</h6>
+                            <a class="dropdown-item" href="javascript:LoadPartailView('/user/userprofile?userId=@_userContext.UserId&portalId=@_userContext.PortalId',$('#cms-content'))"><span class="dropdown-icon fa fa-user"></span>@Html.Raw(SharedResource["MyProfile"])</a>
+                            <a class="dropdown-item" href="javascript:OpenChangePassowrd()"><span class="dropdown-icon fa fa-key"></span>@Html.Raw(SharedResource["ChangePassword"])</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="javascript:OpenGrantAccess()"><span class="dropdown-icon fa fa-check-double"></span>@Html.Raw(SharedResource["GrantAccess"])</a>
+                            <a class="dropdown-item" href="javascript:SwitchProfile()"><span class="dropdown-icon fa fa-random"></span>@Html.Raw(SharedResource["SwitchProfile"])</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="@Url.Action("Index", "helpCenter", new { @area = "Cms"})"><span class="dropdown-icon fa fa-question"></span>Help Center</a>
+                            <a class="dropdown-item" href="javascript:$('#logoutModal').modal('show');"><span class="dropdown-icon fa fa-sign-out"></span>@Html.Raw(SharedResource["Log Out"])</a>
+                        </div><!-- /.dropdown-menu -->
+                    </div>
+                }
+            </div>
+        </div>
+    </nav>
+   
+    <div class="mt-0 bg-image w-100">
+        <div class="container app-main" id="main-content">
+            @RenderBody()
+        </div>
+    </div>
+    <div class="w-100 theme-color-gray text-white hide-in-popup">
+        <div class="container pt-5 pb-5">
+            <div class="row">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                    @*<h1 class="font-20 font-poppins medium">Srinagar Smart City Limited<br></h1>*@
+                    <h1 class="font-20 font-poppins medium">Srinagar Municipal Corporation<br></h1>
+                    @*<p class="font-roboto font-16">Room No.22&amp;23, North Block, Ground Floor Srinagar Municipal Corporation Karan Nagar Srinagar JK 190010 India.</p>*@
+                    <p class="font-roboto font-16">Sheikh-Ul-Aalam Road, Karan Nagar, Srinagar, J&K, India. 190010.</p>
+                    <hr class="w-100 horizontal-divider mt-5">
+                    <h1 class="font-20 font-poppins medium">For any queries<br></h1>
+                    <p>Email:&nbsp;<a class="text-white" href="mailto:commissioner-smc@jk.gov.in">commissioner-smc@jk.gov.in</a></p>
+                    <p class="font-roboto font-16">Contact No: 14420 / 1800 1807038 / +91-194-2474499 / 0194-2470465</p>
+
+                    <div class="p-2 text-center">
+                        <span class="p-1"><a href="https://www.facebook.com/smcinformationandpublicrelation/" target="_blank"><img class="img-fluid max-width-24" src="/images/EGOV/ico-fb.png"></a></span>
+                        <span class="p-1"><a href="https://twitter.com/SMC_Srinagar" target="_blank"><img class="img-fluid max-width-24" src="/images/EGOV/ico-twitter_2.png"></a></span>
+                        <span class="p-1"><a href="https://www.instagram.com/smc_srinagar/" target="_blank"><img class="img-fluid max-width-24" src="/images/EGOV/ico-instagram.png"></a></span>
+                    </div>
+                </div>
+                
+                <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+                    @*<div class="d-lg-flex d-xl-flex justify-content-around">
+                <div class="font-16">
+                    <ul>
+                        <li class="footer-menuli"><a class="text-white" href="https://srinagarsmartcity.in/about-4/">About Us</a></li>
+                        <li class="footer-menuli"> <a class="text-white" href="https://srinagarsmartcity.in/careers/">Careers</a></li>
+                        <li class="footer-menuli"> <a class="text-white" href="https://srinagarsmartcity.in/contact-us-4/">Contact Us</a></li>
+                        <li class="footer-menuli">  <a class="text-white" href="https://srinagarsmartcity.in/photo-gallery-2/">Photo Gallery</a></li>
+                        <li class="footer-menuli"><a class="text-white" href="https://srinagarsmartcity.in/video-gallery-2/">Video Gallery</a></li>
+                        <li class="footer-menuli"> <a class="text-white" href="https://srinagarsmartcity.in/notice-and-circular/">Latest News</a></li>
+                    </ul>
+                </div>
+
+            </div>*@
+                    <!--
+        other links-->
+                    <div class="d-lg-flex d-xl-flex justify-content-around">
+
+                        <div class="font-16">
+
+                            <p class="font-20 medium"><b>Employee Corner</b></p>
+                            <ul>
+                                <li class="footer-menuli">
+                                    <a href="http://jkfunds.nic.in/Admin/LogMain.aspx" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        GP Fund Schedule
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="https://prs.jk.gov.in/Employee/Login.aspx" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Property Statement
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="https://jkcpis.nic.in/default.aspx" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Employee Information
+                                    </a>
+                                </li>
+
+                            </ul>
+                            <p class="font-20 medium"><b>Downloads</b></p>
+                            <ul>
+                                <li class="footer-menuli">
+                                    <a href="#" onclick="loadNewsPage()" class="pt-2 text-i" style="color:white;text-decoration:none;">
+                                        News Letters
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="#" onclick="loadByeLawPage()" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Act and Bye-Laws
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="#" onclick="loadDownloadsPage()" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Downloads
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="#" onclick="loadWardMapPage()" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Maps
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+
+                    <div class="d-lg-flex d-xl-flex justify-content-around">
+
+                        <div class="font-16">
+
+                            <p class="font-20 medium"><b>Quick Access</b></p>
+                            <ul>
+                                <li class="footer-menuli">
+                                    <a href="#" onclick="onclickrti()" class="pt-2 text-i" style="color:white;text-decoration:none;">
+                                        Right to Information
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="#" onclick="loadDoc('REGISTERED_ARCHITECT')" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Registered Architects/Structural Engineers/Draughtsmen
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="#" onclick="loadDoc('TRADE_REGISTER_FORM')" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Trade Registration Forms
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="#" onclick="loadDoc('ARCHITECT')" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Architect/ Draughtsman License
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+
+                    <div class="d-lg-flex d-xl-flex justify-content-around">
+
+                        <div class="font-16">
+
+                            <p class="font-20 medium"><b>Quick Links</b></p>
+                            <ul>
+                                <li class="footer-menuli"><a href="http://jkgad.nic.in/" target="_blank" class="pt-2 text-i" style="color:white;text-decoration:none;">GAD,J&amp;K</a></li>
+                                <li class="footer-menuli">
+                                    <a href="http://jkhudd.nic.in/" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Housing &amp; Urban Dev Deptt
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="http://srinagarsmartcity.in/" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Srinagar Smart City
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="https://srinagar.nic.in/" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        District Srinagar
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="https://billsahuliyat.jkpdd.net/" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        J&amp;K PDD
+                                    </a>
+                                </li>
+                                <li class="footer-menuli">
+                                    <a href="http://phekashmir.com/" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        J&amp;K PHE (Water Works)
+                                    </a>
+                                </li>
+                                <li class="footer-menuli"><a href="http://jklda.org/" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">LAWDA</a></li>
+                                <li class="footer-menuli">
+                                    <a href="http://www.sdasrinagar.com/" target="_blank" class="pt-2 text-i" style="color: white; text-decoration: none;">
+                                        Srinagar Developmet Department
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="w-100 theme-color-darkgray">
+        <p class="text-center text-white font-16 mb-0 p-1">@Html.Raw(footerText)</p>
+    </div>
+</div>
+
+
+
+<script src="~/Themes/Looper/dist/assets/vendor/pace-progress/pace.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/stacked-menu/js/stacked-menu.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/perfect-scrollbar/perfect-scrollbar.min.js" asp-append-version="true"></script> <!-- END PLUGINS JS -->
+<!-- BEGIN THEME JS -->
+<script src="~/Themes/Looper/dist/assets/javascript/theme.min.js" asp-append-version="true"></script> <!-- END THEME JS -->
+<script src="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/flatpickr/plugins/monthSelect/index.js" asp-append-version="true"></script>
+

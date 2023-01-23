@@ -1,0 +1,126 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "PO Requisition List";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<style>
+    .gridtitle {
+        font-size: 16px;
+        font-weight: bold;
+        color: #484545;
+    }
+</style>
+
+<script>
+
+    $(document).ready(function () {
+        getRequisitionData();
+        $.contextMenu({
+            selector: '#tree-menurequisition',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                var id = $trigger.data('idvalue');
+                var sid = $trigger.data('serid');                
+
+                switch (0) {
+                    case 0:
+
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'items':
+                                        OnViewItem(id, sid);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "items": { name: "Item", icon: "fas fa-edit" },
+                            }
+                        };
+                }
+            }
+        });
+
+    });
+   
+    var columnDefs = [        
+        {
+            field: "ServiceNo",
+            headerName: "Req. No"
+        },
+        {
+            field: "RequisitionDate",
+            headerName: "Req. Date",
+            cellRenderer: (data) => {
+                var d = new Date(data.value);
+                return d.getDate() + "." + d.getMonth() + "." + d.getFullYear();
+            }
+        },
+        {
+            field: "RequisitionParticular",
+            headerName: "Particular"
+        },
+        {
+            field: "RequisitionValue",
+            headerName: "Req. Value"
+        },
+        {
+            field: "ServiceStatusName",
+            headerName: "Status",
+        },
+        {
+            field: "CreatedBy",
+            headerName: "Prepared By"
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+
+                return "<div class='btn-group grid-menu' id='tree-menurequisition' data-idvalue='" + params.value + "' data-serid='"+params.data.ServiceId+"'  ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    function getRequisitionData() {
+        document.getElementById("RequisitionsOrderGrid").innerHTML = "";
+
+        gridConfig(
+            "RequisitionsOrderGrid",
+            "/IMS/InventoryManagement/ReadRequisitionList?requisitionIds="+'@ViewBag.RequisitionIds',
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function OnViewItem(id,serId) {
+        var url = '/Ims/InventoryManagement/PORequisitionItemsList?serId=' + serId + '&requisitionId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "Requisition Items", Width: 1200, Height: 700 });
+
+    }
+</script>
+
+
+                        <div style="width: 100%;" class="p-3">
+                            <fieldset class="fieldset">
+                                <legend class="fs-legend">Requisition List</legend>
+                              
+                                    <div id="RequisitionsOrderGrid" style="width:100%;height:550px" class="ag-theme-alpine"></div>
+                               </fieldset>
+                        </div>
+                   

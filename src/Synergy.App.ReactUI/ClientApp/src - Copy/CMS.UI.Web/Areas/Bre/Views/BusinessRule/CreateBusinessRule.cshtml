@@ -1,0 +1,122 @@
+﻿@using Syncfusion.EJ2.Navigations
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@{
+    ViewData["Title"] = "Create Business Rule";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@model CMS.UI.ViewModel.BusinessRuleViewModel
+<form asp-controller="BusinessRule" asp-action="CreateBusinessRule" method="post" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+      data-ajax="true" data-ajax-method="POST">
+    <div class="text-danger" asp-validation-summary="All"></div>
+    <div class="row" style="padding:10px;">
+        <div class="col-12">Action <span class="required">*</span></div>
+        <div class="col-12 pad-15">
+            @*@(Html.Kendo().DropDownListFor(model=>model.ActionId)
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .Filter(FilterType.Contains)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = Model.LOVType });
+                        });
+                    })
+                    .HtmlAttributes(new { @class = "form-control" , @style="width:100%" })
+                    )*@
+            <input asp-for="ActionId" id="ActionId" class="form-control" style="width:100%" />
+
+        </div>
+        <div class="col-sm-12">            
+            <div class="form-label-group">
+                <input asp-for="Name" class="form-control" placeholder="Name" type="text" autocomplete="off" required="required" />
+                <label for="Name">Name</label>
+            </div>
+            @*<div class="form-label-group">
+                <input type="number" asp-for="SequenceOrder" class="form-control" placeholder="Sequence Order" required="" autocomplete="off">
+                <label for="SequenceOrder">Sequence Order</label>
+            </div>*@
+            <br />
+        </div>
+        <div class="col-sm-12">
+            <button type="submit" class="btn btn-success">Save</button>
+            <button type="button" class="btn btn-light" onclick="Close();">Close</button>
+        </div>
+    </div>
+    @Html.HiddenFor(x => x.ParentId)
+    @Html.HiddenFor(x => x.DataAction)
+    @Html.HiddenFor(x => x.Id)
+    @Html.HiddenFor(x => x.DiagramData)
+    @Html.HiddenFor(x => x.TemplateId)
+    @Html.HiddenFor(x => x.ActionId)
+    @Html.HiddenFor(x => x.SequenceOrder)
+    @Html.HiddenFor(x => x.BusinessLogicExecutionType)
+</form>
+
+<script>
+    $(document).ready(function () {
+        $("#ActionId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.ActionId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = Model.LOVType })",
+                    }
+                }
+            }
+        });
+
+        if ('@Model.DataAction' == "Edit") {
+            var dropdownlist = $("#ActionId").data("kendoDropDownList");
+            dropdownlist.readonly();
+        }
+    });
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            ShowNotification("Saved Successfully", "success");
+
+            if ('@ViewBag.LayoutMode' == "@LayoutModeEnum.Popup.ToString()") {
+                if ('@Model.BusinessLogicExecutionType' == '@BusinessLogicExecutionTypeEnum.PreSubmit') {
+                    window.parent.$("#Pregrid").data("kendoGrid").dataSource.read();
+                }
+                else if ('@Model.BusinessLogicExecutionType' == '@BusinessLogicExecutionTypeEnum.PostSubmit') {
+                    window.parent.$("#Postgrid").data("kendoGrid").dataSource.read();
+                }
+                else if ('@Model.BusinessLogicExecutionType' == '@BusinessLogicExecutionTypeEnum.Custom') {
+                    window.parent.$("#Customgrid").data("kendoGrid").dataSource.read();
+                }
+
+                if ('@Model.DataAction' == '@DataActionEnum.Create')
+                {
+
+
+                    var win = GetMainWindow();
+                    win.iframeOpenUrl = '@Url.Action("Index", "BusinessRule", new { @area="Bre"})?breId=' + res.BreId + '&templateId=' + $("#TemplateId").val();
+                    win.OpenWindow({ Title: 'BusinessRule', Width: 1000, Height: 950, Position: 'Right'});
+
+                }
+            }
+            else {
+                var win = GetMainWindow();
+                win.CloseWindow({ MethodName: 'CallBackMethod' });
+            }
+        }
+        else {
+            showError(res.error);
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+        }
+    }
+    function Close() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+    }
+</script>

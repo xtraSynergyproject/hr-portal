@@ -1,0 +1,1157 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+
+}
+
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+<style>
+    k-listview-content {
+        height: 50%!important;
+      
+        overflow-y: scroll;
+        position: relative;
+    }
+</style>
+<div class="row top">
+    <div class="col-8 top-left-box">
+        <label class="pb-3 font-weight-light font-xlarge">Sales Activity</label>
+        <div>
+            <div class="so-inner-widget text-center">
+                <a href="#/salesorders?filter_by=Status.ToBePacked" id="ember234" class="ember-view">
+                    <p class="legend over-flow font-weight-light text-open">
+                        <span id="lowStockItem" class="tooltip-container ember-view"></span>
+                        <div class="sales-qty"><span class="font-xs">Qty</span></div>
+                    </p>
+                </a>
+                <div class="qty-label">
+                    <label class="font-weight-light text-uppercase">
+                        <i class="fal fa-circle-check"></i>&nbsp;&nbsp;Low Stock Item
+                    </label>
+                </div>
+            </div>
+            <div class="so-inner-widget text-center">
+                <a href="#/salesorders?filter_by=Status.ToBePacked" id="ember234" class="ember-view">
+                    <p class="legend over-flow font-weight-light text-red">
+                        <span id="allItemGroup" class="tooltip-container ember-view"></span>
+                        <div class="sales-qty"><span class="font-xs">Qty</span></div>
+                    </p>
+                </a>
+                <div class="qty-label">
+                    <label class="font-weight-light text-uppercase">
+                        <i class="fal fa-circle-check"></i>&nbsp;&nbsp;Low Item Group
+                    </label>
+                </div>
+            </div>
+            <div class="so-inner-widget text-center">
+                <a href="#/salesorders?filter_by=Status.ToBePacked" id="ember234" class="ember-view">
+                    <p class="legend over-flow font-weight-light text-success">
+                        <span id="allItem" class="tooltip-container ember-view"></span>
+                        <div class="sales-qty"><span class="font-xs">Qty</span></div>
+                    </p>
+                </a>
+                <div class="qty-label">
+                    <label class="font-weight-light text-uppercase">
+                        <i class="fal fa-circle-check"></i>&nbsp;&nbsp;All Item
+                    </label>
+                </div>
+            </div>
+            @*<div class="so-inner-widget text-center">
+                <a href="#/salesorders?filter_by=Status.ToBePacked" id="ember234" class="ember-view">
+                    <p class="legend over-flow font-weight-light text-parshipped">
+                        <span id="totalTobeInvoicedItem" class="tooltip-container ember-view"></span>
+                        <div class="sales-qty"><span class="font-xs">Qty</span></div>
+                    </p>
+                </a>
+                <div class="qty-label">
+                    <label class="font-weight-light text-uppercase">
+                        <i class="fal fa-circle-check"></i>&nbsp;&nbsp;To be Invoiced
+                    </label>
+                </div>
+            </div>*@
+
+        </div>
+    </div>
+    <div class="col-4 inventory-summary">
+        <label class="pb-3 font-weight-light font-xlarge">Inventory Summary</label>
+        <div class="inv-summary">
+            <label class="text-uppercase font-weight-light font-small text-void">Quantity in Hand</label>
+            <a href="#/reports/inventorysummary"  class="ember-view">
+                <label class="cursor-pointer float-right qty over-flow icon-xlarge text-plain">
+                    <span  class="tooltip-container ember-view" id="QtyInHand"></span>
+                </label>
+            </a>
+        </div>
+        <div class="inv-summary">
+            <label class="text-uppercase font-weight-light font-small text-void">Quantity to be Received</label>
+            <a href="#/purchaseorders?filter_by=Status.ToBeReceived" id="ember501" class="ember-view">
+                <label class="cursor-pointer qty float-right over-flow icon-xlarge text-plain">
+                    <span id="totalQtyTobeRecieved" class="tooltip-container ember-view"></span>
+                </label>
+            </a>
+        </div>
+    </div>
+</div>
+
+<br />
+<div class="row">
+    <div class="col">
+        <div class="db-widget pb-0">
+            <div class="widget-title">
+                <label class="db-header">Product Details</label>
+            </div>
+            <div class="row product-details ">
+                <div class="col total-summary pl-6">
+                    @*<div class="item">
+                            <label class="font-weight-light text-red" style="font-size: 17px">Low Stock Items</label>
+                            <a href="#/inventory/items?filter_by=Status.Lowstock" id="ember505" class="ember-view">
+                                <label id="lowStockItem" class="cursor-pointer float-right text-red font-xlarge text-semibold"></label>
+                            </a>
+                        </div> <div class="item font-large">
+                            <label class="font-weight-light text-void" style="font-size: 17px">All Item Groups</label>
+                            <a href="#/inventory/itemgroups" id="ember506" class="ember-view">
+                                <label id="allItemGroup" class="cursor-pointer float-right text-plain font-xlarge text-semibold"></label>
+                            </a>
+                        </div> <div class="item font-large">
+                            <label class="font-weight-light text-void" style="font-size: 17px">All Items</label>
+                            <a href="#/inventory/items?filter_by=Status.All" id="ember507" class="ember-view">
+                                <label id="allItem" class="cursor-pointer float-right text-plain font-xlarge text-semibold">  </label>
+                            </a>
+                        </div>*@
+                    <div id="itemValueByCategory"></div>
+                </div>
+                <div class="col total-summary pl-6">
+                    <div id="itemValueByWarehouse"></div>
+                </div>
+
+                <!---->
+                @*<div class="col-lg-5 col-md-5 col-sm-5 col-5 text-center">
+                        <label class="font-weight-light font-large text-void mb-0">Active Items</label>
+                        <div class="pt-3">
+                            <div id="activeItemChart"></div>
+                        </div>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="db-widget placeholder-container pb-0">
+            <div class="widget-title">
+                <label class="db-header">Top Selling Items</label>
+                <div class="float-right cursor-pointer">
+                    @*<i class="glyphicon glyphicon-calendar fa fa-calendar"></i>*@
+                    <div id="topSellingItemFilter"></div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div @*class="top-selling-details"*@>
+                    <div @*class="text-center"*@>
+                        <div id="topSellingItem" style="height:500px"></div>
+                        <span id="topSellingItemNoData" style="display:none"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br />
+
+<div class="row">
+
+    <div class="col-4 po-widget">
+        <div class="po-details po-details-widget db-widget">
+            <div class="widget-title">
+                <label class="db-header"> Purchase Order </label> <div class="float-right cursor-pointer">
+                    @*<i class="glyphicon glyphicon-calendar fa fa-calendar"></i>*@
+                    <div id="purchaseOrderFilter"></div>
+                </div>
+            </div> <div class="po-field text-center">
+                <label class="db-po-label font-weight-light mt-0">Quantity Ordered</label>
+                <p class="top-quantity over-flow text-blue" id="qtyOrdered"> </p>
+            </div>
+            <div class="po-field text-center">
+                <label class="db-po-label font-weight-light mt-0">Total Cost</label>
+                <p class="top-quantity over-flow text-blue " id="totalCost"></p>
+            </div>
+        </div>
+    </div>
+    <div class="col so-widget">
+        @*<div class="so-details-container db-widget">
+                <div class="widget-title">
+                    <label class="db-header">Sales Order</label> <div class="float-right cursor-pointer">
+                        <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                        <div id="salesOrderFilter"></div>
+                    </div>
+                </div>
+                <div id="salesOrderGrid" style="width: 100%; height: 215px; margin-top: 4px " class="ag-theme-alpine"></div>
+
+            </div>*@
+        <div class="db-widget pb-0 dashboard-sales-summary">
+            <div class="widget-title">
+                <div class="float-right">
+                    <div class="float-right cursor-pointer">
+                        @*<i class="glyphicon glyphicon-calendar fa fa-calendar"></i>*@
+                        <div id="salesOrderSummryFilter"></div>
+                    </div>
+                </div> <label class="db-header">Sales Order Summary (in <span id="currency">@ViewBag.CurrencySymbol</span>)</label>
+            </div>
+            <div class="primarychart-container">
+                <div class="row">
+                    <div class="col-lg-9 col-md-9 col-sm-9 col-9 primary-chart mb-0">
+                        <div width="900" id="ember489" class="zec-container ember-view">
+                            <div id="salesOrderchart"></div>
+                            <span id="summaryNoData" style="display:none"></span>
+                        </div>
+                    </div>
+                    <div class="summary">
+                        <h5 class="over-flow pb-3">Total Sales</h5>
+                        <div class="so-summary-others">
+                            <span class="so-circle"></span>
+                            <div class="amt-channel">
+                                <label class="channel-name text-uppercase font-weight-light mb-0">Direct Sales</label>
+                                <div class="over-flow" style="font-size: 16px;">
+                                    <span id="directSales" class="tooltip-container ember-view"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<br />
+<div class="row">
+    <div class="col-12">
+
+    </div>
+</div>
+
+<script type="text/x-kendo-tmpl" id="topsellingItemTemplate">
+    @*<img class="user-photo rounded-circle"
+    src="https://cdn.fcglcdn.com/brainbees/images/products/438x531/8988511a.webp"
+    onerror="OnPhotoError(this);">*@
+    <div class="row" style="padding:3px;margin-left:10px">
+
+    <span>#:Name#</span>
+    </div>
+</script>
+<script>
+
+    $(document).ready(function () {
+       
+        $("#topSellingItemFilter").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            height: 300,
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: "@InventoryDataFilterEnum.ThisMonth",
+            change: LoadTopSellingItem,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=InventoryDataFilterEnum",
+                    }
+                }
+            }
+        });
+
+        $("#purchaseOrderFilter").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            height: 300,
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: "@InventoryDataFilterEnum.ThisMonth",
+            change: LoadPurchaseOrder,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=InventoryDataFilterEnum",
+                    }
+                }
+            }
+        });
+
+        @*$("#salesOrderFilter").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            height: 300,
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: "@InventoryDataFilterEnum.ThisMonth",
+            change: LoadSalesOrderList,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=InventoryDataFilterEnum",
+                    }
+                }
+            }
+        });*@
+
+
+        $("#salesOrderSummryFilter").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            height: 300,
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: "@InventoryDataFilterEnum.ThisMonth",
+            change: LoadSalesOrderSummaryChart,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=InventoryDataFilterEnum&exculdeItem1=Today&exculdeItem2=Yesterday",
+                    }
+                }
+            }
+        });
+       
+        LoadItemValues();
+       // LoadSalesOrder();
+        LoadActiveItem();
+        LoadSalesOrderSummaryChart();
+        debugger;
+        LoadTopSellingItem();
+        LoadPurchaseOrder();
+        //LoadSalesOrderList();
+    });
+
+
+    function LoadSalesOrder() {
+        var url = "/ims/InventoryManagement/GetDashboardSalesActivitySummary";
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    document.getElementById("totalTobePackedItem").innerText = res.TotalTobePackedItem;
+                    document.getElementById("totalTobeShippedItem").innerText = res.TotalTobeShippedItem;
+                    document.getElementById("totalTobeDeliveredItem").innerText = res.TotalTobeDeliveredItem;
+                    document.getElementById("totalTobeInvoicedItem").innerText = res.TotalTobeInvoicedItem;                  
+                    
+                }
+            }
+        });
+    }
+
+
+
+    function LoadActiveItem() {
+        var url = "/ims/InventoryManagement/GetDashboardProductDetails";
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+
+                    document.getElementById("lowStockItem").innerText = res.TotalLowStockItems;
+                    document.getElementById("allItemGroup").innerText = res.TotalAllItemGroupItems;
+                    document.getElementById("allItem").innerText = res.TotalAllItem;
+                    document.getElementById("QtyInHand").innerText = res.ItemsInHand;                   
+                    document.getElementById("totalQtyTobeRecieved").innerText = res.ItemsToReceive;
+                    //var options = {
+                    //    series: res.ActionItemSeries,
+                    //    chart: {
+                    //        type: 'donut',
+                    //    },
+                    //    labels: res.ActiveItemLabels,
+                    //    responsive: [{
+                    //        breakpoint: 480,
+                    //        options: {
+                    //            chart: {
+                    //                width: 200
+                    //            },
+                    //            legend: {
+                    //                position: 'bottom'
+                    //            }
+                    //        }
+                    //    }]
+                    //};
+
+                    //var chart = new ApexCharts(document.querySelector("#activeItemChart"), options);
+                    //chart.render();
+
+                }
+            }
+        });
+    }
+
+    function LoadTopSellingItem() {
+        
+        var val = $("#topSellingItemFilter").data("kendoDropDownList").value();
+        var url = "/ims/InventoryManagement/GetDashboardTopSellingsItem?filter=" + val;
+        //var dataSource1 = new kendo.data.DataSource({
+        //    transport: {
+        //        read: {
+                   
+        //            dataType: "json"
+        //        }
+        //    },
+        //    // pageSize: 5
+        //});
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+             debugger
+                if (res == null || res.length == 0) {
+                    document.getElementById("topSellingItemNoData").style.display = "";
+                    document.getElementById("topSellingItemNoData").innerText = "No data";
+                    document.getElementById("topSellingItem").style.display = "none";
+                    
+                }
+                else
+                {
+                    document.getElementById("topSellingItem").style.display = "";
+                    $("#topSellingItem").kendoListView({
+                        dataSource: res,
+                        scrollable: "endless",
+                        template: kendo.template($("#topsellingItemTemplate").html())
+                    });
+                }
+               
+            }
+        });
+        //if (dataSource1.options.data == null) {
+        //    document.getElementById("topSellingItemNoData").style.display = "";
+        //    document.getElementById("topSellingItemNoData").innerText = "No data";
+        //} else {
+          
+        //}
+    }
+
+   
+
+    function LoadPurchaseOrder() {
+        var val = $("#purchaseOrderFilter").data("kendoDropDownList").value();
+        var url = "/ims/InventoryManagement/GetDashboardPurchaseOrderItem?filter=" + val;
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    document.getElementById("qtyOrdered").innerText = res.QtyOrdered;
+                    document.getElementById("totalCost").innerText = res.TotalCost;
+                }
+            }
+        });
+    }
+
+
+    function LoadItemValues() {
+        var url = "/ims/InventoryManagement/GetItemValueByCategory";
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    var vals = res.ItemValueSeries;
+                    var chart = "#itemValueByCategory";
+                    var options = {
+                        series: vals,
+                        title: {
+                            text: "Item Value By Category"
+                        },
+                        chart: {
+                            id: itemValueByCategory,
+                            width: 460,
+                            height: 160,
+                            type: 'pie',
+                            //events: {
+                            //    dataPointSelection: function (event, chartContext, config) {
+                            //        var status = config.w.config.labels[config.dataPointIndex];
+                            //        var code = config.w.config.chart.id;
+                            //        var statusCode = '';
+                            //        if (status === 'Pending') {
+                            //            statusCode = 'TASK_STATUS_INPROGRESS,TASK_STATUS_OVERDUE';
+                            //        } else if (status === 'Completed') {
+                            //            statusCode = 'TASK_STATUS_COMPLETE';
+                            //        } else if (status === 'Rejected') {
+                            //            statusCode = 'TASK_STATUS_REJECT,TASK_STATUS_CANCEL';
+                            //        }
+                            //        getTaskList(statusCode);
+                            //    }
+                            //}
+                        },
+                        legend: {
+                            position: 'left'
+                        },
+                        labels: res.ItemValueLabel,
+                        // colors: ['#007bff', '#28a745', '#dc3545'],
+
+                    };
+
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                    //var options = {
+                    //    series: res.ItemValueSeries,
+                    //    chart: {
+                    //        width: 380,
+                    //        type: 'donut',
+                    //    },
+                    //    labels: res.ItemValueLabel,
+                    //    title: {
+                    //        text: "Item Value By Category"
+                    //    },
+                    //    responsive: [{
+                    //        breakpoint: 480,
+                    //        options: {
+                    //            chart: {
+                    //                width: 200
+                    //            },
+                    //            legend: {
+                    //                position: 'bottom'
+                    //            }
+                    //        }
+                    //    }]
+                    //};
+
+                    //var chart = new ApexCharts(document.querySelector("#itemValueByCategory"), options);
+                    //chart.render();
+                }
+            }
+        });
+
+        var url = "/ims/InventoryManagement/GetItemValueByWarehouse";
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+
+                    var vals = res.ItemValueSeries;
+                    var chart = "#itemValueByWarehouse";
+                    var options = {
+                        series: vals,
+                        title: {
+                            text: "Item Value By Warehouse"
+                        },
+                        chart: {
+                            id: itemValueByWarehouse,
+                            width: 460,
+                            height: 160,
+                            type: 'pie',
+                            //events: {
+                            //    dataPointSelection: function (event, chartContext, config) {
+                            //        var status = config.w.config.labels[config.dataPointIndex];
+                            //        var code = config.w.config.chart.id;
+                            //        var statusCode = '';
+                            //        if (status === 'Pending') {
+                            //            statusCode = 'TASK_STATUS_INPROGRESS,TASK_STATUS_OVERDUE';
+                            //        } else if (status === 'Completed') {
+                            //            statusCode = 'TASK_STATUS_COMPLETE';
+                            //        } else if (status === 'Rejected') {
+                            //            statusCode = 'TASK_STATUS_REJECT,TASK_STATUS_CANCEL';
+                            //        }
+                            //        getTaskList(statusCode);
+                            //    }
+                            //}
+                        },
+                        legend: {
+                            position: 'left'
+                        },
+                        labels: res.ItemValueLabel,
+                       // colors: ['#007bff', '#28a745', '#dc3545'],
+
+                    };
+
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                    //var options = {
+                    //    series: res.ItemValueSeries,
+                    //    chart: {
+                    //        width: 380,
+                    //        type: 'pie',
+                    //    },
+                    //    labels: res.ItemValueLabel,
+                    //    title: {
+                    //        text: "Item Value By Category"
+                    //    },
+                    //    responsive: [{
+                    //        breakpoint: 480,
+                    //        options: {
+                    //            chart: {
+                    //                width: 200
+                    //            },
+                    //            legend: {
+                    //                position: 'bottom'
+                    //            }
+                    //        }
+                    //    }]
+                    //};
+
+                    //var chart = new ApexCharts(document.querySelector("#itemValueByWarehouse"), options);
+                    //chart.render();
+                }
+            }
+        });
+    }
+
+
+    //function LoadSalesOrderList() {
+
+    //    var cd = [
+    //        {
+    //            field: "Channel",
+    //        }, {
+    //            field: "Draft",
+    //        },
+    //        {
+    //            field: "Confirmed",
+    //        },
+    //        {
+    //            field: "Packed",
+    //        },
+    //        {
+    //            field: "Shipped",
+    //        },
+    //        {
+    //            field: "Invoiced",
+    //        }
+    //    ];
+
+    //    document.getElementById("salesOrderGrid").innerHTML = "";
+    //    var val = $("#salesOrderFilter").data("kendoDropDownList").value();
+    //    gridConfig(
+    //        "salesOrderGrid",
+    //        "/Ims/InventoryManagement/ReadDashboardSalesOrderList?filter=" + val,
+    //        cd,
+    //        false,
+    //        true,
+    //        true,
+    //        true,
+    //        1,
+    //        true,
+    //        5);
+    //}
+
+    function LoadSalesOrderSummaryChart() {
+        var val = $("#salesOrderSummryFilter").data("kendoDropDownList").value();
+        var url = "/ims/InventoryManagement/GetDashboardSalesOrderSummaryChart?filter=" + val;
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                debugger;
+                if (res) {
+                    document.getElementById("directSales").innerText = res.DirectSales;
+                    document.getElementById("currency").innerText = res.Currency;
+                    var options = {
+                        series: res.SalesOrderSeries,
+                        chart: {
+                            height: 350,
+                            type: 'line',
+                            zoom: {
+                                enabled: false
+                            }
+                        },
+                        dataLabels: {
+                            enabled: false
+                        },
+                        stroke: {
+                            curve: 'straight'
+                        },
+                        title: {
+                            text: 'Product Trends by Month',
+                            align: 'left'
+                        },
+                        grid: {
+                            row: {
+                                colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                                opacity: 0.5
+                            },
+                        },
+                        xaxis: {
+                            categories: res.Categories,
+                        }
+                    };
+
+                    var chart = new ApexCharts(document.querySelector("#salesOrderchart"), options);
+                    chart.render();
+                }
+                else {
+                    document.getElementById("summaryNoData").style.display = "";
+                    document.getElementById("summaryNoData").innerText = "No Data";
+                }
+            }
+        });
+    }
+</script>
+
+<style>
+    .summary {
+        padding: 20px 0 0 12px;
+    }
+
+    #cms-content {
+    }
+
+    .so-summary-others {
+        margin-bottom: 15px;
+        border: 1px solid #8cdff9;
+        border-left: 3px solid #0caee0;
+        padding: 6px 10px;
+        background-color: #edfafe;
+    }
+
+        .so-summary-others .so-circle {
+            float: left;
+            margin: 6px 3px;
+            height: 9px;
+            width: 9px;
+            border-radius: 50%;
+            background-color: #0caee0;
+        }
+
+    .amt-channel {
+        margin-left: 25px;
+    }
+
+    .channel-name, .summary .so-summary-shopify .amt-channel .channel-name {
+        font-size: 12px;
+    }
+
+    dashboard-sales-summary {
+        height: 439px;
+    }
+
+
+    .db-widget {
+        border: 1px solid #ececec;
+        padding: 15px 12px;
+    }
+
+
+    .widget-title {
+        width: 100%;
+        border-bottom: 1px solid #eee;
+        padding: 10px 10px;
+    }
+
+    .dashboard-sales-summary .primarychart-container {
+        min-height: 392px;
+    }
+
+    .primarychart-container .primary-chart {
+        width: 78%;
+        border-right: 1px solid #eee;
+    }
+
+    .primarychart-container .primary-chart {
+        margin: 25px 0;
+    }
+
+    .zec-container {
+        position: relative;
+    }
+
+    .summary {
+        padding: 20px 0 0 12px;
+    }
+
+        .summary .so-summary-others {
+            margin-bottom: 15px;
+            border: 1px solid #8cdff9;
+            border-left: 3px solid #0caee0;
+            padding: 6px 10px;
+            background-color: #edfafe;
+        }
+
+
+            .summary .so-summary-others .so-circle {
+                float: left;
+                margin: 6px 3px;
+                height: 9px;
+                width: 9px;
+                border-radius: 50%;
+                background-color: #0caee0;
+            }
+
+            .summary .so-summary-others .amt-channel {
+                margin-left: 25px;
+            }
+
+                .summary .so-summary-others .amt-channel .channel-name, .summary .so-summary-shopify .amt-channel .channel-name {
+                    font-size: 12px;
+                }
+
+    .tooltip-container {
+        position: relative;
+    }
+
+    .dashboard-section {
+        margin: 40px 0 0;
+        padding: 0 20px;
+    }
+
+    .so-table.table thead > tr > th:first-child {
+        padding-left: 12px;
+    }
+
+    .so-table.table thead > tr > th {
+        font-size: 14px;
+        background-color: #f7f9fb;
+    }
+
+    .table thead:first-child tr:first-child th {
+        border-top: 1px solid #ddd;
+    }
+
+    .table thead > tr > th {
+        border-bottom: 1px solid #eee;
+        color: #777;
+    }
+
+    .table thead th {
+        vertical-align: bottom;
+        border-bottom: 2px solid #eee;
+    }
+
+    .table tr.empty-list {
+        border-bottom: 1px solid transparent;
+    }
+
+    .table th {
+        padding: 8px;
+        vertical-align: top;
+        border-top: 1px solid #eee;
+    }
+
+    .text-semibold, b, strong, th {
+        font-weight: 600;
+    }
+
+    .po-details .po-field {
+        padding: 37px 0 10px;
+    }
+
+
+    .db-po-label {
+        font-size: 14px;
+    }
+
+    .top-quantity {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .db-po-label {
+        font-size: 14px;
+    }
+
+    .top-quantity {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .text-blue {
+        color: #428bca !important;
+    }
+
+    .so-details-container {
+        height: 290px;
+    }
+
+
+
+    .db-header {
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .so-table {
+        margin-bottom: 0;
+    }
+
+    .table-no-border {
+        border-bottom: 0;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 10px;
+        color: #212529;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    .table tr.empty-list {
+        border-bottom: 1px solid transparent;
+    }
+
+    .po-details-widget {
+        height: 290px;
+    }
+
+    .db-widget {
+        border: 1px solid #ececec;
+        padding: 15px 12px;
+    }
+
+
+    .db-header {
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+
+    .db-po-label {
+        font-size: 14px;
+    }
+
+    .font-weight-light {
+        font-weight: 600 !important;
+    }
+
+    .top-quantity {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .over-flow {
+        max-width: 100%;
+    }
+
+    .db-po-label {
+        font-size: 14px;
+    }
+
+    top-quantity {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .po-details .po-field:not(:first-child) {
+        border-top: 1px dotted #e4ebf2;
+    }
+
+    .placeholder-container {
+        position: relative;
+    }
+
+    .top-selling-details {
+        overflow: hidden;
+        height: 185px;
+    }
+
+    .text-muted {
+        color: #777 !important;
+    }
+
+
+
+    .db-widget {
+        border: 1px solid #ececec;
+        padding: 15px 12px;
+    }
+
+
+
+    .product-details {
+        height: 400px;
+    }
+
+    .db-header {
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .product-details {
+        height: 400px;
+    }
+
+    .total-summary {
+        padding: 20px 10px 27px;
+        border-right: 1px solid #f1f7f8;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+
+    .item {
+        padding: 12px 24px 4px 0;
+    }
+
+    .item {
+        padding: 12px 24px 4px 0;
+    }
+
+    .font-large {
+        font-size: 16px;
+    }
+
+    .text-void {
+        color: #777;
+    }
+
+    .text-plain {
+        color: #222;
+    }
+
+    .font-xlarge {
+        font-size: 18px;
+    }
+
+
+    .text-semibold, b, strong, th {
+        font-weight: 600;
+    }
+
+    .zec-container {
+        position: relative;
+    }
+
+    .inv-summary {
+        border: 1px solid #dae1e4;
+        border-radius: 7px;
+        background-color: #fff;
+        margin-bottom: 15px;
+        padding: 15px 18px 9px;
+        height: 51px;
+    }
+
+    .inventory-summary {
+        width: 32%;
+        border-left: 1px solid #ecf1f3;
+        padding: 30px 35px 15px 40px;
+    }
+
+    .tooltip-container {
+        position: relative;
+    }
+
+    .inv-summary {
+        margin-bottom: 15px;
+        padding: 15px 18px 9px;
+        height: 51px;
+    }
+
+    .so-inner-widget {
+        border: 1px solid #dae1e4;
+        border-radius: 7px;
+        background-color: #fff;
+    }
+
+    .text-parshipped {
+        color: #ddb630;
+    }
+
+    .text-void {
+        color: #777;
+    }
+
+    .font-small {
+        font-size: 13px;
+    }
+
+    .icon-xlarge {
+        font-weight: 400;
+        font-size: 25px;
+    }
+
+    .inv-summary .qty {
+        max-width: 35%;
+        min-width: 15%;
+        margin-top: -8px;
+        border-left: 1px solid #edf1f2;
+        padding-left: 8px;
+        text-align: right;
+    }
+
+    .text-plain {
+        color: #222;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+    }
+
+    .text-red {
+        color: #db584b !important;
+    }
+
+    .font-xs {
+        font-size: 12px;
+    }
+
+    .so-inner-widget {
+        width: 30%;
+        display: inline-block;
+        margin-right: 15px;
+        padding: 28px 5px 7px;
+        height: auto;
+        vertical-align: top;
+    }
+
+    .so-inner-widget {
+        border: 1px solid #dae1e4;
+        border-radius: 7px;
+        background-color: #fff;
+    }
+
+        .so-inner-widget .qty-label {
+            font-size: 12px;
+            padding-top: 15px;
+            color: #495569;
+        }
+
+    .legend {
+        margin: -10px 0 0;
+        font-size: 36px;
+    }
+
+    .text-open {
+        color: #268ddd;
+    }
+
+    .sales-qty {
+        margin-top: -7px;
+        font-size: 8px;
+        color: #8d99ae;
+    }
+
+
+    .top {
+        border: solid;
+        border-width: 1px;
+        border-color: lightgrey;
+        margin-top: 5px;
+        margin-left: 2px;
+        margin-right: 2px;
+        border-radius: 4px;
+        background-color: #f5faff;
+        border: 1px solid #dde5e8;
+    }
+
+    .top-left-box {
+        padding: 30px 0 24px 35px;
+        border-right: 1px solid #dde5e8;
+    }
+
+    .font-xlarge {
+        font-size: 18px;
+    }
+
+
+
+    .pb-3, .py-3 {
+        padding-bottom: 10px !important;
+    }
+</style>

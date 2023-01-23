@@ -1,0 +1,209 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@inject CMS.Common.IUserContext _userContext
+
+
+<style>
+    .form-label-group {
+        position: relative;
+        margin-bottom: 0px;
+    }
+
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+    /*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+    .k-editor-toolbar
+    {
+        display:none !important;
+    }
+</style>
+<script type="text/javascript">
+    function DataBound(e) {
+        debugger
+        $(".selectcheckbox").bind("click", function (e) {
+            e.stopPropagation();
+            $(e.target).closest("tr").toggleClass("k-state-selected");
+        });
+
+        var rows = e.sender.element.find("tr");
+        rows.each(function (e) {
+            $(this).children().first().on("click", onFirstTDClick);
+        })
+        var abc = "@ViewBag.RowData";
+        var arr = JSON.parse(abc.replace(/&quot;/g, '"'));
+
+            for (var i = 0; i < arr.length; i++)
+            {
+                console.log(e.sender._data[0].Id);
+                //if (e.sender._data[0].Id == arr[i].Id)
+                //{
+                    $("#selectcheckbox_"+ arr[i].Id).closest("tr").toggleClass("k-state-selected");
+                    document.getElementById('selectcheckbox_' + arr[i].Id + '/').closest('tr').classList.add("k-state-selected");
+                    document.getElementById('selectcheckbox_' + arr[i].Id + '/').checked = true;
+
+
+                //}
+            }
+
+    }
+    function onFirstTDClick(e) {
+        e.stopPropagation();
+        var tr = $(e.target).closest("tr");
+        tr.find('[type=checkbox]').prop('checked', !tr.hasClass("k-state-selected"));
+        tr.toggleClass("k-state-selected");
+
+    }
+
+    function ongridChange(arg) {
+        
+        var selectedRows = this.select();
+        this.editRow(this.select());
+
+
+        $('tr').find('[type=checkbox]').prop('checked', false);
+        $('tr.k-state-selected').find('[type=checkbox]').prop('checked', true);
+
+        var selectedRows = this.select();
+        var selectedDataItems = [];
+        for (var i = 0; i < selectedRows.length; i++) {
+            var dataItem = this.dataItem(selectedRows[i]);
+            selectedDataItems.push(dataItem);
+        }
+        selectedRows = selectedDataItems;
+    }
+    function SaveData(e) {
+        debugger
+        var selectedRows = [];
+        var entityGrid = $("#grid").data("kendoGrid");
+        var rows = entityGrid.select();
+        rows.each(function (index, row) {
+            var selectedItem = entityGrid.dataItem(row);
+            selectedRows.push(selectedItem);
+        });
+        console.log(selectedRows);
+        $("#RowData").val(JSON.stringify(selectedRows));
+        if (selectedRows.length==0)
+        {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("select at leaset one column");
+            e.preventDefault();
+            return false;
+        }
+    }
+
+    function OnCancel(args) {
+
+    }
+    $(document).ready(function () {
+        //alert($('#EnableDeletebtn').val());
+        $('#EnableDeletebtn').change(function () {
+            debugger
+            if (this.checked) {
+
+                $('#confirmationdel').show();
+            }
+            else {
+                $('#confirmationdel').hide();
+            }
+
+        });
+        if ($('#EnableDeletebtn').val() == 'true')
+        {
+            $('#confirmationdel').show();
+        }
+    });
+
+    function closeNavPortal() {
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+           // window.parent.parent.$("#documentTypeTreeView").data("kendoTreeView").dataSource.read();
+            var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("ManageIndex", "Template", new { @area = "Cms"})?templateId=' + TemplateId, $('#index'));
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+
+
+
+</script>
+
+<div class="pad-15">
+    
+
+</div>

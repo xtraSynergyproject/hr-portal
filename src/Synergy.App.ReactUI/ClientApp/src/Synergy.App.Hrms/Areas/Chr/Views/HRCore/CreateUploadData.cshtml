@@ -1,0 +1,209 @@
+﻿@{ 
+    ViewData["Title"] = "Upload Data";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+@model DataUploadViewModel
+
+<style>
+    /* .cms-footer {
+        position: unset !important;
+        background-color: unset !important;
+    }*/
+    .cms-workspace-footer {
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+</style>
+<script>
+
+
+
+    $(document).ready(function () {
+          if ('@ViewBag.Success' == "True") {
+            closeNavMemberGroup();
+              window.parent.getData();
+           // window.parent.$("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+        }
+             $("#UploadTypeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+           // optionLabel:"--Select--",
+            value: '@Model.UploadTypeId',
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=HR_DATA_UPLOAD_TYPE",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function onFileUploadSuccess() {
+        
+        $("#AttachmentFileId").dmUploader({ //
+            url: '/Cms/Document/SaveFile',
+            multiple: false,
+            extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $(".style-myiconimage").attr("src", "/cms/Document/GetImageMongo?id=" + data.fileId);
+                $("#AttachmentFileId").val(data.fileId);
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+        function onIconDel() {
+            //
+            //        alert("Banner Delete");
+            $(".style-myiconimage").attr("src", "/images/200.png");
+            $("#AttachmentFileId").val('');
+            //var iconupload = $("#files1").data("kendoUpload");
+            ////console.log(bannerupload);
+            //iconupload.clearFile(function (file) { return true; });
+            $("#iconFile1").dmUploader("reset");
+
+        }
+    }
+
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                window.parent.ShowNotification("Uploaded Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                window.parent.ShowNotification("Updated Successfully", "success");
+            }
+
+            closeNavPortal();
+            window.parent.getData();
+        }
+        else {
+            showError(res.error);
+        }
+        HideLoader($('#template-content'));
+    };
+    var showError = function (error) {
+
+        //#validation-summary-manageform
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    function closeNavPortal() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+</script>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <form asp-controller="HRCore" asp-action="ManageUploadData" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="UploadType">Upload Type</label>
+                    </div>
+
+
+                    <input asp-for="UploadTypeId" id="UploadTypeId" class="form-control" style="width:100%" />
+
+                </div>
+            </div>
+
+            <div class="col-12 bold">Attachment File</div>
+            <div class="col-12 pad-10">
+
+
+
+                @{
+                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.AttachmentFileId), Value = Model.AttachmentFileId, CallbackMethod = "onFileUploadSuccess" });
+                }
+            </div>
+
+
+            <div class="col-12 pad-15">
+                &nbsp;
+            </div>
+            <div class="cms-workspace-footer">
+                <input type="button" class="btn btn-link" value="Close" onclick="closeNavPortal()" />
+                <input type="submit" class="btn btn-primary" value="Save" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.DataUploadId)
+        @Html.HiddenFor(x => x.AttachmentFileId)
+        @Html.HiddenFor(x => x.UploadTypeId)
+        @Html.HiddenFor(x => x.ServiceId)
+
+
+
+
+    </form>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+

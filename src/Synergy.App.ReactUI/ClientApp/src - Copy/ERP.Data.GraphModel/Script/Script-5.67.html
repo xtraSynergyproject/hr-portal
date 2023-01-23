@@ -1,0 +1,103 @@
+﻿match(n:HRS_Grade) set n.IsLatest=false
+match(n:HRS_Job) set n.IsLatest=false
+match(n:HRS_Organization) set n.IsLatest=false
+match(n:HRS_Position) set n.IsLatest=false
+match(n:HRS_Person) set n.IsLatest=false
+match(n:HRS_Contract) set n.IsLatest=false
+match(n:HRS_Assignment) set n.IsLatest=false
+match  ()-[n:R_PositionRoot_ParentPositionRoot]->() set n.IsLatest=false,n.Status='Active'
+match  ()-[n:R_OrganizationRoot_ParentOrganizationRoot]->() set n.IsLatest=false,n.Status='Active'
+match  ()-[n:R_User_Mapping_OrganizationRoot]->() set n.ExcludeAllChild=false
+match  ()-[n:R_UserRole_Mapping_OrganizationRoot]->() set n.ExcludeAllChild=false
+
+
+
+
+match(n:HRS_Grade) with n.RootId as RootId,max(n.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_Grade) where x.RootId=RootId and x.EffectiveStartDate=MaxEffectiveStartDate set x.IsLatest=true
+
+match(n:HRS_Job) with n.RootId as RootId,max(n.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_Job) where x.RootId=RootId and x.EffectiveStartDate=MaxEffectiveStartDate set x.IsLatest=true
+
+match(n:HRS_Organization) with n.RootId as RootId,max(n.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_Organization) where x.RootId=RootId and x.EffectiveStartDate=MaxEffectiveStartDate set x.IsLatest=true
+
+match(n:HRS_Position) with n.RootId as RootId,max(n.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_Position) where x.RootId=RootId and x.EffectiveStartDate=MaxEffectiveStartDate set x.IsLatest=true
+
+match(n:HRS_Person) with n.RootId as RootId,max(n.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_Person) where x.RootId=RootId and x.EffectiveStartDate=MaxEffectiveStartDate set x.IsLatest=true
+
+match(n:HRS_Contract) with n.RootId as RootId,max(n.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_Contract) where x.RootId=RootId and x.EffectiveStartDate=MaxEffectiveStartDate set x.IsLatest=true
+
+match(n:HRS_Assignment) with n.RootId as RootId,max(n.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_Assignment) where x.RootId=RootId and x.EffectiveStartDate=MaxEffectiveStartDate set x.IsLatest=true
+
+match (n:HRS_PositionRoot)-[r:R_PositionRoot_ParentPositionRoot]->() with n.Id as RootId,max(r.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_PositionRoot)-[xr:R_PositionRoot_ParentPositionRoot]->() where x.Id=RootId and xr.EffectiveStartDate=MaxEffectiveStartDate
+set xr.IsLatest=true
+
+match (n:HRS_OrganizationRoot)-[r:R_OrganizationRoot_ParentOrganizationRoot]->() with n.Id as RootId,max(r.EffectiveStartDate) as MaxEffectiveStartDate
+match (x:HRS_OrganizationRoot)-[xr:R_OrganizationRoot_ParentOrganizationRoot]->() where x.Id=RootId and xr.EffectiveStartDate=MaxEffectiveStartDate
+set xr.IsLatest=true
+
+
+match (n:HRS_Person) return distinct n.TitleCode
+
+match (n:HRS_Person) return distinct n.TitleCode,case
+when n.TitleCode='Mr.' or n.TitleCode='MR' then 'Mr'
+when n.TitleCode='Ms.' or n.TitleCode='MS' then 'Ms'
+when n.TitleCode='Mrs' or n.TitleCode='MRS' then 'Mrs'
+when n.TitleCode='MISS' then 'Miss' else null end as Title
+
+
+match (n:HRS_Person) set n.Title=case
+when n.TitleCode='Mr.' or n.TitleCode='MR' then 'Mr'
+when n.TitleCode='Ms.' or n.TitleCode='MS' then 'Ms'
+when n.TitleCode='Mrs' or n.TitleCode='MRS' then 'Mrs'
+when n.TitleCode='MISS' then 'Miss' else null end
+
+
+match (n:HRS_Person) return distinct  n.TitleCode,n.Title
+
+
+
+=================
+match (n:HRS_Person) return distinct n.GenderCode
+
+match (n:HRS_Person) return distinct n.GenderCode,case
+when n.GenderCode='M'  then 'Male'
+when n.GenderCode='F' then 'Female' else null end as Gender
+
+match (n:HRS_Person) set n.Gender=case
+when n.GenderCode='M'  then 'Male'
+when n.GenderCode='F' then 'Female' else null end
+
+match (n:HRS_Person) return distinct n.GenderCode,n.Gender
+
+================
+match (n:HRS_Person) return distinct n.MaritalStatusCode;
+match (n:HRS_Person) return distinct n.MaritalStatusCode,case
+when n.MaritalStatusCode='S'  then 'Single'
+when n.MaritalStatusCode='M' then 'Married' else null end as MaritalStatus;
+
+match (n:HRS_Person) set n.MaritalStatus=case
+when n.MaritalStatusCode='S'  then 'Single'
+when n.MaritalStatusCode='M' then 'Married' else null end;
+
+match (n:HRS_Person) return distinct n.MaritalStatusCode,n.MaritalStatus;
+
+================
+match (n:HRS_Person) return distinct n.ReligionCode;
+match (n:HRS_Person) return distinct n.ReligionCode,case
+when n.ReligionCode='Islam' or n.ReligionCode='ISLAM' or n.ReligionCode='26' then 'Islam'
+when n.ReligionCode='Christianity' or n.ReligionCode='CHRISTIAN' or n.ReligionCode='28' then 'Christian'
+when n.ReligionCode='Other' or n.ReligionCode='OTHER' or n.ReligionCode='29' then 'Other'  else null end as Religion ;
+
+match (n:HRS_Person) set n.Religion=case
+when n.ReligionCode='Islam' or n.ReligionCode='ISLAM' or n.ReligionCode='26' then 'Islam'
+when n.ReligionCode='Christianity' or n.ReligionCode='CHRISTIAN' or n.ReligionCode='28' then 'Christian'
+when n.ReligionCode='Other' or n.ReligionCode='OTHER' or n.ReligionCode='29' then 'Other'  else null end;
+
+match (n:HRS_Person) return distinct n.ReligionCode,n.Religion;
