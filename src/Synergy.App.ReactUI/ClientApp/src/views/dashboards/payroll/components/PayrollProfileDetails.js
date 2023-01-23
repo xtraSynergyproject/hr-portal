@@ -53,7 +53,7 @@ function PayrollProfileDetails() {
       .then(response => {
         setData(response.data)
         console.log(response.data, 'profile data')
-      })
+      }).catch(error => console.log(error));
   }, [])
   
   return (

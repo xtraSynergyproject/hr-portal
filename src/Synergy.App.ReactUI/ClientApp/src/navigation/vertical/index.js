@@ -64,6 +64,20 @@ const navigation = () => {
         }
       ]
     },
+    {
+      title: 'HR Only',
+      icon: 'mdi:chart-donut',
+      children: [
+        {
+          title: 'Termination',
+          path: '/dashboards/hr-only/termination'
+        },
+        {
+          title: 'Remote Sign In/Out',
+          path: '/dashboards/hr-only/remote-sign-in-out'
+        }
+      ]
+    },
 
     //Employee Profile
     {
@@ -261,17 +275,18 @@ const navigation = () => {
     {
       title: 'Payroll',
       icon: 'mdi:file-document-outline',
-      children: [
-        {
-          title: 'Salary Info',
-          path: '/pages/faq'
-        },
-        {
-          title: 'PaySlip',
-          path: '/pages/help-center'
-        },
+      path: '/dashboards/payroll'
+      // children: [
+      //   {
+      //     title: 'Salary Info',
+      //     path: '//faq'
+      //   },
+      //   {
+      //     title: 'PaySlip',
+      //     path: '/pages/help-center'
+      //   },
     
-      ]
+      // ]
     },
 
     //Attendance
@@ -891,114 +906,63 @@ const navigation = () => {
     {
       sectionTitle: 'Charts & Misc'
     },
+    
     {
-      title: 'Charts',
+      title: 'HR Only',
       icon: 'mdi:chart-donut',
       children: [
         {
-          title: 'Apex',
+          title: 'Termination',
+          path: '/dashboards/hr-only/termination'
+        },
+        {
+          title: 'Remote Sign In/Out',
+          path: '/dashboards/hr-only/remote-sign-in-out'
+        }
+      ]
+    },
+
+    {
+      title: 'Self Service',
+      icon: 'mdi:chart-donut',
+      children: [
+        {
+          title: 'Resignation',
           path: '/charts/apex-charts'
         },
         {
-          title: 'Recharts',
+          title: 'Misconducts',
           path: '/charts/recharts'
         },
         {
-          title: 'ChartJS',
+          title: 'Transfer Request',
           path: '/charts/chartjs'
         }
       ]
     },
-    {
-      path: '/acl',
-      action: 'read',
-      subject: 'acl-page',
-      icon: 'mdi:shield-outline',
-      title: 'Access Control'
-    },
-    {
-      title: 'Others',
-      icon: 'mdi:dots-horizontal',
-      children: [
-        {
-          title: 'Menu Levels',
-          children: [
-            {
-              title: 'Menu Level 2.1'
-            },
-            {
-              title: 'Menu Level 2.2',
-              children: [
-                {
-                  title: 'Menu Level 3.1'
-                },
-                {
-                  title: 'Menu Level 3.2'
-                }
-              ]
-            }
-          ]
-        },
-        {
-          title: 'Disabled Menu',
-          disabled: true
-        },
-        {
-          title: 'Raise Support',
-          externalLink: true,
-          openInNewTab: true,
-          path: 'https://themeselection.com/support'
-        },
-        {
-          title: 'Documentation',
-          externalLink: true,
-          openInNewTab: true,
-          path: 'https://demos.themeselection.com/marketplace/materio-mui-react-nextjs-admin-template/documentation'
-        },
 
-           
     {
-      title: 'Typography',
-      icon: 'mdi:format-letter-case',
-      path: '/ui/typography'
-    },
-    {
-      title: 'Icons',
-      path: '/ui/icons',
-      icon: 'mdi:google-circles-extended'
-    },
-    {
-      title: 'Cards',
-      icon: 'mdi:credit-card-outline',
+      title: 'Reimbursement',
+      icon: 'mdi:account-convert',
       children: [
         {
-          title: 'Basic',
-          path: '/ui/cards/basic'
+          title: 'Travel Reimbursement',
+          path: '/charts/apex-charts'
         },
         {
-          title: 'Advanced',
-          path: '/ui/cards/advanced'
+          title: 'Medical Reimbursement',
+          path: '/charts/recharts'
         },
         {
-          title: 'Statistics',
-          path: '/ui/cards/statistics'
+          title: 'Educational Reimbursement',
+          path: '/charts/chartjs'
         },
         {
-          title: 'Widgets',
-          path: '/ui/cards/widgets'
-        },
-        {
-          title: 'Gamification',
-          path: '/ui/cards/gamification'
-        },
-        {
-          title: 'Actions',
-          path: '/ui/cards/actions'
+          title: 'Other Reimbursement',
+          path: '/charts/chartjs'
         }
       ]
-    }
-      ]
-    }
+    },
 
   ]
 }

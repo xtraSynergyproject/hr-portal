@@ -63,7 +63,7 @@ useEffect(()=>{
     
 
 
-  })
+  }).catch(error => console.log(error));
 })
 
 
