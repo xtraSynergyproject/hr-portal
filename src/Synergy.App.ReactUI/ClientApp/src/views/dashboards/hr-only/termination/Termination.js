@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography'
 //Component Imports
 import TerminationTable from './components/TerminationTable'
 import TerminationRequestModal from './components/TerminationRequestModal';
+// import TableOne from './components/button_with_modal/tables/n'
 
 
 function Termination() {
@@ -20,6 +21,7 @@ function Termination() {
         </Box>
       </Paper>
       <TerminationTable />
+      {/* <TableOne/> */}
     </div>
   )
 }
