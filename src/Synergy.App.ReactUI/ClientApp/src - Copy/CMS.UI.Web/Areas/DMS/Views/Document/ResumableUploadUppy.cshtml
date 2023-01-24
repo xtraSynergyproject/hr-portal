@@ -1,71 +1,0 @@
-﻿@*@using Cms.UI.ViewModel;
-
-    @{
-        ViewData["Title"] = "Resumable Upload Uppy";
-        Layout = null;
-        //Layout = "/Views/Shared/_PopupLayout.cshtml";
-        //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
-    }
-    <link href="https://releases.transloadit.com/uppy/v2.3.3/uppy.min.css" rel="stylesheet">
-    <script src="https://releases.transloadit.com/uppy/v2.3.3/uppy.min.js"></script>
-
-    <script>
-        var uppy = new Uppy.Core()
-        uppy.use(Uppy.Dashboard, {
-            inline: true,
-            target: '#drag-drop-area'
-        })
-        uppy.use(Uppy.Tus, { endpoint: 'https://tusd.tusdemo.net/files/' })
-
-        uppy.on('complete', (result) => {
-            console.log('Upload complete! We’ve uploaded these files:', result.successful)
-        })
-    </script>
-
-    <div class="container">
-        <h4>@ViewData["Title"]</h4>
-        <div id="drag-drop-area"></div>
-
-    </div>
-
-    <script src="https://releases.transloadit.com/uppy/v2.3.3/uppy.min.js"></script>*@
-
-<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Uppy</title>
-    <link href="https://releases.transloadit.com/uppy/v2.3.3/uppy.min.css" rel="stylesheet">
-</head>
-<body>
-    <div id="drag-drop-area"></div>
-
-    <script src="https://releases.transloadit.com/uppy/v2.3.3/uppy.min.js"></script>
-    <script>
-        var uppy = new Uppy.Core({
-            debug: true,            autoProceed: false,            allowMultipleUploads: true,
-            restrictions: {
-                maxFileSize: 300000000,
-                maxNumberOfFiles: 5,
-                minNumberOfFiles: 1
-            }})
-            .use(Uppy.Dashboard, {
-                inline: true,
-                target: '#drag-drop-area'
-            })
-            .use(Uppy.Tus, {
-                endpoint: 'https://localhost:44398/files/', resume: true,
-                retryDelays: [0, 1000, 3000, 5000],
-                chunkSize: 5000,
-                limit: 1,
-                removeFingerprintOnSuccess: false})
-        uppy.on('upload-error', (file, error, response) => {            if (error.isNetworkError) {                // Let your users know that file upload could have failed                // due to firewall or ISP issues                alert(error)            }
-        })
-        uppy.on('core:file-added', (file) => {            uppy.updateMeta({ type: file.type.mime }, file.id)        })
-
-        uppy.on('complete', (result) => {
-            console.log('Upload complete! We’ve uploaded these files:', result.successful)
-        })
-    </script>
-</body>
-</html>
