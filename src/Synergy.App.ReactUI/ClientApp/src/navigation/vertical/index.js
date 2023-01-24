@@ -242,17 +242,17 @@ const navigation = () => {
       title: 'Leave',
       icon: 'mdi:shield-outline',
       children: [
-        {
+       {
           title: 'Leave Details',
-          path: '/apps/roles'
+          path: '/dashboards/leave-details'
         },
         {
-          title: 'Business Trip',
-          path: '/apps/permissions'
+          title: 'Bussiness Trip',
+          path: '/dashboards/bussiness-trip'
         },
         {
           title: 'Time Permission',
-          path: '/apps/'
+          path: '/dashboards/time-permison'
         }
       ]
     },
