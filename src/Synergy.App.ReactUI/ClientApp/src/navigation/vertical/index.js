@@ -64,20 +64,6 @@ const navigation = () => {
         }
       ]
     },
-    {
-      title: 'HR Only',
-      icon: 'mdi:chart-donut',
-      children: [
-        {
-          title: 'Termination',
-          path: '/dashboards/hr-only/termination'
-        },
-        {
-          title: 'Remote Sign In/Out',
-          path: '/dashboards/hr-only/remote-sign-in-out'
-        }
-      ]
-    },
 
     //Employee Profile
     {
@@ -101,6 +87,8 @@ const navigation = () => {
           title: 'Documents',
           path: '/dashboards/document-management/documents'
         },
+       
+       
       
         // {
         //   title: 'Department Hierarchy',
@@ -258,15 +246,15 @@ const navigation = () => {
       children: [
         {
           title: 'Leave Details',
-          path: '/apps/roles'
+          path: '/dashboards/leave-details'
         },
         {
-          title: 'Business Trip',
-          path: '/apps/permissions'
+          title: 'Bussiness Trip',
+          path: '/dashboards/bussiness-trip'
         },
         {
           title: 'Time Permission',
-          path: '/apps/'
+          path: '/dashboards/time-permison'
         }
       ]
     },
@@ -275,18 +263,17 @@ const navigation = () => {
     {
       title: 'Payroll',
       icon: 'mdi:file-document-outline',
-      path: '/dashboards/payroll'
-      // children: [
-      //   {
-      //     title: 'Salary Info',
-      //     path: '//faq'
-      //   },
-      //   {
-      //     title: 'PaySlip',
-      //     path: '/pages/help-center'
-      //   },
+      children: [
+        {
+          title: 'Salary Info',
+          path: '/dashboards/payroll'
+        },
+        {
+          title: 'PaySlip',
+          path: '/pages/help-center'
+        },
     
-      // ]
+      ]
     },
 
     //Attendance
@@ -906,63 +893,114 @@ const navigation = () => {
     {
       sectionTitle: 'Charts & Misc'
     },
-    
     {
-      title: 'HR Only',
+      title: 'Charts',
       icon: 'mdi:chart-donut',
       children: [
         {
-          title: 'Termination',
-          path: '/dashboards/hr-only/termination'
-        },
-        {
-          title: 'Remote Sign In/Out',
-          path: '/dashboards/hr-only/remote-sign-in-out'
-        }
-      ]
-    },
-
-    {
-      title: 'Self Service',
-      icon: 'mdi:chart-donut',
-      children: [
-        {
-          title: 'Resignation',
+          title: 'Apex',
           path: '/charts/apex-charts'
         },
         {
-          title: 'Misconducts',
+          title: 'Recharts',
           path: '/charts/recharts'
         },
         {
-          title: 'Transfer Request',
+          title: 'ChartJS',
           path: '/charts/chartjs'
         }
       ]
     },
-
     {
-      title: 'Reimbursement',
-      icon: 'mdi:account-convert',
+      path: '/acl',
+      action: 'read',
+      subject: 'acl-page',
+      icon: 'mdi:shield-outline',
+      title: 'Access Control'
+    },
+    {
+      title: 'Others',
+      icon: 'mdi:dots-horizontal',
       children: [
         {
-          title: 'Travel Reimbursement',
-          path: '/charts/apex-charts'
+          title: 'Menu Levels',
+          children: [
+            {
+              title: 'Menu Level 2.1'
+            },
+            {
+              title: 'Menu Level 2.2',
+              children: [
+                {
+                  title: 'Menu Level 3.1'
+                },
+                {
+                  title: 'Menu Level 3.2'
+                }
+              ]
+            }
+          ]
         },
         {
-          title: 'Medical Reimbursement',
-          path: '/charts/recharts'
+          title: 'Disabled Menu',
+          disabled: true
         },
         {
-          title: 'Educational Reimbursement',
-          path: '/charts/chartjs'
+          title: 'Raise Support',
+          externalLink: true,
+          openInNewTab: true,
+          path: 'https://themeselection.com/support'
         },
         {
-          title: 'Other Reimbursement',
-          path: '/charts/chartjs'
+          title: 'Documentation',
+          externalLink: true,
+          openInNewTab: true,
+          path: 'https://demos.themeselection.com/marketplace/materio-mui-react-nextjs-admin-template/documentation'
+        },
+
+           
+    {
+      title: 'Typography',
+      icon: 'mdi:format-letter-case',
+      path: '/ui/typography'
+    },
+    {
+      title: 'Icons',
+      path: '/ui/icons',
+      icon: 'mdi:google-circles-extended'
+    },
+    {
+      title: 'Cards',
+      icon: 'mdi:credit-card-outline',
+      children: [
+        {
+          title: 'Basic',
+          path: '/ui/cards/basic'
+        },
+        {
+          title: 'Advanced',
+          path: '/ui/cards/advanced'
+        },
+        {
+          title: 'Statistics',
+          path: '/ui/cards/statistics'
+        },
+        {
+          title: 'Widgets',
+          path: '/ui/cards/widgets'
+        },
+        {
+          title: 'Gamification',
+          path: '/ui/cards/gamification'
+        },
+        {
+          title: 'Actions',
+          path: '/ui/cards/actions'
         }
       ]
-    },
+    }
+      ]
+    }
 
   ]
 }
