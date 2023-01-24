@@ -2,6 +2,7 @@
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
+import Model from 'src/views/dashboards/workstructure/Components (1)/Components/Model'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -12,26 +13,27 @@ const TableHeader = props => {
 
   return (
     <Box sx={{ p: 5, pb: 3, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-      <Button
+      {/* <Button
         sx={{ mr: 4, mb: 2 }}
         color='secondary'
         variant='outlined'
         startIcon={<Icon icon='mdi:export-variant' fontSize={20} />}
       >
         Export
-      </Button>
+      </Button> */}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
         <TextField
           size='small'
           value={value}
-          sx={{ mr: 4, mb: 2 }}
+          sx={{ mr: 4, mb:1, width:"500px" }}
           placeholder='Search User'
           onChange={e => handleFilter(e.target.value)}
         />
 
-        <Button sx={{ mb: 2 }} onClick={toggle} variant='contained'>
+        {/* <Button sx={{ mb: 2 }} onClick={toggle} variant='contained'>
           Create User
-        </Button>
+        </Button> */}
+        <Model/>
       </Box>
     </Box>
   )
