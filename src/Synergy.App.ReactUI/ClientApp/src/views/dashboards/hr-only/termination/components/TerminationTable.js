@@ -1,79 +1,179 @@
-import React from 'react';
-import { styled } from '@mui/material/styles';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell, { tableCellClasses } from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
+// ** React Imports
+import { useState } from 'react'
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
-    color: theme.palette.common.white,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-  },
-}));
+// ** MUI Imports
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import Typography from '@mui/material/Typography'
+import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
-  },
-  // hide last border
-  '&:last-child td, &:last-child th': {
-    border: 0,
-  },
-}));
+// ** Custom Components
+import CustomChip from 'src/@core/components/mui/chip'
+import CustomAvatar from 'src/@core/components/mui/avatar'
+import QuickSearchToolbar from 'src/views/table/data-grid/QuickSearchToolbar'
 
+// ** Utils Import
+import { getInitials } from 'src/@core/utils/get-initials'
 
+// ** Data Import
+import { rows } from 'src/@fake-db/table/static-data'
 
-// Take Data as Per the API And change it later*********************************************************
-function createData(name, calories, fat, carbs, protein, Api, DataLo) {
-  return { name, calories, fat, carbs, protein, Api, DataLo };
+// ** renders client column
+const renderClient = params => {
+  const { row } = params
+  const stateNum = Math.floor(Math.random() * 6)
+  const states = ['success', 'error', 'warning', 'info', 'primary', 'secondary']
+  const color = states[stateNum]
+  if (row.avatar.length) {
+    return <CustomAvatar src={`/images/avatars/${row.avatar}`} sx={{ mr: 3, width: '1.875rem', height: '1.875rem' }} />
+  } else {
+    return (
+      <CustomAvatar skin='light' color={color} sx={{ mr: 3, fontSize: '.8rem', width: '1.875rem', height: '1.875rem' }}>
+        {getInitials(row.full_name ? row.full_name : 'John Doe')}
+      </CustomAvatar>
+    )
+  }
 }
 
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0,0,0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3,0,0),
-  createData('Eclair', 262, 16.0, 24, 6.0,0,0),
-  createData('Cupcake', 305, 3.7, 67, 4.3,0,0),
-  createData('Gingerbread', 356, 16.0, 49, 3.9,0,0),
-];
+const statusObj = {
+  1: { title: 'current', color: 'primary' },
+  2: { title: 'professional', color: 'success' },
+  3: { title: 'rejected', color: 'error' },
+  4: { title: 'resigned', color: 'warning' },
+  5: { title: 'applied', color: 'info' }
+}
 
-export default function TerminationTable() {
+const escapeRegExp = value => {
+  return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+}
+
+const columns = [
+  {
+    flex: 0.275,
+    minWidth: 290,
+    field: 'full_name',
+    headerName: 'Name',
+    renderCell: params => {
+      const { row } = params
+
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {renderClient(params)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
+              {row.full_name}
+            </Typography>
+            <Typography noWrap variant='caption'>
+              {row.email}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    }
+  },
+  {
+    flex: 0.2,
+    minWidth: 120,
+    headerName: 'Date',
+    field: 'start_date',
+    renderCell: params => (
+      <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        {params.row.start_date}
+      </Typography>
+    )
+  },
+  {
+    flex: 0.2,
+    minWidth: 110,
+    field: 'salary',
+    headerName: 'Salary',
+    renderCell: params => (
+      <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        {params.row.salary}
+      </Typography>
+    )
+  },
+  {
+    flex: 0.125,
+    field: 'age',
+    minWidth: 80,
+    headerName: 'Age',
+    renderCell: params => (
+      <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        {params.row.age}
+      </Typography>
+    )
+  },
+  {
+    flex: 0.2,
+    minWidth: 140,
+    field: 'status',
+    headerName: 'Status',
+    renderCell: params => {
+      const status = statusObj[params.row.status]
+
+      return (
+        <CustomChip
+          size='small'
+          skin='light'
+          color={status.color}
+          label={status.title}
+          sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
+        />
+      )
+    }
+  }
+]
+
+const TerminationTable = () => {
+  // ** States
+  const [data] = useState(rows)
+  const [pageSize, setPageSize] = useState(7)
+  const [searchText, setSearchText] = useState('')
+  const [filteredData, setFilteredData] = useState([])
+
+  const handleSearch = searchValue => {
+    setSearchText(searchValue)
+    const searchRegex = new RegExp(escapeRegExp(searchValue), 'i')
+
+    const filteredRows = data.filter(row => {
+      return Object.keys(row).some(field => {
+        // @ts-ignore
+        return searchRegex.test(row[field].toString())
+      })
+    })
+    if (searchValue.length) {
+      setFilteredData(filteredRows)
+    } else {
+      setFilteredData([])
+    }
+  }
+
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 700 }} aria-label="customized table">
-        <TableHead>
-          <TableRow>
-            <StyledTableCell>Actions</StyledTableCell>
-            <StyledTableCell>Service No.</StyledTableCell>
-            <StyledTableCell>Subject</StyledTableCell>
-            <StyledTableCell>Resignation Termination Date</StyledTableCell>
-            <StyledTableCell> Last Working Date</StyledTableCell>
-            <StyledTableCell> Service Status</StyledTableCell>
-            <StyledTableCell> Clearance Form</StyledTableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map((row) => (
-            <StyledTableRow key={row.name}>
-              <StyledTableCell component="th" scope="row">
-                {row.name}
-              </StyledTableCell>
-              <StyledTableCell >{row.calories}</StyledTableCell>
-              <StyledTableCell >{row.fat}</StyledTableCell>
-              <StyledTableCell >{row.carbs}</StyledTableCell>
-              <StyledTableCell >{row.protein}</StyledTableCell>
-              <StyledTableCell >{row.Api}</StyledTableCell>
-              <StyledTableCell >{row.DataLo}</StyledTableCell>
-            </StyledTableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+    <Card>
+      <CardHeader title='Quick Filter' />
+      <DataGrid
+        autoHeight
+        columns={columns}
+        pageSize={pageSize}
+        rowsPerPageOptions={[7, 10, 25, 50]}
+        components={{ Toolbar: QuickSearchToolbar }}
+        rows={filteredData.length ? filteredData : data}
+        onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+        componentsProps={{
+          baseButton: {
+            variant: 'outlined'
+          },
+          toolbar: {
+            value: searchText,
+            clearSearch: () => handleSearch(''),
+            onChange: event => handleSearch(event.target.value)
+          }
+        }}
+      />
+    </Card>
+  )
 }
+
+export default TerminationTable
