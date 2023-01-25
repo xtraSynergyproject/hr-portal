@@ -159,7 +159,7 @@ const navigation = () => {
         },
         {
           title: 'Department',
-          path: '/apps/invoice/preview'
+          path: '/dashboards/workStructure/Department'
         },
         {
           title: 'Department Hierarchy',
@@ -175,7 +175,7 @@ const navigation = () => {
         },
         {
           title: 'Person',
-          path: '/apps/invoice/preview'
+          path: '/dashboards/workStructure/person'
         },
         {
           title: 'Contract',

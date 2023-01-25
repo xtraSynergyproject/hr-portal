@@ -1,6 +1,6 @@
 // ** React Imports
 import { useState, useEffect, useCallback } from 'react'
-import './Dropdown.js'
+// import './Dropdown.js'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -40,8 +40,8 @@ import { fetchData, deleteUser } from 'src/store/apps/user'
 
 // ** Third Party Components
 import axios from 'axios'
-function createData(NoteSubject, StartDate, CompletedDate, TemplateId, RequestedByUserId, ParentTaskId, LocationName){
-  return createData(NoteSubject, StartDate, CompletedDate, TemplateId, RequestedByUserId, ParentTaskId, UserRating)
+function createData(PersonFullName,IqamahNoNationalId,BiometricId,CreatedByUser_Name,CreatedDate,LastUpdatedDate){
+  return createData(PersonFullName,IqamahNoNationalId,BiometricId,CreatedByUser_Name,CreatedDate,LastUpdatedDate)
 }
 
 // ** Custom Table Components Imports
@@ -160,8 +160,8 @@ const columns = [
   {
     flex: 0.2,
     minWidth: 230,
-    field: 'NoteSubject',
-    headerName: 'Note Subject',
+    field: 'PersonFullName',
+    headerName: 'PersonFullName',
     renderCell: ({ row }) => {
       const { fullName, username } = row
 
@@ -178,7 +178,7 @@ const columns = [
             </Box>
           </Box> */}
           {/* <Model /> */}
-          {row.NoteSubject}
+          {row.PersonFullName}
         </>
       )
     }
@@ -186,26 +186,26 @@ const columns = [
   {
     flex: 0.2,
     minWidth: 250,
-    field: 'StartDate',
-    headerName: 'Loaction Name("Arabic")',
+    field: 'IqamahNoNationalId',
+    headerName: 'Iqamah No.',
     renderCell: ({ row }) => {
       return (
         <Typography noWrap variant='body2'>
-          {row.StartDate}
+          {row.IqamahNoNationalId}
         </Typography>
       )
     }
   },
   {
     flex: 0.15,
-    field: 'CompletedDate',
+    field: 'BiometricId',
     minWidth: 150,
-    headerName: 'CompletedDate',
+    headerName: 'BiometricId',
     renderCell: ({ row }) => {
       return (
         
          <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.CompletedDate}
+          {row.BiometricId}
         </Typography>
       )
     }
@@ -213,33 +213,70 @@ const columns = [
   {
     flex: 0.15,
     minWidth: 120,
-    headerName: 'TemplateId',
-    field: 'TemplateId',
+    headerName: 'CreatedByUser_Name',
+    field: 'CreatedByUser_Name',
     renderCell: ({ row }) => {
       return (
         <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.TemplateId}
+          {row.CreatedByUser_Name}
         </Typography>
       )
     }
   },
+
+
   {
     flex: 0.1,
     minWidth: 110,
-    field: 'LocationName',
-    headerName: 'LocationName',
+    field: 'CreatedDate',
+    headerName: 'Created Date',
     renderCell: ({ row }) => {
       return (
         <CustomChip
           skin='light'
           size='small'
-          field={row.LocationName}
+          field={row.CreatedDate}
          
           sx={{ textTransform: 'capitalize' }}
         />
       )
     }
   },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'LastUpdatedDate',
+    headerName: 'Last Update Date',
+    renderCell: ({ row }) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          field={row.LastUpdatedDate}
+         
+          sx={{ textTransform: 'capitalize' }}
+        />
+      )
+    }
+  },
+  // {
+  //   flex: 0.1,
+  //   minWidth: 110,
+  //   field: '"LastUpdatedDate"',
+  //   headerName: 'LastUpdatedDate',
+  //   renderCell: ({ row }) => {
+  //     return (
+  //       <CustomChip
+  //         skin='light'
+  //         size='small'
+  //         field={row.LastUpdatedDate}
+         
+  //         sx={{ textTransform: 'capitalize' }}
+  //       />
+  //     )
+  //   }
+  // },
+  
   {
     flex: 0.1,
     minWidth: 90,
@@ -261,7 +298,7 @@ const UserList = ({ apiData }) => {
   // Api intergration by using get method
   const[getdata, setGetdata]=useState([])
   const viewData=async()=>{
-    let response = await axios.get(`https://webapidev.aitalkx.com/CHR/query/LoadNoteIndexPageGrid?indexPageTemplateId=f6901163-b2f5-4f5d-86f5-7c6a0b39f92d`)
+    let response = await axios.get(`https://webapidev.aitalkx.com/CHR/query/LoadNoteIndexPageGrid?indexPageTemplateId=efc068a9-3924-425d-a96a-0c8024ca8180&userId=45bba746-3309-49b7-9c03-b5793369d73c`)
     setGetdata(response.data)
   }
 
@@ -318,7 +355,7 @@ const UserList = ({ apiData }) => {
       </Grid>
       <Grid item xs={12}>
         <Card>
-          <CardHeader title={<h3>Hr Location</h3>} />
+          <CardHeader title={<h3>Person</h3>} />
           <CardContent>
             <Grid container spacing={6}>
               <Grid item sm={4} xs={12}>

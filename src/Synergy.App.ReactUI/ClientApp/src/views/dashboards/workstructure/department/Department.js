@@ -1,6 +1,6 @@
 // ** React Imports
 import { useState, useEffect, useCallback } from 'react'
-import './Dropdown.js'
+// import './Dropdown.js'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -40,8 +40,8 @@ import { fetchData, deleteUser } from 'src/store/apps/user'
 
 // ** Third Party Components
 import axios from 'axios'
-function createData(NoteSubject, StartDate, CompletedDate, TemplateId, RequestedByUserId, ParentTaskId, LocationName){
-  return createData(NoteSubject, StartDate, CompletedDate, TemplateId, RequestedByUserId, ParentTaskId, UserRating)
+function createData(ParentDepartmentId,DepartmentName,DepartmentNameArabic,DepartmentCategoryId,DepartmentAdminId,ResponsibilityCenterId,IsPayrollDepartment,CreatedByUser_Name,CreatedDate,CostCenterId){
+  return createData(ParentDepartmentId,DepartmentName,DepartmentNameArabic,DepartmentCategoryId,DepartmentAdminId,ResponsibilityCenterId,IsPayrollDepartmentCreatedByUser_Name,CreatedDate,CostCenterId)
 }
 
 // ** Custom Table Components Imports
@@ -160,8 +160,8 @@ const columns = [
   {
     flex: 0.2,
     minWidth: 230,
-    field: 'NoteSubject',
-    headerName: 'Note Subject',
+    field: 'ParentDepartmentId',
+    headerName: 'Parent Department Name',
     renderCell: ({ row }) => {
       const { fullName, username } = row
 
@@ -178,7 +178,7 @@ const columns = [
             </Box>
           </Box> */}
           {/* <Model /> */}
-          {row.NoteSubject}
+          {row.ParentDepartmentId}
         </>
       )
     }
@@ -186,26 +186,26 @@ const columns = [
   {
     flex: 0.2,
     minWidth: 250,
-    field: 'StartDate',
-    headerName: 'Loaction Name("Arabic")',
+    field: 'DepartmentName',
+    headerName: 'DepartmentName',
     renderCell: ({ row }) => {
       return (
         <Typography noWrap variant='body2'>
-          {row.StartDate}
+          {row.DepartmentName}
         </Typography>
       )
     }
   },
   {
     flex: 0.15,
-    field: 'CompletedDate',
+    field: 'DepartmentNameArabic',
     minWidth: 150,
-    headerName: 'CompletedDate',
+    headerName: 'Department Name Arabic',
     renderCell: ({ row }) => {
       return (
         
          <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.CompletedDate}
+          {row.DepartmentNameArabic}
         </Typography>
       )
     }
@@ -213,33 +213,122 @@ const columns = [
   {
     flex: 0.15,
     minWidth: 120,
-    headerName: 'TemplateId',
-    field: 'TemplateId',
+    headerName: 'Department Category',
+    field: 'DepartmentCategoryId',
     renderCell: ({ row }) => {
       return (
         <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.TemplateId}
+          {row.DepartmentCategoryId}
         </Typography>
       )
     }
   },
+
+
   {
     flex: 0.1,
     minWidth: 110,
-    field: 'LocationName',
-    headerName: 'LocationName',
+    field: 'DepartmentAdminId',
+    headerName: 'Department Admin Name',
     renderCell: ({ row }) => {
       return (
         <CustomChip
           skin='light'
           size='small'
-          field={row.LocationName}
+          field={row.DepartmentAdminId}
          
           sx={{ textTransform: 'capitalize' }}
         />
       )
     }
   },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'CostCenterId',
+    headerName: 'cost center Name',
+    renderCell: ({ row }) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.CostCenterId}
+         
+          sx={{ textTransform: 'capitalize' }}
+        />
+      )
+    }
+  },
+
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'ResponsibilityCenterId',
+    headerName: 'ResponsibilityCenterId',
+    renderCell: ({ row }) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.ResponsibilityCenterId}
+         
+          sx={{ textTransform: 'capitalize' }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'IsPayrollDepartment',
+    headerName: 'IsPayrollDepartment',
+    renderCell: ({ row }) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.IsPayrollDepartment}
+         
+          sx={{ textTransform: 'capitalize' }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'CreatedByUser_Name',
+    headerName: 'CreatedByUser_Name',
+    renderCell: ({ row }) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.CreatedByUser_Name}
+         
+          sx={{ textTransform: 'capitalize' }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'CreatedDate',
+    headerName: 'CreatedDate',
+    renderCell: ({ row }) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.CreatedDate}
+         
+          sx={{ textTransform: 'capitalize' }}
+        />
+      )
+    }
+  },
+  
   {
     flex: 0.1,
     minWidth: 90,
@@ -261,7 +350,7 @@ const UserList = ({ apiData }) => {
   // Api intergration by using get method
   const[getdata, setGetdata]=useState([])
   const viewData=async()=>{
-    let response = await axios.get(`https://webapidev.aitalkx.com/CHR/query/LoadNoteIndexPageGrid?indexPageTemplateId=f6901163-b2f5-4f5d-86f5-7c6a0b39f92d`)
+    let response = await axios.get(`https://webapidev.aitalkx.com/CHR/query/LoadNoteIndexPageGrid?indexPageTemplateId=b12c4ce9-9cff-48fe-b39d-bd363698abf2&userId=45bba746-3309-49b7-9c03-b5793369d73c`)
     setGetdata(response.data)
   }
 
@@ -318,7 +407,7 @@ const UserList = ({ apiData }) => {
       </Grid>
       <Grid item xs={12}>
         <Card>
-          <CardHeader title={<h3>Hr Location</h3>} />
+          <CardHeader title={<h3>Department</h3>} />
           <CardContent>
             <Grid container spacing={6}>
               <Grid item sm={4} xs={12}>

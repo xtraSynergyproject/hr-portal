@@ -35,8 +35,8 @@ const modalContentStyle ={
   background:"#fff",
   boxShadow:24,
   mt:3,
-  width:"80%",
-  height:"80%",
+  width:"100%",
+  height:"100%",
   mb:3,
   borderRadius:"10px",
 };
@@ -48,7 +48,7 @@ export default function Model() {
 
   return (
     <div>
-      <Button varient="contained" onClick={handleOpen}>Create</Button>
+      <Button variant="contained" onClick={handleOpen}sx={{ml:3}}>Create</Button>
       <Modal
         open={open}
         sx={modalWrapper}

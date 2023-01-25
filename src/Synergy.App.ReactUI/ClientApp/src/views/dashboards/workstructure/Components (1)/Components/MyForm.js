@@ -1,24 +1,26 @@
 import React from 'react'
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Box from  '@mui/material/Box';
 
 
 function MyForm() {
   return (
-    <div>
+    <Box>
+      <div>
+      <TextField required id='outlined-required' label='Location' sx={{width:"100%"}}/>
+      </div>
       
-      <TextField required id='outlined-required' label='Location' />
-      
-
-      <TextField required id='outlined-required' label='Location (in Arabic)' />
-      
-      
-      <TextField required id='outlined-required' label='Description' />
-     
-      
-      <Button variant="contained">Submit</Button>
-      
-    </div>
+  <div>
+      <TextField required id='outlined-required' label='Location (in Arabic)'sx={{width:"100%",mt:2}}/>
+     </div> 
+      <div>
+      <TextField required id='outlined-required' label='Description'sx={{width:"100%",mt:2}} />
+     </div>
+      <div>
+      <Button variant="contained" sx={{width:"50%",mt:2,ml:5}}>Submit</Button>
+      </div>
+    </Box>
   )
 }
 
