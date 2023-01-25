@@ -4,8 +4,8 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Modal from '@mui/material/Modal'
 import Icon from 'src/@core/components/icon'
-import TerminationTable from '../TerminationTable'
 import AddTagModal from './AddTagModal'
+import TagsTable from './tables/TagsTable'
 
 const modalWrapper = {
   overflow: 'auto',
@@ -66,10 +66,7 @@ export default function TagsModal() {
               </Typography>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                {/* <Button sx={{ display: 'flex', flexDirection: 'column',borderRadius:"50px" }}>
-                  <Icon icon='mdi:pencil-plus' />
-                  Add Tag
-                </Button> */}
+               
                 <AddTagModal/>
 
 
@@ -84,7 +81,7 @@ export default function TagsModal() {
               </Box>
             </Box>
             <hr />
-            <TerminationTable/>
+            <TagsTable/>
           </Box>
         </Box>
       </Modal>
