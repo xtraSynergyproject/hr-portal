@@ -25,7 +25,7 @@ function RemoteSignInOut() {
       </Paper>
 
       <Box>
-        <Paper elevation={1} sx={{ mt: 3 }}>
+        <Paper elevation={1} sx={{ mt: 3 , height: "160px"}}>
           <Box>
             <Box sx={{ px: 6, py: 5, display: 'flex', justifyContent: 'space-between' }}>
               <FormControl sx={{ width: '580px' }}>
@@ -73,8 +73,8 @@ function RemoteSignInOut() {
               </FormControl>
             </Box>
             <Box>
-              <Divider sx={{ my: 4 }} />
-              <Button variant='contained' sx={{ float: 'right', m: 3 }}>
+              {/* <Divider sx={{ my: 4 }} /> */}
+              <Button variant='contained' sx={{ float: 'right', mx: 6 , width: "150px"}}>
                 Save
               </Button>
             </Box>
