@@ -44,7 +44,7 @@ function createData(
 }
 
 function PayrollProfileDetails() {
-  const [data, setData] = useState([]) 
+  const [data, setData] = useState([])
   useEffect(() => {
     axios
       .get(
