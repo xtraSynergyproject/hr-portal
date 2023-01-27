@@ -134,7 +134,7 @@ function TerminationRequestModal() {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignContent: 'center' }}>
                 <Card sx={{ width: '450px', borderBlockWidth: '1px', borderBlockStyle: 'solid', my: 3 }}>
                   <Typography sx={{ m: 2 }}>
-                    <b>Line Manager</b>{' '}
+                    Line Manager
                   </Typography>
 
                   <hr />
@@ -143,21 +143,21 @@ function TerminationRequestModal() {
 
                 <Card sx={{ width: '450px', borderBlockWidth: '1px', borderBlockStyle: 'solid', my: 3 }}>
                   <Typography sx={{ m: 2 }}>
-                    <b>Department Manager</b>{' '}
+                    Department Manager
                   </Typography>
                   <hr /> <Typography sx={{ m: 20 }}>{}</Typography>
                 </Card>
 
                 <Card sx={{ width: '450px', borderBlockWidth: '1px', borderBlockStyle: 'solid', my: 3 }}>
                   <Typography sx={{ m: 2 }}>
-                    <b>Finance Department</b>{' '}
+                    Finance Department
                   </Typography>
                   <hr /> <Typography sx={{ m: 20 }}>{}</Typography>
                 </Card>
 
                 <Card sx={{ width: '450px', borderBlockWidth: '1px', borderBlockStyle: 'solid', my: 3 }}>
                   <Typography sx={{ m: 2 }}>
-                    <b>HR Department</b>{' '}
+                    HR Department
                   </Typography>
                   <hr /> <Typography sx={{ m: 20 }}>{}</Typography>
                 </Card>
