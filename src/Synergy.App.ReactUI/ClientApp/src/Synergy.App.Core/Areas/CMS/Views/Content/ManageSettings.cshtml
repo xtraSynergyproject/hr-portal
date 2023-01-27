@@ -1,0 +1,391 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Style";
+    Layout = null;
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model StyleViewModel
+
+<style>
+    table, th, td {
+        border: 1px solid black;
+    }
+
+    th {
+        /*background-color:#00ffff;*/
+        text-align: center;
+    }
+
+    k-colorpicker {
+        width: 90px;
+    }
+
+    .k-colorpicker .k-selected-color {
+        width: 90px;
+    }
+
+    .pagestyle-mybackgroundimage {
+        /*border-radius: 50%;*/
+        height: 120px;
+        width: 120px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+</style>
+<div style="padding-top:5px;margin-top:5px;">
+    @*<h1 class="cms-panel-header-name">@ViewBag.Title</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavStyle()" title="Close">&times;</a>
+        <hr />*@
+    <form asp-controller="Content" asp-action="ManageSettings" method="post" class="form-horizontal">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+            <div class="col-12 pad-15">
+                <input asp-for="PageName" type="text" class="form-control"pattern="[a-zA-Z0-9 ]*" title="Special character not allowed in page name." placeholder="Page Name" autocomplete="off" />
+            </div>
+            <div class="col-12 pad-15">
+                <input asp-for="PageTitle" type="text" class="form-control" placeholder="Page Title" autocomplete="off" />
+            </div>
+            <div class="col-12 pad-15">
+                <input asp-for="PageMenuName" type="text" class="form-control" placeholder="Page Menu Title" autocomplete="off" />
+            </div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().SwitchFor(m => m.PageHideInMenu)*@
+                .Messages(c => c.Checked("YES").Unchecked("NO"))
+                    )
+                <span>Page Hide In Menu</span>
+            </div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().SwitchFor(m => m.PageIsRootPage)*@
+                .Messages(c => c.Checked("YES").Unchecked("NO"))
+                    )
+                <span>Page Is Root Page</span>
+
+            </div>
+            <div class="col-12 pad-15">
+                <table style="width:100%">
+                    <tr>
+                        <th scope="row" style="width: 160px;">Color</th>
+                        <td>
+                            @*@(Html.Kendo().ColorPickerFor(m => m.Color)
+                                //.Value("#2bf8f1")
+                            .HtmlAttributes(new { @class = "form-control" })
+                            )*@
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Font Size</th>
+                        <td>
+                            <input asp-for="FontSize" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Background Color</th>
+                        <td>
+                            @*@(Html.Kendo().ColorPickerFor(m => m.BackgroundColor)
+                                    //.Value("#84e654")
+                                    .HtmlAttributes(new { @class = "form-control" })
+                                    )*@
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Background Image</th>
+                        <td>
+                            @*<div class="style-image">
+                                @if (Model.BackgroundImage != null)
+                                {
+                                    <img class="pagestyle-mybackgroundimage" src="/cms/Document/GetImageMongo?id=@Model.BackgroundImage" onerror='OnPhotoError(this);' />
+                                }
+                                else
+                                {
+                                    <img class="pagestyle-mybackgroundimage" style="background-color:gray;" src="~/images/200.png" />
+                                }
+                            </div>
+                            <div class="style-upload">*@
+                                @*@(Html.Kendo().Upload().Multiple(false)
+            .Name("files")
+            .Async(a => a
+            .Save("SaveFile", "Document", new { @Area="Cms"})
+            .AutoUpload(true)
+            )
+            .Events(e => e.Success("onFileUploadSuccessPageStyle")
+            )
+                .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".png" }).MaxFileSize(2097152))
+                .HtmlAttributes(new { @class = "hr-large" })
+        )*@
+                                @*<div class="col">
+            <div id="iconFile" class="dm-uploader">
+                <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                <div class="btn btn-primary btn-block ">
+                    <span>Open the file Browser</span>
+                    <input type="file" title='Click to add Files' />
+                </div>
+            </div>
+
+        </div>*@
+
+                                @{
+                                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.BackgroundImage), Value = Model.BackgroundImage });
+                                }
+
+                            @*</div>*@
+
+
+                        </td>
+                    </tr>
+
+
+                </table>
+
+            </div>
+            <div class="col-12 pad-15">
+                <table style="width:100%">
+                    <tr>
+                        <td style="width: 120px;"></td>
+                        <th scope="col">Default</th>
+                        <th scope="col">Min</th>
+                        <th scope="col">Max</th>
+                    </tr>
+                    <tr>
+                        <th scope="row">Width</th>
+                        <td>
+                            <input asp-for="Width" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="MinWidth" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="MaxWidth" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Height</th>
+                        <td>
+                            <input asp-for="Height" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="MinHeight" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="MaxHeight" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+            <div class="col-12 pad-15">
+                <table style="width:100%">
+                    <tr>
+                        <td style="width: 120px;"></td>
+                        <th scope="col">Default</th>
+                        <th scope="col">Left</th>
+                        <th scope="col">Top</th>
+                        <th scope="col">Right</th>
+                        <th scope="col">Bottom</th>
+                    </tr>
+                    <tr>
+                        <th scope="row">Padding</th>
+                        <td>
+                            <input asp-for="PaddingDefault" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="PaddingLeft" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="PaddingTop" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="PaddingRight" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="PaddingBottom" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Margin</th>
+                        <td>
+                            <input asp-for="MarginDefault" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="MarginLeft" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="MarginTop" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="MarginRight" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="MarginBottom" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Border Width</th>
+                        <td>
+                            <input asp-for="BorderWidthDefault" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderWidthLeft" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderWidthTop" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderWidthRight" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderWidthBottom" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Border Color</th>
+                        <td>
+                            <input asp-for="BorderColorDefault" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderColorLeft" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderColorTop" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderColorRight" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderColorBottom" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Border Style</th>
+                        <td>
+                            <input asp-for="BorderStyleDefault" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderStyleLeft" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderStyleTop" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderStyleRight" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderStyleBottom" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Border Radius</th>
+                        <td>
+                            <input asp-for="BorderRadiusDefault" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderRadiusLeft" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderRadiusTop" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderRadiusRight" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                        <td>
+                            <input asp-for="BorderRadiusBottom" type="text" class="form-control" placeholder="" autocomplete="off" />
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+
+            <div class="cms-slidebar-footer">
+                <input type="button" class="btn btn-link" value="Close" onclick="closeNavPageContentStyle()" />
+                <input type="submit" class="btn btn-primary" value="Save" onclick="SetPageSettings('@Model.SourceId')" />
+            </div>
+            @*<div class="col-sm-12">
+            <button type="submit" class="btn btn-success">Save</button>
+            <button type="button" class="btn btn-light" onclick="CloseIframeModal();">Close</button>
+        </div>*@
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.SourceId)
+        @Html.HiddenFor(x => x.SourceType)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.BackgroundImage)
+    </form>
+</div>
+
+<script type="text/javascript">
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-mybackgroundimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BackgroundImage").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+  //  uploadFile();
+
+    //function uploadFile() {
+    //    $("#iconFile").dmUploader({ //
+    //        url: '/Cms/Document/SaveFile',
+    //        multiple: false,
+    //        extFilter: ["jpg", "jpeg", "png", "gif"],
+    //        maxFileSize: 3000000, // 3 Megs 
+    //        onDragEnter: function () {
+    //            // Happens when dragging something over the DnD area
+    //            this.addClass('active');
+    //        },
+    //        onDragLeave: function () {
+    //            this.removeClass('active');
+    //        },
+    //        onInit: function () {
+    //        },
+    //        onComplete: function () {
+    //        },
+    //        onNewFile: function (id, file) {
+    //            ui_multi_add_file(id, file);
+    //        },
+    //        onBeforeUpload: function (id) {
+    //            ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+    //            ui_multi_update_file_progress(id, 0, '', true);
+    //        },
+    //        onUploadCanceled: function (id) {
+    //            ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+    //            ui_multi_update_file_progress(id, 0, 'warning', false);
+    //        },
+    //        onUploadProgress: function (id, percent) {
+    //            ui_multi_update_file_progress(id, percent);
+    //        },
+    //        onUploadSuccess: function (id, data) {
+    //            $(".style-mybackgroundimage").attr("src", "/cms/content/GetBackgroundImage?id=" + data.fileId);
+    //            $("#BackgroundImage").val(data.fileId);
+
+    //            ui_multi_update_file_status(id, 'success', 'Upload Complete');
+    //            ui_multi_update_file_progress(id, 100, 'success', false);
+    //        },
+    //        onUploadError: function (id, xhr, status, message) {
+    //            ui_multi_update_file_status(id, 'danger', message);
+    //            ui_multi_update_file_progress(id, 0, 'danger', false);
+    //        },
+    //        onFallbackMode: function () {
+    //        },
+    //        onFileSizeError: function (file) {
+    //        }
+    //    });
+    //}
+</script>

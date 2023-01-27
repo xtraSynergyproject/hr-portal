@@ -1,0 +1,248 @@
+﻿@using Kendo.Mvc.UI
+@model CMS.UI.ViewModel.LoginViewModel
+@using CMS.Common
+@{
+    Layout = "~/Views/Shared/_LoginReference.cshtml";
+}
+<style>
+    #content-wrapper {
+        background-color: #fff !important;
+    }
+
+    .modal-login {
+        width: 380px !important;
+    }
+
+    .auth-user-photo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 1px solid #e8e8e8;
+    }
+
+    .imgcontainer {
+        padding-bottom: 10px;
+        text-align: center;
+    }
+</style>
+<div id="loginModal" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-login">
+        <div class="modal-content">
+            <div class="modal-header text-center align-center">
+                <h5 class="modal-title text-center align-center">Welcome @Model.Name</h5>
+            </div>
+            <div class="modal-body">
+                @if (Model.EnableTwoFactorAuth)
+                {
+                    <div class="row" style="padding-top:10px;padding-left:10px;padding-right:10px;">
+                        <div class="col-sm-12">
+                            <div id="testTimer" style="font-weight:bold;color:red;"> </div>
+                        </div>
+                        @*<div class="col-sm-4" style="padding-right:10px;">
+                            <a href="javascript:void(0);" onclick="ReSend();">Resend OTP</a>
+                        </div>*@
+                    </div>
+                }
+                <form id="loginform" asp-controller="Account" asp-action="Authenticate" asp-area=""
+                      data-ajax-begin="onAjaxBegin"
+                      data-ajax-failure="onAjaxFailed" data-ajax-success="onAuthenticateSuccess"
+                      data-ajax="true" data-ajax-method="POST">
+                    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+                    <div class="imgcontainer">
+                        <img src="@Url.Action("getimagemongo","document",new { @area="Cms",id=Model.PhotoId})" onerror='OnPhotoError(this);' alt="User Profile" class="auth-user-photo">
+                    </div>
+                    @if (Model.EnableTwoFactorAuth)
+                    {
+                        @if (Model.TwoFactorAuthType.HasValue && Model.TwoFactorAuthType.Value == TwoFactorAuthTypeEnum.OTPAndPassword)
+                        {
+                            <div>OTP</div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text fa fa-lock" style="font-size:22px;padding-top:6px;" id="icon-otp"></span>
+                                </div>
+                                <input id="OtpPlain" type="password" class="form-control" placeholder="Enter OTP" aria-label="OTP" aria-describedby="icon-otp">
+                                <input asp-for="TwoFactorAuthOTP" type="hidden">
+                            </div>
+                            <div>Password</div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text fa fa-lock" style="font-size:22px;padding-top:6px;" id="icon-password"></span>
+                                </div>
+                                <input id="PasswordPlain" type="password" class="form-control" placeholder="Enter Password" aria-label="Password" aria-describedby="icon-password">
+                                <input asp-for="Password" type="hidden">
+                            </div>
+
+                        }
+                        else
+                        {
+                            <div>OTP</div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text fa fa-lock" style="font-size:22px;padding-top:6px;" id="icon-otp"></span>
+                                </div>
+                                <input id="OtpPlain" type="password" class="form-control" placeholder="Enter OTP" aria-label="OTP" aria-describedby="icon-otp">
+                                <input asp-for="TwoFactorAuthOTP" type="hidden">
+                                <input asp-for="Password" type="hidden">
+                            </div>
+                        }
+
+                    }
+                    else
+                    {
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text fa fa-lock" style="font-size:22px;padding-top:6px;" id="icon-password"></span>
+                            </div>
+                            <input id="PasswordPlain" type="password" class="form-control" placeholder="Password" style="border-top-right-radius: 4px; border-bottom-right-radius: 4px;" aria-label="icon-password" required="required" />
+                            <input asp-for="Password" type="hidden">
+                        </div>
+
+                        <div class="row">
+                            <div class="col pwd-tgap">
+                                <dnt-captcha asp-captcha-generator-max="999999"
+                                             asp-captcha-generator-min="111111"
+                                             asp-captcha-generator-language="English"
+                                             asp-captcha-generator-display-mode="ShowDigits"
+                                             asp-use-relative-urls="true"
+                                             asp-show-refresh-button="true"
+                                             asp-placeholder="Enter Captcha"
+                                             asp-font-name="Tahoma"
+                                             asp-font-size="16"
+                                             asp-fore-color="#333333"
+                                             asp-back-color="#ccc"
+                                             asp-text-box-class="form-control"
+                                             asp-text-box-template=" <div class='input-group mb-3'> <div class='input-group-prepend'> <span class='input-group-text fa fa-lock' style='font-size:22px;padding-top:6px;' id='icon-password'></span></div>{0}</div>"
+                                             asp-validation-message-class="text-danger"
+                                             asp-validation-error-message="Please enter captcha"
+                                             asp-refresh-button-class="fas fa-redo btn-sm"
+                                             asp-use-noise="false" />
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col pwd-tgap">
+                            Application
+                            <input asp-for="PortalId" id="PortalId" class="form-control" placeholder="Portal">
+                        </div>
+                    </div>
+                    <div class="row pt-3">
+                        <div class="col">
+                            @Html.HiddenFor(x => x.Email)
+                            @*@Html.HiddenFor(x => x.TwoFactorAuthOTP)*@
+                            @Html.HiddenFor(x => x.EnableTwoFactorAuth)
+                            @Html.HiddenFor(x => x.TwoFactorAuthType)
+                            <input id="btnSubmit" class="btn btn-primary text-center btn-block" onclick="return EncryptPassword();" value="Verify" type="submit" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <a id="forgot-password" href="/account/forgotpassword">Forgot password?</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+         if ('@Model.EnableTwoFactorAuth' == 'True') {
+                if (@Model.Time> 0) {
+                    countdown(@Model.Time);
+                }
+                else {
+                    countdown(9);
+                }
+            }
+        $('#loginModal').modal('show');
+        $("#PortalId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--Portal--",
+            value: '@Model.PortalId',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/User/GetPortalListByEmail?email=@Model.Email",
+                    }
+                }
+            }
+        });
+
+    });
+    var onAuthenticateSuccess = function (res) {
+        if (res.success) {
+            window.location.href = res.ru;
+            return false;
+        }
+        else {
+            HideLoader($('#main-content'));
+            showError(res.error);
+        }
+
+
+    };
+            function EncryptPassword() {
+            var key = CryptoJS.enc.Utf8.parse('8080808080808080');
+            var iv = CryptoJS.enc.Utf8.parse('8080808080808080');
+            var ecp = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse($('#PasswordPlain').val()), key,
+                {
+                    keySize: 128 / 8,
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+        $('#Password').val(ecp);
+        $('#TwoFactorAuthOTP').val($('#OtpPlain').val());
+        $('#Time').val(current_minutes);
+        return true;
+    }
+    function ReSend() {
+        ShowLoader();
+         $.ajax({
+                url: "/Account/ReSendOTP",
+                type: "POST",
+                data: { 'email': '@Model.Email'},
+             success: function (data) {
+                 HideLoader();
+                    kendo.alert("OTP has been sent successfully to your registered email.");
+                    window.location.href = window.location.href;
+                }
+
+            });
+        }
+        var current_minutes = 0;
+        var current_seconds = 0;
+        var t;
+        function countdown(m) {
+            var mins = m;
+            function tick() {
+
+                var counter = document.getElementById("testTimer");
+                current_minutes = mins;
+
+                if (current_seconds > 0) {
+                    current_seconds--;
+                } else {
+                    current_seconds = 59;
+                }
+
+                counter.innerHTML = "Your OTP is going to expire in: " + current_minutes.toString() + ":" + current_seconds + " &nbsp; &nbsp;<a href='javascript: void (0);' onclick='ReSend();'>Resend OTP</a>";
+
+
+                if (current_seconds > 0) {
+                    t = setTimeout(tick, 1000);
+                } else {
+
+                    if (mins >= 1) {
+                        countdown(mins - 1);
+                    }
+
+                    if (current_minutes == 0 && current_seconds == 0) {
+                        $("#btnSubmit").hide();
+                        counter.innerHTML = "Your OTP is expired. Click 'Resend OTP' to get a new OTP. &nbsp; &nbsp; &nbsp; <a href='javascript: void (0);' onclick='ReSend();'>Resend OTP</a>"
+                    }
+                }
+            }
+            tick();
+        }
+</script>
+

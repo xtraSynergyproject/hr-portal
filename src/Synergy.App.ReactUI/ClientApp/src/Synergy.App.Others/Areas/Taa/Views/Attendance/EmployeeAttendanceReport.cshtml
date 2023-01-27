@@ -1,0 +1,399 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.TAA.Controllers.AttendanceController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@model AttendanceViewModel
+@{
+    ViewBag.Title = "Time Permission Request";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+
+<script type="text/javascript">
+
+    $("#OrganizationId").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/TAA/RosterSchedule/GetDepartmentList",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select ...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.OrganizationId)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+    });
+
+    org = $("#OrganizationId").val();
+    $("#PersonId").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/TAA/Attendance/GetPersonListByOrganization?orgId=" + org,
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select ...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.PersonId)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+    });
+
+
+        function FilterAttendanceGrid() {
+
+            return {
+                organisationId: $("#OrganizationId").val(),
+                personId: $("#PersonId").val(),
+                searchFromDate: $("#SearchFromDate").val(),
+                searchToDate: $("#SearchToDate").val(),
+                empStatus: $("#EmployeeStatus").val(),
+                payrollRunId: $("#PayrollRunId").val(),
+            };
+        }
+        function OnAttendanceExportToExcel() {
+        var grid = $("#kgrdEmployeeAttendance").data("kendoGrid");
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+            .options.parameterMap({
+                page: grid.dataSource.page(),
+                sort: grid.dataSource.sort(),
+                filter: grid.dataSource.filter()
+            });
+        var href = '@Url.Action("AttendanceDetailsByDateDataExcel", "taareport", new { area = "rpt"})';
+        href = href + "?page=" + (requestObject.page || '1');
+        href = href + "&sort=" + (requestObject.sort || '~');
+        href = href + "&pageSize=" + (grid.dataSource._pageSize || '0');
+        href = href + "&filter=" + (requestObject.filter || '~');
+            var search = FilterAttendanceGrid();
+            href = href + "&organisationId=" + search.organisationId + "&personId=" + search.personId + "&searchFromDate=" + search.searchFromDate + "&searchToDate=" + search.searchToDate + "&payrollRunId=" + search.payrollRunId;
+        window.location.href = href;
+        }
+         function OnAttendanceEdit(Id, userId,name,startDate) {
+
+        if(Id==null)
+         Id = 0;
+        var date = kendo.toString(kendo.parseDate(startDate), 'YYYY.MM.dd');
+
+
+             var url = "/taa/attendance/EditAttendance?id=" + Id + "&userId=" + userId + "&empName=" + name + "&date=" + date;
+             var win = GetMainWindow();
+             win.iframeOpenUrl = url;
+             win.OpenWindow({ Title: "@Html.Raw(SharedResource["Attendance"])", Width: 400, Height: 600 });
+             return false;
+
+        }
+        function RefreshGrid() {
+
+            $("#kgrdEmployeeAttendance").data("kendoGrid").dataSource.read();
+
+        }
+
+        function OnAttendanceDelete(Id, userId, date)
+        {
+            var dateDel = kendo.toString(kendo.parseDate(date), 'YYYY.MM.dd');
+
+            var flag = confirm('@SharedResource["Doyoureallywanttoproceed?"]');
+            if (flag) {
+                $.ajax({
+                    url: '/taa/attendance/DeleteUserAttendanceByDate?id=' + Id + '&userId=' + userId + '&date=' + dateDel,
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.success) {
+                            //$("#kgrdEmployeeAttendance").data("kendoGrid").dataSource.read();
+                            alert("Deleted Successfully.");
+                        }
+                        else {
+                            var msg = ExtractError(data.errors);
+                            ShowNotification(msg);
+                            //alert(msg);
+                        }
+                        $("#kgrdEmployeeAttendance").data("kendoGrid").dataSource.read();
+                    },
+                    error: function (ert) {
+                        alert('error');
+                    }
+                });
+                return false;
+            }
+
+    }
+
+
+    function FilterByOrg() {
+        //  alert("123");
+
+        var org=[];
+        org = $("#OrganizationId").val();
+        return org;
+    }
+
+
+    function OnOrgChange(e) {
+        var search = FilterByOrg();
+        $("#PersonId").data("kendoMultiSelect").dataSource.read(search);
+    }
+
+    function OnDateChange(e) {
+
+        var gridData = $("#kgrdEmployeeAttendance").data("kendoGrid");
+
+        var search = FilterAttendanceGrid();
+        gridData.dataSource.read(search);
+    }
+
+    function OnSearchSubmit(e) {
+
+        var organisationId = $("#OrganizationId").val();
+        var searchFromDate = $("#SearchFromDate").val();
+        var searchToDate = $("#SearchToDate").val();
+
+
+        if (searchFromDate != "" && searchToDate == "") {
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            $(".hr-v-summary ul").html("End date is empty");
+        } else if (new Date(searchFromDate) > new Date(searchToDate)) {
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            $(".hr-v-summary ul").html("End date should be greater than start date");
+        } else {
+            $(".hr-v-summary").removeClass("validation-summary-errors");
+            $(".hr-v-summary").addClass("validation-summary-valid");
+            var gridData = $("#kgrdEmployeeAttendance").data("kendoGrid");
+            var search = FilterAttendanceGrid();
+            gridData.dataSource.read(search);
+        }
+
+    }
+
+      $(document).ready(function () {
+          $("#SearchFromDate").kendoDatePicker({ value: "@Model.SearchFromDate"});
+          $("#SearchToDate").kendoDatePicker({ value: "@Model.SearchToDate"});
+
+          $("#EmployeeStatus").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_PERSON_STATUS" })",
+                    }
+                },
+            }),
+          });
+
+    });
+
+</script>
+
+<div class="row no-gutter hr-pad-top-15">
+    <div class="form-group col-2">
+        <div class="col-lg-12 label-div">
+            <span class="required">* </span>@Resource["Department"]
+        </div>
+        <div class="col-lg-12">
+            @*@(Html.Kendo().MultiSelectFor(x => x.OrganizationId)
+
+                 .DataSource(source =>
+                 {
+                     source.Read(read =>
+                     {
+                         read.Action("GetDepartmentList", "RosterSchedule", new { area = "Taa" });
+                     });
+                     source.Custom().Sort(s => s.Add("Name"));
+                 })
+                  .Placeholder("--Select--")
+                 .DataTextField("Name")
+                 .DataValueField("Id")
+                 .Filter(FilterType.Contains)
+                .Events(e => e.Change("OnOrgChange"))
+                 .HtmlAttributes(new { @class = "hr-x-large" }))*@
+
+            <select asp-for="OrganizationId" id="OrganizationId" style="width:80%"></select>
+        </div>
+    </div>
+    <div class="form-group col-2">
+        <div class="col-lg-12 label-div">
+            <span class="required">*</span>@SharedResource["Person"]
+
+        </div>
+        <div class="col-lg-12">
+            @*@(Html.Kendo().MultiSelectFor(x => x.PersonId)
+        .Placeholder("--Select--")
+                     .DataSource(source =>
+                     {
+                         source.Read(read =>
+                         {
+                           read.Action("GetPersonListByOrganization", "Attendance", new { area = "Taa" }).Data("FilterByOrg");
+                         });
+                     })
+                     .DataTextField("Name")
+                         .DataValueField("Id")
+
+                     .Filter(FilterType.Contains)
+                     .HtmlAttributes(new { @class = "hr-x-large" }))*@
+
+            <select asp-for="PersonId" id="PersonId" style="width:80%"></select>
+
+
+
+        </div>
+    </div>
+    <div class="form-group col-2">
+        <div class="col-lg-12 label-div">
+            <span class="required">*</span> @Resource["EmployeeStatus"]
+
+        </div>
+        <div class="col-lg-12">
+            @*@(Html.Kendo().MultiSelect()
+                    .Name("EmployeeStatus")
+                   .Placeholder("--Select--")
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-x-large" })
+                  .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                      read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_PERSON_STATUS" });
+                                    });
+                                })
+                   )*@
+            <select id="EmployeeStatus" data-placeholder="--Select--" class="hr-x-large"></select>
+
+        </div>
+    </div>
+    <div class="form-group col-2">
+        <div class="col-lg-12 label-div">
+            <span class="required">*</span>@Resource["Fromdate"]
+
+        </div>
+        <div class="col-lg-12">
+            @*@Html.Kendo().DatePickerFor(x => x.SearchFromDate).HtmlAttributes(new { @class = "form-control hr-small" })*@
+            <input id="SearchFromDate" class="form-control hr-small" />
+        </div>
+    </div>
+    <div class="form-group col-2">
+        <div class="col-lg-12 label-div">
+            <span class="required">*</span>@Resource["Todate"]
+        </div>
+        <div class="col-lg-12">
+            @*@Html.Kendo().DatePickerFor(x => x.SearchToDate).HtmlAttributes(new { @class = "form-control hr-small" })*@
+            <input id="SearchToDate" class="form-control hr-small" />
+        </div>
+    </div>
+    <div class="form-group col-2">
+        <div class="col-lg-12 label-div">
+            &nbsp;
+        </div>
+        <div class="col-lg-12">
+            @*@Html.Kendo().Button().Name("btnSearch").Events(e => e.Click("OnSearchSubmit")).Content(@SharedResource["Search"]).HtmlAttributes(new { @class = "k-primary" })*@
+            <button type="button" id="btnSearch" class="btn btn-primary" onclick="OnSearchSubmit();">@SharedResource["Search"]</button>
+        </div>
+    </div>
+</div>
+<div class="hr-pad-top-10">
+    @*@(Html.Kendo().Grid<AttendanceViewModel>()
+                .Name("kgrdEmployeeAttendance")
+                .Columns(columns =>
+                {
+                    //if (Convert.ToBoolean(HttpContext.Current.Session[Constant.SessionVariable.IsAdmin]))
+                    //{
+                    //    columns.Template(e => { }).ClientTemplate("<button type='button' onclick='return OnAttendanceEdit(#=Id#,#=UserId#, \"#= EmployeeName #\", \"#= AttDate #\")' class='btn btn-sm btn-primary '>Edit</button> &nbsp; <button type='button' onclick='return OnAttendanceDelete(#=Id#,#=UserId#, \"#= AttDate #\")' class='btn btn-sm btn-primary '>Delete</button>").Width(140);
+                    //}
+
+                    columns.Bound(c => c.PersonNo).Title(@Resource["EmployeeNo"]).Width(150).Sortable(true).Filterable(ftb => ftb.Multi(true).Search(true));
+                    columns.Bound(c => c.EmployeeName).Title(@Resource["EmployeeName"]).Width(200).Sortable(true).Filterable(ftb => ftb.Multi(true).Search(true));
+                    //columns.Bound(c => c.SponsorshipNo).Title("Iqamah No").Width(150).Sortable(true).Filterable(ftb => ftb.Multi(true).Search(true));
+                    columns.Bound(c => c.EmployeeStatus).Title(@Resource["EmployeeStatus"]).Width(150).Sortable(true).Filterable(ftb => ftb.Multi(true).Search(true));
+                    //columns.Bound(c => c.Sponsor).Locked(true).Width(200).Filterable(ftb => ftb.Multi(true).Search(true));
+                    columns.Bound(c => c.JobName).Title(@Resource["JobName"]).Width(200).Sortable(true).Filterable(ftb => ftb.Multi(true).Search(true));
+                    //columns.Bound(c => c.OrganizationName).Width(200).Sortable(true).Filterable(ftb => ftb.Multi(true).Search(true));
+                    //columns.Bound(c => c.Nationality).Locked(true).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));
+                    columns.Bound(c => c.AttDate).Title(@Resource["AttDate"]).Width(180).Filterable(false);
+                    columns.Bound(c => c.RosterText).Title(@Resource["Roster(SignIn-SignOut)"]).Width(180).Filterable(false).ClientTemplate("#=RosterText#");
+                    columns.Bound(c => c.RosterHours).Title(@Resource["RosterHours"]).Width(180).Filterable(false);
+                    columns.Bound(c => c.ActualText).Title(@Resource["Actual(SignIn-SignOut)"]).Width(180).Filterable(false).ClientTemplate("#=ActualText#");
+                    columns.Bound(c => c.ActualHours).Title(@Resource["ActualHours"]).Width(180).Filterable(false);
+                    columns.Bound(c => c.SystemAttendanceText).Title(@Resource["AttendanceStatus"]).Filterable(false).Width(180);
+                    columns.Group(g => g.Title(@Resource["OverTimeHours"]).HeaderHtmlAttributes(new { @style = "text-align:center;" })
+                    .Columns(wd =>
+                    {
+                        wd.Bound(c => c.SystemOTHoursText).Filterable(false).Width(100).Title(@Resource["Actual"]);
+                        wd.Bound(c => c.PermittedOTHoursText).Filterable(false).Width(100).Title(@Resource["Permitted"]);
+                        wd.Bound(c => c.CalculatedOTHoursText).Filterable(false).Width(100).Title(@Resource["Calculated"]);
+
+                    })
+                    );
+                    columns.Group(g => g.Title(@Resource["ShortTimeHours"]).HeaderHtmlAttributes(new { @style = "text-align:center;" })
+                    .Columns(wd =>
+                    {
+                        wd.Bound(c => c.SystemDeductionHoursText).Filterable(false).Width(100).Title(@Resource["Actual"]);
+                        wd.Bound(c => c.PermittedDeductionHoursText).Filterable(false).Width(100).Title(@Resource["Permitted"]);
+                        wd.Bound(c => c.CalculatedDeductionHoursText).Filterable(false).Width(100).Title(@Resource["Calculated"]);
+
+                    })
+                    );
+
+
+                })
+                .ToolBar(toolbar =>
+                {
+                    toolbar.Excel().Text(@Resource["ExportToExcel"]);
+                })
+                //.Events(e => e.DataBound("OnGridDataBound"))
+                .Resizable(resize => resize.Columns(true))
+                .Reorderable(reorderable => reorderable.Columns(true))
+                .Scrollable(scrollable => scrollable.Enabled(true).Height(400))
+               // .Selectable(select => select.Enabled(false).Mode(GridSelectionMode.Multiple))
+                .Sortable(srt => srt.Enabled(false))
+                // .Filterable(filter => filter.Mode(GridFilterMode.Row))
+                .Filterable()
+                // .Events(e => e.DataBound("grid_dataBound"))
+                .Excel(e => e.FileName("Attendance.xlsx").AllPages(true))
+                .Pageable(pageable => pageable
+                .Refresh(true)
+                .PageSizes(new[] { 10, 50, 100, 200, 500, 1000, 2000 })
+                .ButtonCount(10))
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(1000)
+                // .Events(events => events.Error("OnError"))
+                .Read(read => read.Action("ReadAttendanceDetailsByDateData", "Attendance", new { area = "taa" }).Data("FilterAttendanceGrid"))
+                //.Update(update => update.Action("UpdateEmployeeAtendance", "Attendance"))
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+
+                })
+
+                )
+   
+    )*@
+
+
+</div>
+
+
+
+
+

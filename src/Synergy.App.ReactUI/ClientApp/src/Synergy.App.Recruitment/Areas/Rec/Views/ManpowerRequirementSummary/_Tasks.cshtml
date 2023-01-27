@@ -1,0 +1,83 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+
+@model RecTaskViewModel
+
+@{
+    ViewData["Title"] = "ManpowerSummaryComment";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+
+<div>
+
+
+    <div class="row" style="margin-left:15px;margin-top:15px;margin-right:15px;">
+        <div class="col-md-12">
+          
+                @(Html.Kendo().ListView<RecTaskViewModel>()
+                    .Name("listView-Step")
+                    .TagName("div")
+                    .AutoBind(true)
+                    .ClientTemplateId("templateStep")
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Read(read => read.Action("GetJobDescriptionTaskList", "ManpowerRequirementSummary", new { Area = "Recruitment", manpowerId=Model.ReferenceTypeId }))
+                   )
+                )
+
+
+                <script type="text/x-kendo-tmpl" id="templateStep">
+                    <div>
+                        <div class="row" style="padding:15px" id="step-template-#=Id#">
+                            <div class="col-xs-1 col-sm-1" style="    margin-top: 4px;">
+                                            <i class="fad fa-circle" style="font-size:65px"></i>
+                                <div style="margin-top: -54px;margin-left: 24px;color: white;font-size: 27px;">#=TaskOwnerFirstLetter#</div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3" style="    margin-top: 15px;">
+
+                                <span class="fromcolor" style="font-size: 1em; color:gray; display: inline-block;">Assigned To</span>
+                                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="Assigned To">#=AssigneeUserName#</span>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 item-hover" style="margin-top: 15px;display:flex">
+                                <span style="font-size:1em; color:Highlight">#if(Subject != null) {# #:Subject# #} else{# 'NA' #}#</span>
+                            </div>
+
+
+                            <div class="col-xs-2 col-sm-2" style="    margin-top: 15px;">
+                                <span style=" color:white;font-size:1em;border-radius:10px;margin-bottom:5px ;padding:5px;background-color:#=StatusClass#; text-align:center;white-space:nowrap;" title="#=TaskStatusName#">#=TaskNo#</span>
+                            </div>
+                            <div class="col-xs-2 col-sm-2" style="    margin-top: 15px;">
+                                <div style="font-size: 1em; text-align:end; color:chocolate"><p>#=kendo.toString(kendo.parseDate(DueDate), 'dd MMM yyyy')#</p></div>
+                            </div>
+                            <div class="col-xs-1 col-sm-1" onclick="OpenTask('#=Id#')" style="cursor:pointer;margin-top: 12px;" title="Click here to view">
+                                <span style="font-size: 20px;text-align: center">
+                                <i class='fal fa-eye li-fal'></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div id="step-edit-div-#=Id#"></div>
+                        <hr style="margin-bottom: 1px !important;">
+
+                    </div>
+                </script>
+            
+        </div>
+    </div>
+</div>
+<script>
+    function OpenTask(id) {
+
+        //window.location.href = "/cms/task/index?taskId=" + id;
+        @*iframeOpenUrl = '@Url.Action("Index", "Task", new { @area= "Cms" })?taskId=' + id + '&isPopUp=' + true;
+        OpenIframePopup1(1000, 1200, 'Task');
+        return false;*@
+        //window.parent.OpenIframePopup(1000, 700, "");
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Index", "Task", new { @area = "Cms" })?taskId=' + id + '&isPopUp=' + true;
+        win.OpenWindow({ Title: 'Task', Width: 1000, Height: 1000 });
+        return false;
+    }
+</script>

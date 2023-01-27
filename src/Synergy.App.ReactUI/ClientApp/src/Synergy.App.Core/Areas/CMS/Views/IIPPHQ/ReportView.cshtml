@@ -1,0 +1,162 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model DashboardMasterViewModel
+@{
+    ViewData["Title"] = "Report View";
+    Layout = null;
+}
+
+<style type="text/css">
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #fafbfd;
+    }
+
+    .grid-stack {
+        background: #fafbfd;
+    }
+
+    .grid-stack-item-content {
+        background-color: #fff;
+        box-shadow: 0 2px 2px -1px rgb(152 162 179 / 30%), 0 1px 5px -2px rgb(152 162 179 / 30%);
+        border: 1px solid #d3dae6;
+        border-radius: 4px;
+    }
+
+    .btn-outline-primary {
+        border-color: #6fa9cf;
+        color: #1d7cbc;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;
+    }
+
+
+        .btn-outline-primary:hover {
+            border-color: #6fa9cf;
+            top: -2px;
+            background-color: #e5f0f7;
+            color: #1d7cbc;
+        }
+
+            .btn-outline-primary:hover .button-text {
+                text-decoration: underline;
+            }
+
+    .button-text {
+        margin-left: 5px;
+        font-size: medium;
+    }
+
+
+
+    .btn-primary {
+        background-color: #006bb4;
+        border-color: #006bb4;
+        color: #fff;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;
+    }
+
+        .btn-primary:hover {
+            background-color: #0060a2;
+            top: -2px;
+        }
+
+            .btn-primary:hover .button-text {
+                text-decoration: underline;
+            }
+
+
+    ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        background-color: #F5F5F5;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        background-color: #F5F5F5;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #AAA;
+        border-radius: 10px;
+        background-image: -webkit-linear-gradient(90deg, rgba(0, 0, 0, .2) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, .2) 50%, rgba(0, 0, 0, .2) 75%, transparent 75%, transparent)
+    }
+
+    #listview_filter {
+        width: 100%;
+    }
+</style>
+<div class="row" style="margin-top:10px!important;margin:0px;">
+    <div class="col-12">
+        <button type='button' class='btn btn-outline-primary shadow-sm' onclick='onBackButton()' style="float: right; width: 150px;">
+            <span class="button-body">
+                <i class="fas fa-long-arrow-alt-left"></i>
+                <span class="button-text">Back</span>
+            </span>
+        </button>
+    </div>
+</div>
+<div class="grid-stack" style="margin-top:10px;"></div>
+<script type="text/javascript">
+
+    var dataSourceFilter = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: "/Cms/IIPPHQ/ReadDashboardItemlistData?parentId=@Model.ParentNoteId",
+            }
+        },
+    });
+    $(document).ready(function () {
+        if ("@Model.layoutMetadata" != "{}" && "@Model.layoutMetadata" != "[]") {
+            ShowLoader($('#cms-content'));
+            loadGrid();
+        }
+    });
+    var grid_stack = GridStack.init({ minRow: 1, cellHeight: '7rem'});
+    grid_stack.load();
+    function loadGrid() {
+        var metadata = @Html.Raw(Model.layoutMetadata);
+        grid_stack.load(metadata, true);
+        for (var i = 0; i < metadata.length; i++) {
+            var id = metadata[i].id;
+            var name = metadata[i].name;
+            if (name != undefined || name != null) {
+                $.ajax({
+                    type: "GET",
+                    url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + id,
+                    success: function (response) {
+                        if (response != "" && response != null) {
+                            eval(response);
+                            if (i == metadata.length) {
+                                HideLoader($('#cms-content'));
+                            }
+                        }
+                    },
+                    error: function (response) {
+                        HideLoader($('#cms-content'));
+                        alert("error");
+
+                    },
+                });
+            }
+        }
+        HideLoader($('#cms-content'));
+    }
+    function onBackButton() {
+        window.location.reload();
+    }
+</script>
+
+
+
+
+
+
+
+
+
+

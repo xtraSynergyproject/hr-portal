@@ -1,0 +1,488 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Sales Return";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model SalesReturnViewModel
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+
+    .avatar-myProfile {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .avatar-mysign {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .bold {
+        font: bold
+    }
+</style>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $("#DirectSaleId").kendoDropDownList({
+            dataTextField: "ServiceNo",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            change: OnSelect,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/ReadDirectSalesList",
+                    }
+                }
+            }
+        });
+
+        $("#Customer").kendoDropDownList({
+            dataTextField: "CustomerName",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            filter: "contains",
+            value: '@Model.CustomerId',
+            enable:false,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCustomerList",
+                    }
+                }
+            }
+        });
+
+        $("#CustomerContact").kendoDropDownList({
+            dataTextField: "ContactPersonName",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            filter: "contains",
+            value: '@Model.CustomerContactId',
+            enable: false,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCustomerContacts",
+                        dataType: "json"
+                    }
+                }
+            }
+        });
+
+        $("#ReturnDate").kendoDatePicker({
+            //value: new Date(),
+            format: 'yyyy-MM-dd'
+        });
+
+        //grid
+
+        $.ajax({
+            type: "GET",
+            url: "/Cms/LOV/GetListOfValueList?type=IMS_RETURN_TYPE&includePlaceHolder=true",
+
+            dataType: "json",
+            success: function (data) {
+                $("#SalesReturnItemsGrid").jsGrid({
+                    width: "100%",
+                    inserting: false,
+                    editing: true,
+                    sorting: true,
+                    paging: true,
+                    autoload: true,
+                    pageSize: 14,
+                    pageButtonCount: 5,
+                    controller: {
+                        loadData: function (filter) {
+
+                            return $.ajax({
+                                type: "GET",
+                                url: "/IMS/InventoryManagement/GetDirectSalesItemsList?directSalesId=" + $("#DirectSaleServiceId").val(),
+                                data: filter,
+                                dataType: "json"
+                            });
+                        },
+                        onItemEditing: function (e) {
+                            debugger;
+                            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                                //
+                                e.grid.updateItem();
+                            }
+                        },
+                        updateItem: function (item) {
+                            debugger;
+                        },
+                        //deleteItem: function (item) {
+                        //    onDeleteItem(item.NoteId);
+                        //}
+                    },
+                    fields: [
+                        {
+                            name: "Select", /*type: "checkbox",*/ width: 60,
+                            align: "center",
+                            itemTemplate: function (value, item) {
+                                return $("<input>").attr("type", "checkbox")
+                                    .attr("checked", function () {
+                                        if (item.CheckFlag === false) {
+                                            $(this).prop("checked", false);
+                                            item.Select = false;
+                                        } else if (item.CheckFlag === true) {
+                                            $(this).prop("checked", true);
+                                            item.Select = true;
+                                        }
+                                    })
+                                    .on("click", function () {
+                                        debugger;
+                                        if (item.CheckFlag === true) {
+                                            item.CheckFlag = false;
+                                            item.Select = false;
+                                            $(this).prop("checked", false);
+                                        } else {
+                                            item.CheckFlag = true;
+                                            item.Select = true;
+                                            $(this).prop("checked", true);
+                                        }
+                                    });
+                            }
+                        },
+                        {
+                            name: "ItemName",
+                            title: "Item Name",
+                            type: "text",
+                            editing: false
+                        },
+                        {
+                            name: "ItemQuantity",
+                            title: "Sale Qty",
+                            type: "text",
+                            editing: false
+                        },
+                        {
+                            name: "ReturnQuantity",
+                            title: "Return Qty",
+                            type: "text",
+                            editing: true
+                        },
+                        {
+                            name: "ReturnTypeId",
+                            title: "Return Reason Type",
+                            type: "select",
+                            editing: true,
+                            items: data, valueField: "Id", textField: "Name",
+
+                        },
+                        {
+                            name: "ReturnReason",
+                            title: "Comments",
+                            type: "text",
+                            editing: true
+                        },
+                        {
+                            type: "control", deleteButton: false,
+                        },
+                        { name: "Id", type: "text", editing: false, visible: false },
+                        { name: "Item", type: "text", editing: false, visible: false },
+                        { name: "NtsNoteId", type: "text", editing: false, visible: false },
+                    ]
+                });
+            }
+
+        });
+
+        var datepicker = $("#ReturnDate").data("kendoDatePicker");
+        var dropdownlist = $("#DirectSaleId").data("kendoDropDownList");
+
+        if ('@Model.DataAction' == '@DataActionEnum.Edit') {
+            debugger;
+            document.getElementById('srItems').style.display = "block";
+            dropdownlist.enable(false);
+            dropdownlist.value("@Model.DirectSaleServiceId");
+            @*var dsid = "@Model.DirectSaleId";*@
+
+            $("#SalesReturnItemsGrid").jsGrid("loadData"/*, { directSalesId: dsid }*/);
+
+        }
+
+        if ('@Model.ServiceStatusCode' == 'SERVICE_STATUS_COMPLETE') {
+            datepicker.enable(false);
+            dropdownlist.enable(false);
+            document.getElementById("ReturnReason").disabled = true;
+        }
+
+    });
+
+
+    function OnSelect(e) {
+        debugger;
+        var id = e.sender.value();
+        var cust = $("#Customer").data("kendoDropDownList");
+        var cper = $("#CustomerContact").data("kendoDropDownList");
+
+            $.ajax({
+                url:'@Url.Action("GetDirectSalesData", "InventoryManagement", new { @area= "IMS" })?serviceId=' + id,
+                type: 'GET',
+                data: {},
+                dataType: 'json',
+                success: function (res) {
+                    debugger;
+                    cust.value(res.Customer);
+                    $("#DirectSaleId").val(res.Id);
+                    $("#CustomerId").val(res.Customer);
+                    cper.value(res.ContactPerson);
+                    $("#CustomerContactId").val(res.ContactPerson);
+                    $("#Designation").val(res.Designation);
+                    $("#MobileNo").val(res.MobileNo);
+                    $("#ContactNo").val(res.ContactNo);
+                    $("#Email").val(res.EmailId);
+                    $("#DirectSaleServiceId").val(id);
+
+                    document.getElementById('srItems').style.display = "block";
+                    $("#SalesReturnItemsGrid").jsGrid("loadData", { directSalesId: id });
+
+                },
+                error: function (ert) {
+
+                }
+            });
+    }
+
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            $("#SalesReturnId").val(res.data);
+            closeNav();
+        }
+        else {
+            ShowNotification(res.error, "error");
+            return false;
+        }
+    };
+
+    //var onAjaxSuccess1 = function (res) {
+    //    if (res.success) {
+    //        ShowNotification("Return Items added successfully", "success");
+    //    }
+    //    else {
+    //        ShowNotification(res.error, "error");
+    //        return false;
+    //    }
+    //};
+
+    function closeNav() {
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "GetSalesReturnList" });
+        if ('@Model.DataAction' == '@DataActionEnum.Create') {
+            window.parent.ShowNotification("Return items added successfully", "success");
+        }
+        else {
+            window.parent.ShowNotification("Updated successfully", "success");
+        }
+
+        return false;
+    }
+
+    function OnReturnItems(e) {
+
+        var selectedDataItems = [];
+        debugger;
+        var entityGrid = $("#SalesReturnItemsGrid").data("JSGrid");
+        if (entityGrid._editingRow != null) {
+            entityGrid.updateItem();
+        }
+
+
+        for (var i = 0; i < entityGrid.data.length; i++) {
+            debugger;
+            if (entityGrid.data[i].Select == true) {
+                //selectedDataItems.push(entityGrid.data[i]);
+
+                if (parseFloat(entityGrid.data[i].ItemQuantity) < parseFloat(entityGrid.data[i].ReturnQuantity)) {
+                    ShowNotification(entityGrid.data[i].ItemName + " Return Quantity is exceeding Sales Quantity [" + entityGrid.data[i].ItemQuantity + "]", "error");
+                    $(".text-danger").removeClass("validation-summary-valid");
+                    $(".text-danger").addClass("validation-summary-errors");
+                    e.preventDefault();
+                    return false
+                    break;
+                }
+                else if (parseInt(entityGrid.data[i].ReturnQuantity) == 0 || entityGrid.data[i].ReturnQuantity == "") {
+                    ShowNotification("Item [" + entityGrid.data[i].ItemName + "] Return Quantity value should not be zero", "error");
+                    $(".text-danger").removeClass("validation-summary-valid");
+                    $(".text-danger").addClass("validation-summary-errors");
+                    e.preventDefault();
+                    return false
+                    break;
+                }
+                else if (entityGrid.data[i].ReturnTypeId == null || entityGrid.data[i].ReturnTypeId == "" || parseInt(entityGrid.data[i].ReturnTypeId) == 0) {
+                    ShowNotification("Select Return Reason Type for [" + entityGrid.data[i].ItemName +"] Item" , "error");
+                    $(".text-danger").removeClass("validation-summary-valid");
+                    $(".text-danger").addClass("validation-summary-errors");
+                    e.preventDefault();
+                    return false
+                    break;
+                }
+                else {
+                    selectedDataItems.push(entityGrid.data[i]);
+                }
+
+            }
+        }
+        $("#ReturnItems").val(JSON.stringify(selectedDataItems));
+        if (selectedDataItems.length == 0) {
+            kendo.alert('Please select atleast one item from the list');
+            e.preventDefault();
+            return false;
+        }
+
+        //var gridItems = JSON.stringify(selectedDataItems);
+
+        //if (selectedDataItems.length == 0) {
+        //    kendo.alert('Please select atleast one item from the list');
+        //    e.preventDefault();
+        //    return false;
+        //}
+        //else {
+        //    ShowLoader($("#salesReturn"));
+
+        //    $.ajax({
+        //        url: '/ims/InventoryManagement/ManageSalesReturnItems?items=' + gridItems + '&salesReturnId=' + $("#SalesReturnId").val(),
+        //        type: 'POST',
+        //        data: {},
+        //        dataType: 'json',
+        //        success: function (res) {
+        //            debugger;
+        //            if (res.success) {
+        //                ShowNotification("Return Items added successfully", "success");
+        //                HideLoader($("#salesReturn"));
+        //            }
+        //            else {
+        //                HideLoader($("#salesReturn"));
+        //            }
+
+        //        },
+        //        error: function (ert) {
+
+        //        }
+        //    });
+        //}
+
+    }
+
+
+</script>
+
+<div style="width: 100%;" class="p-3" id="salesReturn">
+    <form asp-controller="InventoryManagement" asp-action="ManageSalesReturn" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Sales Return</legend>
+            <div class="row">
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Return Date</label>
+                    </div>
+                    <input id="ReturnDate" asp-for="ReturnDate" class="form-control" required />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Direct Sales</label>
+                    </div>
+                    <input type="text" asp-for="DirectSaleId" id="DirectSaleId" class="form-control" required />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Customer</label>
+                    </div>
+                    <input type="text" id="Customer" class="form-control" required />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Contact Person</label>
+                    </div>
+                    <input type="text" id="CustomerContact" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label">
+                        <label>Designation</label>
+                    </div>
+                    <input type="text" asp-for="Designation" id="Designation" class="form-control" disabled />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label">
+                        <label>Mobile No</label>
+                    </div>
+                    <input type="text" asp-for="MobileNo" id="MobileNo" class="form-control" disabled />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label">
+                        <label>Contact No</label>
+                    </div>
+                    <input type="text" asp-for="ContactNo" id="ContactNo" class="form-control" disabled />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label">
+                        <label>Email</label>
+                    </div>
+                    <input type="text" asp-for="Email" id="Email" class="form-control" disabled />
+                </div>
+
+                <div class="col-6 form-group">
+                    <div class="col-form-label required">
+                        <label>Return Comment</label>
+                    </div>
+                    <textarea asp-for="ReturnReason" class="form-control" required></textarea>
+                </div>
+                @*<div class="col-6 form-group">
+            <input type="submit" class="btn btn-primary" value="Proceed" style="position: absolute;right: 15px;bottom: 15px;" />
+        </div>*@
+            </div>
+        </fieldset>
+
+        <fieldset class="fieldset" id="srItems" style="display:none;">
+            <legend class="fs-legend">Items List</legend>
+            <div class="row">
+                <div id="SalesReturnItemsGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                <div class="col-12" style="padding:10px;">
+                    @if (Model.DataAction == DataActionEnum.Create || Model.ServiceStatusCode == "SERVICE_STATUS_DRAFT")
+                    {
+                        <input type="submit" id="btnSave" class="btn btn-primary" style="float:right" value="Save" onclick="OnReturnItems(event)" />
+                    }
+
+                </div>
+            </div>
+        </fieldset>
+        @Html.HiddenFor(x => x.DirectSaleId)
+        @Html.HiddenFor(x => x.CustomerContactId)
+        @Html.HiddenFor(x => x.CustomerId)
+        @Html.HiddenFor(x => x.SalesReturnId)
+        @Html.HiddenFor(x => x.ReturnItems)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.ServiceId)
+        @Html.HiddenFor(x => x.DirectSaleServiceId)
+    </form>
+
+    @*<form asp-controller="InventoryManagement" asp-action="ManageSalesReturnItems" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess1"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+
+       
+    </form>*@
+    
+</div>
+
+
+

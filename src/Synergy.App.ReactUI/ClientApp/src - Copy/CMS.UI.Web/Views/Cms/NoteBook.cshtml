@@ -1,0 +1,372 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@inject IUserContext _userContext;
+@model NoteTemplateViewModel;
+<style>
+    .book-accordion-heading {
+        padding: 8px;
+        cursor: pointer;
+        color: #fff;
+    }
+
+    .book-accordion-body {
+        border: 1px solid var(--pbc);
+    }
+
+    .grid-a {
+        color: blue !important;
+    }
+</style>
+<script type="text/x-kendo-template" id="menu-template">
+    <div class='btn-group grid-menu' id='book-tree-menu' data-max-child-so='#:MaxChildSequence#' data-level='#:Level#' data-parent-type='#:ParentNtsType#' data-sequence-order='#:SequenceOrder#' data-parent-id='#:parentId#' data-has-child='#:HasChild#' data-id='#:Id#' data-type='#:NtsType#'  data-template-code='#:TemplateCode#'><i class='fas fa-ellipsis-v'></i></div>
+    <a class='grid-a' href='javascript:FocusAccordian("#= Id #")'>#= ItemNo # </a>
+</script>
+<script>
+    var showLoader = false;
+    function FocusAccordian(id, type) {
+
+        var node = $('#' + id);
+        if (node != null && node.offset() != null) {
+            var top = (node.offset().top - 150) + 'px';
+            var bot = (node.offset().left - ($(window).width() / 2) + 80) + 'px';
+            $('html,body').animate({
+                scrollTop: top,
+                scrollLeft: bot
+            },
+                1500);
+            //$('.accordion-body-dynamic').collapse('collapse');
+            $('#body_'+id).collapse('show');
+            //$(".focus").addClass("blink");
+           // blink(".focus", 3, 600);
+        }
+        return false;
+    }
+    function resizeIframe(obj, id) {
+        var h = obj.contentWindow.document.body.scrollHeight;
+        //$('.book-accordion-body').collapse('show');
+        // obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
+        obj.style.height = h + 'px';
+        if (showLoader) {
+            showLoader = false;
+            HideLoader($('#book-content'));
+        }
+    }
+
+
+    //jQuery(document).on('show.bs.collapse', '#your-accordion', function (e) {
+    //    var clicked = $(document).find("[href='#" + $(e.target).attr('id') + "']");
+    //    // Your awesome code
+    //});
+
+
+    $(document).ready(function () {
+        @*var data = @Html.Raw(Json.Serialize(Model.BookItems));
+        var dataSource = new kendo.data.TreeListDataSource({
+            data: data,
+            schema: {
+                model: {
+                    id: "Id",
+                    expanded: true
+                }
+            }
+        });
+        $("#treelist").kendoTreeList({
+            dataSource: dataSource,
+            columns: [
+                { field: "ItemNo", expandable: true, title: "Level", template: $("#menu-template").html()},
+                { field: "NtsNo", title: "Reference No" },
+                { field: "TemplateName", title: "Category" },
+                { field: "Section", title: "Section" },
+                { field: "AssigneeOrOwner", title: "Assignee/Owner" },
+                { field: "Status", title: "Status" },
+                { field: "DueDate", title: "Due Date", format: "@ApplicationConstant.DateAndTime.DefaultDateFormat" }
+            ]
+        });
+        LoadIframes();*@
+
+        LoadPartailView('@Url.Action("NoteBookHTML", "NtsNote", new { @area="Cms",@noteId=Model.NoteId,@templateId=Model.Id})', $('#htmlview'));
+    });
+    function LoadIframes() {
+        @foreach (var item in Model.BookItems)
+        {
+            if (item.AutoLoad)
+            {
+                @: LoadIframe('@item.Id', '@(item.NtsType.ToString())', '@item.TemplateCode');
+            }
+        }
+    }
+    function LoadIframe(id, type, templateCode) {
+        var src = $('#iframe_' + id).attr("src");
+        if (src === '') {
+            if (showLoader) {
+                ShowLoader($('#book-content'));
+            }
+            var source = '@RequestSourceEnum.View.ToString()';
+            var action = '@DataActionEnum.View.ToString()';
+            var portalId = "";
+            if (window.parent == "" || window.parent == undefined) {
+                portalId = $("#GlobalPortalId").val();
+            }
+            else {
+                portalId = window.parent.$("#GlobalPortalId").val();
+            }
+            var url = '/Cms/Page?viewMode=Book&lo=Iframe&pageType=' + type + '&source=' + source + '&dataAction=' + action + '&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + id;
+            $('#iframe_' + id).attr("src", url);
+        }
+        return false;
+    }
+    function LoadReport(noteId) {
+
+        var src = $('#iframe_report').attr("src");
+        if (src === '') {
+            var source = '@RequestSourceEnum.View.ToString()';
+            var action = '@DataActionEnum.View.ToString()';
+            var portalId = "";
+            if (window.parent == "" || window.parent == undefined) {
+                portalId = $("#GlobalPortalId").val();
+            }
+            else {
+                portalId = window.parent.$("#GlobalPortalId").val();
+            }
+            @*var url = '/Cms/Report?rptName=CMS_NoteBookReport.trdp&lo=@LayoutModeEnum.Popup&portalId=' + portalId + '&rptUrl=cms/query/GetNoteBookReport?noteId=' + noteId;*@
+            var url = '/Cms/FastReport?rptName=CMS_NoteBookReport&lo=@LayoutModeEnum.Popup&portalId=' + portalId + '&rptUrl=cms/query/GetNoteBookReport?noteId=' + noteId;
+            $('#iframe_report').attr("src", url);
+        }
+    }
+</script>
+
+<ul class="nav nav-tabs" role="tablist">
+    @*<li class="nav-item"><a data-toggle="tab" href="#editorview" class="nav-link active" role="tab" aria-controls="editorview" aria-selected="true"><i class="fas fa-pencil-paintbrush" style="margin-left:15px;"></i><br />Editor View</a></li>*@
+    <li class="nav-item"><a data-toggle="tab" href="#htmlview" class="nav-link active" aria-controls="htmlview" aria-selected="true" onclick=" LoadPartailView('@Url.Action("NoteBookHTML", "NtsNote", new { @area="Cms",@noteId=Model.NoteId,@templateId=Model.Id})', $('#htmlview'));"><i class="fas fa-book-reader" style="margin-left:3px;"></i><br />Html View</a></li>
+    <li class="nav-item"><a data-toggle="tab" href="#reportview" class="nav-link" aria-controls="reportview" aria-selected="false" onclick="LoadReport('@Model.NoteId');"><i class="fas fa-file-alt" style="margin-left:40px;"></i><br />Report View</a></li>
+
+</ul>
+<div class="tab-content">
+    <div id="htmlview" class="tab-pane in active" role="tabpanel" aria-labelledby="settings-tab">
+    </div>
+    <div id="reportview" class="tab-pane " role="tabpanel" aria-labelledby="settings-tab">
+        <iframe id="iframe_report" src="" frameborder="0" style="border:none;width:100%;height:800px;"></iframe>
+    </div>
+
+
+</div>
+
+<script>
+    $('.accordion-group').on('show.bs.collapse', function () {
+        var accordian = $(this);
+        var id = accordian.attr("id");
+        var type = accordian.data("type");
+        var templateCode = accordian.data("template-code");
+        showLoader = true;
+
+        LoadIframe(id, type, templateCode);
+    });
+    function Move(id, type) {
+        var noteId = '@Model.NoteId';
+        var url = "/cms/ntsnote/noteitemmove?noteId=@Model.NoteId&ntsType=" + type + "&ntsId=" + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "Move Item", Width: 800, Height: 600 });
+        return false;
+    }
+    function OnNotePlusItemCreate(obj) {
+        var win = GetMainWindow();
+        win.OpenWindow({ Refresh:true });
+    }
+
+    function OnDeleteUser(id, pi, pt) {
+
+
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(id, pi, pt);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDelete(id, pi, pt) {
+
+
+        $.ajax({
+
+            url: '/cms/DeleteNoteBookItems?noteId=' + id + '&parentId=' + pi + '&parentType=' + pt,
+            type: "POST",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+
+                ShowNotification("Deleted Successfully", "success");
+                OnNotePlusItemCreate();
+
+            }
+        });
+
+
+    }
+
+    function OnEditItem(Id, templateCode, type) {
+        var typeName="";
+        if (type === 0) {
+            typeName = "Note";
+        }
+        else if (type === 1) {
+            typeName = "Task";
+        }
+        else if (type === 2) {
+            typeName = "Service";
+        }
+
+        var portalId = '@_userContext.PortalId';
+        var url = '/Cms/Page?lo=Popup&source=Edit&dataAction=Edit&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + Id;
+        LoadCmsPartialView(url, type, true, 1200, 650, "Manage " + typeName);
+        return false;
+    }
+
+
+    function AddItem(parentId, sequenceOrder, type, targetType, ptype) {
+        sequenceOrder = sequenceOrder + 1;
+        var cbm = 'OnNotePlusItemCreate';
+        var notePlusId = '@Model.NoteId';
+        var action = "";
+        var parent = "";
+        var title = "";
+        if (type === 0 || (type === '-1' && ptype == 0)) {
+            parent = "&parentNoteId=" + parentId;
+        }
+        else if (type === 1 || (type === '-1' && ptype == 1)) {
+            parent = "&parentTaskId=" + parentId;
+        }
+        else if (type === 2 || (type === '-1' && ptype == 2)) {
+            parent = "&parentServiceId=" + parentId;
+        }
+        var emailCode = '@Convert.ToString(Model.EmailCopyTemplateCode)';
+        if (type === '-1' && emailCode === '') {
+            alert('Email Copy Template is not configured for this book. Please configure the template first');
+            return;
+        }
+        var prms = encodeURIComponent('notePlusId=' + notePlusId + '&sequenceOrder=' + sequenceOrder + parent);
+        var url = "";
+        @if (Model.AdhocNoteTemplateIds!=null && Model.AdhocNoteTemplateIds.Any()) {
+           @: notes = '@Html.Raw(string.Join(',',Model.AdhocNoteTemplateIds))';
+        }
+        var tasks = "";
+        @if (Model.AdhocTaskTemplateIds!=null && Model.AdhocTaskTemplateIds.Any()) {
+           @: tasks = '@Html.Raw(string.Join(',',Model.AdhocTaskTemplateIds))';
+        }
+        var services = "";
+        @if (Model.AdhocServiceTemplateIds!=null && Model.AdhocServiceTemplateIds.Any()) {
+           @: services = '@Html.Raw(string.Join(',',Model.AdhocServiceTemplateIds))';
+        }
+        if (targetType == 'Note') {
+            if (type === '-1') {
+                url = "/PJM/EmailTask/EmailInbox?ntsType=Note&module=COPY_EMAIL&cbm=" + cbm + "&prms=" + prms + "&templateCode=" + emailCode;
+                title = "Select Email";
+            }
+            else {
+                url = "/cms/ntsnote/SelectNoteTemplate?cbm=" + cbm + "&prms=" + prms + "&templateIds=" + (notes === '' ? '-1' : notes);
+                title = "Select Note";
+            }
+        }
+        else if (targetType == 'Task') {
+            url = "/cms/ntstask/SelectTaskTemplate?cbm=" + cbm + "&prms=" + prms + "&templateIds=" + (tasks === '' ? '-1' : tasks);
+            title = "Select Task";
+        }
+        else if (targetType == 'Service') {
+            url = "/cms/ntsservice/SelectServiceTemplate?cbm=" + cbm + "&prms=" + prms + "&templateIds=" + (services === '' ? '-1' : services);
+            title = "Select Service";
+        }
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title:title, Width: 1200, Height: 600 });
+        return false;
+    }
+     $(function () {
+        $.contextMenu({
+            selector: '#book-tree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var id = $trigger.data('id');
+                var type = $trigger.data('type');
+                var tempCode = $trigger.data('template-code');
+                var hasChild = $trigger.data('has-child');
+                var so = $trigger.data('sequence-order');
+                var pi = $trigger.data('parent-id');
+                var pt = $trigger.data('parent-type');
+                var lvl = $trigger.data('level');
+                var childso = $trigger.data('max-child-so');
+                  return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEditItem(id, tempCode, type);
+                                        break;
+                                    case 'del':
+                                        OnDeleteUser(id, pi, pt);
+                                        break;
+                                    case 'childService':
+                                        AddItem(id, childso, type, 'Service');
+                                        break;
+                                    case 'belowService':
+                                        AddItem(pi, so, pt, 'Service');
+                                        break;
+                                    case 'childTask':
+                                        AddItem(id, childso, type, 'Task');
+                                        break;
+                                    case 'belowTask':
+                                        AddItem(pi, so, pt, 'Task');
+                                        break;
+                                    case 'childNote':
+                                        AddItem(id, childso, type, 'Note');
+                                        break;
+                                    case 'belowNote':
+                                        AddItem(pi, so, pt, 'Note');
+                                        break;
+                                    case 'childEmail':
+                                        AddItem(id, childso, '-1', 'Note', type);
+                                        break;
+                                    case 'belowEmail':
+                                        AddItem(pi, so, '-1', 'Note', pt);
+                                        break;
+                                    case 'move':
+                                        Move(id, type);
+                                        break;
+                                    default:
+                                }
+                            },
+                             items: {
+                            "below": {
+                            name: "Add Below", icon: "fas fa-plus", visible: lvl !== 0, items: {
+                                    "belowNote": { name: "Note", icon: "fas fa-scroll"},
+                                    "belowTask": { name: "Task", icon: "fas fa-tasks" },
+                                    "belowService": { name: "Service", icon: "fas fa-tasks-alt" },
+                                    "belowEmail": { name: "Email Content", icon: "fas fa-envelope" },
+
+                                    }
+                            },
+                                "child": {
+                            name: "Add Child", icon: "fas fa-plus" , items: {
+                                        "childNote": { name: "Note", icon: "fas fa-scroll" },
+                                        "childTask": { name: "Task", icon: "fas fa-tasks" },
+                                        "childService": { name: "Service", icon: "fas fa-tasks-alt" },
+                                        "childEmail": { name: "Email Content", icon: "fas fa-envelope" },
+
+                                    }
+                            },
+                                "edit": { name: "@Html.Raw(SharedResource["Edit"])", icon: "fas fa-pencil" },
+                                "move": { name: "Move", icon: "fas fa-expand-arrows-alt", visible: lvl !== 0},
+                                "del": { name: "@Html.Raw(SharedResource["Delete"])", icon: "fas fa-trash" },
+                            }
+                        };
+            }
+        });
+
+    });
+</script>
+
+
+
+
+
+
+

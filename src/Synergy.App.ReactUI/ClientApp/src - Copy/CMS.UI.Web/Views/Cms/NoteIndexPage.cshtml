@@ -1,0 +1,397 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@{
+    Layout = null;// string.Concat("~/Areas/CMS/Views/Shared/_LayoutCMS.cshtml");
+}
+@model NoteIndexPageTemplateViewModel;
+<link href="~/css/cms/NoteIndexPage.css" rel="stylesheet" asp-append-version="true" />
+
+<script>
+    var hidWidth;
+    var scrollBarWidths = 40;
+
+    var widthOfList = function () {
+        var itemsWidth = 0;
+        $('.list li').each(function () {
+            var itemWidth = $(this).outerWidth();
+            itemsWidth += itemWidth;
+        });
+        return itemsWidth;
+    };
+
+    var widthOfHidden = function () {
+        return (($('.wrapper').outerWidth()) - widthOfList() - getLeftPosi()) - scrollBarWidths;
+    };
+
+    var getLeftPosi = function () {
+        return $('.list').position().left;
+    };
+
+    var reAdjust = function () {
+        if (($('.wrapper').outerWidth()) < widthOfList()) {
+            $('.scroller-right').show();
+        }
+        else {
+            $('.scroller-right').hide();
+        }
+
+        if (getLeftPosi() < 0) {
+            $('.scroller-left').show();
+        }
+        else {
+            $('.item').animate({ left: "-=" + getLeftPosi() + "px" }, 'slow');
+            $('.scroller-left').hide();
+        }
+    }
+
+    reAdjust();
+
+    $(window).on('resize', function (e) {
+        reAdjust();
+    });
+
+    $('.scroller-right').click(function () {
+
+        $('.scroller-left').fadeIn('slow');
+        $('.scroller-right').fadeOut('slow');
+
+        $('.list').animate({ left: "+=" + widthOfHidden() + "px" }, 'slow', function () {
+
+        });
+    });
+
+    $('.scroller-left').click(function () {
+
+        $('.scroller-right').fadeIn('slow');
+        $('.scroller-left').fadeOut('slow');
+
+        $('.list').animate({ left: "-=" + getLeftPosi() + "px" }, 'slow', function () {
+
+        });
+    });
+      function ReloadIndexPage(res) {
+        var id = '@Model.Page.Id';
+        var type = '@Model.Page.PageType.ToString()';
+        var source = '@RequestSourceEnum.Main.ToString()';
+        var action = '@DataActionEnum.Read.ToString()';
+        LoadPageById(id, type, source, action);
+    }
+        function OnCreate() {
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.Create.ToString()';
+            var action = '@DataActionEnum.Create.ToString()';
+            LoadPageById(id, type, source, action, null, true, 1200, 600, 'Create Note', 'ReloadIndexPage');
+            return false;
+        }
+    function OnView(NoteId,NoteStatusCode) {
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.View.ToString()';
+            var action = '@DataActionEnum.View.ToString()';
+            if (NoteStatusCode === 'NOTE_STATUS_DRAFT') {
+                source = "Edit";
+                action = "Edit";
+            }
+            LoadPageById(id, type, source, action, NoteId, true, 1200, 600, 'Manage Note', 'ReloadIndexPage');
+            return false;
+    }
+    function OnEdit(NoteId) {
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.Versioning.ToString()';
+            var action = '@DataActionEnum.Edit.ToString()';
+         LoadPageById(id, type, source, action, NoteId, true, 1200, 600, 'Manage Note', 'ReloadIndexPage');
+            return false;
+    }
+
+    var deleteEvent = null;
+    function OnDelete(NoteId) {
+        if ('@Model.EnableDeleteConfirmation'==='True')
+        {
+            deleteEvent = NoteId;
+            $('#confirmDelete').data("kendoDialog").open();
+
+        }
+        else
+        {
+            DeleteItem(NoteId);
+        }
+
+    }
+    function DeleteItem(NoteId) {
+       // var dataItem = $("#kgrid_OwnerOrRequester").data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+        var id = '@Model.Page.Id';
+        var type = '@Model.Page.PageType.ToString()';
+        var source = '@RequestSourceEnum.Post.ToString()';
+        var action = '@RequestSourceEnum.Delete.ToString()';
+        LoadPageById(id, type, source, action, NoteId);
+        return false;
+    }
+    function ConfirmDelete() {
+        $('#confirmDelete').data("kendoDialog").close();
+        DeleteItem(deleteEvent);
+        }
+
+
+    function FilterGrid() {
+        var ownerType = $("#ownertype").val();
+        return {
+            indexPageTemplateId: "@Model.Id",
+            ownerType: ownerType,
+            noteStatusCode: $("#status").val()
+        };
+    }
+
+    function OnNumberClick(div, ownerType, status) {
+        $('.text-item').removeClass('text-item-active');
+        $(div).addClass('text-item-active');
+        $("#status").val(status);
+        $("#ownertype").val(ownerType);
+        LoadGrid();
+    }
+
+      $(document).ready(function () {
+           if ('@Model.HideSummaryTabs'==='True') {
+           document.getElementById("Tab").style.display = "none";
+           }
+        });
+
+</script>
+<div class="row no-gutters pad-20">
+    <div class="col-12 pb-3 pt-1">
+        <h3>@Model.Page.Title</h3>
+    </div>
+    @if (!Model.HideSummaryTabs)
+    {
+        <div class="row col-12 pb-3 pt-1">
+            <div class="col-4">
+                <div class="card text-center">
+                    <div class="card-header card-head">
+                        Created/Requested By Me
+                    </div>
+                    <div class="row card-body">
+                        <div class="col-4 text-info text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.OwnerOrRequester','NOTE_STATUS_DRAFT')">
+                            <div class="card-number">
+                                @Model.CreatedOrRequestedByMeDraftCount
+                            </div>
+                            <div class="card-number-text">
+                                Draft
+                            </div>
+                        </div>
+                        <div class="col-4 text-success text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.OwnerOrRequester','NOTE_STATUS_COMPLETE')">
+                            <div class="card-number">
+                                @Model.CreatedOrRequestedByMeCompleteCount
+                            </div>
+                            <div class="card-number-text">
+                                Completed
+                            </div>
+                        </div>
+                        <div class="col-4 text-danger text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.OwnerOrRequester','NOTE_STATUS_EXPIRE')">
+                            <div class="card-number">
+                                @Model.CreatedOrRequestedByMeExpiredCancelCloseCount
+                            </div>
+                            <div class="card-number-text">
+                                Expired
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card text-center">
+                    <div class="card-header card-head">
+                        Shared With Me
+                    </div>
+                    <div class="row card-body">
+                        <div class="col-4 text-info text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith', 'NOTE_STATUS_DRAFT')">
+                            <div class="card-number">
+                                @Model.SharedWithMeDraftCount
+                            </div>
+                            <div class="card-number-text">
+                                Draft
+                            </div>
+                        </div>
+                        <div class="col-4 text-success text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith','NOTE_STATUS_COMPLETE')">
+                            <div class="card-number">
+                                @Model.SharedWithMeCompleteCount
+                            </div>
+                            <div class="card-number-text">
+                                Completed
+                            </div>
+                        </div>
+                        <div class="col-4 text-danger text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith', 'NOTE_STATUS_EXPIRE')">
+                            <div class="card-number">
+                                @Model.SharedWithMeExpireCount
+                            </div>
+                            <div class="card-number-text">
+                                Expired
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card text-center">
+                    <div class="card-header card-head">
+                        Shared By Me
+                    </div>
+                    <div class="row card-body">
+                        <div class="col-4 text-info text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedBy','NOTE_STATUS_DRAFT')">
+                            <div class="card-number">
+                                @Model.SharedByMeDraftCount
+                            </div>
+                            <div class="card-number-text">
+                                Draft
+                            </div>
+                        </div>
+                        <div class="col-4 text-success text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedBy','NOTE_STATUS_COMPLETE')">
+                            <div class="card-number">
+                                @Model.SharedByMeCompleteCount
+                            </div>
+                            <div class="card-number-text">
+                                Completed
+                            </div>
+                        </div>
+                        <div class="col-4 text-danger text-item" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedBy','NOTE_STATUS_EXPIRE')">
+                            <div class="card-number">
+                                @Model.SharedByMeExpireCount
+                            </div>
+                            <div class="card-number-text">
+                                Expired
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="container col-12">
+        <div class="pt-2">
+            <button type="submit" class="btn btn-primary" onclick="return OnCreate();"><i class="fa fa-plus pr-1"></i>@Model.CreateButtonText.ToDefaultCreateButtonText()</button>
+            @if (!Model.HideSummaryTabs)
+            {
+                <button type="submit" class="btn btn-light" onclick="return ResetFilter();"><i class="fa fa-refresh pr-1"></i>Reset Filter</button>
+            }
+        </div>
+        <div class="pt-2">
+            <script>
+                function ResetFilter() {
+                    $('.text-item').removeClass('text-item-active');
+                    $("#status").val('');
+                    $("#ownertype").val('');
+                    LoadGrid();
+                    return false;
+                }
+                        var columnDefs = [
+                            {
+                                headerName: "Actions",
+                                field: "NoteId",
+                                cellRenderer: params => {
+                                    return "<div class='btn-group grid-menu' id='tree-menu' data-idvalue='" + params.value + "' data-status=\"0\" data-status='" + params.data.NoteStatusCode + "'><i class='fas fa-ellipsis-v'></i></div>"
+                                }
+                            },
+                            @foreach (var column in Model.SelectedTableRows)
+                            {
+                                if (column != null && column.ColumnMetadata != null)
+                                {
+                                    if (column.ColumnMetadata.DataType == DataColumnTypeEnum.DateTime)
+                                    {
+                                        @:{ field: '@column.ColumnName', headerName: '@column.HeaderName', cellRenderer: params => {var d = new Date(params.value),
+                    @: dformat = [d.getDate(),d.getMonth() + 1,d.getFullYear()].join('/') + ' ' + [d.getHours(),d.getMinutes(),].join(':');
+                                       @: return dformat; /*params.value.getDate() + "/" + params.value.getMonth() +"/"+ params.value.getyears();*/
+                                   @: }
+                               @: },
+                                    }
+                                    else
+                            {
+                                        @:{ field: '@column.ColumnName', headerName: '@column.HeaderName' },
+                                     }
+                                }
+                                else
+                                {
+                                    @:{ field: '@column.ColumnName', headerName: '@column.HeaderName' },
+                                }
+
+                            }
+                        ];
+                $(function () {
+                    LoadGrid();
+                          $.contextMenu({
+                                 selector: '#tree-menu',
+                                trigger: 'left',
+                                build: function ($trigger, e) {
+                                    var id = $trigger.data('idvalue');
+                                    var status = $trigger.data('status');
+                                     return {
+                                                callback: function (key, options) {
+                                                    switch (key) {
+                                                        case 'edit':
+                                                            OnEdit(id);
+                                                            break;
+                                                        case 'view':
+                                                            OnView(id, status);
+                                                            break;
+
+                                                        case 'delete':
+                                                            OnDelete(id);
+                                                            break;
+
+                                                        default:
+                                                    }
+                                                },
+                                                items: {
+                                                    @if (Model.IsVersioningButtonVisible)
+                                                    {
+                                                        @:"edit": { name: "Edit", icon: "fas fa-edit" },
+                                                    }
+                                                     @if (Model.IsViewButtonVisible)
+                                                    {
+                                                        @:"view": { name: "View", icon: "fas fa-eye" },
+                                                    }
+                                                    @if (Model.IsDeleteButtonVisible)
+                                                    {
+                                                        @:"delete": { name: "Delete", icon: "fas fa-trash" },
+                                                    }
+                                                }
+                                            };
+                                }
+                            });
+                        });
+                function LoadGrid() {
+                            $("#kgridData").html('');
+                    var prms = FilterGrid();
+                            var p = 'indexPageTemplateId=' + prms.indexPageTemplateId + '&ownerType=' + prms.ownerType + '&noteStatusCode=' + prms.noteStatusCode;
+                            gridConfig(
+                                "kgridData",
+                                "/cms/LoadNoteIndexPageGrid?"+p,
+                                columnDefs,
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+            </script>
+            <div id="kgridData" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            <input type="hidden" id="status" />
+            <input type="hidden" id="ownertype" />
+        </div>
+        @(Html.Kendo().Dialog()
+        .Name("confirmDelete")
+        .Title("Confirm Delete")
+        .Content(Model.DeleteConfirmationMessage)
+        .Width(400)
+        .Modal(true)
+        .Visible(false)
+        .Actions(actions =>
+        {
+            actions.Add().Text("Cancel");
+            actions.Add().Text("Continue Delete").Primary(true).Action("ConfirmDelete");
+        }))
+    </div>
+</div>
+

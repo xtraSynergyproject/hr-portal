@@ -1,0 +1,874 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.ProjectTaskController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+@inject CMS.Common.IUserContext _userContext
+
+@model TeamWorkloadViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<style>
+    .listViewDoc {
+        border: none;
+        border-radius: 6px;
+        overflow-x: hidden;
+    }
+
+    input.largerCheckbox {
+        width: 15px;
+        height: 20px;
+        background-color: #2196F3;
+    }
+
+    .board {
+        border: none;
+        overflow-x: scroll;
+        display: flex;
+    }
+
+    .card_task {
+        border-color: #209EB8;
+    }
+
+    .newtask {
+        background-color: black;
+        color: #fff;
+    }
+
+    .tasklist {
+        background-color: #209EB8;
+        color: #fff;
+        border-radius: 0px 0px 3px 3px;
+    }
+
+    .taskname {
+        /*color: #1D6EF4;*/
+        color: black;
+    }
+
+    .drp-user-photo {
+        height: 30px;
+        width: 30px;
+        border-radius: 30px;
+    }
+
+    .drp-user-photo1 {
+        height: 50px;
+        width: 50px;
+        border-radius: 30px;
+    }
+
+    #board > .k-listview-content {
+        display: flex;
+    }
+
+    .k-listview-content {
+        overflow: unset;
+    }
+
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+    }
+
+    .scrollbtn {
+        background-color: #4E4D4D;
+        color: white;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 2px;
+    }
+
+    .k-treeview-lines {
+        overflow-x: scroll;
+        width: 100%;
+    }
+
+    .product {
+        /* float: left;*/
+        position: relative;
+        /*  width: 50px;*/
+        margin: 0 5px 5px;
+        padding-left: 5px;
+        padding-top: 10px;
+        /* cursor:pointer;*/
+    }
+
+
+    .TASK_STATUS_DRAFT {
+        background-color: #17a2b8;
+        color: #fff;
+    }
+    .TASK_STATUS_PLANNED {
+        background-color: #9FC5E8;
+        color: #fff;
+    }
+
+    .TASK_STATUS_INPROGRESS {
+        background-color: #007bff;
+        color: #fff;
+    }
+    .TASK_STATUS_PLANNED_OVERDUE {
+        background-color: #FFE083;
+        color: #fff;
+    }
+    .TASK_STATUS_OVERDUE {
+        background-color: #ffc107;
+        color: #fff;
+    }
+
+    .TASK_STATUS_COMPLETE {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .TASK_STATUS_REJECT {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .TASK_STATUS_CANCEL {
+        background-color: #343a40;
+        color: #fff;
+    }
+
+    .k-link {
+        color: black;
+    }
+
+        .k-link:hover {
+            color: black;
+            font-weight: bold;
+        }
+</style>
+
+<script>
+
+
+    //$(function () {
+    //    //
+    //    $.contextMenu({
+    //        selector: '.tree-menu1',
+    //        trigger: 'left',
+    //        build: function ($trigger, e) {
+    //            // var parentId = $trigger.data('id');
+    //            var parentType = $trigger.data('type');
+    //            //var selectParentId = $trigger.data('parentId');
+
+    //            switch (parentType) {
+    //                case 'Root':
+    //                    return {
+    //                        callback: function (key, options) {
+    //                            switch (key) {
+    //                                case 'add':
+    //                                    break;
+    //                                case 'edit':
+    //                                    break;
+    //                                case 'delete':
+    //                                    break;
+    //                                default:
+    //                            }
+    //                        },
+    //                        items: {
+    //                            "add": { name: "Create Sub Task", icon: "fas fa-pencil" },
+    //                            "edit": { name: "Edit Sub Task", icon: "fas fa-pencil" },
+    //                            "delete": { name: "Delete Sub Task", icon: "fas fa-trash" },
+    //                        }
+    //                    };
+    //            }
+
+
+    //        }
+    //    });
+    //});
+
+    function OnSelect(e) {
+        //
+        e.preventDefault();
+
+    }
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+    function OnPhotoError(obj) {
+        // alert("test");
+        obj.onerror = null;
+
+        obj.src = '/images/profile.jpg';
+
+
+    }
+
+</script>
+
+<script>
+    var selecteduid;
+    var selectedstatus;
+    var selectedoid;
+    var selectedcolumn;
+    var selecteddateRange;
+    var selectedfromDate;
+    var selectedtoDate;
+    $(document).ready(function () {
+        selecteduid = [];
+        selectedstatus = [];
+        selectedoid = [];
+        selectedfromDate = null;
+        selectedtoDate = null;
+        selectedcolumn = null;
+        selecteddateRange = null;
+        //window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectDetailsFilter?hideProject=true&stage=true", 'ProjectFilter');
+        window.LoadPartailView1("/pjm/ProjectTask/ProjectDetailsFilter?hideProject=true&stage=true", 'ProjectFilter');
+        HideLoader($("#global-overlay"));
+    });
+
+    function onViewAll() {
+
+        selecteduid=[];
+        var search = filter();
+        var listView = $("#board").data("kendoListView");
+        listView.dataSource.read(search);
+    }
+
+    function OnViewS(status) {
+        var search = filter(null,status);
+        var listView = $("#board").data("kendoListView");
+        listView.dataSource.read(search);
+    }
+
+    function filter() {
+
+        return {
+            filteruser: selecteduid,
+            filterstatus: selectedstatus,
+            ownerIds: selectedoid,
+            stage: $("#Stage").val(),
+            column: selectedcolumn,
+            dateRange: selecteddateRange,
+            fromDate: selectedfromDate,
+            toDate: selectedtoDate,
+        };
+    }
+    function OnStage(Id) {
+        var portalId = $('#GlobalPortalId').val();
+
+        $.ajax({
+            url: '/pjm/projecttask/GetServiceSequenceOrder',
+                type: 'GET',
+            data: { parentId: Id },
+                success: function (res) {
+                    var prms = encodeURIComponent('parentServiceId=' + Id +'&servicePlusId=@Model.Id&sequenceOrder='+res.count);
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=ProjectStage&portalId=' + portalId + '&prms=' + prms;
+        LoadCmsPartialView(url, 'Service', true, 1000, 600, '@Html.Raw(SharedResource["CreateStage"])');
+                }
+            });
+
+        return false;
+    }
+
+      function OnTask(Id) {
+        //
+          var portalId = $('#GlobalPortalId').val();
+
+           $.ajax({
+               url: '/pjm/projecttask/GetTaskSequenceOrder',
+                type: 'GET',
+            data: { parentId: Id },
+                success: function (res) {
+                    var prms = encodeURIComponent('parentServiceId=' + Id +'&servicePlusId=@Model.Id&sequenceOrder='+res.count);
+
+                    var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&pageName=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+          var win = GetMainWindow();
+          win.iframeOpenUrl = url;
+          win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateTask"])', Width: 1200, Height: 600 });
+                }
+            });
+        //var prms = encodeURIComponent('parentServiceId=' + Id +'&servicePlusId=@Model.Id');
+
+           // LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Task');
+            return false;
+    }
+
+    function OnService(Id) {
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Edit&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + Id ;
+       
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["Project"])', Width: 1200, Height: 600 });
+        return false;
+
+    }
+
+
+    function OnAfterTaskCreate(service) {
+        //var search = filter();
+        //var listView = $("#board").data("kendoListView");
+        //listView.dataSource.read(search);
+        //HideLoader($("#global-overlay"));
+         OnProjectChange('@Model.Id');
+    }
+    function OnAfterServiceCreate(service) {
+      //  var search = filter();
+      //  var listView = $("#board").data("kendoListView");
+      //  listView.dataSource.read(search);
+        //   HideLoader($("#global-overlay"));
+        OnProjectChange('@Model.Id');
+    }
+
+
+     function SubTask(parentTaskId,projectid) {
+
+         var portalId = $('#GlobalPortalId').val();
+           $.ajax({
+               url: '/pjm/projecttask/GetSubTaskSequenceOrder',
+                type: 'GET',
+               data: { parentId: parentTaskId },
+                success: function (res) {
+                      var prms = encodeURIComponent('parentServiceId=' + projectid + '&parentTaskId=' + parentTaskId +'&servicePlusId=@Model.Id&sequenceOrder='+res.count);
+        // var prms = encodeURIComponent('parentServiceId=@Model.Id&parentTaskId=' + parentTaskId);
+         var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&pageName=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+                    LoadCmsPartialView(url, 'Task', true, 1200, 650, '@Html.Raw(SharedResource["CreateSubTask"])');
+                }
+            });
+
+            return false;
+    }
+    function EditTask(Id, userId) {
+        if ('@ViewBag.UserId' == userId) {
+        var portalId = $('#GlobalPortalId').val();
+        // var prms = encodeURIComponent('parentServiceId=' + Id);
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&pageName=ProjectTask&portalId=' + portalId + '&recordId=' + Id;
+
+        //LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Edit Task');
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["ViewTask"])', Width: 1200, Height: 600 });
+        return false;
+    }
+    }
+    function OnProjectChange(id) {
+       // window.location.href = "/pmt/project/ProjectTeamWorkload?projectId=" + id;
+        //HideLoader($("#global-overlay"));
+        if (window.parent != window.top) { LoadPartailView1("/pjm/ProjectTask/ProjectTaskView?ProjectId=" + id, 'Project-content'); } else {
+            window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectTaskView?ProjectId=" + id, 'Project-content');
+        }
+    }
+
+
+    var colors = ['#F56564', '#90D142', '#28BAF5', '#7551F5', '#5BA79F', '#7A8F9D', '#4F67B6'];
+    function OnDataBoundDoc(arg) {
+        var childDiv = document.getElementById('board').children;
+
+        for (var i = 0; i < childDiv.length; i++) {
+            childDiv[i].children[0].style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        }
+    }
+
+    $('#left').click(function () {
+        event.preventDefault();
+        $('#board').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+    });
+
+    $('#right').click(function () {
+        event.preventDefault();
+        $('#board').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+    });
+
+    //function onChange(e) {
+    //    var data = this.dataSource.view();
+    //    var selected = $.map(this.select(), function (item) {
+    //        return data[$(item).index()].UserId;
+    //    });
+    //    //alert(selected);
+    //    selecteduid = selected;
+    //    var search = filter();
+    //    var listView = $("#board").data("kendoListView");
+    //    listView.dataSource.read(search);
+    //    console.log("Selected: " + selected.length + " item(s), [" + selected.join(", ") + "]");
+    //}
+
+    //$("#sharelistView").on("mousedown", function (e) {
+    //
+    //    // get item if the user clicked on an item template
+    //    var clickedItem = $(e.target).closest("div.product");
+
+    //    // prevent click event for item elements
+    //    clickedItem.on("click", function (e) {
+    //        e.stopPropagation();
+    //    });
+
+    //    if (clickedItem.length > 0) {
+    //        var listView = $("#sharelistView").getKendoListView();
+
+    //        var selectedItems = listView.select();
+
+    //        if (clickedItem.hasClass("k-state-selected")) {
+    //            // if item is already selected - remove it from collection
+    //            selectedItems.splice($.inArray(clickedItem[0], selectedItems), 1);
+    //        } else {
+    //            selectedItems.push(clickedItem);
+    //        }
+
+    //        // unbind "change" event to prevent multiple calls
+    //        listView.unbind("change");
+    //        listView.clearSelection();
+    //        listView.bind("change", onChange);
+
+    //        listView.select(selectedItems);
+    //       // alert(selectedItems.item);
+    //    }
+    //});
+
+    function onSearch() {
+
+        selecteduid = [];
+        selectedstatus = [];
+        selecteduid = $("#Receiver").data("kendoMultiSelect").value();
+        selectedstatus = $("#Status").data("kendoMultiSelect").value();
+        selectedoid = $("#Sender").data("kendoMultiSelect").value();
+        selectedfromDate = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+        selectedtoDate = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+        selectedcolumn = $("#Column").data("kendoDropDownList").value();
+        selecteddateRange = $("#DateType").data("kendoDropDownList").value();
+        if (selecteduid.length > 0 || selectedstatus.length > 0 || selectedoid.length>0 || selectedfromDate != null || selectedtoDate != null || selecteddateRange != "") {
+            document.getElementById('filtertext').innerHTML = " Applied";
+        }
+        var search = {
+            //projectIds: $("#Project").data("kendoMultiSelect").value(),
+            filteruser: $("#Receiver").data("kendoMultiSelect").value(),
+            ownerIds: $("#Sender").data("kendoMultiSelect").value(),
+            filterstatus: $("#Status").data("kendoMultiSelect").value(),
+            //filterSdate: kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            stage: $("#Stage").val(),
+            column: $("#Column").data("kendoDropDownList").value(),
+            dateRange: $("#DateType").data("kendoDropDownList").value(),
+            fromDate: kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            toDate: kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            //toDate: kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+        };
+        //alert(selectedstatus);
+       search = filter();
+        $("#board").data("kendoListView").dataSource.read(search);
+        HideLoader($("#global-overlay"));
+    }
+    function onReset() {
+        selecteduid = [];
+        selectedstatus = [];
+        selectedoid = [];
+        selectedfromDate = null;
+        selectedtoDate = null;
+        selectedcolumn = null;
+        selecteddateRange = null;
+        document.getElementById('filtertext').innerHTML = " Not Applied";
+        window.parent.LoadPartailView1("/pjm/ProjectTask/ProjectDetailsFilter?hideProject=true&stage=true", 'ProjectFilter');
+        $("#board").data("kendoListView").dataSource.read();
+        HideLoader($("#global-overlay"));
+    }
+
+    $(document).ready(function () {
+        $("#menu, #divmenu").mouseleave(function () {
+            $("#menu").hide();
+        });
+        HideLoader($("#global-overlay"));
+    });
+
+    function OnClick(taskId, parentId,taskStatus) {
+        //
+        //alert(taskId);
+        debugger;
+        taskid = taskId;
+        parentid = parentId;
+
+        menu = $("#menu");
+        if (taskStatus == 'Draft') {
+            menu.find("#SubTask").hide();
+        }
+        else {
+            menu.find("#SubTask").show();
+        }
+        menu.css({ top: event.pageY, left: event.pageX - 150 });
+        menu.show();
+    }
+
+    function OnMenuClick(e) {
+
+        var command = $(e.item).attr('id');
+
+        if (command == "Open") {
+            var portalId = $('#GlobalPortalId').val();
+            //var url = '/Cms/Page?source=Versioning&dataAction=Edit&pageName=ProjectTask&portalId=' + portalId + '&recordId=' + taskid;
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Versioning&dataAction=Edit&pageName=ProjectTask&portalId=' + portalId + '&recordId=' + taskid;
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, '@Html.Raw(SharedResource["EditTask"])');
+        }
+        else if (command == "SubTask") {
+            var portalId = $('#GlobalPortalId').val();
+            var prms = encodeURIComponent('parentServiceId=' + parentid + '&parentTaskId=' + taskid);
+            //var url = '/Cms/Page?source=Create&dataAction=Create&pageName=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, '@Html.Raw(SharedResource["CreateSubTask"])');
+        }
+        $("#menu").hide();
+    }
+
+    function filterSub() {
+
+        return {
+            filteruser: selecteduid,
+            filterstatus: selectedstatus,
+            ownerIds: selectedoid,
+        };
+    }
+</script>
+
+
+<!--<script id="template_Sub" type="text/kendo-ui-template">
+    <div class="row" style="display:flex;background-color:antiquewhite;border-radius: 0px 0px 6px 6px;width:268px;padding:5px;">
+        <div class="col-md-1">
+            <span style="float:left;"><i-->
+@*style="#=StatusStyle#"*@
+<!--class="fas fa-circle fa-sm"></i></span>
+        </div>
+        <div class="col-md-10">
+            <span style="color:black;font-size:16px;">#: item.TaskName # - #: item.UserName #</span>
+        </div>
+    </div>
+</script>-->
+
+<script id="template_Sub" type="text/kendo-ui-template">
+    <div class="row" style="display:flex;border-radius: 0px 0px 6px 6px;width:268px;padding:5px;">
+        <div class="col-md-10" style="text-align:left;">
+            <span style="color:black;font-size:16px;">#:item.TaskName==null?'Draft':item.TaskName# <br/> - #: item.UserName==null?'':item.UserName #</span>
+        </div>
+
+        <div class="col-xs-2 col-md-2 col-sm-2">
+            <span data-type="#:item.TaskType#" class="tree-menu1" onclick=OnClick('#:item.id#','#:item.parentId#','#:item.TaskStatus#')><i class="fa fa-ellipsis-h"></i></span>
+        </div>
+
+    </div>
+</script>
+
+<script id="template_Doc1" type="text/kendo-ui-template">
+    <div class="card card_task" style="min-height:50px!important;width:270px;margin-left:0px;margin-top:10px;">
+        <div class="row" style="padding:5px;" onclick="EditTask('#=TaskId#','#=UserId#')">
+            <div class="col-xs-2 col-md-2">
+              #if(PhotoId != null)
+                            {#
+                                <img class="drp-user-photo" width="25" height="25" src="/cms/Document/GetImageMongo?id=#=PhotoId#" onerror="OnPhotoError(this)" style='text-align: center;'>
+                             #}
+                            else {#
+                            <img class="drp-user-photo" width="25" height="25" src='/images/profile.jpg' style='text-align: center;'>
+                                #}#
+            </div>
+            <div class="col-xs-10 col-md-10">
+                <div class="row">
+                    <span style="font-size:14px;float:left;">#=TaskName==null?'Draft':TaskName# &nbsp &nbsp</span>  <span style="font-size:14px;color:gray;float:left;"> - #=UserName==null?'':UserName#</span>
+                </div>
+                <div style="text-align:left;margin-left:-15px;">
+                    <span style="font-size:14px;">#=TaskStatus#</span>
+                </div>                
+            </div>
+
+        </div>
+        <div class="panel-footer #=TaskStatusCode#" style="padding:5px;">
+            <span style="font-size:14px; cursor:pointer;" data-toggle="collapse" data-target=".demo-#=TaskId#" ><i class="fas fa-arrow-right"></i> @Html.Raw(SharedResource["Show"]) #=SubTaskCount# @Html.Raw(SharedResource["Task"])</span>
+
+    #if ('@ViewBag.UserId' == UserId && TaskStatus!='Draft') {# <span style="font-size:14px;font-weight:600;float:right; cursor:pointer;" onclick="SubTask('#=TaskId#','#=ProjectId#')">+ @Html.Raw(SharedResource["NewSubTask"])</span>#}#
+        @*else{#alert('@ViewBag.UserId') alert(#=UserId#)  #}#*@
+    </div>
+        <div class="demo-#=TaskId# collapse" style="padding-right:20px;">
+            <div class="row" style="margin-left:5px;">
+                @*@(Html.Kendo().ListView<TeamWorkloadViewModel>()
+                            .Name("listViewSub_#=TaskId#")
+                            .TagName("div")
+                            .ClientTemplateId("template_Sub")
+                            .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .Read(read => read.Action("ReadSubTaskData", "ProjectTask", new { @area = "PJM" }))
+                            //.PageSize(21)
+                            )
+                            .HtmlAttributes(new { @Class = "listViewDoc" })
+                            .ToClientTemplate()
+
+                    )*@
+                @(Html.Kendo().TreeView()
+                    .Name("listViewSub_#=TaskId#")
+                    .TemplateId("template_Sub")
+                    .AutoBind(true)
+                    //.Events(e=>e.Select("OnSelect"))
+                    .DataTextField("Name")
+                    .DataSource(dataSource => dataSource
+                    .Read(read => read
+                    .Action("ReadSubTaskViewData", "ProjectTask", new { taskId = "#=TaskId#", @area = "PJM" }).Data("filterSub"))
+                    )
+                    .HtmlAttributes(new { @Class = "listViewDoc" })
+                    .ToClientTemplate()
+                )
+            </div>
+        </div>
+
+    </div>
+</script>
+
+
+
+<div class="row hr-pad-top-10">
+    @*<div class="col-md-6">
+            <h4>
+                Project Task By Status
+            </h4>
+        </div>*@
+</div>
+
+<div id="ProjectFilter">
+
+</div>
+
+<div class="row" style="text-align:center;margin-left:15px;margin-top:20px;">
+    <div class="col-md-3" style="margin-top:25px">
+        <div class="row" style="">
+            <div class="col-md-4">
+                <h3> @Model.TaskCount</h3>
+                @*<h3>@Html.DisplayFor(x => x.TaskLeftCount)</h3>*@
+            </div>
+            <div class="col-md-4">
+                <h3> @Model.CompletedCount</h3>
+                @*<h3>@Html.DisplayFor(x => x.TaskCompletedCount)</h3>*@
+            </div>
+            <div class="col-md-4">
+                <h3> @Model.DayLeft</h3>
+                @*<h3>@Html.DisplayFor(x => x.DaysLeftCount)</h3>*@
+            </div>
+        </div>
+        <div class="row" style="">
+            <div class="col-md-4">
+                @Resource["TasksLeft"]
+            </div>
+            <div class="col-md-4" onclick="OnViewS('Completed')">
+                @SharedResource["Complete"]
+            </div>
+            <div class="col-md-4">
+                @Resource["DaysLeft"]
+            </div>
+            @*<div class="col-md-4" onclick="OnViewS('InProgress')">
+                    InProgress
+                </div>
+                <div class="col-md-4" onclick="OnViewS('Draft')">
+                    Draft
+                </div>
+                <div class="col-md-4" onclick="OnViewS('Overdue')">
+                    OverDue
+                </div>*@
+        </div>
+        <div>
+            @*@(Html.Kendo().ProgressBar()
+                                .Name("fastAndFurious")
+                                .Type(ProgressBarType.Percent)
+                                .Animation(a => a.Duration(800))
+                               // .Value(Model.TaskCompletedPercentage)
+                )*@
+        </div>
+        <br /><br />
+
+        <div class="card" sstyle="border-radius:6px;border-color:grey">
+            <div class="row product">@SharedResource["Assignee"]</div>
+            @(Html.Kendo().ListView<TeamWorkloadViewModel>()
+                                .Name("sharelistView1")//.Events(x=>x.Change("onChange"))
+                                .TagName("div")//.Selectable(ListViewSelectionMode.Multiple)
+                                .ClientTemplateId("template").Scrollable(ListViewScrollableMode.Endless)
+                                                             //.DataSource(dataSource =>
+                                                             //{
+                                                             //    dataSource.Read(read => read.Action("ReadProjectTaskAssignedData", "Project", new { projectId = Model.Id }));
+                                                             //    dataSource.ServerOperation(false);
+                                                             //})
+                      .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .Read(read => read.Action("ReadProjectTaskAssignedData", "ProjectTask", new { @area = "PJM", projectId = Model.Id }))
+                    ).HtmlAttributes(new { style = "height:350px;" })
+                      )
+        </div>
+        <script type="text/x-kendo-tmpl" id="template">
+
+
+            <div class="row product">
+
+
+            <div class="col-2">
+             #if(PhotoId != null)
+                           {#
+                           <img class="drp-user-photo1" title="#:data.UserName#" width="60" height="50" src="/cms/Document/GetImageMongo?id=#=PhotoId#" onerror="OnPhotoError(this)" style='text-align: center;'>
+                           #}
+                           else {#
+             <img class="drp-user-photo1" title="#:data.UserName#" width="60" height="50"  src='/images/profile.jpg' style='text-align: center;'>
+              #}#</div>
+            <div class="col-6">
+
+            <div class="row"> <span style="margin-left:30px;font-size:14px;color:gray;"> #:UserName#  </span></div>
+            <div class="row">
+                          <span style="margin-left:30px"> #:UserTaskCount# @Html.Raw(SharedResource["Task"]) </span></div>
+            </div>
+                       </div>
+        </script>
+
+        <br /><br />
+
+        <div class="card" sstyle="border-radius:6px;border-color:grey">
+            <div class="row product">@SharedResource["Owner"]</div>
+            @(Html.Kendo().ListView<TeamWorkloadViewModel>()
+                                .Name("sharelistView")//.Events(x=>x.Change("onChange"))
+                                //.Scrollable(ListViewScrollableMode.Endless)
+                                .TagName("div")//.Selectable(ListViewSelectionMode.Multiple)
+                                .ClientTemplateId("template_owner")
+
+                      //.DataSource(dataSource =>
+                      //{
+                      //    dataSource.Read(read => read.Action("ReadProjectTaskAssignedData", "Project", new { projectId = Model.Id }));
+                      //    dataSource.ServerOperation(false);
+                      //})
+                      .DataSource(dataSource => dataSource
+                            .Ajax().PageSize(5)
+                            .Read(read => read.Action("ReadProjectTaskOwnerData", "ProjectTask", new { @area = "PJM", projectId = Model.Id }))
+                    )
+                      )
+        </div>
+        <script type="text/x-kendo-tmpl" id="template_owner">
+
+
+            <div class="row product">
+
+
+            <div class="col-2">
+             #if(PhotoId != null)
+                           {#
+                           <img class="drp-user-photo1" title="#:data.UserName#" width="60" height="50" onerror="OnPhotoError(this)" src="/cms/Document/GetImageMongo?id=#=PhotoId#" style='text-align: center;'>
+                           #}
+                           else {#
+             <img class="drp-user-photo1" title="#:data.UserName#" width="60" height="50"  src='/images/profile.jpg' style='text-align: center;'>
+              #}#</div>
+            <div class="col-6">
+
+            <div class="row"> <span style="margin-left:30px;font-size:14px;color:gray;"> #:UserName#  </span></div>
+            <div class="row">
+                          <span style="margin-left:30px"> #:UserTaskCount# @Html.Raw(SharedResource["Task"]) </span></div>
+            </div>
+                       </div>
+        </script>
+    </div>
+
+
+    <div class="col-md-9">
+        <div class="row-12" style="">
+            <button style="float:left" id="left" class="scrollbtn"><i class="fas fa-chevron-left"></i></button>
+            <button style="float:right" id="right" class="scrollbtn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <br />
+
+
+        @(Html.Kendo().ListView<TeamWorkloadViewModel>()
+                                .Name("listView")
+                                .TagName("div")
+                                .ClientTemplateId("template_Doc")
+                                .DataSource(dataSource => dataSource
+                                .Ajax()
+                                .Read(read => read.Action("ReadProjectTaskData", "ProjectTask", new { @area = "PJM" ,projectId=Model.Id}).Data("filter"))
+                                .PageSize(21)
+                                )
+                                .HtmlAttributes(new { @Class = "board", @id = "board", @style = "height:650px;" })
+                                //.Events(events => events.DataBound("OnDataBoundDoc"))
+
+                      )
+
+    <script id="template_Doc" type="text/kendo-ui-template">
+            @*<div style="margin-left:10px;float:left;padding:5px;">
+                <div class="card" style="min-height:50px!important;width:270px;background-color:darkgrey;">
+                    <div class="row" style="display:flex;padding:5px;">
+
+                        <div class="col-xs-12" style="margin-top: 11px;padding-left:5px;">
+                            <span style="font-size: 20px;font-weight: 600;color:white;">#=TaskName#</span>
+                        </div>
+                    </div>
+                </div>*@
+
+     <div style="margin-left:10px;float:left;padding:5px;" >
+      <div class="card text-center" style="margin-top:#:data.Level#px;min-height:30px!important;width:270px;background-color:silver; display:inline-flex;cursor:pointer;" onclick="OnService('#=id#')">
+       <div class="row">
+            <div class="col-md-12">
+                <span style="font-size: 20px;font-weight: 600;color:black;top:10px">#=StageName#</span>
+    </div>
+         <div class="col-md-12">
+                <span style="font-size:15px;font-weight: 400;color:white;top:10px">#=ProjectOwnerName#</span>
+    </div>
+            </div>
+    </div>
+
+    <div>
+                    @(Html.Kendo().ListView<TeamWorkloadViewModel>()
+                            .Name("listView_#=id#")
+                            .TagName("div")
+                            .ClientTemplateId("template_Doc1")
+                            .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .Read(read => read.Action("ReadProjectTaskView", "ProjectTask", new { Id = "#=id#", @area= "PJM" }).Data("filter"))
+                            .PageSize(21)
+                            )
+                            .HtmlAttributes(new { @Class = "listViewDoc" })
+                            .ToClientTemplate()
+
+                    )
+
+                </div>
+            #if('@ViewBag.UserId' == ProjectOwnerId || '@ViewBag.UserId'== RequestedByUserId){#
+              <div class="row" style="margin-top:0px">
+                    <div class="col-md-12">
+                        <div class="panel-footer" style="width:270px;background-color:black;  top:10px;">
+                            <span style="font-weight:500;color:white;cursor:pointer;float:left" onclick="OnTask('#=id#')"><i class="fas fa-plus"></i> @Html.Raw(SharedResource["AddTask"])</span>
+                            <span style="font-weight:500;color:white;cursor:pointer;margin-left:60px" onclick="OnStage('#=id#')"><i class="fas fa-plus"></i> @Html.Raw(SharedResource["AddStage"])</span>
+                        </div>
+                    </div>
+                </div>
+            #}#
+
+            </div>
+
+    </script>
+
+
+    </div>
+</div>
+
+<div id="divmenu">
+    @(Html.Kendo().Menu()
+                .Name("menu")
+                .Orientation(MenuOrientation.Vertical)
+                .Events(e => e.Select("OnMenuClick"))
+                .HtmlAttributes(new { @class = "dropdown-menu", @style="width:120px;color:black;" })
+                .Items(items =>
+                {
+                items.Add().Text("Open").HtmlAttributes(new { @id = "Open" });
+                items.Add().Text("Create Sub Task").HtmlAttributes(new { @id = "SubTask" });
+
+                })
+        )
+</div>
+
+
+
+

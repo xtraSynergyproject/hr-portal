@@ -1,0 +1,287 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+
+@{
+    ViewData["Title"] = "ManageBatch";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model LOVViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 80px;
+        width: 80px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 65%;
+        float: left;
+    }
+</style>
+
+<div class="row" style="margin-left:15px;">
+
+    <form asp-controller="LOV" asp-action="Manage" method="post" class="form-horizontal" id="myForm">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="List Of Value Type">List Of Value Type</label>
+                    </div>
+                    @*@(Html.Kendo().DropDownListFor(x=>x.LOVType)
+                .DataTextField("Name")
+                             .DataValueField("Code")
+                             .Filter(FilterType.Contains)
+                               .DataSource(source =>
+                               {
+                                   source.Read(read =>
+                                   {
+                                       read.Action("GetListOfValueList", "LOV", new { Type = "LOV_TYPE" });
+                                   });
+                               })
+                  // .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                  .HtmlAttributes(new { @class = "form-control", @style = "width:80%"})
+                 )*@
+
+                    <input asp-for="LOVType" id="LOVType" class="form-control" style="width:80%" />
+
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Enter Name" autocomplete="off" style="width:80%" />
+                    <label for="Name">Name</label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Code" type="text" class="form-control" placeholder="Enter Name" autocomplete="off" style="width:80%" />
+                    <label for="Code">Code</label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="GroupCode" type="text" class="form-control" placeholder="Enter Name" autocomplete="off" style="width:80%" />
+                    <label for="GroupCode">Group Code</label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="col-3" style="padding:0px;">
+                    <label for="Description">Description</label>
+                </div>
+                <div class="col-12" style="padding:0px;">
+
+                    <textarea asp-for="Description" placeholder="Description" rows="3" class="form-control" style="width:80%"></textarea>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="Parent">Parent</label>
+                    </div>
+                    @*@(Html.Kendo().DropDownListFor(x=>x.ParentId)
+                .DataTextField("Name")
+                             .DataValueField("Id")
+                             .Filter(FilterType.Contains)
+                               .DataSource(source =>
+                               {
+                                   source.Read(read =>
+                                   {
+                                   read.Action("GetAllListOfValue", "LOV");
+                               });
+                  })
+                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                  .HtmlAttributes(new { @class = "form-control", @style = "width:80%"})
+                 )*@
+
+                    <input asp-for="ParentId" id="ParentId" class="form-control" style="width:80%" />
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="IconCss" type="text" class="form-control" placeholder="Enter Icon Css" autocomplete="off" style="width:80%" />
+                    <label for="IconCss">Icon Css</label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="SequenceOrder" type="number" class="form-control" placeholder="Enter Sequence Order" autocomplete="off" style="width:80%" />
+                    <label for="SequenceOrder">Sequence Order</label>
+                </div>
+            </div>
+            <div class="row" style="padding:10px;">
+
+                <div class="col-12 pad-10">
+                    <div class="col-10">Logo</div>
+                    <div class="col-10 pad-10" style="min-height:120px;">
+                        <div class="style-image">
+                            @if (Model.ImageId != null)
+                            {
+                                <img class="style-mylogoimage" src="/cms/Document/GetImageMongo?id=@Model.ImageId" onerror='OnPhotoError(this);' />
+                            }
+                            else
+                            {
+                                <img class="style-mylogoimage" style="background-color:gray;" src="/images/200.png" />
+                            }
+
+                        </div>&nbsp;&nbsp;
+                        <div class="style-upload">
+                            @(Html.Kendo().Upload().Multiple(false)
+                        .Name("file")
+                        .Async(a => a
+                        .Save("SaveFile", "Document", new { @Area = "Cms" })
+                        //.Remove("")
+                        .AutoUpload(true)
+                        )
+                        .Events(e => e.Success("onFileUploadSuccessLogo")
+                        )
+                            .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" })
+                            //.MaxFileSize(2097152)
+                            )
+                            .HtmlAttributes(new { @class = "hr-large" })
+                    )
+                            &nbsp;&nbsp; <button type="button" class="btn btn-light" title="Delete logo" onclick="onLogoDel();"><i class='fa fas fa-trash'></i></button>
+                        </div>
+
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="col-12 pad-10">
+                <label for="Status">Status</label>
+                <div class="col-12 pad-15">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.Status)
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .DataSource(source =>
+                {
+                source.Read(read =>
+                {
+                    read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "StatusEnum" });
+                });
+                })
+                .Value(Model.Status.ToString())
+                .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+                )*@
+
+                    <input asp-for="Status" id="Status" class="form-control" style="width:80%" />
+                </div>
+            </div>
+
+            <div class="col-12 pad-10"></div>
+            <div class="col-12 pad-10"></div>
+            <div class="col-12 pad-10"></div>
+        </div>
+
+
+        <div class="cms-slidebar-footer">
+            <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">Close</button>
+            <input type="submit" class="btn btn-primary" style="margin-right:20px" value="Save" id="submitBtn" />
+        </div>
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.ImageId)
+    </form>
+</div>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+            closeNavMemberGroup();
+            window.parent.getLOVData();
+           // window.parent.$("#ListOfValuegrid").data("kendoGrid").dataSource.read();
+        }
+
+        $("#LOVType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Code",
+           // optionLabel:"--Select--",
+            value: '@Model.LOVType',
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?Type=LOV_TYPE",
+                    }
+                }
+            }
+        });
+
+        $("#ParentId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+           optionLabel:"@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.ParentId',
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetAllListOfValue",
+                    }
+                }
+            }
+        });
+
+        $("#Status").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.Status.ToString()',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StatusEnum",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function closeNavMemberGroup() {
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function onFileUploadSuccessLogo(e) {
+        
+        if (e.response.success) {
+            $(".style-mylogoimage").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+            $("#ImageId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    function onLogoDel() {
+        $(".style-mylogoimage").attr("src", "/images/200.png");
+        $("#ImageId").val('');
+        var logoupload = $("#file").data("kendoUpload");
+        logoupload.clearFile(function (file) { return true; });
+    }
+</script>

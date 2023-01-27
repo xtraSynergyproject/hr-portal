@@ -1,0 +1,138 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@inject IUserContext _userContext;
+
+@{
+    ViewData["Title"] = "Citizen Asset List";
+    Layout = null;
+}
+
+<style>
+    .divDim {
+        width: 100%;
+        height: 100%;
+        min-height: calc(100vh - 6.5rem);
+        margin: auto;
+    }
+</style>
+
+<script>
+    $(function () {
+        var url = "/EGov/SmartCity/GetUserDoorToDoorGarbageCollectionData";
+        getGarbageCollectionDetails(url);
+
+        //$("#WardId").kendoDropDownList({
+        //    dataTextField: "Name",
+        //    dataValueField: "Id",
+        //    filter: "contains",
+        //    optionLabel: 'Select Ward No',
+        //    dataSource: {
+        //        transport: {
+        //            read: {
+        //                url: "/EGov/SmartCity/GetWardList",
+        //            }
+        //        }
+        //    }
+        //});
+
+        $("#CollectionDate").kendoDatePicker({
+            format: "yyyy/MM/dd",
+            value: "YYYY-MM-DD",
+        });
+
+    });
+
+    var columnDefs = [
+        {
+            field: "ParcelId",
+            headerName: "Parcel Id",
+            minWidth: 150,
+        },
+        {
+            field: "WardNo",
+            headerName: "Ward No",
+            minWidth: 150,
+        },
+        {
+            field: "CollectedByUserName",
+            headerName: "Collected By User",
+            minWidth: 150,
+        },
+        {
+            field: "AutoNumber",
+            headerName: "Auto No",
+            minWidth: 150,
+        },
+        {
+            field: "CollectionDateTime",
+            headerName: "Collection Date",
+            minWidth: 150,
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        }
+    ];
+
+    function getGarbageCollectionDetails(url) {
+        document.getElementById("garbageGrid").innerHTML = "";
+        gridConfig(
+            "garbageGrid",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function FilterResults(flag) {
+        var newUrl = "";
+        if (flag) {
+            debugger;
+            
+            var dateVal2 = kendo.toString($("#CollectionDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+            /*var dateVal = $("#CollectionDate").data("kendoDatePicker").value();*/
+            newUrl = "/EGov/SmartCity/GetUserDoorToDoorGarbageCollectionData?collectionDate=" + dateVal2;
+        }
+        else {
+            newUrl = "/EGov/SmartCity/GetUserDoorToDoorGarbageCollectionData";
+        }
+        getGarbageCollectionDetails(newUrl);
+    }
+
+</script>
+
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="row no-gutters p-2">
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <h5>Garbage Collection Details</h5>
+                </div>
+            </div>
+            <div class="row pad-20">
+                
+                <div class="col-lg-3 col-md-3 col-sm-12 p-1">
+                    <label for="AppointmentDate" class="form-label">
+                        Appointment Date
+                    </label>
+                    <div>
+                        <input id="CollectionDate" style="width:100%" required />
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-12 p-1">
+                    <button class="btn btn-primary mx-1" onclick="FilterResults(true)"><i class="fa fa-search" aria-hidden="true"></i></button>
+                    <button class="btn btn-secondary" onclick="FilterResults(false)"><i class="fa-solid fa-filter-circle-xmark"></i></button>
+                </div>
+            </div>
+
+            <div id="garbageGrid" style="width: 100%;height:350px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>

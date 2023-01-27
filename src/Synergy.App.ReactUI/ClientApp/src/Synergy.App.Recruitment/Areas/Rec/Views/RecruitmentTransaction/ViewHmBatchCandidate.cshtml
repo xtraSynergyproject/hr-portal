@@ -1,0 +1,233 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Manage List Of Value";
+    Layout = "/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model RecApplicationViewModel
+
+<style>
+    .k-grid td, .k-grid th {
+        font-size: 14px !important;
+    }
+
+    .tb-bg {
+        /*background-color:cadetblue;*/
+        background-color: #17a2b8 !important;
+        color: #fff;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .tb-bg1 {
+        /*background-color: cornflowerblue;*/
+        background-color: #ffc107 !important;
+        color: #000;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .tb-bg2 {
+        /* background-color: darkcyan;*/
+        background-color: #17a2b8 !important;
+        color: #fff;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .k-footer-template {
+        background-color: #DAEDFF
+    }
+
+    .k-grid-header .k-header, .k-grid-header thead, .k-grid-header .k-hierarchy-cell {
+        background-color: #527ab8;
+    }
+
+     .k-grid-header thead a {
+            color: #fff !important;
+    }
+</style>
+
+<script type="text/javascript">
+
+    function back() {
+        var url = "/recruitment/jobadvertisement/jobadvertisement";
+        LoadPartailView(url, $('#cms-content'));
+    }
+
+    $(document).ready(function () {
+        GetBatchCandidatesList(url, colDef);
+    });
+    
+
+    //Grid
+    var columnDefs = [
+        { field: "JobName", headerName: "Position", width: 150, pinned: 'left' },
+        { field: "OrganizationName", headerName: "Organization", width: 150, pinned: 'left' },
+        { field: "BatchName", headerName: "Batch", width: 150, pinned: 'left' },
+        { field: "ApplicationNo", headerName: "Application No", width: 150, pinned: 'left' },
+        { field: "ApplicationStateCode", headerName: "Application State", width: 150, pinned: 'left' },
+        { field: "ApplicationStatusCode", headerName: "Application Status", width: 150, pinned: 'left' }, 
+        { field: "FirstName", headerName: "First Name", width: 150, pinned: 'left' },
+        { field: "MiddleName", headerName: "Middle Name", minWidth: 150 },
+        { field: "LastName", headerName: "Last Name", minWidth: 150 },
+        { field: "Email", headerName: "Email", minWidth: 150 },
+        { field: "TotalWorkExperience", headerName: "Total Work Experience", minWidth: 150 },
+        { field: "SourceFrom", headerName: "Source From", minWidth: 150 },        
+        { field: "ContactPhoneHome", headerName: "Mobile", minWidth: 150 },
+        { field: "ContactPhoneLocal", headerName: "Contact Phone Local", minWidth: 150 },
+        { field: "Score", headerName: "Score", minWidth: 150 },
+        { field: "Gender", headerName: "Gender", minWidth: 150 },
+        {
+            field: "BirthDate",
+            headerName: "Birth Date", minWidth: 150,
+            cellRenderer: (data) => {                
+                if (data.value != null && data.value != "") {
+                    var d = new Date(data.value);
+                    return d.getDate() + "." + d.getMonth() + "." + d.getFullYear();
+                }
+            }
+        },
+        { field: "Age", headerName: "Age", minWidth: 150 },
+        { field: "BirthPlace", headerName: "Birth Place", minWidth: 150 },
+        { field: "Nationality", headerName: "Nationality", minWidth: 150 },
+        { field: "BloodGroup", headerName: "Blood Group", minWidth: 150 },
+        { field: "MaritalStatus", headerName: "Marital Status", minWidth: 150 },
+        { field: "PassportNumber", headerName: "Passport Number", minWidth: 150 },
+        { field: "PassportIssueCountry", headerName: "Passport Issue Country", minWidth: 150 },
+        { field: "PassportExpiryDate", headerName: "Passport Expiry Date", minWidth: 150 },
+        { field: "CurrentAddressHouse", headerName: "Current Address House", minWidth: 150 },
+        { field: "CurrentAddressStreet", headerName: "Current Address Street", minWidth: 150 },
+        { field: "CurrentAddressCity", headerName: "Current Address City", minWidth: 150 },
+        { field: "CurrentAddressState", headerName: "Current Address State", minWidth: 150 },
+        { field: "CurrentAddressCountryName", headerName: "Current Address Country", minWidth: 150 },
+        { field: "PermanentAddressHouse", headerName: "Permanent Address House", minWidth: 150 },
+        { field: "PermanentAddressStreet", headerName: "Permanent Address Street", minWidth: 150 },
+        { field: "PermanentAddressCity", headerName: "Permanent Address City", minWidth: 150 },
+        { field: "PermanentAddressState", headerName: "Permanent Address State", minWidth: 150 },
+        { field: "PermanentAddressCountryName", headerName: "Permanent Address Country", minWidth: 150 },
+
+        { field: "CurrentEmployer", headerName: "Current Employer", minWidth: 150 },
+        { field: "CurrentEmploymentLocation", headerName: "Current Employment Location", minWidth: 150 },
+        { field: "CurrentEmploymentPosition", headerName: "Current Employment Position", minWidth: 150 },
+        { field: "CurrentEmploymentStartDate", headerName: "Current Employment StartDate", minWidth: 150 },
+        { field: "CurrentEmploymentEndDate", headerName: "Current Employment EndDate", minWidth: 150 },
+        { field: "CurrentEmploymentResponsibilities", headerName: "Current Employment Responsibilities", minWidth: 150 },
+        
+        { field: "NetSalaryCurrency", headerName: "Salary Currency Name", minWidth: 150 },
+        { field: "NetSalary", headerName: "Net Salary", minWidth: 150 },
+        { field: "OtherAllowances", headerName: "Other Allowances", minWidth: 150 },
+
+    ];
+
+    function GetBatchCandidatesList() {
+        document.getElementById("kgrdCandInterview").innerHTML = "";
+
+        gridConfig(
+            "kgrdCandInterview",
+            "/Rec/RecruitmentTransaction/ReadWorkerPoolBatchData?batchid=@ViewBag.BatchId,type=@ViewBag.Type",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+</script>
+
+<div class="row-12" style="margin-left:15px;">
+
+    <div class="col-sm-12 col-md-12 col-lg-12" style="padding:10px;">
+
+        <div id="kgrdCandInterview" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+        @*@(Html.Kendo().Grid<ApplicationViewModel>
+    ().Name("kgrdCandInterview")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.JobName).Title("Position").HeaderHtmlAttributes(new { title = "Position" }).Width(120).Locked(true).Lockable(false);
+        columns.Bound(p => p.OrganizationName).Title("Organization").HeaderHtmlAttributes(new { title = "Organization" }).Width(120).Locked(true).Lockable(false);
+        columns.Bound(p => p.BatchName).Title("Batch").HeaderHtmlAttributes(new { title = "Batch" }).Width(150).Locked(true).Lockable(false);
+        columns.Bound(p => p.ApplicationNo).Title("Application No").HeaderHtmlAttributes(new { title = "Application No" }).Width(120).Locked(true).Lockable(false);
+        columns.Bound(c => c.ApplicationStateCode).Title("Application State").HeaderHtmlAttributes(new { title = "Application State" }).Width(120).Locked(true).Lockable(false);
+        columns.Bound(c => c.ApplicationStatusCode).Title("Application Status").HeaderHtmlAttributes(new { title = "Application Status" }).Width(120).Locked(true).Lockable(false);
+        columns.Bound(p => p.FirstName).Title("First Name").HeaderHtmlAttributes(new { title = "First Name" }).Width(150).Locked(true).Lockable(false);
+        columns.Bound(p => p.MiddleName).Title("Middle Name").HeaderHtmlAttributes(new { title = "Middle Name" }).Width(150);
+        columns.Bound(p => p.LastName).Title("Last Name").HeaderHtmlAttributes(new { title = "Last Name" }).Width(150);
+        columns.Bound(p => p.Email).HeaderHtmlAttributes(new { title = "Email" }).Width(150);
+        columns.Bound(p => p.TotalWorkExperience).HeaderHtmlAttributes(new { title = "Total Work Experience" }).Width(200);
+        columns.Bound(p => p.SourceFrom).HeaderHtmlAttributes(new { title = "Source From" }).Width(200);
+        //columns.Bound(p => p.TotalOtherExperience).Width(200);
+        //columns.Bound(p => p.TotalIndianExperience).Width(200);
+        columns.Bound(p => p.ContactPhoneHome).HeaderHtmlAttributes(new { title = "Contact Phone Home" }).Title("Mobile").Width(150);
+        columns.Bound(p => p.ContactPhoneLocal).HeaderHtmlAttributes(new { title = "Contact Phone Local" }).Width(200);
+        columns.Bound(p => p.Score).HeaderHtmlAttributes(new { title = "Score" }).Width(150);
+        columns.Bound(p => p.Gender).HeaderHtmlAttributes(new { title = "Gender" }).Width(150);
+        columns.Bound(p => p.BirthDate).HeaderHtmlAttributes(new { title = "Birth Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+        columns.Bound(p => p.Age).HeaderHtmlAttributes(new { title = "Age" }).Width(150);
+        columns.Bound(p => p.BirthPlace).HeaderHtmlAttributes(new { title = "Birth Place" }).Width(150);
+        columns.Bound(p => p.Nationality).HeaderHtmlAttributes(new { title = "Nationality" }).Width(200);
+        columns.Bound(p => p.BloodGroup).HeaderHtmlAttributes(new { title = "Blood Group" }).Width(200);
+        columns.Bound(p => p.MaritalStatus).HeaderHtmlAttributes(new { title = "Marital Status" }).Width(180);
+        columns.Bound(p => p.PassportNumber).HeaderHtmlAttributes(new { title = "Passport Number" }).Width(180);
+        columns.Bound(p => p.PassportIssueCountry).HeaderHtmlAttributes(new { title = "Passport Issue Country" }).Width(250);
+        columns.Bound(p => p.PassportExpiryDate).HeaderHtmlAttributes(new { title = "Passport Expiry Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+        columns.Bound(p => p.QatarId).HeaderHtmlAttributes(new { title = "QatarId" }).Width(150);
+        columns.Bound(p => p.CurrentAddressHouse).HeaderHtmlAttributes(new { title = "Current Address House" }).Width(250);
+        columns.Bound(p => p.CurrentAddressStreet).HeaderHtmlAttributes(new { title = "Current Address Street" }).Width(250);
+        columns.Bound(p => p.CurrentAddressCity).HeaderHtmlAttributes(new { title = "Current Address City" }).Width(250);
+        columns.Bound(p => p.CurrentAddressState).HeaderHtmlAttributes(new { title = "Current Address State" }).Width(250);
+        columns.Bound(p => p.CurrentAddressCountryName).HeaderHtmlAttributes(new { title = "Current Address Country Name" }).Width(200);
+        columns.Bound(p => p.PermanentAddressHouse).HeaderHtmlAttributes(new { title = "Permanent Address House" }).Width(200);
+        columns.Bound(p => p.PermanentAddressStreet).HeaderHtmlAttributes(new { title = "Permanent Address Street" }).Width(200);
+        columns.Bound(p => p.PermanentAddressCity).HeaderHtmlAttributes(new { title = "Permanent Address City" }).Width(200);
+        columns.Bound(p => p.PermanentAddressState).HeaderHtmlAttributes(new { title = "Permanent Address State" }).Width(200);
+        columns.Bound(p => p.PermanentAddressCountryName).HeaderHtmlAttributes(new { title = "Permanent Address Country Name" }).Width(200);
+        columns.Bound(p => p.CurrentEmployer).HeaderHtmlAttributes(new { title = "CurrentEmployer" }).Width(200);
+        columns.Bound(p => p.CurrentEmploymentLocation).HeaderHtmlAttributes(new { title = "Current Employment Location" }).Width(200);
+        columns.Bound(p => p.CurrentEmploymentPosition).HeaderHtmlAttributes(new { title = "Current Employment Position" }).Width(200);
+        columns.Bound(p => p.CurrentEmploymentStartDate).HeaderHtmlAttributes(new { title = "Current Employment StartDate" }).Width(200);
+        columns.Bound(p => p.CurrentEmploymentEndDate).HeaderHtmlAttributes(new { title = "Current Employment EndDate" }).Width(200);
+        columns.Bound(p => p.CurrentEmploymentResponsibilities).HeaderHtmlAttributes(new { title = "Current Employment Responsibilities" }).Width(200);
+        columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary" }).Width(150);
+        columns.Bound(p => p.NetSalaryCurrency).HeaderHtmlAttributes(new { title = "Net Salary Currency" }).Width(150);
+        //columns.Bound(p => p.CurrentSalary).HeaderHtmlAttributes(new { title = "Current Salary" }).Width(150);
+        //columns.Bound(p => p.SalaryAfterIncomeTax).HeaderHtmlAttributes(new { title = "Salary After Income Tax" }).Width(150);
+        columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(150);
+
+    })
+    //.ToolBar(toolbar =>
+    //{
+    //    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateMenuGroup();'><i class='fa fas fa-plus'></i>&nbsp;Create Menu Group</button>");
+    //})
+    // .Events(e => e.DataBound("OnGridDataBound"))
+
+    .Scrollable().Height(700)
+    .Sortable()
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+     .Resizable(resize => resize.Columns(true))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    //.AutoBind(false)
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("ReadWorkerPoolBatchData", "CandidateShortlist",new { @area="Recruitment", batchid=ViewBag.BatchId,type =ViewBag.Type}))
+    .Model(model => model.Id(p => p.Id))
+    )
+    )*@
+
+    </div>
+</div>

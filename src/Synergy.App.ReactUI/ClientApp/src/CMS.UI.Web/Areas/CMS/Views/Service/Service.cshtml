@@ -1,0 +1,177 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Template";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model ServiceViewModel
+<script type='text/javascript'>
+    var builder;
+    var templateId;
+    window.onload = function () {
+
+
+        $.ajax({
+            type: "GET",
+            url: "/Cms/Template/GetTemplateJsonForm?templateId=1",
+            success: function (response) {
+
+                if (response != "" && response != null) {
+                    var obj = JSON.parse(response);
+
+                    //builder = new Formio.FormBuilder(document.getElementById("builder"), obj);
+                    Formio.createForm(document.getElementById('formio'), obj).then(function (form) {
+                        // Defaults are provided as follows.
+
+                        // Register for the submit event to get the completed submission.
+                        form.on('submit', function (submission) {
+                            function OnSave(submission.data);
+                            //alert(JSON.stringify(submission.data));
+
+                        });
+
+                        // Everytime the form changes, this will fire.
+                        //form.on('change', function (changed) {
+                        //    console.log('Form was changed', changed);
+                        //});
+                    });
+                }
+
+
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });
+
+    }
+
+
+
+    function OnSave(data) {
+      
+        //
+        //return;
+        var Jsondata = [];
+       
+          // // Page data
+        var page = {};
+        page.Subject = $("#pagetitle").val(); //document.getElementById('page-name').innerText;//$("#page-name")[0].innerText;
+        page.Description = $("#generatelbl").html();
+      
+        page.Css = $("#PageCss").val();
+      
+        page.PortalId = document.getElementById('page-name').parentNode.parentNode.getAttribute('data-portal-id');
+     
+        page.PageContentType = "Page";
+        page.IconColor = $("#IconColor").val();
+        page.SequenceOrder = $("#SequenceOrder").val();
+        page.IconCss = $("#IconCss").val();
+        page.MenuName = $("#MenuName").val();//document.getElementById('page-name').parentNode.parentNode.getAttribute('data-menu-name');
+        page.HideInMenu = IsHidden.check();//document.getElementById('page-name').parentNode.parentNode.getAttribute('data-hide-menu');
+        page.IsRootPage = IsRootPage.check();//document.getElementById('page-name').parentNode.parentNode.getAttribute('data-is-root');
+        page.PageStatus = Status;
+        page.Groups = [];
+        page.Columns = [];
+        page.Cells = [];
+        page.Components = [];
+        page.JsonForm = JSON.stringify(builder.instance.schema, null, 4);
+        Jsondata.push(page);
+        //var pageContents = document.getElementById('groups');
+        //if (pageContents != undefined) {
+        //    var childelements = pageContents.children;
+        //      // // Group data
+        //    if (childelements.length > 0) {
+        //        for (var i = 0; i < childelements.length; i++) {
+        //            var obj = {};
+        //            var id = childelements[i].id;
+        //            obj.Id = id;
+        //            obj.Title = childelements[i].children[0].children[0].innerText;// $("#grp-name-" + id).html();
+        //            obj.SequenceOrder = childelements[i].getAttribute("data-sequence");
+        //            obj.ParentId = childelements[i].getAttribute('data-parent-id');
+        //            obj.DataAction = childelements[i].getAttribute("data-mode");
+        //            obj.PageContentType = childelements[i].getAttribute("data-page-content-type");
+        //            obj.PageRowType = childelements[i].getAttribute("data-type");
+        //            obj.PageId = childelements[i].getAttribute("data-page-id");
+        //            obj.CssClass = childelements[i].getAttribute("data-css-class");
+        //            Jsondata[0].Groups.push(obj);
+        //              // // Column data
+        //            var columns = childelements[i].getElementsByClassName('cms-components')[0].children;
+        //            for (var j = 0; j < columns.length; j++) {
+        //                var groupname = columns[j].getAttribute('data-page-content-type');
+        //                var col = {};
+        //                col.PageContentType = groupname;
+        //                col.ParentId = columns[j].getAttribute('data-parent-id');
+        //                col.PageId = columns[j].getAttribute('data-page-id');
+        //                col.SequenceOrder = columns[j].getAttribute('data-sequence');
+        //                col.DataAction = columns[j].getAttribute('data-mode');
+        //                col.Id = columns[j].getAttribute('id');
+        //                col.CssClass = columns[j].getAttribute("data-css-class");
+        //                Jsondata[0].Columns.push(col);
+
+        //                var components = columns[j].children;
+        //                // // Cell data
+        //                for (var k = 0; k < components.length; k++) {
+        //                    if (components[k].getAttribute("id") != null && components[k].getAttribute("id") != "" && components[k].getAttribute("id") != undefined)
+        //                    {
+        //                        var cell = {};
+        //                        cell.PageContentType = components[k].getAttribute("data-page-content-type");
+        //                        cell.Id = components[k].getAttribute("id");
+        //                        cell.PageId = components[k].getAttribute('data-page-id');
+        //                        cell.ParentId = columns[j].getAttribute('id');
+        //                        var mode = components[k].getAttribute('data-mode');
+        //                        cell.CssClass = components[k].getAttribute("data-css-class");
+        //                        cell.DataAction = mode;
+        //                        cell.SequenceOrder = components[k].getAttribute('data-sequence');
+        //                        cell.Title = components[k].children[0].innerText;
+        //                        Jsondata[0].Cells.push(cell);
+        //                        // Components data
+        //                        var obj1 = {};
+        //                        //obj1.Title = components[k].children[0].innerText;
+        //                        var textarea = components[k].children[1].getElementsByTagName('textarea');
+        //                        obj1.DataAction = textarea[0].getAttribute('data-mode');
+        //                        obj1.Id = textarea[0].id;
+        //                        obj1.PageContentType = textarea[0].getAttribute("data-page-content-type");
+        //                        obj1.ComponentType = textarea[0].getAttribute('data-component-type');
+        //                        obj1.PageId = textarea[0].getAttribute('data-page-id');
+        //                        obj1.CssClass = textarea[0].getAttribute("data-css-class");
+        //                        obj1.SequenceOrder = textarea[0].getAttribute('data-sequence');
+        //                        if (obj1.ComponentType == "RichText") {
+        //                            var editor = $("#" + obj1.Id).data("kendoEditor");
+        //                            console.log(editor.value());
+        //                            obj1.Content = editor.value();
+        //                        }
+        //                        obj1.ParentId = cell.Id;
+        //                        Jsondata[0].Components.push(obj1);
+        //                    }
+        //                }
+        //            }
+        //            console.log(JSON.stringify(Jsondata));
+        //        }
+        //    }
+        //}
+        if (IsRootPage.check()) {
+            kendo.confirm("You choose to mark this page as root, other root page will then be removed as root page.Please Confirm?").then(function () {
+                SaveData(Jsondata, Statetype);
+            }, function () {
+
+            });
+        }
+        else
+        {
+            SaveData(Jsondata, Statetype);
+        }
+      
+        return false;
+    }
+</script>
+<div style="width:98%;">
+
+
+    <div class="row" style="padding-left:30px;">
+        <div id="formio" style="width:98%;"></div>
+    </div>
+  
+</div>

@@ -1,0 +1,261 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+    Layout = "/Areas/Cms/Views/Shared/_LayoutConfig.cshtml";
+}
+@using CMS.UI.ViewModel;
+
+<style>
+    .left {
+        min-width: 200px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 100vh !important;
+        width: 100%;
+    }
+</style>
+
+
+<div class="splitter-container">
+    <div class="left pad-l-t-15">
+        <h5>Settings</h5>
+        @*@(Html.Kendo().TreeView()
+        .Name("treeview").HtmlAttributes( new {@class="treeview"})
+        .Events(e=>e.Select("OnSelect"))
+        .DataTextField("Name")
+        .TemplateId("treeview-template")
+        .DataSource(dataSource => dataSource
+            .Read(read => read
+                .Action("GetBusinessRuleTreeList", "BusinessRule")
+            )
+        )
+    )*@
+
+        <script id="treeview-template" type="text/kendo-ui-template">
+            #: item.Name #
+
+            <span data-id="#:item.id#" data-type="#:item.ItemType#" class="tree-menu"><i class="fa fa-ellipsis-h"></i></span>
+
+        </script>
+
+    </div>
+    <div class="right pad-l-t-15">
+       
+    </div>
+</div>
+
+
+
+<script>
+    // $('.splitter-container').SplitterBar();
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+    function ReloadTab() {
+
+         
+    }
+    function SetTabControls(index, select) {
+        var tabStrip = $("#tabstrip").data("kendoTabStrip");
+        if (select) {
+            tabStrip.select(index);
+        }
+    }
+    function onTabSelect1(e) {
+        SetTabControls($(e.item).index(), false);
+    }
+    function OnSelect(e) {
+        e.preventDefault();
+
+        //var data = $("#treeview").data("kendoTreeView").dataItem(e.node);
+
+
+        //if (data.ItemType == "BusinessRule") {
+
+        //    var tabStrip1 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+        //    $(".k-link:contains('BUSINESS RULE INPUT DATA')").data('contentUrl', '/businessrule/BusinessRuleInputData?ruleId=' + data.id);
+        //    tabStrip1.reload("li:eq(0)");
+
+        //    var tabStrip2 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+        //    $(".k-link:contains('BUSINESS RULE MASTER DATA')").data('contentUrl', '/businessrule/BusinessRuleMasterData?ruleId=' + data.id);
+        //    tabStrip2.reload("li:eq(1)");
+
+        //    var tabStrip3 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+        //    $(".k-link:contains('BUSINESS RULE FLOW')").data('contentUrl', '/businessRuleDiagram/businessFlowDiagram?ruleId=' + data.id);
+        //    tabStrip3.reload("li:eq(2)");
+
+
+        //}
+    }
+    function OpenIframeModal(url, title) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: title, Width: 700, Height: 350 });
+        return false;
+    }
+    //$(function () {
+    //    $.contextMenu({
+    //        selector: '.tree-menu',
+    //        trigger: 'left',
+
+    //        items: {
+    //            "edit": {
+    //                name: "Edit", icon: "cut", callback: function (itemKey, opt, e) {
+    //                    console.log($(this).data('id'));
+    //                }
+    //            },
+    //            "cut": { name: "Cut", icon: "cut" },
+    //            "copy": { name: "Copy", icon: "copy" },
+    //            "paste": { name: "Paste", icon: "paste" },
+    //            "delete": { name: "Delete", icon: "delete" },
+    //            "sep1": "---------",
+    //            "quit": { name: "Quit" }
+    //        }
+    //    });
+    //});
+
+
+    $(function () {
+        $.contextMenu({
+            selector: '.tree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var parentId = $trigger.data('id');
+                var parentType = $trigger.data('type');
+                var selectParentId = $trigger.data('parentId');
+
+                switch (parentType) {
+                    case 'Root':
+                        return {
+
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                        OpenIframeModal('/BusinessRule/CreateBusinessArea?parentId=' + parentId, 'Create Business Area');
+
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "add": { name: "Add Business Area", icon: "fas fa-chart-area" },
+
+                            }
+                        };
+                    case 'BusinessArea':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OpenIframeModal('/BusinessRule/CreateBusinessArea?parentId=' + selectParentId + "&id=" + parentId, 'Edit Business Area');
+                                        break;
+                                    case 'addSec':
+                                        OpenIframeModal('/BusinessRule/CreateBusinessSection?parentId=' + parentId, 'Create Business Section');
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "edit": { name: "Edit Business Area", icon: "fas fa-chart-area" },
+                                "addSec": { name: "Add Business Section", icon: "fas fa-album-collection" },
+
+                            }
+                        };
+                    case 'BusinessSection':
+                        return {
+
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OpenIframeModal('/BusinessRule/CreateBusinessSection?parentId=' + selectParentId + "&id=" + parentId, 'Edit Business Section');
+                                        break;
+                                    case 'addGroup':
+                                        OpenIframeModal('/BusinessRule/CreateBusinessRuleGroup?parentId=' + parentId, 'Create Business Rule Group');
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "edit": { name: "Edit Business Section", icon: "fas fa-album-collection" },
+                                "addGroup": { name: "Add Business Group", icon: "fas fa-ball-pile" },
+
+                            }
+                        };
+                    case 'BusinessRuleGroup':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OpenIframeModal('/BusinessRule/CreateBusinessRuleGroup?parentId=' + selectParentId + "&id=" + parentId, 'Edit Business Rule Group');
+                                        break;
+                                    case 'addRule':
+                                        OpenIframeModal('/BusinessRule/CreateBusinessRule?parentId=' + parentId, 'Create Business Rule');
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "edit": { name: "Edit Business Group", icon: "fas fa-ball-pile" },
+                                "addRule": { name: "Add Business Rule", icon: "fas fa-pencil-ruler" },
+
+                            }
+                        };
+                    case 'BusinessRule':
+                        return {
+                            callback: function (key, options) {
+
+                                switch (key) {
+                                    case 'edit':
+                                        OpenIframeModal('/BusinessRule/CreateBusinessRule?parentId=' + selectParentId + "&id=" + parentId, 'Edit Business Rule');
+                                        break;
+                                    case 'open':
+                                        var tabStrip1 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+                                        $(".k-link:contains('BUSINESS RULE INPUT DATA')").data('contentUrl', '/businessrule/BusinessRuleInputData?ruleId=' + parentId);
+                                        tabStrip1.reload("li:eq(0)");
+
+                                        var tabStrip2 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+                                        $(".k-link:contains('BUSINESS RULE MASTER DATA')").data('contentUrl', '/businessrule/BusinessRuleMasterData?ruleId=' + parentId);
+                                        tabStrip2.reload("li:eq(1)");
+
+                                        var tabStrip3 = $("#tabstrip").kendoTabStrip().data("kendoTabStrip");
+                                        $(".k-link:contains('BUSINESS RULE FLOW')").data('contentUrl', '/businessRuleDiagram/businessFlowDiagram?ruleId=' + parentId);
+                                        tabStrip3.reload("li:eq(2)");
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "edit": { name: "Edit Business Rule", icon: "fas fa-pencil-ruler" },
+                                "open": { name: "Open Business Rule", icon: "fas fa-pencil-ruler" },
+
+                            }
+                        };
+                    default:
+                        return {
+                            callback: function (key, options) {
+                                alert(parentId);
+                                alert(parentType);
+                            },
+                            items: {
+
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+
+</script>
+

@@ -1,0 +1,141 @@
+﻿@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using CMS.Common;
+@using Kendo.Mvc.UI
+@{
+    ViewBag.Title = "All Applications List";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+@inject CMS.Common.IUserContext _userContext
+
+@{
+    var usercontext = _userContext;
+}
+
+<style>
+    .btn-group, .btn-group-vertical {
+        position: inherit !important;
+    }
+
+</style>
+<script>
+    function OnApplication(Id, appId) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("PrintableView", "CandidateProfile", new { @area = "Recruitment" })?candidateProfileId=' + Id + '&applicationId=' + appId;
+        win.OpenWindow({ Title: 'Candidate Profile Details', Width: 1000, Height: 1000 });
+        return false;
+    }
+
+    function OnViewAppStateTrack(Id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("ApplicationStateTrack", "RecruitmentDashboard", new { @area = "Recruitment" })?applicationId=' + Id;
+        win.OpenWindow({ Title: 'Application Status Track', Width: 1200, Height: 1000 });
+        return false;
+    }
+
+    function OnDeleteApplication(Id) {
+        kendo.confirm('Do you really want to delete the application?').done(function () {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteApplication", "RecruitmentDashboard", new { @area="Recruitment"})?appId=' + Id,
+
+                success: function (data) {
+                    if (data.success) {
+                        ShowNotification("Application Deleted Successfully", "success");
+                        $("#kgrdCandInterview").data("kendoGrid").dataSource.read();
+                    }
+                    else {
+                        ShowNotification(data.error, "error");
+                    }
+                },
+
+            });
+        })
+
+
+
+    }
+
+
+</script>
+
+<div class="row-12 table-responsive d-block mt-2">
+    
+        @(Html.Kendo().Grid<ApplicationViewModel>
+                        ().Name("kgrdCandInterview").Resizable(resize => resize.Columns(true))
+                        .Columns(columns =>
+                        {
+                            columns.Bound(c => c.CandidateProfileId).ClientTemplate("<div class='btn-group'><button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown' >Actions</button><ul class='dropdown-menu' role='menu'><li>" +
+           "<li><button class='btn btn-info' onclick='OnApplication(\"#=CandidateProfileId#\",\"#:ApplicationId#\");'><i class='far fa-address-card'></i>&nbsp;View</button></li><br/><li><button class='btn btn-info' onclick='OnViewAppStateTrack(\"#:ApplicationId#\")'>Application Status Report</button></li><br/><li><button class='btn btn-info' onclick='OnDeleteApplication(\"#:ApplicationId#\")'>Delete Application</button></li><br/>" +
+           "</ul></div>").Width(150).Title("Actions").HeaderHtmlAttributes(new { title = "Actions" }).Locked(true).Lockable(false);
+
+                            //columns.Bound(c => c.ApplicationId).ClientTemplate("<button class='btn btn-info' onclick='OnViewAppStateTrack(\"#:ApplicationId#\")'>Application State Report</button>").Title("Application State Report").Width(180).Locked(true).Lockable(false);
+
+                            columns.Bound(p => p.ApplicationNo).HeaderHtmlAttributes(new { title = "Application No" }).Width(120).Locked(true).Lockable(false);
+                            columns.Bound(p => p.ApplicationStateName).HeaderHtmlAttributes(new { title = "Application State Name" }).Title("Application State").Width(120).Locked(true).Lockable(false);
+                            columns.Bound(p => p.PositionName).HeaderHtmlAttributes(new { title = "Position Name" }).Title("Position Name").Width(120).Locked(true).Lockable(false);
+                            columns.Bound(p => p.OrganizationName).HeaderHtmlAttributes(new { title = "Organization Name" }).Title("Organization Name").Width(120).Locked(true).Lockable(false);
+                            columns.Bound(p => p.BatchName).HeaderHtmlAttributes(new { title = "Batch" }).Title("Batch").Width(120).Locked(true).Lockable(false);
+                            columns.Bound(p => p.FirstName).HeaderHtmlAttributes(new { title = "First Name" }).Title("First Name").Width(150).Locked(true).Lockable(false);
+                            columns.Bound(p => p.MiddleName).HeaderHtmlAttributes(new { title = "Middle Name" }).Title("Middle Name").Width(150);
+                            columns.Bound(p => p.LastName).HeaderHtmlAttributes(new { title = "Last Name" }).Title("Last Name").Width(150);
+                            columns.Bound(p => p.Email).HeaderHtmlAttributes(new { title = "Email" }).Width(150);
+                            columns.Bound(p => p.ApplicationStatus).HeaderHtmlAttributes(new { title = "Application Status" }).Title("Status").Width(150);
+
+                            columns.Bound(p => p.TotalWorkExperience).HeaderHtmlAttributes(new { title = "Total Work Experience" }).Width(150);
+                            columns.Bound(p => p.ContactPhoneHome).HeaderHtmlAttributes(new { title = "Contact Phone Home" }).Title("Mobile").Width(150);
+                            columns.Bound(p => p.Score).HeaderHtmlAttributes(new { title = "Score" }).Width(150);
+                            columns.Bound(p => p.Gender).HeaderHtmlAttributes(new { title = "Gender" }).Width(150);
+                            columns.Bound(p => p.BirthDate).HeaderHtmlAttributes(new { title = "Birth Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+                            columns.Bound(p => p.Age).HeaderHtmlAttributes(new { title = "Age" }).Width(150);
+                            columns.Bound(p => p.BirthPlace).HeaderHtmlAttributes(new { title = "Birth Place" }).Width(150);
+                            columns.Bound(p => p.Nationality).HeaderHtmlAttributes(new { title = "Nationality" }).Width(150);
+                            columns.Bound(p => p.BloodGroup).HeaderHtmlAttributes(new { title = "Blood Group" }).Width(150);
+                            columns.Bound(p => p.MaritalStatusName).HeaderHtmlAttributes(new { title = "Marital Status Name" }).Title("Marital Status").Width(150);
+                            columns.Bound(p => p.PassportNumber).HeaderHtmlAttributes(new { title = "Passport Number" }).Width(150);
+                            columns.Bound(p => p.PassportIssueCountry).HeaderHtmlAttributes(new { title = "Passport Issue Country" }).Width(150);
+                            columns.Bound(p => p.PassportExpiryDate).HeaderHtmlAttributes(new { title = "Passport Expiry Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+                            columns.Bound(p => p.QatarId).HeaderHtmlAttributes(new { title = "Qatar Id" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressHouse).HeaderHtmlAttributes(new { title = "Current Address House" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressStreet).HeaderHtmlAttributes(new { title = "Current Address Street" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressCity).HeaderHtmlAttributes(new { title = "Current Address City" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressState).HeaderHtmlAttributes(new { title = "Current Address State" }).Width(150);
+                            columns.Bound(p => p.CurrentAddressCountryName).HeaderHtmlAttributes(new { title = "Current Address Country Name" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressHouse).HeaderHtmlAttributes(new { title = "Permanent Address House" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressStreet).HeaderHtmlAttributes(new { title = "Permanent Address Street" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressCity).HeaderHtmlAttributes(new { title = "Permanent Address City" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressState).HeaderHtmlAttributes(new { title = "Permanent Address State" }).Width(150);
+                            columns.Bound(p => p.PermanentAddressCountryName).HeaderHtmlAttributes(new { title = "Permanent Address Country Name" }).Width(150);
+
+                            columns.Bound(p => p.ContactPhoneLocal).HeaderHtmlAttributes(new { title = "Contact Phone Local" }).Width(150);
+
+                            columns.Bound(p => p.SalaryCurrencyName).HeaderHtmlAttributes(new { title = "Salary Currency Name" }).Title("Salary Currency").Width(150);
+
+                            columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary After Income Tax" }).Title("Net Salary After Income Tax").Width(150);
+                            columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(150);
+
+                        })
+                        //.Events(e => e.DataBound("OnDataBound"))
+                        .Scrollable().Height(700)
+                        .Sortable().Resizable(resize => resize.Columns(true))
+                        .Selectable(select => select.Enabled(false))
+                        .Filterable(f => f.Extra(false)
+                                          .Operators(o => o.ForString(s => s.Clear()
+                                          .Contains("Contains")
+                                          .IsEqualTo("Is equal to")
+                                          )))
+                        .Pageable(pageable => pageable
+                        .Refresh(true)
+                        .PageSizes(true)
+                        .ButtonCount(5))
+                        .AutoBind(true)
+                        .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(10)
+                        .Read(read => read.Action("ReadTotalJobAdvertisementData", "RecruitmentDashboard"))
+                        .Model(model => model.Id(p => p.Id))
+                        )
+          )
+
+</div>

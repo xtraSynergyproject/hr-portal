@@ -1,0 +1,1011 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceDashboardController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model PerformanceDashboardViewModel;
+
+@{
+    ViewBag.Title = "Project Dashboard";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        debugger
+        getPerformanceDataDash();
+        HideLoader($("#global-overlay"));
+
+        $("#mdlTaskStatus").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            autoBind: true,
+            autoClose: false,
+            change: onChangeTaskStatus,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_TASK_STATUS" })",
+                    }
+                }
+            }
+        });
+
+        $("#mdlTaskAssigned").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            autoBind: true,
+            autoClose: false,
+            change: onChangeTaskAssigned,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetPerformanceUserIdNameList", "Performance", new { area = "Pms", performanceId = Model.Id })",
+                    }
+                }
+            }
+        });
+
+         $("#mdlTaskStagesType").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            autoBind: true,
+            autoClose: false,
+            change: onChangeTaskStagesType,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetEnumIdNameList", "Home", new { area = "", enumType = "PerformanceStageEnum" })",
+                    }
+                }
+            }
+         });
+
+         $("#mdlTaskStages").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            autoBind: true,
+            autoClose: false,
+            change: onChangeTaskStages,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetPerformanceObjectiveIdNameList", "Performance", new { area = "Pms", performanceId = Model.Id })",
+                    }
+                }
+            }
+         });
+     });
+
+    function GOWBS() {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/Index?ProjectId=@Model.Id&pageName=WorkBreakDownStructure", 'cms-content');
+        AddBreadCrumb({ Text: 'Work BreakDown Structure', Name: 'WorkBreakDownStructure', Url: '/pms/PerformanceTask/Index?ProjectId=@Model.Id&pageName=WorkBreakDownStructure', PageType: 'Custom', LoadType: 'PartialView', IsNotClickable: false, IsClickDisabled: true }, true, 'Performance Dashboard');
+
+    }
+
+    function GotoTask() {
+
+
+
+    }
+
+    function OnProjectChange(id) {
+
+    }
+
+    function AddTask() {
+
+    }
+
+    function onTaskSeriesClick(e) {
+
+
+        var selectvalue = e.dataItem.Id;
+        var multiselect = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var mdlvalue = multiselect.value();
+        var newvalue = new Array();
+        newvalue = mdlvalue;
+        var addflag = true;
+        if (newvalue.length > 0) {
+            var i = 0;
+            for (i = 0; i < newvalue.length;i++) {
+                if (newvalue[i] == selectvalue) {
+                    addflag = false;
+                }
+            }
+            if (addflag) {
+                newvalue.push(selectvalue);
+            }
+        } else {
+            newvalue.push(selectvalue);
+        }
+        multiselect.value(newvalue);
+
+        var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        var stagevalue = multiselectTaskStages.value();
+        var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+        var stagetypevalue = multiselectTaskStagesType.value();
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var search = {
+            statusIds: newvalue,
+            performanceIds: stagevalue,
+            recieverids: assignedvalue,
+            type: stagetypevalue
+        };
+        //$("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        var newurl = "/Pms/Performance/ReadPerformanceTaskGridViewData?performanceId=" + '@Model.Id' + "&statusIds=" + statusvalue + "&projectIds=" + newvalue + "&recieverids=" + assignedvalue + "&type=" + stagetypevalue+"&stageId=@ViewBag.StageId&userId=@ViewBag.PerformanceUserId";
+        debugger
+        getPerformanceDataDash(newurl);
+
+
+    }
+
+    function onTaskAssignedSeriesClick(e) {
+
+
+        var selectvalue = e.dataItem.Id;
+        var multiselect = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        var mdlvalue = multiselect.value();
+        var newvalue = new Array();
+        newvalue = mdlvalue;
+        var addflag = true;
+        if (newvalue.length > 0) {
+            var i = 0;
+            for (i = 0; i < newvalue.length; i++) {
+                if (newvalue[i] == selectvalue) {
+                    addflag = false;
+                }
+            }
+            if (addflag) {
+                newvalue.push(selectvalue);
+            }
+        } else {
+            newvalue.push(selectvalue);
+        }
+        multiselect.value(newvalue);
+
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        var stagevalue = multiselectTaskStages.value();
+        var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+        var stagetypevalue = multiselectTaskStagesType.value();
+        var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var search = {
+            statusIds: statusvalue,
+            performanceIds: stagevalue,
+            recieverids: newvalue,
+            type: stagetypevalue
+        };
+        //$("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        var newurl = "/Pms/Performance/ReadPerformanceTaskGridViewData?performanceId=" + '@Model.Id' + "&statusIds=" + statusvalue + "&projectIds=" + newvalue + "&recieverids=" + assignedvalue + "&type=" + stagetypevalue+"&stageId=@ViewBag.StageId&userId=@ViewBag.PerformanceUserId";
+        debugger
+        getPerformanceDataDash(newurl);
+
+
+    }
+    function onTaskStagesSeriesClick(e) {
+
+
+        var selectvalue = e.dataItem.Id;
+        var multiselect = $("#mdlTaskStages").data("kendoMultiSelect");
+        var mdlvalue = multiselect.value();
+        var newvalue = new Array();
+        newvalue = mdlvalue;
+        var addflag = true;
+        if (newvalue.length > 0) {
+            var i = 0;
+            for (i = 0; i < newvalue.length; i++) {
+                if (newvalue[i] == selectvalue) {
+                    addflag = false;
+                }
+            }
+            if (addflag) {
+                newvalue.push(selectvalue);
+            }
+        } else {
+            newvalue.push(selectvalue);
+        }
+        multiselect.value(newvalue);
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+        var stagetypevalue = multiselectTaskStagesType.value();
+
+
+        var search = {
+            performanceId: '@Model.Id',
+            performanceIds: newvalue,
+            statusIds: statusvalue,
+            recieverids: assignedvalue,
+        };
+        //$("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        var newurl = "/Pms/Performance/ReadPerformanceTaskGridViewData?performanceId=" + '@Model.Id' + "&performanceIds=" + stagetypevalue + "&projectIds=" + newvalue + "&recieverids=" + assignedvalue+"&stageId=@ViewBag.StageId&userId=@ViewBag.PerformanceUserId";
+        debugger
+        getPerformanceDataDash(newurl);
+
+
+    }
+    function onChangeTaskStatus() {
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        var stagevalue = multiselectTaskStages.value();
+        var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+        var stagetypevalue = multiselectTaskStagesType.value();
+        var search = {
+            performanceId: '@Model.Id',
+            performanceIds: stagevalue,
+            statusIds: statusvalue,
+            recieverids: assignedvalue,
+            type: stagetypevalue
+        };
+        //$("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        var newurl = "/Pms/Performance/ReadPerformanceTaskGridViewData?performanceId=" + '@Model.Id' + "&statusIds=" + statusvalue + "&projectIds=" + stagevalue + "&recieverids=" + assignedvalue + "&type=" + stagetypevalue+"&stageId=@ViewBag.StageId&userId=@ViewBag.PerformanceUserId";
+        debugger
+        getPerformanceDataDash(newurl);
+
+
+    }
+    function onChangeTaskAssigned() {
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        var stagevalue = multiselectTaskStages.value();
+        var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+        var stagetypevalue = multiselectTaskStagesType.value();
+        var search = {
+            performanceId: '@Model.Id',
+            performanceIds: stagevalue,
+            statusIds: statusvalue,
+            recieverids: assignedvalue,
+            type: stagetypevalue
+        };
+        //$("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        var newurl = "/Pms/Performance/ReadPerformanceTaskGridViewData?performanceId=" + '@Model.Id' + "&statusIds=" + statusvalue + "&projectIds=" + stagevalue + "&recieverids=" + assignedvalue + "&type=" + stagetypevalue+"&stageId=@ViewBag.StageId&userId=@ViewBag.PerformanceUserId";
+        debugger
+        getPerformanceDataDash(newurl);
+
+    }
+    function onChangeTaskStages1() {
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        var stagevalue = multiselectTaskStages.value();
+        var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+        var stagetypevalue = multiselectTaskStagesType.value();
+        var search = {
+            performanceId: '@Model.Id',
+            performanceIds: stagevalue,
+            statusIds: statusvalue,
+            recieverids: assignedvalue,
+            type: stagetypevalue
+        };
+       // $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        var newurl = "/Pms/Performance/ReadPerformanceTaskGridViewData?performanceId=" + '@Model.Id' + "&statusIds=" + statusvalue + "&projectIds=" + stagevalue + "&recieverids=" + assignedvalue + "&type=" + stagetypevalue+"&stageId=@ViewBag.StageId&userId=@ViewBag.PerformanceUserId";
+        debugger
+        getPerformanceDataDash(newurl);
+
+    }
+        function onChangeTaskStagesType() {
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        var statusvalue = multiselectTaskStatus.value();
+        var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        var assignedvalue = multiselectTaskAssigned.value();
+        var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        var stagevalue = multiselectTaskStages.value();
+        var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+            var stagetypevalue = multiselectTaskStagesType.value();
+            //alert(stagetypevalue);
+        var search = {
+            performanceId: '@Model.Id',
+            performanceIds: stagevalue,
+            statusIds: statusvalue,
+            recieverids: assignedvalue,
+            type: stagetypevalue
+        };
+       // $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+            var newurl = "/Pms/Performance/ReadPerformanceTaskGridViewData?performanceId=" + '@Model.Id' + "&statusIds=" + statusvalue + "&projectIds=" + stagevalue + "&recieverids=" + assignedvalue + "&type=" + stagetypevalue+"&stageId=@ViewBag.StageId&userId=@ViewBag.PerformanceUserId";
+debugger
+            getPerformanceDataDash(newurl);
+
+    }
+    function OnDataBound(arg) {
+
+        //document.getElementById('projectFiles').style.border = 'none';
+        //var data = $("#projectFiles").data("kendoListView").dataSource.data();
+        //var data1 = $("#ProjectTask12").data("kendoListView").dataSource.data();
+        //if (data.length == 0) {
+        //    $('#no-data-file').show();
+        //} else {
+        //    $('#no-data-file').hide();
+        //}
+        //if (data1.length == 0) {
+        //    $('#no-data-notifi').show();
+        //} else {
+        //    $('#no-data-notifi').hide();
+        //}
+    }
+
+    function OnTaskAssChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-taskchart').show();
+
+        } else {
+            $('#no-data-taskchart').hide();
+        }
+    }
+    function OnCompetencyChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-Competencychart').show();
+
+        } else {
+            $('#no-data-Competencychart').hide();
+        }
+    }
+    function OnDevelopmentChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-Developmentchart').show();
+
+        } else {
+            $('#no-data-Developmentchart').hide();
+        }
+    }
+    function OnTaskStatusChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-chart').show();
+
+        } else {
+            $('#no-data-chart').hide();
+        }
+    }
+
+    function OnTaskTimeChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-timechart').show();
+
+        } else {
+            $('#no-data-timechart').hide();
+        }
+    }
+    function OnProjectStageChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-stagechart').show();
+
+        } else {
+            $('#no-data-stagechart').hide();
+        }
+    }
+    function onFilterReset() {
+        var newvalue = new Array();
+        var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        multiselectTaskStatus.value(newvalue);
+        var multiselectTaskAssigned = $("#mdlTaskAssigned").data("kendoMultiSelect");
+        multiselectTaskAssigned.value(newvalue);
+        var multiselectTaskStages = $("#mdlTaskStages").data("kendoMultiSelect");
+        multiselectTaskStages.value(newvalue);
+        var multiselectTaskStagesType = $("#mdlTaskStagesType").data("kendoMultiSelect");
+       multiselectTaskStagesType.value(newvalue);
+        var search = {
+            performanceId: '@Model.Id',
+        };
+        debugger
+       // $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        getPerformanceDataDash();
+
+    }
+
+    function onView(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View Task', Width: 600, Height: 600 });
+        return false;
+    }
+     function OpenTask(taskId, templateCode) {
+
+        var portalId = $('#GlobalPortalId').val();
+         //var url = '/Cms/Page?lo=Popup&pageType=Task&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + taskId;
+         var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + taskId;
+        // var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_GOAL_ADHOC_TASK&portalId=' + portalId + '&recordId=' + Id;
+        //var url = '/Cms/Page?lo=Popup&pageType=Task&source=Versioning&dataAction=Edit&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + taskId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["ViewTask"])', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+</script>
+<script>
+    var columnDefs1 = [
+        {
+             field: "Id",
+            headerName: "View",
+            cellRenderer: params =>
+            {
+                return "<span class='fas fa-eye' onclick='OpenTask(\"" + params.data.Id + "\",\"" + params.data.TemplateCode + "\")'></span>";
+            }
+        },
+        {
+            field: "ServiceStage",
+            headerName: "@Resource["Objectives"]"
+        },
+        {
+            field: "Title",
+             headerName: "@Resource["TaskName"]"
+        },
+
+        {
+            field: "UserName",
+             headerName: "@SharedResource["UserName"]",
+
+        },
+        {
+            field: "Priority",
+             headerName: "@SharedResource["Priority"]",
+
+        },
+        {
+            field: "NtsStatus",
+             headerName: "@SharedResource["TaskStatus"]",
+
+        },
+        {
+            field: "Start",
+             headerName: "@SharedResource["StartDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            field: "End",
+ headerName: "@SharedResource["EndDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+    ];
+
+
+
+    function getPerformanceDataDash(urlnew) {
+        debugger
+           var url = "";
+        if (urlnew != "" && urlnew != null) {
+            url = urlnew;
+        } else {
+            url = "/Pms/Performance/ReadPerformanceTaskGridViewData?performanceId=@Model.Id&stageId=@ViewBag.StageId&userId=@ViewBag.PerformanceUserId";
+
+        }
+        document.getElementById("kgdProjectGridViewDash").innerHTML = "";
+        gridConfig(
+            "kgdProjectGridViewDash",
+            url,
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+<div class="row hr-pad-top-10">
+    <div class="col-md-6">
+        <h4>
+        </h4>
+    </div>
+</div>
+@if (Model.ProjectList != null && Model.ProjectList.Count() > 0)
+{
+
+    <div id="appWrapper" class="hr-pad-top-15">
+        @*@if (Model.TemplateUserType == NtsUserTypeEnum.Owner)
+            {
+                <div class="row no-gutter btn-group btn-group-sm" role="group" style="margin:5px;margin-left:10px;">
+                    <button type="button" onclick="GOWBS();" class="btn btn-sm btn-primary">
+                        <i class="fad fa-network-wired"></i>&nbsp;&nbsp;Go To WorkBreakdown Structure
+                    </button>
+                </div>
+            }*@
+        @*<div class="row no-gutter btn-group btn-group-sm" role="group" style="width:100%;margin:5px;">
+                <button type="button" class="btn btn-success col-sm-2">Performance Progress&nbsp;<b>@Model.ProgressPercentage%</b></button>
+                <button type="button" onclick="GotoTask();" class="btn btn-success col-sm-2">View All Tasks&nbsp;<b>@Model.TaskCount</b></button>
+                <button type="button" class="btn btn-success col-sm-2">Time Entry&nbsp;<b>@Model.TaskTimeEntryHours</b></button>
+                <button type="button" class="btn btn-success col-sm-2">Activities&nbsp;<b>@Model.ActivityCount</b></button>
+                <button type="button" class="btn btn-success col-sm-2">Performance Estimate&nbsp;<b>@Model.ProjectEstimatedHours</b></button>
+                <button type="button" class="btn btn-success col-sm-2">Task Estimate&nbsp;<b>@Model.TaskEstimatedHours</b></button>
+            </div>*@
+
+
+        <div class="row">
+            <div class="col-sm-4">
+
+                <div class="panel panel-success">
+                    <div class="panel-heading">@Resource["Goals"]</div>
+                    <div class="panel-body">
+                        @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                                            .Name("chartGoalServiceByStatus")
+                                            .Legend(legend => legend
+                                                .Position(ChartLegendPosition.Bottom)
+                                            )
+                                            .DataSource(ds => ds
+                                            .Read(read => read.Action("GetPerformanceServiceChartByStatus", "Performance", new { @area = "Pms", projectId = Model.Id, servicetype = "PMS_GOAL",stageId= ViewBag.StageId,userId = ViewBag.PerformanceUserId }))
+                                            )
+                                            .SeriesColors(new string[] { "#ff9800", "#fad84a", "#4caf50", "#03a9f4" })
+                                            .Series(series =>
+                                            {
+                                                series.Donut(model => model.Value, model => model.Type)
+                                                .Labels(labels => labels
+                                                    .Visible(true)
+                                                    .Position(ChartPieLabelsPosition.Center)
+
+                                                    .Background("transparent")
+
+                                                );
+
+                                            }).HtmlAttributes(new { @style = "height:300px;" })
+                                            .Tooltip(tooltip => tooltip
+                                                .Visible(true)
+                                            // .Template("#= category # - #= kendo.format('{0:P}', percentage) #")
+                                            )
+                                            .Events(events=>events
+                                                // .SeriesClick("onTaskSeriesClick")
+                                                .DataBound("OnTaskStatusChartDataBound")
+                                                )
+                        )
+                        <div id="no-data-chart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>No Data Found</span></div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="panel panel-info">
+                    <div class="panel-heading">Competencies</div>
+                    <div class="panel-body">
+                        @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                                            .Name("chartCompetancyServiceByStatus")
+                                            .Legend(legend => legend
+                                                .Position(ChartLegendPosition.Bottom)
+                                            )
+                                            .DataSource(ds => ds
+                                            .Read(read => read.Action("GetPerformanceServiceChartByStatus", "Performance", new { @area = "Pms", projectId = Model.Id, servicetype = "PMS_COMPENTENCY", stageId = ViewBag.StageId, userId = ViewBag.PerformanceUserId }))
+                                            )
+                                            .SeriesColors(new string[] { "#ff9800", "#fad84a", "#4caf50", "#03a9f4" })
+                                            .Series(series =>
+                                            {
+                                                series.Donut(model => model.Value, model => model.Type)
+                                                .Labels(labels => labels
+                                                    .Visible(true)
+                                                    .Position(ChartPieLabelsPosition.Center)
+
+                                                    .Background("transparent")
+
+                                                );
+
+                                            }).HtmlAttributes(new { @style = "height:300px;" })
+                                            .Tooltip(tooltip => tooltip
+                                                .Visible(true)
+                                            // .Template("#= category # - #= kendo.format('{0:P}', percentage) #")
+                                            )
+                                            .Events(events=>events
+                                                //.SeriesClick("onTaskSeriesClick")
+                                                .DataBound("OnCompetencyChartDataBound")
+                                                )
+                        )
+                        <div id="no-data-Competencychart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>No Data Found</span></div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="panel panel-warning">
+                    <div class="panel-heading"> @Resource["Development"]</div>
+                    <div class="panel-body">
+                        @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                                            .Name("chartDevelopmentServiceByStatus")
+                                            .Legend(legend => legend
+                                                .Position(ChartLegendPosition.Bottom)
+                                            )
+                                            .DataSource(ds => ds
+                                            .Read(read => read.Action("GetPerformanceServiceChartByStatus", "Performance", new { @area = "Pms", projectId = Model.Id, servicetype = "PMS_DEVELOPMENT", stageId = ViewBag.StageId, userId = ViewBag.PerformanceUserId }))
+                                            )
+                                            .SeriesColors(new string[] { "#ff9800", "#fad84a", "#4caf50", "#03a9f4" })
+                                            .Series(series =>
+                                            {
+                                                series.Donut(model => model.Value, model => model.Type)
+                                                .Labels(labels => labels
+                                                    .Visible(true)
+                                                    .Position(ChartPieLabelsPosition.Center)
+
+                                                    .Background("transparent")
+
+                                                );
+
+                                            }).HtmlAttributes(new { @style = "height:300px;" })
+                                            .Tooltip(tooltip => tooltip
+                                                .Visible(true)
+                                            // .Template("#= category # - #= kendo.format('{0:P}', percentage) #")
+                                            )
+                                            .Events(events=>events
+                                                //.SeriesClick("onTaskSeriesClick")
+                                                .DataBound("OnDevelopmentChartDataBound")
+                                                )
+                        )
+                        <div id="no-data-Developmentchart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>No Data Found</span></div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">@SharedResource["TasksByStatus"]</div>
+                    <div class="panel-body">
+                        @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                                            .Name("chartTaskByStatus")
+                                            .Legend(legend => legend
+                                                .Position(ChartLegendPosition.Bottom)
+                                            )
+                                            .DataSource(ds => ds
+                                            .Read(read => read.Action("GetPerformanceTaskChartByStatus", "Performance", new { @area = "Pms", projectId = Model.Id, stageId = ViewBag.StageId, userId = ViewBag.PerformanceUserId }))
+                                            )
+                                            .SeriesColors(new string[] { "#ff9800", "#fad84a", "#4caf50", "#03a9f4" })
+                                            .Series(series =>
+                                            {
+                                                series.Donut(model => model.Value, model => model.Type)
+                                                .Labels(labels => labels
+                                                    .Visible(true)
+                                                    .Position(ChartPieLabelsPosition.Center)
+
+                                                    .Background("transparent")
+
+                                                );
+
+                                            }).HtmlAttributes(new { @style = "height:300px;" })
+                                            .Tooltip(tooltip => tooltip
+                                                .Visible(true)
+                                            // .Template("#= category # - #= kendo.format('{0:P}', percentage) #")
+                                            )
+                                            .Events(events=>events
+                                                .SeriesClick("onTaskSeriesClick")
+                                                .DataBound("OnProjectStageChartDataBound")
+                                                )
+                        )
+                        <div id="no-data-stagechart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>No Data Found</span></div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="panel panel-info">
+                    <div class="panel-heading">@SharedResource["TasksAssigned"]</div>
+                    <div class="panel-body">
+                        @(Html.Kendo().Chart<ProjectDashboardChartViewModel>()
+                              .Name("chartTaskByType")
+                              .Legend(legend => legend
+                              .Position(ChartLegendPosition.Bottom)
+                              )
+                              .DataSource(ds => ds
+                              .Read(read => read.Action("GetPerformanceTaskChartByType", "Performance", new { @area = "Pms", performanceId = Model.Id, stageId = ViewBag.StageId, userId = ViewBag.PerformanceUserId }))
+
+                              )
+                              .SeriesColors(new string[] { "#03a9f4", "#ff9800", "#fad84a", "#4caf50" })
+                              .Series(series =>
+                              {
+                                  series.Pie(model => model.Value, model => model.Type)
+                                  .Labels(labels => labels
+                                  .Visible(true)
+                                  .Position(ChartPieLabelsPosition.Center)
+                                  .Background("transparent"));
+                              }).HtmlAttributes(new { @style = "height:300px;" })
+                               .Tooltip(tooltip => tooltip
+                               .Visible(true)
+                               .Template("#= category # - #= kendo.format('{0:P}', percentage) #"))
+                               .Events(e => e
+                               .SeriesClick("onTaskAssignedSeriesClick")
+                               .DataBound("OnTaskAssChartDataBound"))
+                        )
+                        <div id="no-data-taskchart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>No Data Found</span></div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*@(Html.Kendo().ListView<NotificationViewModel>()
+               .Name("ProjectTask12")
+               .TagName("div")
+               .AutoBind(true)
+               .ClientTemplateId("listTemplateUpComing2")
+               //.Events(e => e.DataBound("OnDataBound"))
+               //.DataSource(dataSource => dataSource
+               //.Ajax()
+               //.Read(read => read.Action("GetPerformanceNotificationList", "Performance", new { @area = "Pms", projectId = Model.Id }))
+               //)
+               .HtmlAttributes(new { @Class = "board" })
+            )*@
+
+
+
+
+        <div class="row">
+            <div class="col-12">
+                <div class="panel panel-filter">
+                    <div class="panel-heading"> @SharedResource["Filter"]</div>
+                    <div class="panel-body">
+                        <div class="row" style="padding:5px;">
+                            <div class="col-3">
+                                @SharedResource["TaskStatus"]<br />
+                                @*@(Html.Kendo().MultiSelect().Name("mdlTaskStatus")
+                             .DataSource(source =>
+                             {
+                                 source.Read(read =>
+                                 {
+                                     read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "LOV_TASK_STATUS" });
+                                 });
+                             })
+                             .AutoClose(false)
+                             //.Placeholder("Filter Task Status")
+                             .DataTextField("Name")
+                             .DataValueField("Id")
+                             .Events(e=>e.Change("onChangeTaskStatus"))
+                             .HtmlAttributes(new { @class = "hr-x-large search-control" })
+            )*@
+                                <select id="mdlTaskStatus" class="hr-x-large search-control"></select>
+
+                            </div>
+                            <div class="col-3">
+                                @SharedResource["TasksAssigned"]<br />
+                                @*@(Html.Kendo().MultiSelect().Name("mdlTaskAssigned")
+                             .DataSource(source =>
+                             {
+                                 source.Read(read =>
+                                 {
+                                     read.Action("GetPerformanceUserIdNameList", "Performance", new { area = "Pms", performanceId = Model.Id });
+                                 });
+                             })
+                             .AutoClose(false)
+                             //.Placeholder("Filter Task Assigned")
+                             .DataTextField("Name")
+                             .DataValueField("Id")
+                             .Events(e => e.Change("onChangeTaskAssigned"))
+                             .HtmlAttributes(new { @class = "hr-x-large search-control" })
+            )*@
+                                <select id="mdlTaskAssigned" class="hr-x-large search-control"></select>
+
+                            </div>
+                            <div class="col-3">
+                                @Resource["PerformanceType"]<br />
+                                @*@(Html.Kendo().MultiSelect().Name("mdlTaskStagesType")
+                             .DataSource(source =>
+                             {
+                                 source.Read(read =>
+                                 {
+                                     //read.Action("GetPerformanceStageIdNameList", "Performance", new {area = "Pms", performanceId = Model.Id });
+                                     read.Action("GetEnumIdNameList", "Home", new { area = "", enumType = "PerformanceStageEnum" });
+                                 });
+                             })
+                             .AutoClose(false)
+                             //.Placeholder("Filter Task By Type")
+                             .DataTextField("Name")
+                             .DataValueField("Id")
+                             .Events(e => e.Change("onChangeTaskStagesType"))
+                             .HtmlAttributes(new { @class = "hr-x-large search-control" })
+            )*@
+                                <select id="mdlTaskStagesType" class="hr-x-large search-control"></select>
+
+                            </div>
+                            <div class="col-3">
+                                @Resource["Objectives"]<br />
+                                @*@(Html.Kendo().MultiSelect().Name("mdlTaskStages")
+                             .DataSource(source =>
+                             {
+                                 source.Read(read =>
+                                 {
+                                     read.Action("GetPerformanceObjectiveIdNameList", "Performance", new {area = "Pms", performanceId = Model.Id });
+                                     //read.Action("GetEnumIdNameList", "Home", new { area = "", enumType = "PerformanceStageEnum" });
+                                 });
+                             })
+                             .AutoClose(false)
+                            // .Placeholder("Filter Task By Stage")
+                             .DataTextField("Name")
+                             .DataValueField("Id")
+                             .Events(e => e.Change("onChangeTaskStages1"))
+                             .HtmlAttributes(new { @class = "hr-x-large search-control" })
+            )*@
+                                <select id="mdlTaskStages" class="hr-x-large search-control"></select>
+
+                            </div>
+                            <div class="col-3" style="text-align:center;">
+                                <br />
+                                <button class="btn btn-filter-reset" onclick="onFilterReset()" title="@SharedResource["Reset"] @SharedResource["Filter"]">@SharedResource["Reset"]</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">@Resource["PerformanceDetails"]</div>
+                    <div class="panel-body">
+                        <div id="kgdProjectGridViewDash" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                        @*@(Html.Kendo().Grid<ProjectGanttTaskViewModel>()
+            .Name("kgdProjectGridView")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.Id).Title("View").ClientTemplate("<span class='fas fa-eye' onclick='onView(\"#:Id#\")'></span>").Width(250);
+                columns.Bound(p => p.ServiceStage).Title(""+Resource["Objectives"]+"").Width(250);
+                columns.Bound(p => p.Title).Title("" + SharedResource["TaskName"] + "").Width(300);
+
+
+                columns.Bound(p => p.UserName).Title("" + SharedResource["UserName"] + "").Width(200);
+                columns.Bound(p => p.Priority).Title("" + SharedResource["Priority"] + "").Width(200);
+                columns.Bound(p => p.NtsStatus).Title("" + SharedResource["TaskStatus"] + "").Width(200);
+                columns.Bound(p => p.Start).Title("" + SharedResource["StartDate"] + "").Format("{0:dd MMM yyyy}").Width(150);
+                columns.Bound(p => p.End).Title("" + SharedResource["EndDate"] + "").Format("{0:dd MMM yyyy}").Width(150);
+            })
+            .ToolBar(toolbar =>
+            {
+
+                //toolbar.Pdf();
+                toolbar.Search();
+            })
+
+            .ColumnMenu(col=>col.Filterable(false))
+            .Height(700)
+            .Editable()
+            .Pageable()
+            .Sortable()
+            .Navigatable()
+            .Resizable(r=>r.Columns(true))
+            .Reorderable(r => r.Columns(true))
+            .Groupable(g=>g.ShowFooter(false))
+            .Filterable()
+            .Scrollable()
+
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Batch(true)
+            .PageSize(20)
+            .AutoSync(true)
+            .ServerOperation(false)
+
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+
+            })
+
+            .Read("ReadPerformanceTaskGridViewData", "Performance", new { @area = "Pms", performanceId = Model.Id })
+
+        )
+        )*@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+@*else
+{
+    <iframe src="/pms/Preformance/PerformanceNotAssigned" style="width:100%;height:60vh"></iframe>
+}*@
+

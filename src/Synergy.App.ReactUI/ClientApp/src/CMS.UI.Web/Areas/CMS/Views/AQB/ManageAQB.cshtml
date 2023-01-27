@@ -1,0 +1,203 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+
+@{
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@model TableMetadataViewModel
+
+<script type="text/javascript">
+     $(document).ready(function () {
+        //
+        if ('@ViewBag.Success' == "True") {
+           // closeNav();
+
+        }
+         $("#Name").on('input', function () {
+
+             var txt = $("#Name").val();
+             txt = txt.replace(/[^A-Z0-9]/ig, "");
+             $("#Name").val(txt);
+         });
+
+      
+         $("#Schema").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.Schema',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=SchemaEnum",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function closeNav() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnSave(e) {
+        // alert(totalweightage)
+        ShowLoader($('#divManageAQB'));
+        if ($("#Name").val() == "") {
+            HideLoader($('#divManageAQB'));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("View Name is Required");
+            e.preventDefault();
+            return false;
+
+        }
+        else if ($("#Schema").val() == "") {
+            HideLoader($('#divManageAQB'));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Schema is Required");
+            e.preventDefault();
+            return false;
+
+        }
+        else if ($("#Query").val() == "") {
+            HideLoader($('#divManageAQB'));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Query is Required");
+            e.preventDefault();
+            return false;
+
+        } else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+    }
+    var onAjaxFailed = function (res) {
+        HideLoader($('#divManageAQB'));
+        ShowErrors(res.error);
+    }
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            HideLoader($('#divManageAQB'));
+            ShowNotification("Saved Successfully", "success");
+             var win = GetMainWindow();
+            win.CloseWindow({ MethodName: "cancel" });
+                return false;
+           // closeNav();
+            //window.parent.$("#ViewId").data("kendoDropDownList").dataSource.read();
+
+    }
+    else {
+            HideLoader($('#divManageAQB'));
+            ShowErrors(res.error);
+    }
+    };
+    function ShowLoader(target) {
+        // target.loadingOverlay();
+        kendo.ui.progress(target, true);
+    }
+    function HideLoader(target) {
+        //target.loadingOverlay('remove');
+        kendo.ui.progress(target, false);
+    }
+    function ShowErrors(err) {
+        $(".text-danger").removeClass("validation-summary-valid");
+        $(".text-danger").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".text-danger ul").html(msg);
+    }
+</script>
+
+<style>
+    .cms-manageaqb-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+</style>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <form asp-area="CMS" asp-controller="AQB" asp-action="ManageAQB" class="form-horizontal"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST" id="ManageAQBForm">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div id="divManageAQB">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <label class="col-form-label">View Name<span class="required">*</span><br></label>
+                    </div>
+                    <div class="col-12">
+                        @*@Html.Kendo().TextBoxFor(x => x.Name)*@
+                        <input asp-for="Name" type="text" class="form-control" />
+                    </div>
+                </div>
+                <div class="row">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <label class="col-form-label">Select Schema<span class="required">*</span><br></label>
+                    </div>
+                    <div class="col-12">
+                        @*@(Html.Kendo().DropDownListFor(x=>x.Schema)
+       .DataTextField("Name")
+                    .DataValueField("Id")
+
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "SchemaEnum" });
+            });
+        })
+       //.Value(Model.Schema.ToString())
+       .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+          .HtmlAttributes(new { style = "width: 100%" })
+    )*@
+
+                        <input asp-for="Schema" id="Schema" style="width: 100%" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <label class="col-form-label">Query<span class="required">*</span><br></label>
+                    </div>
+                    <div class="col-12">
+                        <textarea asp-for="Query" class="norm-input" style="height:335px;" rows="20"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 pad-15">
+                &nbsp;
+            </div>
+            <div class="cms-footer">
+                <input type="button" class="btn btn-light" value="Close" onclick="closeNav()" />
+                <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave(event)" />
+            </div>
+        </div>
+        @Html.HiddenFor(x => x.TableType)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.CreateTable)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.OldSchema)
+        @Html.HiddenFor(x => x.OldName)
+    </form>
+</div>

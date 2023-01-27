@@ -1,0 +1,793 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceTaskController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model TeamWorkloadViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = ViewBag.layout;
+    var PMSType = "Goal";
+}
+
+<link href="~/css/EGOV/DashBoardStyles.css" rel="stylesheet" asp-append-version="true" />
+<style>
+    .listViewDoc {
+        border: none;
+        border-radius: 6px;
+        overflow-x: hidden;
+    }
+
+    input.largerCheckbox {
+        width: 15px;
+        height: 20px;
+        background-color: #2196F3;
+    }
+
+    .board {
+        border: none;
+        overflow-x: scroll;
+        display: flex;
+    }
+
+    .card_task {
+        border-color: #209EB8;
+    }
+
+    .newtask {
+        background-color: black;
+        color: #fff;
+    }
+
+    .tasklist {
+        background-color: #209EB8;
+        color: #fff;
+        border-radius: 0px 0px 3px 3px;
+    }
+
+    .taskname {
+        /*color: #1D6EF4;*/
+        color: black;
+    }
+
+    .drp-user-photo {
+        height: 50px;
+        width: 50px;
+        border-radius: 30px;
+    }
+
+   /* #board > .k-listview-content {
+        display: flex;
+    }
+
+    .k-listview-content {
+        overflow: unset;
+    }
+
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+    }*/
+
+    .scrollbtn {
+        background-color: #4E4D4D;
+        color: white;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 2px;
+    }
+
+    .k-treeview-lines {
+        overflow-x: scroll;
+        width: 100%;
+    }
+
+    .banner-container {
+        position: relative;
+        color: white;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 14px;
+        left: 60px;
+        font-size: 35px;
+    }
+    .stscount:hover {
+        background: #fbe0c1 !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+      //   window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&hideReceiver=true&isLineManage=true&isService=true", 'PerformanceFilter');
+        window.LoadPartailView("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&hideReceiver=true&isLineManage=true&isService=true", $('#PerformanceFilter'));
+        HideLoader($("#global-overlay"));
+    });
+
+  //$(function () {
+  //
+  //      $.contextMenu({
+  //          selector: '.tree-menu1',
+  //          trigger: 'left',
+  //          build: function ($trigger, e) {
+  //             // var parentId = $trigger.data('id');
+  //              var parentType = $trigger.data('type');
+  //              //var selectParentId = $trigger.data('parentId');
+
+  //              //switch (parentType) {
+  //              //    case 'Root':
+  //                      return {
+  //                          callback: function (key, options) {
+  //                              switch (key) {
+  //                                  case 'add':
+  //                                     break;
+  //                                  case 'edit':
+  //                                   break;
+  //                                  case 'delete':
+  //                                    break;
+  //                                  default:
+  //                              }
+  //                          },
+  //                          items: {
+  //                              "add": { name: "Create Sub Task", icon: "fas fa-pencil" },
+  //                              "edit": { name: "Edit Sub Task", icon: "fas fa-pencil" },
+  //                              "delete": { name: "Delete Sub Task", icon: "fas fa-trash" },
+  //                          }
+  //                      };
+  //              //}
+
+
+  //          }
+  //      });
+  //});
+    function OnSelect(e) {
+        //
+        e.preventDefault();
+
+    }
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+    function OnTask(userId) {
+        //
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id&assignedToUserId=' + userId);
+            var url = '/Cms/Page?source=Create&dataAction=Create&pageName=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Task');
+            return false;
+    }
+
+    function OnSubTask(parentTaskId) {
+        //
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id&parentTaskId=' + parentTaskId);
+            var url = '/Cms/Page?source=Create&dataAction=Create&pageName=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Sub Task');
+            return false;
+    }
+    function EditTask(taskId) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=@Model.Id');
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Versioning&dataAction=Edit&pageName=ProjectTask&portalId=' + portalId + '&recordId=' + taskId + '&prms=' + prms;
+
+            LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Edit Task');
+            return false;
+    }
+    function OnGridGroupByUser() {
+        PMSType = "Goal";
+        $("#divgridGoal").show();
+        $("#divgridCompentency").hide();
+        var g = $("#kgdProjectGridView").data("kendoGrid");
+        g.dataSource.group([{ field: "UserName" }, { field: "ServiceStage" }]);
+
+    }
+    function OnGridGroupByProject() {
+        PMSType = "Compentency";
+        $("#divgridGoal").hide();
+        $("#divgridCompentency").show();
+
+        var g = $("#kgdProjectGridView").data("kendoGrid");
+        g.dataSource.group([{ field: "UserName" }, { field: "ServiceStage" }]);
+    }
+    function onSearch() {
+        var search = {
+            projectIds: $("#ProjectFiltersIds").data("kendoMultiSelect").value(),
+            /*recieverids : $("#Receiver").data("kendoMultiSelect").value(),*/
+            recieverids: $("#Sender").data("kendoMultiSelect").value(),
+            senderIds: $("#Receiver").data("kendoMultiSelect").value(),
+            statusIds: $("#Status").data("kendoMultiSelect").value(),
+            pmsTypes: $("#mdlTaskStagesType").data("kendoMultiSelect").value(),
+            stageIds: $("#mdlTaskStages").data("kendoMultiSelect").value(),
+            column: $("#Column").data("kendoDropDownList").value(),
+            dateRange: $("#DateType").data("kendoDropDownList").value(),
+            fromDate : kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+            toDate : kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+        };
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+    }
+
+    function OnClickCount(status, type) {
+        if (status == "SERVICE_STATUS_INPROGRESS") {
+            status = "SERVICE_STATUS_INPROGRESS,SERVICE_STATUS_OVERDUE"
+        }
+        if (status == "SERVICE_STATUS_CANCEL") {
+            status = "SERVICE_STATUS_CANCEL,SERVICE_STATUS_REJECT"
+        }
+        var search = {
+            pmsTypes: type,
+            statusCodes:  status
+        }
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+    }
+    function onReset() {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&hideReceiver=true&isLineManage=true&isService=true", 'PerformanceFilter');
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read();
+    }
+    function OnCreate() {
+
+        url = "/Pms/PerformanceTask/CreateObjectives?userId=@Model.HierarchyUserId";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["CreateObjectives"])', Width: 500, Height: 550 });
+    }
+    function OnEdit(e) {
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        //alert(dataItem.Id);
+        var portalId = $('#GlobalPortalId').val();
+        if (dataItem.Type == "Goal") {
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=PMS_GOAL&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Service', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        }else if (dataItem.Type == "Competency") {
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=PMS_COMPENTENCY&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Service', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        } else if (dataItem.Type == "Development") {
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=PMS_DEVELOPMENT&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Service', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        } else if (dataItem.Type == "PeerReview") {
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=PMS_PEER_REVIEW&portalId=' + portalId + '&recordId=' + dataItem.Id;
+            LoadCmsPartialView(url, 'Service', true, 1200, 700, '@Html.Raw(Resource["EditObjectives"])');
+            return false;
+        }
+        return false;
+    }
+    function OnView(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        alert(dataItem.Id);
+    }
+    function OnDelete(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        alert(dataItem.Id);
+    }
+    function OnCloseCreateObjectives(prms) {
+        //alert(prms.code);
+        var portalId = $('#GlobalPortalId').val();
+        if (prms.code == "PMS_GOAL") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.parentId + '&ownerUserId=' + prms.owner+'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=PMS_GOAL&portalId=' + portalId + '&prms=' + prms;
+            LoadCmsPartialView(url, 'Service', true, 1000, 600, '@Html.Raw(Resource["CreateGoal"])');
+            return false;
+        } else if (prms.code == "PMS_COMPENTENCY") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.parentId + '&ownerUserId=' + prms.owner+'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=PMS_COMPENTENCY&portalId=' + portalId + '&prms=' + prms;
+            LoadCmsPartialView(url, 'Service', true, 1000, 600, '@Html.Raw(Resource["CreateCompetency"])');
+            return false;
+        } else if (prms.code == "PMS_DEVELOPMENT") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.parentId + '&ownerUserId=' + prms.owner+'&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=PMS_DEVELOPMENT&portalId=' + portalId + '&prms=' + prms;
+            LoadCmsPartialView(url, 'Service', true, 1000, 600, '@Html.Raw(Resource["CreateDevelopment"])');
+            return false;
+        } else if (prms.code == "PMS_PEER_REVIEW") {
+            var prms = encodeURIComponent('parentServiceId=' + prms.parentId + '&ownerUserId=@Model.UserId&requestedByUserId=@Model.UserId');
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=PMS_PEER_REVIEW&portalId=' + portalId + '&prms=' + prms;
+            LoadCmsPartialView(url, 'Service', true, 1000, 600, '@Html.Raw(Resource["CreatePeerReview"])');
+            return false;
+        }
+    }
+    function OnAfterServiceCreate(service) {
+        window.parent.LoadPartailView1("/pms/PerformanceTask/PerformanceDetailsFilter?hideProject=false&hideReceiver=true&isLineManage=true&isService=true", 'PerformanceFilter');
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read();
+    }
+    function OnDownloadPD(e) {
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        console.log(dataItem);
+        //alert(dataItem.OwnerUserId);
+        url = '/Cms/Report?rptName=Pms/PMS_PerformanceDocument.trdp&rptUrl=pms/query/GetUserPerformanceDocumentInfo/' + dataItem.OwnerUserId + '?PerformanceId=' + dataItem.ServiceId + '&lo=@LayoutModeEnum.Popup&rptUrl2=pms/query/GetPerformanceDocumentServiceStepTaskByUser/' + dataItem.OwnerUserId + '?PerformanceId=' + dataItem.ServiceId;
+        var prms = encodeURIComponent('rptName=Pms/PMS_PerformanceDocument.trdp&rptUrl=/pms/query/GetUserPerformanceDocumentInfo/' + dataItem.OwnerUserId +'&lo=@LayoutModeEnum.Popup');
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Report', Width: 800, Height: 700 });
+
+    }
+    function OnLetter(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        //alert(dataItem.OwnerUserId);
+        url = '/Cms/Report?rptName=Pms/PMS_LetterTemplate.trdp&rptUrl=pms/query/GetLetterTemplateDetails/' + dataItem.OwnerUserId + '?PerformanceId=' + dataItem.ServiceId +'&lo=@LayoutModeEnum.Popup';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Letter', Width: 800, Height: 700 });
+
+    }
+
+    function AdjustWeightage() {
+
+
+        var url ='/Pms/PerformanceBoard/GetGoalsUserwise?userId=@Model.HierarchyUserId';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["AdjustWeightage"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function onDataBound() {
+        $("#kgdProjectGridView tbody tr").each(function () {
+
+            var currentDataItem = $("#kgdProjectGridView").data("kendoGrid").dataItem($(this));
+            var edit = $(this).find(".k-grid-Edit");
+            var down = $(this).find(".k-grid-Download");
+
+            if (currentDataItem.Type == "Performance Document") {
+                edit.remove();
+            }
+            if (currentDataItem.Type != "Performance Document") {
+                down.remove();
+            }
+
+        });
+    }
+
+    $('#left').click(function (event) {
+        debugger;
+        event.preventDefault();
+        $('#paymentdues').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+    });
+
+    $('#right').click(function (event) {
+        debugger;
+        event.preventDefault();
+        $('#paymentdues').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+    });
+
+    $('#reqleft').click(function (event) {
+        debugger;
+        event.preventDefault();
+        $('#services').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+    });
+
+    $('#reqright').click(function () {
+        debugger;
+        event.preventDefault();
+        $('#services').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+
+    });
+
+    function highlight(element) {
+        let elements = document.getElementsByClassName('stscount');
+        var i;
+        for (i = 0; i < elements.length; i++) {
+            elements[i].style.background = "#fff";
+        }
+        element.style.background = "#f7b8c2";
+    }
+
+    function onShowAll() {
+        let elements = document.getElementsByClassName('stscount');
+        var i;
+        for (i = 0; i < elements.length; i++) {
+            elements[i].style.background = "#fff";
+        }
+        $("#kgdProjectGridView").data("kendoGrid").dataSource.read();
+    }
+    
+</script>
+
+
+<div class="banner-container">
+    <img style="width:100%; height:100px" src="~/images/PMS/Performance document by User.png" />
+    <div class="banner-text">@Resource["SubordinatesObjectives"]</div>
+</div>
+<div class="row hr-pad-top-10">
+    @*<div class="col-md-6">
+            <h4>
+                Project Team Workload
+            </h4>
+        </div>*@
+</div>
+
+<div class="row">
+    @*<br />*@
+    @*<div class="row" style="margin-top:10px;">
+            <div class="col-6">
+                <button id="left" class="scrollbtn"><i class="fas fa-chevron-left"></i></button>
+                <button id="right" class="scrollbtn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="col-6">
+                <button style="float:right" id="reqright" class="scrollbtn"><i class="fas fa-chevron-right"></i></button>
+                <button style="float:right" id="reqleft" class="scrollbtn"><i class="fas fa-chevron-left"></i></button>
+
+            </div>
+        </div>*@
+
+    <div class="col-md-3 col-sm-6">
+        @*<div class="d-flex flex-row flex-nowrap overflow-hidden" id="services">
+            <div class="box" style=" overflow: unset; display: flex;">*@
+
+        <div class="box indiv-block-bg">
+            <div class="row tempheader">
+                <div class="col">
+                    <div class="title-bg"><label class="type">Performance Document</label></div>
+                </div>
+            </div>
+            <div class="row sercount" style="margin-top:5px;padding:5px;">
+
+                <div class="col-4 text-primary stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_INPROGRESS', '@Model.PTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.PInProgressCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500;">Pending</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-4 text-success stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_COMPLETE', '@Model.PTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.PCompletedCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Completed</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-4 text-danger stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_CANCEL','@Model.PTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.PRejectedCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Rejected</label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        @*</div>
+            </div>*@
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="box indiv-block-bg">
+            <div class="row tempheader">
+                <div class="col">
+                    <div class="title-bg"><label class="type">Goal</label></div>
+                </div>
+            </div>
+            <div class="row sercount" style="margin-top:5px;padding:5px;">
+                <div class="col-4 text-primary stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_INPROGRESS','@Model.GTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.GInProgressCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Pending</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-4 text-success stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_COMPLETE','@Model.GTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.GCompletedCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Completed</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-4 text-danger stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_CANCEL','@Model.GTemplateCode');highlight(this);">
+
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.GRejectedCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Rejected</label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="box indiv-block-bg">
+            <div class="row tempheader">
+                <div class="col">
+                    <div class="title-bg"><label class="type">Competency</label></div>
+                </div>
+            </div>
+            <div class="row sercount" style="margin-top:5px;padding:5px;">
+                <div class="col-4 text-primary stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_INPROGRESS','@Model.CTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.CInProgressCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Pending</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-4 text-success stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_COMPLETE','@Model.CTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.CCompletedCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Completed</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-4 text-danger stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_CANCEL','@Model.CTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.CRejectedCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Rejected</label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="box indiv-block-bg">
+            <div class="row tempheader">
+                <div class="col">
+                    <div class="title-bg"><label class="type">Development</label></div>
+                </div>
+            </div>
+            <div class="row sercount" style="margin-top:5px;padding:5px;">
+                <div class="col-4 text-primary stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_INPROGRESS','@Model.DTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.DInProgressCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Pending</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-4 text-success stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_COMPLETE','@Model.DTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.DCompletedCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Completed</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-4 text-danger stscount" style="text-align:center;cursor:pointer;" onclick="OnClickCount('SERVICE_STATUS_CANCEL','@Model.DTemplateCode');highlight(this);">
+                    <div>
+                        <div class="row-12" style="margin-top:-5px;">
+                            <label class="amount">@Model.DRejectedCount</label>
+                        </div>
+                        <div class="row-12" style="margin-top:-10px;">
+                            <label style="font-size:14px;font-weight:500">Rejected</label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12" >
+        <button class="btn btn-warning" onclick="onShowAll()" style="float:right">Show All</button>
+    </div>
+</div>
+
+
+<div id="PerformanceFilter">
+   
+</div>
+<div class="row" style="padding-right:10px;">
+    <!--<div class="col-md-12" style="text-align: right;">
+        <a href="javascript: void(0); onclick=OnGridGroupByUser()" class="btn btn-sm btn-primary" title="Group by Receiver & Goal">Goal-->
+    @*<i class="fas fa-list-alt fa-1x"></i>*@
+    <!--</a>&nbsp;&nbsp;
+    <a href="javascript: void(0); onclick=OnGridGroupByProject()" class="btn btn-sm btn-primary" title="Group by Receiver & Compentency">Compentency-->
+    @*<i class="fas fa-line-columns fa-1x"></i>*@
+    <!--</a>
+        &nbsp;&nbsp;&nbsp;
+    </div>-->
+</div>
+<div id="divgridview" class="row">
+    <div id="divgridGoal" class="col-sm-12">
+        @(Html.Kendo().Grid<ProjectGanttTaskViewModel>()
+    .Name("kgdProjectGridView")
+    .Columns(columns =>
+    {
+        //        columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+        columns.Command(command =>
+        {
+            //command.Custom("View").Text("<i class='fa fas fa-eye'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon", title = "View" });
+            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon", title = "Edit" });
+            //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon action-delete", title = "Delete" });
+            command.Custom("Download").Text("<i class='fas fa-arrow-to-bottom'></i>").Click("OnDownloadPD").HtmlAttributes(new { @class = "action-icon", title = "Download Performance Document" });
+            command.Custom("Letter").Text("<i class='fas fa-file'></i>").Click("OnLetter").HtmlAttributes(new { @class = "action-icon", title = "Download Letter" });
+        }).Width(150);
+        //columns.Bound(p => p.Title).Title("Subject").Width(300);
+        columns.Bound(p => p.ServiceStage).Title("" + Resource["Objectives"] + "").Width(250);
+        columns.Bound(p => p.Type).Title("" + Resource["Type"] + "").Width(250);
+        columns.Bound(p => p.Year).Title("Year").Width(250);
+        columns.Bound(p => p.ProjectName).Title("" + Resource["PerformanceDocument"] + "").Width(250);
+        columns.Bound(p => p.OwnerName).Title("" + Resource["Employee"] + "").Width(200);
+        columns.Bound(p => p.UserName).Title("" + Resource["RequestedBy"] + "").Width(200);
+        columns.Bound(p => p.Priority).Title("" + SharedResource["Priority"] + "").Width(200);
+        columns.Bound(p => p.NtsStatus).Title("" + SharedResource["Status"] + "").Width(200);
+        columns.Bound(p => p.Start).Title("" + SharedResource["ReceiveDate"] + "").Format("{0:dd MMM yyyy}").Width(150);
+        columns.Bound(p => p.End).Title("" + SharedResource["DueDate"] + "").Format("{0:dd MMM yyyy}").Width(150);
+    })
+    .ToolBar(toolbar =>
+    {
+        //toolbar.Excel();
+        //toolbar.Pdf();
+        toolbar.Search();
+        toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus' style='padding-top:5px;'></i>&nbsp;"+ Html.Raw(Resource["CreateObjectives"]) + "</button>&nbsp;<button type='button' class='btn btn-primary' onclick='AdjustWeightage();'><i class='fa fas fa-plus' style='padding-top:5px;'></i>&nbsp;" + Html.Raw(@Resource["AdjustWeightage"]) + "</button>  ");
+    })
+    //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    //.ColumnMenu(col=>col.Filterable(false))
+    .Height(700)
+    .Editable()
+    .Pageable()
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+    .Events(events => events.DataBound("onDataBound"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .AutoSync(true)
+        .ServerOperation(false)
+        //.Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+
+        })
+        //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+        //.Create("DetailProducts_Create", "Grid")
+        //.Read("ReadProjectTaskGridViewData", "Project", new { @area = "PJM", projectId = "e58937f0-fd6e-490d-8526-366b56062b17" })
+        .Read("ReadPerformanceObjectivesGridViewData", "PerformanceTask", new { @area = "Pms", userId=Model.HierarchyUserId})
+    //.Group(g=>g.Add(x=>x.UserName))
+    //.Group(g => g.Add(x => x.ServiceStage))
+    //.Update("DetailProducts_Update", "Grid")
+    //.Destroy("DetailProducts_Destroy", "Grid")
+    )
+)
+
+    </div>
+    <div id="divgridCompentency" class="col-sm-12" style="display:none;">
+        @*@(Html.Kendo().Grid<ProjectGanttTaskViewModel>()
+                .Name("kgdProjectGridView2")
+                .Columns(columns =>
+                {
+                    //        columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+                    columns.Bound(p => p.Title).Title("Subject").Width(300);
+                    columns.Bound(p => p.ServiceStage).Title("Compentency").Width(250);
+                    columns.Bound(p => p.ProjectName).Title("Performance Document").Width(250);
+                    columns.Bound(p => p.OwnerName).Title("Sender").Width(200);
+                    columns.Bound(p => p.UserName).Title("Receiver").Width(200);
+                    columns.Bound(p => p.Priority).Width(200);
+                    columns.Bound(p => p.NtsStatus).Title("Status").Width(200);
+                    columns.Bound(p => p.Start).Title("Receive Date").Format("{0:dd MMM yyyy}").Width(150);
+                    columns.Bound(p => p.End).Title("Due Date").Format("{0:dd MMM yyyy}").Width(150);
+                })
+                .ToolBar(toolbar =>
+                {
+                    //toolbar.Excel();
+                    //toolbar.Pdf();
+                    toolbar.Search();
+                })
+                //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+                //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+                .ColumnMenu(col=>col.Filterable(false))
+                .Height(700)
+                .Editable()
+                .Pageable()
+                .Sortable()
+                .Navigatable()
+                .Resizable(r=>r.Columns(true))
+                .Reorderable(r => r.Columns(true))
+                .Groupable(g=>g.ShowFooter(false))
+                .Filterable()
+                .Scrollable()
+                //.Events(events => events.DataBound("onDataBound"))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                    .PageSize(20)
+                    .AutoSync(true)
+                    .ServerOperation(false)
+                    //.Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+
+                    })
+                    //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+                    //.Create("DetailProducts_Create", "Grid")
+                    //.Read("ReadProjectTaskGridViewData", "Project", new { @area = "PJM", projectId = "e58937f0-fd6e-490d-8526-366b56062b17" })
+                    .Read("ReadPerformanceUserWorkloadGridViewData", "PerformanceTask", new { @area = "Pms", pmsType = "PMS_COMPENTENCY" })
+                    .Group(g=>g.Add(x=>x.UserName))
+                    .Group(g => g.Add(x => x.ServiceStage))
+                //.Update("DetailProducts_Update", "Grid")
+                //.Destroy("DetailProducts_Destroy", "Grid")
+                )
+            )*@
+
+    </div>
+</div>
+
+
+
+<script>
+
+    var colors = ['#F56564', '#90D142', '#28BAF5', '#7551F5', '#5BA79F', '#7A8F9D', '#4F67B6'];
+    function OnDataBoundDoc(arg) {
+        var childDiv = document.getElementById('board').children;
+
+        for (var i = 0; i < childDiv.length; i++) {
+            childDiv[i].children[0].style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        }
+    }      
+
+</script>
+

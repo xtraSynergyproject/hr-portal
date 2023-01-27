@@ -1,0 +1,738 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@{
+    ViewBag.Title = "Upload Employee List";
+    Layout = null;
+}
+
+<br />
+<style>
+    .k-list {
+        height: auto;
+        overflow-y: scroll;
+        height: 300px;
+    }
+
+    .k-button {
+        border-radius: 0;
+        border-color: #d6aa24;
+        color: #000;
+        background-color: #d6aa24;
+        background-position: 50% 50%;
+        font-weight: 700;
+    }
+
+    .k-spreadsheet-scroller {
+        height: 102% !important;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+        //$("#spreadsheet").data("kendoSpreadsheet").activeSheet().set_frozenRows(1)
+            //activeSheet.set_frozenRows(1);
+    });
+
+     function CloseSchedule(success, res) {
+         var win = GetMainWindow();
+         win.CloseWindow();
+         return false;
+        //var scheduler = $("#scheduler").data("kendoScheduler");
+        //scheduler.dataSource.read();
+
+        document.getElementById("scheduler").src = "/assessment/assessment/interviewschedule";
+        ShowNotification("Saved Successfully!");
+    }
+
+    function onSelectCell(arg) {
+
+    }
+
+    function onSubmit(e) {
+        ShowLoader($('#appWrapper'));
+            $.ajax({
+                type: "POST",
+                url: "/tas/TalentAssessment/ManageUserAssessmentResult",
+                data: e.data,
+                success: function (result) {
+                    ShowNotification("Data Saved");
+                    //kendo.ui.progress(windowWidget.element, false);
+                    location.href = location.href;
+                    Hideoader($('#appWrapper'));
+                },
+                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                    alert(customErrorMessage);
+                }
+            });
+    }
+
+    function refreshExcel() {
+        getDataSource().sync();
+    }
+
+
+
+        function hideLoader() {
+        document.getElementById('speach-load').style.display = "none";
+    }
+
+    function showLoader() {
+        document.getElementById('speach-load').style.display = "unset";
+        document.getElementById('speech-srch').innerText =  "Loading...";
+        $(".main-menu").css("z-index", '2');
+        $(".skitt-ui").css("z-index", '2');
+        var treeList = $("#treeview").data("kendoTreeList");
+        if (treeList) {
+            var row1 = treeList.select();
+            if (row1.length > 0) {
+                var data1 = treeList.dataItem(row1);
+                localStorage["Doc_Count"] = data1.DocCount;
+            }
+        }
+    }
+
+
+    function ConvertToDate(date) {
+        var date = date;///new Date();
+        var day = date.getDate();       // yields date
+        var month = date.getMonth() + 1;    // yields month (add one as '.getMonth()' is zero indexed)
+        var year = date.getFullYear();  // yields year
+        var hour = date.getHours();     // yields hours
+        var minute = date.getMinutes(); // yields minutes
+        var second = date.getSeconds(); // yields seconds
+        return  year + "/" + month + "/" + day + " " + hour + ':' + minute + ':' + second;
+    }
+
+    function ExcelDateToJSDate(serial) {
+       var utc_days  = Math.floor(serial - 25569);
+       var utc_value = utc_days * 86400;
+       var date_info = new Date(utc_value * 1000);
+
+       var fractional_day = serial - Math.floor(serial) + 0.0000001;
+
+       var total_seconds = Math.floor(86400 * fractional_day);
+
+       var seconds = total_seconds % 60;
+
+       total_seconds -= seconds;
+
+       var hours = Math.floor(total_seconds / (60 * 60));
+       var minutes = Math.floor(total_seconds / 60) % 60;
+
+       return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hours, minutes, seconds);
+    }
+
+    function onRead(options) {
+        var windowWidget = $("#spreadsheet").data("kendoSpreadsheet");
+        kendo.ui.progress(windowWidget.element, true);
+
+            $.ajax({
+                url: '@Url.Action("ReadAssessmentResult", "TalentAssessment")',
+                dataType: "json",
+                success: function (result) {
+                    options.success(result.Data);
+                    debugger;
+                     var index = eval(result.Data.length) + 10;
+
+                    var range = $("#spreadsheet").data("kendoSpreadsheet").activeSheet().range("A1:A" + index);
+                    var enabled = range.enable();
+                   range.enable(!enabled);
+
+
+                    var range = $("#spreadsheet").data("kendoSpreadsheet").activeSheet().range("B1:B" + index);
+                    var enabled = range.enable();
+                    range.enable(!enabled);
+
+
+                    kendo.ui.progress(windowWidget.element, false);
+
+                },
+                error: function (result) {
+                    options.error(result);
+                }
+            });
+        }
+
+        function onChange(e) {
+            $("#cancel, #save").toggleClass("k-state-disabled", !this.hasChanges());
+        }
+
+        function getDataSource() {
+            return $("#spreadsheet").data("kendoSpreadsheet").activeSheet().dataSource;
+        }
+
+        $("#save").click(function () {
+            if (!$(this).hasClass("k-state-disabled")) {
+                getDataSource().sync();
+            }
+        });
+
+        $("#cancel").click(function () {
+            if (!$(this).hasClass("k-state-disabled")) {
+                getDataSource().cancelChanges();
+            }
+        });
+
+    $("#create").click(function () {
+        });
+
+    $("#show").click(function () {
+        var showall = $("input[name='showAll']:checked").val();
+
+        window.location.href = "/assessment/assessment/ManageAssessmentSchedule?showAll="+showall;
+    });
+
+    function onDataBinding(e) {
+            console.log('Data is about to be bound to sheet "' + e.sheet.name() + '".');
+        }
+
+    function onDataBound(e) {
+        debugger;
+            console.log('Data has been bound to sheet "' + e.sheet.name() + '".');
+    }
+    function onSelect(arg) {
+        if (arg.range.value() != null && arg.range.value() != '') {
+            var cellval = arg.range.value() + "";
+            if (cellval.indexOf('Manage User') !== -1) {
+            var id = arg.range.value().split('-');
+                          }
+
+        }
+
+    }
+</script>
+<div class="row" style="margin:10px;" id="appWrapper">
+
+    <div class="box wide">
+        <div class="box-col">
+            <h4>Save data changes</h4>
+            <ul class="options">
+                <li>
+                    <button class="k-button" id="save">Save changes</button>
+                    <button class="k-button" id="cancel">Cancel changes</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+    @(Html.Kendo().Spreadsheet()
+            .Name("spreadsheet")
+        .HtmlAttributes(new { style = "width:100%" })
+        .Toolbar(true)
+        .Sheetsbar(false)
+        .Excel(excel => excel
+            .ProxyURL(Url.Action("Data_Source_Proxy", "Spreadsheet"))
+        )
+        .Pdf(pdf => pdf
+            .ProxyURL(Url.Action("Data_Source_Proxy", "Spreadsheet"))
+        )
+
+        .Sheets(sheets =>
+        {
+            sheets.Add()
+                .Name("Products")
+
+                .DataSource<UserAssessmentResultViewModel>(ds => ds
+                    .Custom()
+                    .Batch(true)
+                    .Transport(t => t
+                        .Read("onRead")
+                        .Submit("onSubmit")
+                    )
+                    .Schema(s => s
+                        .Model(m =>
+                        {
+                            m.Id(p => p.Email);
+                        })))
+
+                .Columns(columns =>
+                {
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                    columns.Add().Width(200);
+                })
+                                .Rows(rows =>
+                                {
+                                    rows.Add().Height(30).Cells(cells =>
+                                    {
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#C2C2FF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFE7BE")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#F6DBC6")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFBEBE")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFC2FF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#E1C9F8")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#C2FFC2")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFFF99")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFDB99")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#CDA5F3")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#9999FF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFFF4D")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFC14D")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#EA9A62")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FF4D4D")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FF6680")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                       .Bold(true)
+                                       .Background("#C2C2FF")
+                                       .TextAlign(SpreadsheetTextAlign.Center)
+                                       .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFE7BE")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#F6DBC6")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFBEBE")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFB3BF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#FFC2FF")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        cells.Add()
+                                        .Bold(true)
+                                        .Background("#E1C9F8")
+                                        .TextAlign(SpreadsheetTextAlign.Center)
+                                        .Color("black");
+
+                                        //           cells.Add()
+                                        //   .Bold(true)
+                                        //   .Background("#C2C2FF")
+                                        //   .TextAlign(SpreadsheetTextAlign.Center)
+                                        //   .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFE7BE")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#F6DBC6")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFBEBE")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFB3BF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFC2FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#E1C9F8")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#C2FFC2")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFFF99")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFDB99")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#CDA5F3")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#9999FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFFF4D")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFC14D")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#EA9A62")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FF4D4D")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FF6680")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //          .Bold(true)
+                                        //          .Background("#C2C2FF")
+                                        //          .TextAlign(SpreadsheetTextAlign.Center)
+                                        //          .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFE7BE")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#F6DBC6")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFBEBE")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFB3BF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFC2FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#E1C9F8")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+
+                                        //           cells.Add()
+                                        //          .Bold(true)
+                                        //          .Background("#C2C2FF")
+                                        //          .TextAlign(SpreadsheetTextAlign.Center)
+                                        //          .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFE7BE")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#F6DBC6")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFBEBE")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFB3BF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFC2FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#E1C9F8")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+                                        //           cells.Add()
+                                        //.Bold(true)
+                                        //.Background("#FFB3BF")
+                                        //.TextAlign(SpreadsheetTextAlign.Center)
+                                        //.Color("black");
+
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFC2FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#E1C9F8")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFC2FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //         .Bold(true)
+                                        //         .Value("Send Calendar")
+                                        //         .Background("#FFC2FF")
+                                        //         .TextAlign(SpreadsheetTextAlign.Center)
+                                        //         .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#C2C2FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFE7BE")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#F6DBC6")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFBEBE")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFB3BF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFC2FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#E1C9F8")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#C2FFC2")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFFF99")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFDB99")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#CDA5F3")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#9999FF")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+                                        //           cells.Add()
+                                        //           .Bold(true)
+                                        //           .Background("#FFFF4D")
+                                        //           .TextAlign(SpreadsheetTextAlign.Center)
+                                        //           .Color("black");
+
+
+                                    });
+                                }).FrozenRows(1);
+        })
+    )
+
+
+</div>
+
+

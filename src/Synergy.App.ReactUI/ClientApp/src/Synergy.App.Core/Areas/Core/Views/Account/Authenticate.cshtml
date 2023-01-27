@@ -1,0 +1,271 @@
+﻿@model Synergy.App.ViewModel.LoginViewModel
+@using Synergy.App.Common
+@{
+    Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+@*<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/open-iconic/font/css/open-iconic-bootstrap.min.css" asp-append-version="true">
+*@
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme.min.css" data-skin="default" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme-dark.min.css" data-skin="dark" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.css" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/custom.css" asp-append-version="true">
+<style>
+    #content-wrapper {
+        background-color: #fff !important;
+    }
+
+    .modal-login {
+        width: 380px !important;
+    }
+
+    .auth-user-photo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 1px solid #e8e8e8;
+    }
+
+    .imgcontainer {
+        padding-bottom: 10px;
+        text-align: center;
+    }
+
+    #validation-summary > ul {
+        list-style: none;
+    }
+</style>
+<script>
+    var skin = localStorage.getItem('skin') || 'default';
+    var isCompact = JSON.parse(localStorage.getItem('hasCompactMenu'));
+    var disabledSkinStylesheet = document.querySelector('link[data-skin]:not([data-skin="' + skin + '"])');
+    // Disable unused skin immediately
+    disabledSkinStylesheet.setAttribute('rel', '');
+    disabledSkinStylesheet.setAttribute('disabled', true);
+    // add flag class to html immediately
+    if (isCompact == true) document.querySelector('html').classList.add('preparing-compact-menu');
+</script>
+<script src="~/js/Encrypt/aes-min.js" asp-append-version="true"></script>
+<script type="text/javascript" src="~/js/md5.js" asp-append-version="true"></script>
+<main class="auth auth-floated">
+
+
+    <form class="auth-form" id="loginform" asp-controller="Account" asp-action="Authenticate" asp-area=""
+          data-ajax-begin="onAjaxBegin"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAuthenticateSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div class="mb-3">
+            <div class="mb-3">
+                <img src="@Url.Action("getimagemongo","document",new { @area="Cms",id=Model.PhotoId})" onerror='OnPhotoError(this);' alt="User Profile" class="auth-user-photo">
+            </div>
+            <h5 class="text-center">Welcome @Model.Name</h5>
+        </div>
+
+        @if (Model.EnableTwoFactorAuth)
+        {
+            <div class="form-group mb-4">
+                <div id="testTimer" style="color:red;"> </div>
+            </div>
+            @if (Model.TwoFactorAuthType.HasValue && Model.TwoFactorAuthType.Value == TwoFactorAuthTypeEnum.OTPAndPassword)
+            {
+
+                <div class="form-group mb-4">
+                    <label class="d-block text-left" for="OtpPlain">OTP</label> <input type="password" id="OtpPlain" class="form-control form-control-lg" required="required">
+                    <input asp-for="TwoFactorAuthOTP" type="hidden">
+                </div>
+                <div class="form-group mb-4">
+                    <label class="d-block text-left" for="PasswordPlain">Password</label> <input type="password" id="PasswordPlain" class="form-control form-control-lg" required="required">
+                    <input asp-for="Password" type="hidden">
+                </div>
+
+            }
+            else
+            {
+                <div class="form-group mb-4">
+                    <label class="d-block text-left" for="OtpPlain">OTP</label> <input type="password" id="OtpPlain" class="form-control form-control-lg" required="required">
+                    <input asp-for="TwoFactorAuthOTP" type="hidden">
+                    <input asp-for="Password" type="hidden">
+                </div>
+            }
+
+        }
+        else
+        {
+            <div class="form-group mb-4">
+                <label class="d-block text-left" for="PasswordPlain">Password</label> <input type="password" id="PasswordPlain" class="form-control form-control-lg">
+                <input asp-for="Password" type="hidden">
+            </div>
+
+            <div class="form-group mb-4">
+
+                <dnt-captcha asp-captcha-generator-max="999999"
+                             asp-captcha-generator-min="111111"
+                             asp-captcha-generator-language="English"
+                             asp-captcha-generator-display-mode="ShowDigits"
+                             asp-use-relative-urls="true"
+                             asp-show-refresh-button="true"
+                             asp-placeholder="Enter Captcha"
+                             asp-font-name="Tahoma"
+                             asp-font-size="20"
+                             asp-fore-color="#222222"
+                             asp-back-color="#ccc"
+                             asp-text-box-class="form-control form-control-lg"
+                             asp-text-box-template="<label class='d-block text-left' for='captcha'>Captcha</label>{0}"
+                             asp-validation-message-class="text-danger"
+                             asp-validation-error-message="Please enter captcha"
+                             asp-refresh-button-class="fas fa-redo btn-sm"
+                             asp-use-noise="false" />
+            </div>
+        }
+
+
+        <div class="form-group mb-4">
+            <label class="d-block text-left" for="PortalId">Portal</label>
+            <select asp-for="PortalId" id="PortalId" class="form-control" required="required" placeholder="Portal"></select>
+        </div>
+
+
+        <div class="form-group mb-4">
+            @Html.HiddenFor(x => x.Email)
+            @Html.HiddenFor(x => x.EnableTwoFactorAuth)
+            @Html.HiddenFor(x => x.TwoFactorAuthType)
+            <button class="btn btn-lg btn-primary btn-block" type="submit" onclick="return EncryptPassword();">Verify</button>
+        </div><!-- /.form-group -->
+        <!-- .form-group -->
+        <div class="form-group text-center">
+            <div class="custom-control custom-control-inline custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="remember-me"> <label class="custom-control-label" for="remember-me">Keep me sign in</label>
+            </div>
+        </div><!-- /.form-group -->
+        <!-- recovery links -->
+        <p class="py-2">
+            <a href="/account/forgotpassword?portalId=@Model.PortalId&email=@Model.Email" class="link">Forgot Password?</a>
+        </p><!-- /recovery links -->
+        <!-- copyright -->
+
+    </form>
+
+    <header id="auth-header" class="auth-announcement" style="background-image: url(/Themes/Looper/dist/assets/images/illustration/img-1.png);"></header>
+</main>
+<script src="~/Themes/Looper/dist/assets/vendor/pace-progress/pace.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/stacked-menu/js/stacked-menu.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/perfect-scrollbar/perfect-scrollbar.min.js" asp-append-version="true"></script> <!-- END PLUGINS JS -->
+<!-- BEGIN THEME JS -->
+<script src="~/Themes/Looper/dist/assets/javascript/theme.min.js" asp-append-version="true"></script> <!-- END THEME JS -->
+<script src="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/flatpickr/plugins/monthSelect/index.js" asp-append-version="true"></script>
+<script src="~/Themes/Looper/dist/assets/vendor/particles.js/particles.js"></script>
+<script>
+
+    $(document).on('theme:init', () => {
+        particlesJS.load('auth-header', '/Themes/Looper/dist/assets/javascript/pages/particles.json');
+    })
+</script>
+<script src="~/Themes/Looper/dist/assets/javascript/theme.js"></script> <!-- END THEME JS -->
+
+<script>
+    $(document).ready(function () {
+         if ('@Model.EnableTwoFactorAuth' == 'True') {
+                if (@Model.Time> 0) {
+                    countdown(@Model.Time);
+                }
+                else {
+                    countdown(9);
+                }
+            }
+        $('#loginModal').modal('show');
+        $("#PortalId").kendoDropDownList({
+            dataTextField: "DisplayName",
+            dataValueField: "Id",
+            optionLabel: "--Portal--",
+            value: '@Model.PortalId',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/User/GetPortalListByEmail?email=@Model.Email",
+                    }
+                }
+            }
+        });
+
+    });
+    var onAuthenticateSuccess = function (res) {
+        if (res.success) {
+            window.location.href = res.ru;
+            return false;
+        }
+        else {
+            showError(res.error);
+            HideLoader($('#main-content'));
+            $('#dntCaptchaRefreshButton')[0].click();
+           
+         
+        }
+
+
+    };
+            function EncryptPassword() {
+            var key = CryptoJS.enc.Utf8.parse('8080808080808080');
+            var iv = CryptoJS.enc.Utf8.parse('8080808080808080');
+            var ecp = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse($('#PasswordPlain').val()), key,
+                {
+                    keySize: 128 / 8,
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+        $('#Password').val(ecp);
+        $('#TwoFactorAuthOTP').val($('#OtpPlain').val());
+        $('#Time').val(current_minutes);
+        return true;
+    }
+    function ReSend() {
+        ShowLoader();
+         $.ajax({
+                url: "/Account/ReSendOTP",
+                type: "POST",
+                data: { 'email': '@Model.Email'},
+             success: function (data) {
+                 HideLoader();
+                    alert("OTP has been sent successfully.");
+                    window.location.href = window.location.href;
+                }
+
+            });
+        }
+        var current_minutes = 0;
+        var current_seconds = 0;
+        var t;
+        function countdown(m) {
+            var mins = m;
+            function tick() {
+
+                var counter = document.getElementById("testTimer");
+                current_minutes = mins;
+
+                if (current_seconds > 0) {
+                    current_seconds--;
+                } else {
+                    current_seconds = 59;
+                }
+
+                counter.innerHTML = "Your OTP is going to expire in: " + current_minutes.toString() + ":" + current_seconds + " &nbsp; &nbsp;<a href='javascript: void (0);' onclick='ReSend();'>Resend OTP</a>";
+
+
+                if (current_seconds > 0) {
+                    t = setTimeout(tick, 1000);
+                } else {
+
+                    if (mins >= 1) {
+                        countdown(mins - 1);
+                    }
+
+                    if (current_minutes == 0 && current_seconds == 0) {
+                        $("#btnSubmit").hide();
+                        counter.innerHTML = "Your OTP is expired. Click 'Resend OTP' to get a new OTP. &nbsp; &nbsp; &nbsp; <a href='javascript: void (0);' onclick='ReSend();'>Resend OTP</a>"
+                    }
+                }
+            }
+            tick();
+        }
+</script>

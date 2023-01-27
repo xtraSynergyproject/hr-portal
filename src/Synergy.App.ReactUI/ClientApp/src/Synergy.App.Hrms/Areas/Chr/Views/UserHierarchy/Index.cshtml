@@ -1,0 +1,405 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.UserHierarchyController> Resource
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model UserHierarchyViewModel
+@{
+    Layout = null;
+    ViewBag.Title = @Resource["UserHierarchy"];
+}
+
+<script type="text/javascript">
+    @*function OnHierarchyChange(e) {
+        var hierarchyId = $("#HierarchyId").val();
+        if (hierarchyId == '') {
+            hierarchyId = 0;
+        }
+        var url = "/hrs/userhierarchy/index?hierarchyId=" + hierarchyId;
+        //window.location.href = url;
+        if ('@ViewBag.Layout'== '') {
+            var tabStrip = $("#tabstripTemplate1").kendoTabStrip().data("kendoTabStrip");
+            $(".k-link:contains('Approval Hierarchy')").data('contentUrl', '/Hrs/UserHierarchy/Index?userId=@Model.UserId&hierarchyId=' + hierarchyId + '&layoutMode=Iframe');
+            tabStrip.reload("li:eq(2)");
+        }
+        else {
+            window.location.href = url;
+        }
+
+    }*@
+
+    $(document).ready(function () {
+        $("#HierarchyId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: [
+                { Name: "1", Id: "1" },
+                { Name: "2", Id: "2" },
+                { Name: "3", Id: "3" }
+            ]
+        });
+    });
+
+
+    function OnDataBound2(arg) {
+        $(".checkbox").bind("change", function (e) {
+            OnRowSelection(e.target);
+        });
+    }
+    function FilterGrid() {
+        return {
+            hierarchyId: $("#HierarchyId").val(),
+            userId: $("#UserId").val(),
+        };
+    }
+
+</script>
+<script>
+
+
+            $("#kgrdUserHierarchy").jsGrid({
+        width: "100%",
+        height: "600px",
+                inserting: false,
+                selecting: true,
+        editing: false,
+                sorting: true,
+                selecting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        deleteConfirm: "Do you really want to delete client?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                return $.ajax({
+                    type: "GET",
+                    url: "/Chr/UserHierarchy/ReadSearchData",
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+        },
+        onItemEditing: function (e) {
+            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                //  
+                e.grid.updateItem();
+            }
+                                },
+
+                fields: [
+                    { name: "Select", type: "checkbox", width: 60, editing: true },
+                    { name: "EmployeeName",title:"@Resource["EmployeeName"]", type: "text", width: 200, editing: false },
+                    { name: "PersonNo",title:"@Resource["EmployeeNo"]", type: "text", width: 200, editing: false },
+                    { name: "SponsorshipNo",title:"@Resource["SponsorshipNo"]", type: "text", width: 200, editing: false },
+                    { name: "SponsorName",title:"@Resource["SponsorName"]", type: "text", width: 200, editing: false },
+                    { name: "JobName",title:"@Resource["JobName"]", type: "text", width: 200, editing: false },
+                    { name: "OrganizationName",title:"@Resource["OrganizationName"]", type: "text", width: 200, editing: false },
+            { name: "AdminUserName", type: "text",title:"@Resource["AdminUserName"]", width: 200, editing: false},
+
+
+           
+        ]
+                            });
+
+
+</script>
+<div id="appWrapper">
+    <div class="formHeader">
+        <h4>
+            @ViewBag.Title
+        </h4>
+    </div>
+    <div class="row no-gutter hr-pad-top-15">
+        <div class="form-group col-xs-12 col-sm-6">
+            <div class="col-lg-3 label-div">
+                <span class="required">*</span>
+                @Resource["Hierarchy"]
+            </div>
+            <div class="col-lg-9">
+                @*@(Html.Kendo().DropDownListFor(x => x.HierarchyId)
+                        .OptionLabel("Select")
+                        //.DataSource(source =>
+                        //{
+                        //    source.Read(read =>
+                        //    {
+                        //        //read.Action("GetIdNameListByType", "Hierarchy", new { hierarchyTypeCode = "User" });
+                        //    });
+                        //})
+                        .BindTo(new List<SelectListItem>() {
+                            new SelectListItem() {
+                                Text = "1",
+                                Value = "1"
+                                },
+                            new SelectListItem() {
+                                Text = "2",
+                                Value = "2"
+                                },
+                            new SelectListItem() {
+                                Text = "3",
+                                Value = "3"
+                                }
+                        })
+                        //.DataTextField("Name")
+                        //.DataValueField("Id")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .Filter(FilterType.Contains)
+                        .AutoBind(true)
+                        // .Events(e => e.Change("OnHierarchyChange"))
+                        .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input asp-for="HierarchyId" id="HierarchyId" class="hr-xx-large"/>
+
+            </div>
+        </div>
+
+    </div>
+    <hr />
+    <div>
+        <button type="submit" class="btn btn-primary" onclick="return OnUpdate();"><i class="fa fa-plus pr-1"></i>Update Hierarchy</button>
+        <div id="kgrdUserHierarchy"></div>
+        @*@(Html.Kendo().Grid<UserHierarchyViewModel>()
+                    .Name("kgrdUserHierarchy")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(x => x.Id).Width(35).ClientTemplate(@"<input class='checkbox' type='checkbox' />").ClientHeaderTemplate(@"<input class='checkboxAll' type='checkbox' />");
+                        columns.Bound(c => c.EmployeeName).Title(@Resource["EmployeeName"]).Locked(true).Width(250).Filterable(flt => flt.Multi(true).Search(true));
+                        columns.Bound(c => c.PersonNo).Width(150).Title(@Resource["EmployeeNo"]).Filterable(flt => flt.Multi(true).Search(true));;
+                        columns.Bound(c => c.SponsorshipNo).Width(150).Title(@Resource["SponsorshipNo"]).Filterable(flt => flt.Multi(true).Search(true));;
+                        columns.Bound(c => c.SponsorName).Width(250).Title(Resource["SponsorName"]).Filterable(flt => flt.Multi(true).Search(true));
+
+                        columns.Bound(c => c.JobName).Title(@Resource["JobName"]).Width(250).Filterable(flt => flt.Multi(true).Search(true));
+                        columns.Bound(c => c.OrganizationName).Title(@Resource["OrganizationName"]).Width(250).Filterable(flt => flt.Multi(true).Search(true));
+                        columns.Bound(c => c.AdminUserName).Title(@Resource["AdminUserName"]).Width(250).Filterable(flt => flt.Multi(true).Search(true));
+
+                        //if (Model.Level1Name!=null)
+                        //{
+                       // columns.Bound(c => c.Level1ApproverOption1UserName).Width(250).Title(string.Concat(Model.Level1Name, ": Option 1"));
+                       // columns.Bound(c => c.Level1ApproverOption2UserName).Width(250).Title(string.Concat(Model.Level1Name, ": Option 2"));
+                       // columns.Bound(c => c.Level1ApproverOption3UserName).Width(250).Title(string.Concat(Model.Level1Name, ": Option 3"));
+                        //        }
+                        //            if (Model.Level1Name != null)
+                        //{
+                       // columns.Bound(c => c.Level2ApproverOption1UserName).Width(250).Title(string.Concat(Model.Level2Name, ": Option 1"));
+                       // columns.Bound(c => c.Level2ApproverOption2UserName).Width(250).Title(string.Concat(Model.Level2Name, ": Option 2"));
+                       // columns.Bound(c => c.Level2ApproverOption3UserName).Width(250).Title(string.Concat(Model.Level2Name, ": Option 3"));
+                        //        }
+
+                        //if (Model.Level3Name != null)
+                        //{
+                       // columns.Bound(c => c.Level3ApproverOption1UserName).Width(250).Title(string.Concat(Model.Level3Name, ": Option 1"));
+                       // columns.Bound(c => c.Level3ApproverOption2UserName).Width(250).Title(string.Concat(Model.Level3Name, ": Option 2"));
+                      //  columns.Bound(c => c.Level3ApproverOption3UserName).Width(250).Title(string.Concat(Model.Level3Name, ": Option 3"));
+                        //        }
+                        //if (Model.Level4Name != null)
+                        //{
+                     //   columns.Bound(c => c.Level4ApproverOption1UserName).Width(250).Title(string.Concat(Model.Level4Name, ": Option 1"));
+                     //   columns.Bound(c => c.Level4ApproverOption2UserName).Width(250).Title(string.Concat(Model.Level4Name, ": Option 2"));
+                      //  columns.Bound(c => c.Level4ApproverOption3UserName).Width(250).Title(string.Concat(Model.Level4Name, ": Option 3"));
+                   // }
+
+
+            //if (Model.Level5Name != null)
+            //{
+          //      columns.Bound(c => c.Level5ApproverOption1UserName).Width(250).Title(string.Concat(Model.Level5Name, ": Option 1"));
+          //      columns.Bound(c => c.Level5ApproverOption2UserName).Width(250).Title(string.Concat(Model.Level5Name, ": Option 2"));
+           //     columns.Bound(c => c.Level5ApproverOption3UserName).Width(250).Title(string.Concat(Model.Level5Name, ": Option 3"));
+           // }
+
+        })
+                    .ToolBar(toolbar =>
+                    {
+
+            toolbar.Custom().Text(@Resource["UpdateHierarchy"]).Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnUpdate();" });
+
+
+        })
+                  //  .Events(e => e.DataBound("OnDataBound2"))
+                   .Scrollable(scrollable => scrollable.Enabled(true).Height(400))
+                    .Selectable(select => select.Enabled(false).Mode(GridSelectionMode.Multiple))
+                    .Sortable(srt => srt.Enabled(true))
+                     // .Filterable(filter => filter.Mode(GridFilterMode.Row))
+                     .Filterable(f => f.Extra(false)
+                        .Operators(o => o.ForString(s => s.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNullOrEmpty("Is Null Or Empty")
+                        .IsNotNullOrEmpty("Is Not Null Or Empty")
+                    )))
+                    .Excel(e=>e.FileName("UserHierarchy.xlsx").AllPages(true))
+                    .Pageable(pageable => pageable
+                    .Refresh(true)
+                    .PageSizes(new[] { 10,50,100,200,500,1000,2000 })
+                    .ButtonCount(10))
+                    .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .PageSize(50)
+                    //.Events(events => events.Error("OnError"))
+                    .Read(read => read.Action("ReadSearchData", "UserHierarchy")/*.Data("FilterGrid")*/)
+                    .Model(model => model.Id(p => p.Id))
+                    )
+        )*@
+    </div>
+
+    @*@Html.HiddenFor(x => x.Operation)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.ReturnUrl)
+        @Html.HiddenFor(x => x.UserId)*@
+</div>
+
+<script type="text/javascript">
+   
+    $(".checkboxAll").bind("change", function (e) {
+        if ($(this).attr('checked')) {
+            $('.checkboxAll').removeAttr('checked');
+            $('.checkbox').removeAttr('checked');
+            $(".checkbox").closest("tr").removeClass("k-state-selected");
+        } else {
+            $('.checkboxAll').attr('checked', 'checked');
+            $('.checkbox').attr('checked', 'checked');
+            $(".checkbox").closest("tr").addClass("k-state-selected");
+        }
+    });
+
+
+    function OnRowSelection(element) {
+
+        $('input.checkbox[type=checkbox]').each(function (e) {
+            if (this.checked) {
+                $(this).closest("tr").addClass("k-state-selected");
+            }
+        });
+        var isChecked = $(element).prop('checked');
+        if (isChecked) {
+            $(element).prop('checked', true);
+            $(element).closest("tr").addClass("k-state-selected");
+        }
+        else {
+            $(element).prop('checked', false);
+            $(element).closest("tr").removeClass("k-state-selected");
+        }
+        var numChkBoxes = $('#kgrdUserHierarchy input[type=checkbox][class=checkbox]').length;
+        var numChkBoxesChecked = $('#kgrdUserHierarchy tbody input:checkbox:checked').length;
+        if (numChkBoxes == numChkBoxesChecked && numChkBoxes > 0) {
+            $('.checkboxAll').prop('checked', true);
+        }
+        else {
+
+            $('.checkboxAll').prop('checked', false);
+        }
+
+
+
+    }
+    function OnEditSelection(element) {
+        alert($(element).val());
+        var grid = $("#kgrdHierarchyLevel").data("kendoGrid");
+        var isChecked = $(element).val();
+
+        dataItem = grid.dataItem($(element).closest("tr"));
+        dataItem.set("UserId", isChecked);
+    }
+
+    function OnSuccess(response) {
+        if (response.success) {
+            if (response.operation == "Create") {
+                kendo.alert("@SharedResource["CreatedSuccessfully"]");
+            }
+            else if (response.operation == "Update") {
+                kendo.alert("@SharedResource["UpdatedSuccessfully"]");
+            }
+            else if (response.operation == "Correct") {
+                kendo.alert("@SharedResource["EditedSuccessfully"]");
+            }
+            else if (response.operation == "Delete") {
+                kendo.alert("@SharedResource["DeletedSuccessfully"]");
+            }
+
+            var url = "/hrs/userhierarchy";
+            if (response.ru != null) {
+                url = decodeURI(response.ru) + "&posId=" + response.posId;
+            }
+            window.location.href = url;
+        }
+        else {
+            ShowErrors(response.errors);
+        }
+    }
+    function OnCancel(e) {
+        window.location.href = "/hrs/userhierarchy";
+        return true;
+    }
+    function OnChart(e) {
+        //var posId = $("#PositionId").data("kendoDropDownList").value();
+        var posId = $("#PositionId").val();
+        if (posId == null || posId == 0) {
+            posId = $("#ParentPositionId").val();
+        }
+        var param = this.element.attr("param");
+        url = decodeURI(param) + "&posId=" + posId;
+        window.location.href = url;
+        return true;
+    }
+    var selectedDataItems = [];
+    function pushPopinArray(arr) {
+
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].Select == true) {
+                selectedDataItems.push(arr[i]);
+
+            }
+
+        }
+
+    }
+    function OnUpdate() {
+        var hierId = $("#HierarchyId").val();
+        var users = '';
+        var grid = $("#kgrdUserHierarchy").data("JSGrid");
+        grid.updateItem();
+        pushPopinArray(grid.data);
+        //var grid = $("#kgrdUserHierarchy").data("kendoGrid");
+        //grid.tbody.find("input:checked").closest("tr").each(function (index) {
+        //    //users = users + grid.dataItem(this).UserId + ',';
+        //    users = users + grid.dataItem(this).Name + ',';
+        //});
+        if (hierId == '')
+            alert("@Resource["PleaseSelectTheHierarchyName"]");
+        else if (users == '' || users == ',') {
+            alert("@Resource["PleaseSelectatleastoneuserfromthegrid"]");
+        }
+        else {
+            var hierId = $("#HierarchyId").val();
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/chr/UserHierarchy/UpdateLevel?hierarchyId=" + hierId + "&users=" + users;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["UpdateHierarchyLevel"])', Width: 1300, Height: 600 });
+            return false;
+        }
+    }
+
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+    }
+    function Close(dorefresh, mode) {
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        if (dorefresh) {
+
+            $("#kgrdUserHierarchy").data("kendoGrid").dataSource.read();
+            ShowNotification('@SharedResource["UpdatedSuccessfully"]');
+
+        }
+    }
+
+</script>
+

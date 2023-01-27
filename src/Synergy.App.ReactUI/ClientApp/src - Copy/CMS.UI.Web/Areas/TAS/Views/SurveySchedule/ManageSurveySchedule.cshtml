@@ -1,0 +1,294 @@
+﻿@using CMS.UI.ViewModel
+@using CMS.Common
+@using Newtonsoft.Json;
+@model SurveyScheduleViewModel
+
+@{
+    ViewData["Title"] = "Manage Survey Schedule";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<div class="row" style="margin:10px;margin-bottom:60px;">
+    <form asp-area="TAS" asp-controller="SurveySchedule" asp-action="ManageSurveySchedule" class="form-parse-date form-horizontal" 
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess" onsubmit="ConvertDate()"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="card pad-10" style="padding-top:0px;">
+            <div class="row col-12" style="padding:10px;">
+                <div class="col-3" style="padding-bottom:10px;">
+                    <label>Survey<span class="required">*</span></label>
+                </div>
+                <div class="col-9" style="padding-bottom:10px;">
+                    @(Html.Kendo().DropDownListFor(x => x.SurveyId)
+             .HtmlAttributes(new { @class="form-control" })
+             .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+             .DataTextField("AssessmentName")
+             .DataValueField("Id")
+             .Filter(FilterType.Contains)
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("GetAssessmentIdNameList", "SurveySchedule", new { @area = "Tas" });
+                 });
+             })
+        )
+                </div>
+
+                <div class="col-3" style="padding-bottom:10px;">
+                    <label>Survey Schedule Name<span class="required">*</span></label>
+                </div>
+                <div class="col-9" style="padding-bottom:10px;">
+                    <input type="text" asp-for="SurveyScheduleName" id="SurveyScheduleName" class="form-control" required />
+                </div>
+
+                <div class="col-3" style="padding-bottom:10px;">
+                    <label>Survey Schedule Description</label>
+                </div>
+                <div class="col-9" style="padding-bottom:10px;">
+                    <textarea id="SurveyScheduleDescription" asp-for="SurveyScheduleDescription" class="form-control" style="width:100%!important"></textarea>
+                </div>
+
+                <div class="col-3" style="padding-bottom:10px;">
+                    <label>Preferred Language<span class="required">*</span></label>
+                </div>
+                <div class="col-9" style="padding-bottom:10px;">
+                    @(Html.Kendo().DropDownListFor(x => x.PreferredLanguage)
+             .HtmlAttributes(new { @class="form-control" })
+             .OptionLabel("Select Preferred Language...")
+             .DataTextField("Name")
+             .DataValueField("Id")
+             .Filter(FilterType.Contains)
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("GetLOVIdNameList", "LOV", new { area = "CMS", lovType = "PREFERED_LANGUAGE" });
+                 });
+             })
+        )
+                </div>
+
+                <div class="col-3" style="padding-bottom:10px;">
+                    <label>Survey Expiry Date</label>
+                </div>
+                <div class="col-9" style="padding-bottom:10px;">
+                    @(Html.Kendo().DatePickerFor(x => x.SurveyExpiryDate).Format(ApplicationConstant.DateAndTime.DefaultDateFormat).Min(System.DateTime.Today).HtmlAttributes(new { @class = "form-control", @style = "width:70%" }))
+                </div>
+
+                <div class="col-3" style="padding-bottom:10px;">
+                    <label>Starting Instruction<span class="required"></span></label>
+                </div>
+                <div class="col-9" style="padding-bottom:10px;">
+                    @(Html.Kendo().EditorFor(x => x.StartingInstruction).Value(Html.Raw(Model.StartingInstruction.HtmlDecode()).ToString())
+                .HtmlAttributes(new { style = "width: 100%;", aria_label = "editor" })
+                .StyleSheets(css => css.Add(Url.Content("~/css/editorStyles.css"))
+                )
+                   .Tools(tools => tools
+        .Clear()
+        .Formatting()
+        .Bold().Italic().Underline().Strikethrough()
+        .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+        .InsertUnorderedList().InsertOrderedList()
+        //.Outdent().Indent()
+        .CreateLink().Unlink()
+        //.TableEditing()
+        .ViewHtml()
+        .FontName()
+        .FontSize()
+        .ForeColor().BackColor()
+
+        )
+                            )
+                </div>
+                <div class="col-3" style="padding-bottom:10px;">
+                    <label>Closing Instruction<span class="required"></span></label>
+                </div>
+                <div class="col-9" style="padding-bottom:10px;">
+                    @(Html.Kendo().EditorFor(x => x.ClosingInstruction).Value(Html.Raw(Model.ClosingInstruction.HtmlDecode()).ToString())
+                .HtmlAttributes(new { style = "width: 100%;", aria_label = "editor" })
+                .StyleSheets(css => css.Add(Url.Content("~/css/editorStyles.css"))
+                )
+                   .Tools(tools => tools
+        .Clear()
+        .Formatting()
+        .Bold().Italic().Underline().Strikethrough()
+        .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+        .InsertUnorderedList().InsertOrderedList()
+        //.Outdent().Indent()
+        .CreateLink().Unlink()
+        //.TableEditing()
+        .ViewHtml()
+        .FontName()
+        .FontSize()
+        .ForeColor().BackColor()
+
+        )
+                            )
+                </div>
+
+                <div class="col-3" style="padding-bottom:10px;">
+                    <label>User Details</label>
+                </div>
+                <div class="col-9" style="padding-bottom:10px;">
+                    <textarea id="UserDetails" asp-for="UserDetails" placeholder="Email|Name;" class="form-control" style="width:100%!important"></textarea>
+                </div>
+
+
+
+            </div>
+        </div>
+
+        <div class="row pad-10" style="float:right;">
+            <input type="submit" class="btn btn-primary" value="Save" style="margin:5px;" onclick="OnSubmit(event)" />
+            <input type="button" class="btn btn-primary" value="Close" style="margin:5px;" onclick="closeNav()" />
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.IsOpenSurveySchedule)
+        @Html.HiddenFor(x => x.SurveyStatus)
+        @Html.HiddenFor(x => x.VersionNo)
+    </form>
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        if ('@Model.IsOpenSurveySchedule'=='True') {
+            IsItemOpen();
+        }
+    });
+
+    function closeNav() {
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "OnAfterNoteCreate" });
+        return false;
+    }
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            closeNav();
+        }
+        else {
+            //alert(res.error);
+            //showError(res.error);
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+        }
+    };
+    function OnSubmit(e) {
+
+        var surveyid = $("#SurveyId").data("kendoDropDownList").value();
+        var name = $("#SurveyScheduleName").val();
+        var language = $("#PreferredLanguage").data("kendoDropDownList").value();
+        var userdetails = $("#UserDetails").val();
+        var surveyscheduleid = $("#Id").val();
+
+        if (surveyid == null || surveyid == '' || surveyid == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Survey is required");
+            e.preventDefault();
+            return false;
+        }
+        if (name == null || name == '' || name == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Survey Schedule Name is required");
+            e.preventDefault();
+            return false;
+        }
+        if (language == null || language == '' || language == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Preferred Language is required");
+            e.preventDefault();
+            return false;
+        }
+        //debugger;
+        //var isValid = IsValidUserDetails(e, surveyid, userdetails, surveyscheduleid);
+        //if (isValid) {
+
+        //} else {
+        //    e.preventDefault();
+        //    return false;
+        //}
+        //$.ajax({
+        //    type: "GET",
+        //    url: "/TAS/SurveySchedule/GetValidateSurveyScheduleUserDetails?surveyId=" + surveyid + "&userDetails=" + userdetails + "&surveyScheduleId=" + surveyscheduleid,
+        //    dataType: "json",
+        //    success: function (response) {
+        //        if (response.success) {
+        //            alert(success);
+        //            return true;
+        //        } else {
+        //            //alert(failed);
+        //            //alert(response.error);
+        //            $(".text-danger").removeClass("validation-summary-valid");
+        //            $(".text-danger").addClass("validation-summary-errors");
+        //            $(".text-danger").html(response.error);
+        //            e.preventDefault();
+        //            return false;
+        //        }
+        //    },
+        //});
+
+
+
+    }
+
+    function IsValidUserDetails(e, surveyid, userdetails, surveyscheduleid) {
+        $.ajax({
+            type: "GET",
+            url: "/TAS/SurveySchedule/GetValidateSurveyScheduleUserDetails?surveyId=" + surveyid + "&userDetails=" + userdetails + "&surveyScheduleId=" + surveyscheduleid,
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    alert(success);
+                    return true;
+                } else {
+                    //alert(failed);
+                    //alert(response.error);
+                    $(".text-danger").removeClass("validation-summary-valid");
+                    $(".text-danger").addClass("validation-summary-errors");
+                    $(".text-danger").html(response.error);
+                    e.preventDefault();
+                    return false;
+                }
+            },
+        });
+
+    }
+    function IsItemOpen() {
+        //document.getElementById("SurveyScheduleName").readOnly = true;
+        //document.getElementById("SurveyScheduleDescription").readOnly = true;
+        $("#SurveyId").data("kendoDropDownList").readonly();
+        /*document.getElementById("SurveyExpiryDate").readOnly = true;*/
+        /*document.getElementById("StartingInstruction").readOnly = true;*/
+
+        //var editor1 = $("#StartingInstruction").data("kendoEditor");
+        //    editorBody1 = $(editor1.body);
+        //editorBody1.removeAttr("contenteditable").find("a").on("click.readonly", false);
+
+        /*document.getElementById("ClosingInstruction").readOnly = true;*/
+        //var editor2 = $("#ClosingInstruction").data("kendoEditor");
+        //editorBody2 = $(editor2.body);
+        //editorBody2.removeAttr("contenteditable").find("a").on("click.readonly", false);
+
+        //$('.k-editor-toolbar').hide();
+
+        //var editor2 = $('#ClosingInstruction').data('kendoEditor');
+        //if (editor2 !== undefined) {
+        //    editor2.body.contentEditable = false;
+        //    $('.k-editor-toolbar').hide();
+        //}
+
+        /*document.getElementById("UserDetails").readOnly = true;*/
+
+    }
+</script>

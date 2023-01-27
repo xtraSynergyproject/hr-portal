@@ -1,0 +1,272 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Grievance Report - Heat Map";
+    Layout = null;
+}
+
+<style>
+    .inputGroup {
+        background-color: #fff;
+        display: block;
+        margin: 10px 0;
+        position: relative;
+    }
+
+        .inputGroup label {
+            font-size: 13px;
+            font-weight: 500;
+            padding: 12px 30px;
+            width: 100%;
+            display: block;
+            text-align: left;
+            color: #3c454c;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 200ms ease-in;
+            overflow: hidden;
+        }
+
+            .inputGroup label:before {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                content: '';
+                background-color: #5562eb;
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%) scale3d(1, 1, 1);
+                transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+                opacity: 0;
+                z-index: -1;
+            }
+
+            .inputGroup label:after {
+                width: 32px;
+                height: 32px;
+                content: '';
+                border: 2px solid #d1d7dc;
+                background-color: #fff;
+                background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.414 11L4 12.414l5.414 5.414L20.828 6.414 19.414 5l-10 10z' fill='%23fff' fill-rule='nonzero'/%3E%3C/svg%3E ");
+                background-repeat: no-repeat;
+                background-position: 2px 3px;
+                border-radius: 50%;
+                z-index: 2;
+                position: absolute;
+                right: 2px;
+                top: 50%;
+                transform: translateY(-50%);
+                cursor: pointer;
+                transition: all 200ms ease-in;
+            }
+
+        .inputGroup input:checked ~ label {
+            color: #fff;
+        }
+
+            .inputGroup input:checked ~ label:before {
+                transform: translate(-50%, -50%) scale3d(56, 56, 1);
+                opacity: 1;
+            }
+
+            .inputGroup input:checked ~ label:after {
+                background-color: #54e0c7;
+                border-color: #54e0c7;
+            }
+
+        .inputGroup input {
+            width: 32px;
+            height: 32px;
+            order: 1;
+            z-index: 2;
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            visibility: hidden;
+        }
+
+    .k-listview-content {
+        height: unset !important;
+        overflow-y: hidden !important;
+        padding-top: 10px !important;
+    }
+
+    .k-listview {
+        border-style: none !important;
+        height: unset !important;
+    }
+
+    .vl {
+        border-left: 6px solid green;
+        height: 120px;
+    }
+
+    .wardc {
+        font-weight: 600;
+        padding-left: 1%;
+        padding-top: 3%;
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js" integrity="sha512-KhIBJeCI4oTEeqOmRi2gDJ7m+JARImhUYgXWiOTIp9qqySpFUAJs09erGKem4E5IPuxxSTjavuurvBitBmwE0w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.4.1/leaflet.markercluster.js" integrity="sha512-MQlyPV+ol2lp4KodaU/Xmrn+txc1TP15pOBF/2Sfre7MRsA/pB4Vy58bEqe9u7a7DczMLtU5wT8n7OblJepKbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.4.1/MarkerCluster.css" integrity="sha512-RLEjtaFGdC4iQMJDbMzim/dOvAu+8Qp9sw7QE4wIMYcg2goVoivzwgSZq9CsIxp4xKAZPKh5J2f2lOko2Ze6FQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+<div style="padding:2%">
+    <h6>@ViewData["Title"]</h6>
+</div>
+<div class="row" id="maindiv">
+
+    <div class="col-4" style="margin:1%">
+
+@*        <span style="color:red">*</span><label id="lbl-curdate" class="mb-3">Select Date</label>
+        <input id="CurrentDate" style="width: 100%;" />
+        <br />
+        <span style="color:red">*</span><label class="mb-3">Select Ward</label>
+        <input id="WardId" style="width: 100%;" />
+        <br />*@
+        @* <label class="mb-3">Select Auto</label>
+
+        <input required id="auto" class="form-control" />*@
+        @*<label class="wardc" id="WardNo"></label>*@
+        <div class="col">
+            <label style="font-weight:bold;">From Date</label>
+            <input id="FromDate" style="width: 100%;" />
+        </div>
+        <div class="col">
+            <label style="font-weight:bold;">To Date</label>
+            <input id="ToDate" style="width: 100%;" />
+        </div>
+        @*<button class="btn btn-primary mt-3" onclick="searchParcelDataByWardandLocality()">View Report</button>*@
+        <button class="btn btn-primary mt-3" onclick="searchHeatmap()">View Heat Map</button>
+        @*<button class="btn btn-primary mt-3" onclick="onmapExportKml()">Export</button>*@
+        @*<br /> <br />*@
+        @*<button class="btn btn-primary" onclick="collectGarbage()">Mark as Garbage Collected</button>*@
+        @*<br />
+        <br />*@
+
+        @*<input id="selectAllProp" name="selectAllProp" type="checkbox" onclick="selectAll(this)" /> Select All Property*@
+        <br />
+        <div id="listViewSL" style="overflow: auto;max-height: 80vh;width:100%;"></div>
+        <script type="text/x-kendo-template" id="assestTemplate">
+            <div class="inputGroup">
+                  <div class="row">
+                      <div class="col-2">
+                         <img class="card-img shadow bg-white rounded asset-img" src="../../images/EGOV/Jammu/Building.png" alt="Card image cap" onerror="OnAssetImageError(this);" style="margin-top:15px;width:50px;height:50px;">
+                         <span title="View asset details" style="margin-left:15px;cursor:pointer" class="fas fa-eye" onclick="openAssetDetails(#:gid#)"></span>
+                      </div>
+                      <div class="col">
+                         <input id="#:gid#" class="theprop" name="#:prop_id#" type="checkbox" onchange="onSelectAsset(this)" />
+                  #if(own_name!=null)
+                  {# <label for="#:gid#">#:gid# <br/>#:own_name# <br/>#:usg_cat_gf#<br/>Garbage Collected:#=isGarbageCollectedStr(IsGarbageCollected)# </label> #}
+                  else{# <label for="#:gid#">#:gid# <br/>#:pcl_id# <br/>#:usg_cat_gf#<br/>Garbage Collected: #=isGarbageCollectedStr(IsGarbageCollected)#</label> #}#
+
+                  </div>
+                  </div>
+            </div>
+        </script>
+    </div>
+    <div class="col">
+        <div id="map-view" class="tab-pane">
+            <div class="card" style="padding:5px">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    var assetFeature;
+    var newMap;
+    $(document).ready(function () {
+        
+        $("#FromDate").kendoDatePicker({
+            value: new Date(new Date().setMonth(new Date().getMonth()-6)),
+			format: "dd-MM-yyyy",
+            dateInput: false
+	    });
+        $("#FromDate").attr("disabled", "disabled");
+
+        $("#ToDate").kendoDatePicker({
+            value: new Date(),
+			format: "dd-MM-yyyy",
+            dateInput: false
+	    });
+        $("#ToDate").attr("disabled", "disabled");
+
+    //searchParcelDataByWardandLocality();
+        searchHeatmap();
+    });
+
+  function searchHeatmap(){
+                  debugger;
+        document.getElementById("listViewSL").innerHTML = "";
+        var fd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var td = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var url = "/EGov/SmartCity/GetGrievanceReportHeatMapData?fromDate=" + fd + "&toDate=" + td;
+        ShowLoader($('#maindiv'));
+        $.ajax({
+            url: url,
+            type: "GET",
+            dataType: "json",
+            success: function (result) {
+                debugger;
+                HideLoader($('#maindiv'));
+                loadHeatMap(result);
+            }
+        });
+      }
+
+      function loadHeatMap(res){
+          debugger;
+        console.log(res);
+        var container = L.DomUtil.get('map');
+        if (container['_leaflet_id'] != null) {
+            container['_leaflet_id'] = null;
+            document.getElementById("map").innerHTML = "";
+        }
+        //document.getElementById("map").innerHTML = "";
+        var element = document.getElementById('map');
+        element.style = 'height:650px;';
+        
+
+        const polygon = res.map(({ Latitude, Longitude }) => [Latitude, Longitude, 15]);
+
+        const map = L.map("map").setView([32.7266, 74.857], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 22
+        }).addTo(map);
+        
+        //var poly = JSON.stringify(polygon);
+        L.heatLayer(polygon, { radius: 0 }).addTo(map);
+
+        //var points = [];
+        //var heat = L.heatLayer(points, {
+        //    maxZoom: 10
+        //}).addTo(map);
+
+        const markers = L.markerClusterGroup({
+            chunkedLoading: true,
+            singleMarkerMode: true,
+            spiderfyOnMaxZoom: false
+        });
+
+        polygon.forEach((point) => {
+            markers.addLayer(L.marker(point));
+        });
+
+        map.addLayer(markers);
+            
+      }
+
+
+    </script>

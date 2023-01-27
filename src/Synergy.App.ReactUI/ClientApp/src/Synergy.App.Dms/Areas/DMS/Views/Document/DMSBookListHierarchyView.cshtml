@@ -1,0 +1,1440 @@
+﻿@using Synergy.App.Common
+@using Synergy.App.ViewModel;
+
+@{
+    ViewBag.Title = "";
+    Layout = null;
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model UserChartIndexViewModel
+
+<style>
+    .category-plus {
+        font-size: 17PX;
+        padding-left: 5px;
+        font-weight: 500;
+    }
+
+    #LeftPanel {
+        height: 90vh;
+        overflow: auto;
+        overflow-x: hidden;
+    }
+
+    .search-header-wrapper {
+        background-color: #fff;
+        padding-top: 4rem;
+    }
+
+    input.form-control {
+        font-family: FontAwesome, "Lato", Helvetica, sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        text-decoration: inherit;
+    }
+
+    .ais-search-box--submit {
+        position: absolute;
+        top: 0;
+        right: 0.5rem;
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+
+    .btn {
+        border-radius: 5px;
+    }
+
+    .ais-search-box--input {
+        background: #fff;
+        padding: 1rem 10rem 1rem 1rem !important;
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+
+    .form-control:focus {
+        border-color: #66afe9;
+        outline: 0;
+    }
+
+    textarea, textarea.form-control, input.form-control, input[type=text], input[type=password], input[type=email], input[type=number], [type=text].form-control, [type=password].form-control, [type=email].form-control, [type=tel].form-control, [contenteditable].form-control {
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        -webkit-appearance: none;
+        -webkit-box-shadow: inset 0 -1px 0 #007bff;
+        box-shadow: inset 0 -1px 0 #007bff;
+        font-size: 16px;
+    }
+
+        textarea:focus, textarea.form-control:focus, input.form-control:focus, input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, input[type=number]:focus, [type=text].form-control:focus, [type=password].form-control:focus, [type=email].form-control:focus, [type=tel].form-control:focus, [contenteditable].form-control:focus {
+            /* -webkit-box-shadow: inset 0 -2px 0 #ec6611; */
+            box-shadow: inset 0 -2px 0 #007bff;
+        }
+
+    .mb20 {
+        margin-bottom: 20px !important;
+    }
+
+    .k-listview {
+        border: none;
+        /* color: #212529;*/
+        background: #e5eaee !important
+    }
+
+    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+        font-family: 'Montserrat-subs', Helvetica, sans-serif;
+        font-weight: 600;
+        line-height: 1.2;
+        color: #3c3c3b;
+    }
+
+    .card-label {
+        font-size: 13px;
+        line-height: 20px;
+        color: #808080;
+        padding-right: 3px;
+    }
+
+    .card-text {
+        font-size: 13px;
+        line-height: 20px;
+        color: #808080;
+        font-weight: 600;
+    }
+
+    .card-desc {
+        font-size: 13px;
+        line-height: 20px;
+        color: #808080;
+        text-align: justify;
+    }
+
+    .book-img-h {
+        border: 1px solid silver;
+        border-radius: 4px;
+        height: 35px;
+        width: 35px;
+    }
+
+    .btn-xs {
+        padding: 1px 5px;
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+    }
+    .k-listview-content {
+        overflow: unset;
+        /*display: flex;*/
+        display: inline-flex;
+    }
+
+    .product {
+        float: left;
+        position: relative;
+        width: 350px;
+        min-height: 390px;
+        margin: 0 5px;
+        padding: 0;
+    }
+
+    .card {
+        border-radius: 10px;
+        min-height: 380px;
+    }
+
+    ul.fancytree-container {
+        background-color: transparent;
+        border: none;
+    }
+
+
+    .rating {
+        width: 130px;
+    }
+
+    .rating-0 {
+        background-color: #c0c0c0 !important;
+        border-color: #999999 !important;
+    }
+
+        .rating-0:hover {
+            background-color: #a6a6a6 !important;
+            border-color: #808080 !important;
+        }
+
+    .rating-1 {
+        background-color: #dc3545 !important;
+        border-color: #c32232 !important;
+        color: #fff;
+    }
+
+        .rating-1:hover {
+            background-color: #ad1f2d !important;
+            border-color: #821722 !important;
+            color: #fff;
+        }
+
+    .rating-2 {
+        background-color: #ff8c00 !important;
+        border-color: #e67e00 !important;
+    }
+
+        .rating-2:hover {
+            background-color: #e67e00 !important;
+            border-color: #cc7000 !important;
+        }
+
+    .rating-3 {
+        background-color: #FFBF00 !important;
+        border-color: #cc9900 !important;
+    }
+
+        .rating-3:hover {
+            background-color: #cc9900 !important;
+            border-color: #997300 !important;
+        }
+
+    .rating-4 {
+        background-color: #32CD32 !important;
+        border-color: #28a428 !important;
+    }
+
+        .rating-4:hover {
+            background-color: #28a428 !important;
+            border-color: #1e7b1e !important;
+        }
+
+    .rating-5 {
+        background-color: #388e3c !important;
+        border-color: #2c6d2f !important;
+        color: #fff;
+    }
+
+        .rating-5:hover {
+            background-color: #2c6d2f !important;
+            border-color: #1d491f !important;
+            color: #fff;
+        }
+
+    .rating-star {
+        color: #c0c0c0;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .rating-star-value {
+        color: #808080;
+        font-size: 14px;
+        margin-top: -2px;
+    }
+
+    .rating-rated-1 {
+        color: #dc3545;
+    }
+
+    .rating-rated-2 {
+        color: #ff8c00;
+    }
+
+    .rating-rated-3 {
+        color: #FFBF00;
+    }
+
+    .rating-rated-4 {
+        color: #32CD32;
+    }
+
+    .rating-rated-5 {
+        color: #388e3c;
+    }
+
+    .book-tag-new {
+        position: absolute;
+        top: 45px;
+        z-index: 100;
+        left: 0;
+        width: 73px;
+        color: #fff;
+    }
+
+    .book-tag-text-new {
+        background-color: green;
+        height: 18px;
+        padding-left: 5px !important;
+        padding-top: 1px !important;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .book-tag-tail-new {
+        width: 0px;
+        height: 0px;
+        border-right: 9px solid transparent;
+        border-top: 9px solid green;
+        border-left: 9px solid green;
+        border-bottom: 9px solid green;
+    }
+
+    .book-tag-updated {
+        position: absolute;
+        top: 45px;
+        z-index: 100;
+        left: 0;
+        width: 73px;
+        color: #000;
+    }
+
+    .book-tag-text-updated {
+        background-color: orange;
+        height: 18px;
+        padding-left: 3px !important;
+        padding-top: 2px !important;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .book-tag-tail-updated {
+        width: 0px;
+        height: 0px;
+        border-right: 9px solid transparent;
+        border-top: 9px solid orange;
+        border-left: 9px solid orange;
+        border-bottom: 9px solid orange;
+    }
+
+    .categ-menu {
+        border-radius: 50%;
+        margin-left: 15px;
+        font-size: 16px !important;
+        padding-left: 9px;
+        padding-right: 10px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+
+        .categ-menu:hover {
+            background-color: gray;
+        }
+
+    /*.fancytree-title {
+        margin-top: -5px !important;
+    }*/
+
+   /* span.fancytree-node {
+        min-height: 35px !important;
+    }*/
+
+    .btn-group > .btn-group:not(:last-child) > .btn, .btn-group > .btn:not(:last-child):not(.dropdown-toggle) {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
+
+    .btn-group > .btn-group:not(:first-child) > .btn, .btn-group > .btn:not(:first-child) {
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+
+    #side-menu-switch {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+        #side-menu-switch:checked + .side-menu {
+            transform: translateX(-100%);
+        }
+
+            #side-menu-switch:checked + .side-menu label .fas {
+                transform: scaleX(-1);
+            }
+
+    ::placeholder {
+        /* Chrome, Firefox, Opera, Safari 10.1+ */
+        color: #fff;
+        opacity: 1; /* Firefox */
+    }
+
+    .side-menu {
+        background-color: white;
+        width: 368px;
+        height: 100%;
+        /*padding: 50px 0;*/
+        box-sizing: border-box;
+        /*background-image: linear-gradient(0deg,#3381b0,#87cefa);*/
+        display: flex;
+        flex-flow: column nowrap;
+        box-shadow: 5px 0px 10px rgba(17, 26, 41, 0.6);
+        position: absolute;
+        transition: .5s;
+        /* transform: translateX(0); */
+    }
+
+        .side-menu form {
+            display: flex;
+            margin: 0 10px 50px;
+            border-radius: 100px;
+            border: 1px solid #fff;
+        }
+
+            .side-menu form input,
+            .side-menu form button {
+                background-color: transparent;
+                color: #fff;
+                border: none;
+                padding: 5px 10px;
+            }
+
+            .side-menu form input {
+                width: 230px;
+            }
+
+        .side-menu label {
+            cursor: pointer;
+            position: absolute;
+            width: 38px;
+            height: 75px;
+            background-color: #d0d0d0;
+            color: #767575;
+            right: -40px;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            line-height: 80px;
+            text-align: center;
+            font-size: 30px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .side-menu form button {
+            width: 50px;
+        }
+
+        .side-menu form input:focus::placeholder {
+            color: #ccc;
+        }
+
+        .side-menu form input:focus,
+        .side-menu form button:focus {
+            outline: none;
+        }
+
+    .rhs .rhs-menu, .rhs .rhs-menu > button {
+        border-radius: 10px 0 0 10px;
+        width: 44px;
+    }
+
+    .rhs .rhs-menu {
+        background-color: #fff;
+        box-shadow: 0 6px 30px 0 rgb(63 79 110 / 15%);
+        flex-basis: auto;
+        flex-grow: 0;
+        left: -44px;
+        position: absolute;
+        top: 135px;
+    }
+
+        .rhs .rhs-menu > button {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            color: #fff;
+            display: block;
+            height: 46px;
+            outline: none;
+            position: relative;
+        }
+
+        .rhs .rhs-menu, .rhs .rhs-menu > button {
+            border-radius: 10px 0 0 10px;
+            width: 44px;
+        }
+
+    .rhs {
+        background-color: #fff;
+        bottom: 0;
+        position: fixed;
+        right: -430px;
+        top: 0;
+        transition: all .5s ease;
+        width: 430px;
+    }
+
+    .btn-xs {
+        padding: 1px 5px;
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+    }
+
+    .ic {
+        color: darkgray;
+        font-size: 20px;
+    }
+
+    .comment-count {
+        color: #f8f8f8;
+        font-weight: 900;
+        background-color: red;
+        border-radius: 50%;
+        font-size: 14px;
+        position: fixed;
+        width: 19px;
+        top: 19%;
+        right: 0%;
+    }
+
+    .page-content {
+        padding-left: 10px;
+        padding-right: 5px;
+        padding-top: 20px;
+    }
+
+    #menu-toggle {
+        text-decoration: none;
+        float: left;
+        color: #000;
+    }
+
+    .toggle-btn {
+        position: relative;
+        left: -18px;
+        top: 250px;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        background-color: silver;
+        padding-left: 8px;
+        padding-right: 9px;
+        border-bottom-left-radius: 0px;
+        border-top-left-radius: 0px;
+    }
+
+    #toggle-icon {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .toggle-btn i {
+        color: #404040;
+    }
+
+  /*  #slide-wrapper {
+        padding-left: 360px;
+        transition: all 0.4s ease 0s;
+    }*/
+
+    #sidebar-slide-wrapper {
+        margin-left: -360px;
+        left: 360px;
+        width: 360px;
+        background: silver;
+        position: fixed;
+        height: 100%;
+        overflow-y: auto;
+        z-index: 1000;
+        transition: all 0.4s ease 0s;
+    }
+
+    #slide-wrapper.active {
+        padding-left: 0;
+    }
+
+        #slide-wrapper.active #sidebar-slide-wrapper {
+            left: 0;
+        }
+
+    @@media (max-width:767px) {
+
+        #slide-wrapper {
+            padding-left: 0;
+        }
+
+        #sidebar-slide-wrapper {
+            left: 0;
+        }
+
+        #slide-wrapper.active {
+            position: relative;
+            left: 250px;
+        }
+
+            #slide-wrapper.active #sidebar-slide-wrapper {
+                left: 250px;
+                width: 250px;
+                transition: all 0.4s ease 0s;
+            }
+
+        #menu-toggle {
+            display: inline-block;
+        }
+    }
+    .scrollbtn{
+        width:25px;
+    }
+
+    #wrapper {
+        height: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        #wrapper > ul {
+            height: 75%;
+            list-style: none;
+            display: flex;
+            align-content: center;
+            flex-direction: column;
+            flex-wrap: wrap;
+        }
+
+        #wrapper > li {
+            flex-basis: calc(100% / 3 - 2px);
+            color: firebrick;
+            border: 1px solid firebrick;
+             background-color: greenYellow;
+            width: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+</style>
+<script>
+    $('#left').click(function (event) {       
+        //event.preventDefault();
+        $('#chartdiv').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+
+    });
+
+    $('#right').click(function (event) {        
+        //event.preventDefault();
+        $('#chartdiv').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+
+    });
+
+    $('#left1').click(function (event) {        
+        //event.preventDefault();
+        $('#chartdiv').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+
+    });
+
+    $('#right1').click(function (event) {        
+        //event.preventDefault();
+        $('#chartdiv').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+
+    });
+</script>
+
+<script>
+    function SetfullMargin() {
+        //document.getElementById("main-div").style.marginLeft = "0px";
+        if (document.getElementById("main-div").style.marginLeft == "5%") {
+            document.getElementById("main-div").style.marginLeft = "30%";
+            document.getElementById("main-div").style.width = "60%";
+
+        } else {
+            document.getElementById("main-div").style.marginLeft = "5%";
+            document.getElementById("main-div").style.width = "90%";
+        }
+    }
+</script>
+@*<div id="slide-wrapper">*@   
+    <div id="page-content-slide-wrapper">        
+        <div id="main-div" class="page-content">
+
+            <!--<div class="container">
+                <div class="row mb20">
+                    <div class="col-12">
+                        <form action="#" class="ng-pristine ng-valid">
+                            <div class="row">
+                                <div class="col-10">
+                                    <input type="search" class="form-control ais-search-box--input" id="search-input" placeholder="Search books" aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" role="textbox" spellcheck="false" value="">
+
+                                    <button class="btn btn-primary ais-search-box--submit" type="button" onclick="onSearch();">
+                                        Search <i class="fal fa-search"></i>
+                                    </button>
+                                </div>
+                                <div class="col-2">
+                                    <button class="btn btn-primary" type="button" onclick="onReset();">
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>-->
+                            @*<span class="ais-search-box--reset-wrapper" style="display: none;">
+                            <button type="reset" title="Clear the search query." class="ais-search-box--reset">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="100%" height="100%">
+                                    <path d="M8.114 10L.944 2.83 0 1.885 1.886 0l.943.943L10 8.113l7.17-7.17.944-.943L20 1.886l-.943.943-7.17 7.17 7.17 7.17.943.944L18.114 20l-.943-.943-7.17-7.17-7.17 7.17-.944.943L0 18.114l.943-.943L8.113 10z" fill-rule="evenodd">
+                                    </path>
+                                </svg>
+                            </button>
+                        </span>*@
+                        <!--</form>
+                    </div>
+                </div>-->
+                @*<div class="row mb20">
+                <div class="col-12">
+                    <div id="current-refined-values">
+                        <div style="display: none;">
+                            <div class="ais-root ais-current-refined-values">
+                                <div class="ais-current-refined-values--header ais-header">Current Filters</div><div class="ais-body ais-current-refined-values--body">
+                                    <div>
+                                        <a class="ais-current-refined-values--clear-all ais-current-refined-values--clear-all-disabled" href="/search">
+                                            <div>
+                                                <span class="badge badge-primary">Clear all <i class="fa fa-times-circle ml-1"></i></span>
+                                            </div>
+                                        </a><div class="ais-current-refined-values--list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+            <!--</div>-->
+
+
+            <div class="container-fluid body-content">
+                <div class="row no-gutters">
+                    <div class="col-12 pl-2">
+                        <a href="javascript: void(0); onclick=OnSwitchView()" class="btn btn-sm btn-primary" title="Card View"><i class="fas fa-th"></i></a>
+                        <a href="javascript: void(0); onclick=OnSwitchView('scroll')" class="btn btn-sm btn-primary" title="Scroll View" view=""><i class="fas fa-arrows-h"></i></a>
+                        <a href="javascript: void(0); onclick=OnSwitchView('hierarchy')" class="btn btn-sm btn-primary" title="Hierarchy View" view=""><i class="fas fa-sitemap"></i></a>
+                        @*<input id="hideBookImage" type="checkbox" /> <span id="hideBookImageTxt">Hide Book Image</span>*@
+                        <script>
+                            $("#hideBookImage").click(function () {
+                                if (this.checked) {
+                                    var appBanners = document.getElementsByClassName('book-img-h');
+
+                                    for (var i = 0; i < appBanners.length; i++) {
+                                        appBanners[i].style.display = 'none';
+                                    }
+                                    document.getElementById("hideBookImageTxt").innerText = "Show Book Image";
+                                } else {
+                                    var appBanners = document.getElementsByClassName('book-img-h');
+
+                                    for (var i = 0; i < appBanners.length; i++) {
+                                        appBanners[i].style.display = '';
+                                    }
+                                    document.getElementById("hideBookImageTxt").innerText = "Hide Book Image";
+                                }
+                            });
+                           
+                        </script>
+
+                    </div>
+                    <div class="col-12 pt-2">
+                        <div class="row col-12" style="overflow-x: scroll; margin-top: 15px; min-height: 500px;">
+
+                            <script src="~/js/DMSBookHierarchyChartMenu.js"></script>
+                           
+                            <link href="~/css/objectchart.css" rel="stylesheet" />
+
+                            <style>
+                               
+                                .org-node-1 {
+                                    width: 250px !important;
+                                    text-align: left;
+                                    padding-left: 5px;
+                                    height: 55px !important;
+                                
+                                }
+
+                                /*.tree {
+                                    text-align: unset !important;
+                                    align-items: unset !important;
+                                    display: flex !important;*/ /*initial center alignment*/
+                                    /*overflow-x: scroll;
+                                    justify-content:center;
+                                }*/
+                                .tree {
+                                    text-align: center;
+                                    align-items: center;
+                                    display: block !important; /*initial center alignment*/
+                                    overflow-x: scroll;
+                                }
+
+                                .tree {
+                                    text-align: center;
+                                    align-items: center;
+                                    display: block !important;
+                                    overflow-x: scroll;
+                                    min-height: 500px;
+                                    overflow-y: scroll;
+                                    margin-bottom: 10px;
+                                }
+
+                                .k-menu-group {
+                                    position: initial !important
+                                }
+                                .k-menu-link {
+                                    color: black;
+                                }
+
+                                .hr-org-expand .hr-org-collapse{
+                                    top: 100px;
+                                }
+
+                                .k-menu:not(.k-context-menu) {
+                                    border-color: #dee2e6;
+                                    color: #212529;
+                                    background-color: #d0d0d0;
+                                }
+                            </style>
+
+<script type="text/javascript">
+    var reset = true, chartMode = 'Normal', hierarchyId, asonDate,
+        allowedParentId, hierarchyRootNodeId, isAsOnDate , permissionCSV, isAdmin , loggedInEmpId
+        , loggedInOrganizationId, loggedInUserOrganizationMapping
+        , loggedInOrgId, isAdmin
+        $(document).ready(function () {
+        $("#menu").hide();
+        $("#menu").find("ul").addClass("dropdown-menu");
+        allowedParentId='@Model.AllowedRootNodeId';
+        InitialLoad('@Model.AllowedRootNodeId');
+
+        });
+
+    function OnAfterCreate(note) {
+       InitialLoad('@Model.AllowedRootNodeId');
+    }
+    function GetDataUser(userId)
+    {
+        $.ajax({
+            url: "/portalAdmin/ObjectHierarchyChart/AddExistingUserPost" ,
+            type: 'POST',
+            data: {
+                "parentUserId": orgId,
+                "userId": userId,
+                "hierarchyId": '@Model.HierarchyId'
+            },
+            success: function (data) {
+
+               InitialLoad('@Model.AllowedRootNodeId');
+            },
+            error: function (errData) {
+                OnError(errData);
+
+            }
+        });
+    }
+
+    function OnAsOnDateChange(e) {
+        var params = window.location.search;
+        params = RemoveParams(params, 'date');
+        var url = window.location.pathname + '?' + params + '&date='+kendo.toString(this.value(), 'yyyy-MM-dd');
+        window.location.href = url;
+        return false;
+    }
+    function InitialLoad(OrganizationId) {
+       
+        if (OrganizationId != null && OrganizationId != '') {
+            var url = "/dms/Document/GetDMSBookChildList?parentid=" + allowedParentId + "&levelUpto=0&hierarchyId=@Model.HierarchyId";
+            var li = $('.root-li');
+            GetChildList(url, li, allowedParentId, true, null);
+            }
+        else {
+            Search(OrganizationId);
+       }
+    }
+    function ExportToPdf() {
+        $("#Width").val($(".root-li").width());
+        $("#Height").val($(".root-li").height());
+        var html = $('.tree').prop('outerHTML');
+        $("#Content").val($('<div/>').text(html).html());
+        document.getElementById('exportToPdf').submit();
+        return true;
+    }
+    $(document).on('click', function (e) {
+
+        if ($(e.target).closest("#menu").length === 0 && $(e.target).closest(".hr-org-menu").length === 0) {
+            $("#menu").hide();
+        }
+    });
+    
+    function OrganizationChartSearchCallBack(Organizations) {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+
+        Search(Organizations.replace(',', ''));
+        return false;
+    }
+    function Search(OrganizationId) {
+        var url = "/hrs/Organizationchart/GetParentHierarchyWithAllChild?OrganizationId=" + OrganizationId
+            + "&hierarchyId=" + hierarchyId + "&hierarchyRootId=" + hierarchyRootNodeId
+            + "&allowedRootId=" + allowedParentId + "&date=" + asonDate;
+        var li = $('.root-li');
+        GetChildList(url, li, allowedParentId, true, OrganizationId);
+    }
+
+function FillNode(data, liData, parentLvl) {
+
+        liData.Level = parentLvl;
+        var html = "";
+        var template = kendo.template($("#template-org").html());
+        html = template(liData);
+        var items = $.grep(data, function (element, index) {
+            return element.ParentId == liData.Id;
+        });
+
+        if (items != null && items.length > 0) {
+            html = html.replace('hr-org-expand', 'hr-org-collapse');
+            html += "<ul class='" + parentLvl + "'>"
+            for (var i = 0; i < items.length; i++) {
+                html += "<li id='" + items[i].Id +"' lvl='" + (eval(parentLvl) + 1) + "'>";
+                html += FillNode(data, items[i], eval(parentLvl) + 1);
+                html += "</li>"
+            }
+            html += "</ul>";
+        }
+        return html;
+    }
+    function GetChildList(url, li, OrganizationId, includeParent, searchId) {
+        ShowLoader($("#bookview"));
+        $.ajax({
+            url: url,
+            type: 'GET',
+            cache: false,
+            //async: false,
+            success: function (data) {
+                HideLoader($("#bookview"));
+                if (includeParent) {
+
+                    var parentData = $.grep(data, function (element, index) {
+                        return element.Id == OrganizationId;
+                    });
+                   if (parentData != null && parentData.length > 0) {
+                        var parentLvl = eval(li.attr('lvl'));
+                        li.html(FillNode(data, parentData[0], parentLvl) );
+                    }
+                }
+                else {
+
+                    var childData = $.grep(data, function (element, index) {
+                        return element.ParentId == OrganizationId;
+                    });
+
+                    if (childData != null && childData.length > 0) {
+                        var parentLvl = eval(li.attr('lvl'));
+                        var html = "<ul class='" + parentLvl + "'>"
+                        for (var i = 0; i < childData.length; i++) {
+                            html += "<li id='" + childData[i].Id+"' lvl='" + (eval(parentLvl) + 1) + "'>";
+                            html += FillNode(data, childData[i], (eval(parentLvl) + 1));
+                            html += "</li>"
+                        }
+                        html += "</ul>";
+                        li.append(html);
+                    }
+                }
+
+                if (searchId!=null) {
+                    $("#org-" + searchId).addClass('focus');
+                    FocusSearchResultNode();
+                }
+            },
+            error: function (errData) {
+                HideLoader($("#bookview"));
+                OnError(errData);
+
+            }
+        });
+        return false;
+    }
+    function Expand(e, rootli) {
+       
+        var node = $(e).parent('div').parent('li');
+        var lvl = eval(node.attr('lvl'));
+     //var id = eval(node.attr('id'));
+        var id = node.attr('id');
+        var ul = node.find('ul[class=' + lvl + ']');
+
+        if (ul.length <= 0) {
+            var rootli = $('.root-li');
+            //hierarchyId = $("#HierarchyId").val();
+            if (id == undefined) {
+                var node1 = $(e).parent('div')
+                var rootid = node1[0].id;
+                rootid = rootid.split("org-");
+                var url = "/dms/Document/GetDMSBookChildList?parentId=" + rootid[1] + "&levelUpto=" + lvl +"&hierarchyId=@Model.HierarchyId";
+                GetChildList(url, node, rootid[1], false, null)
+            }
+            else {
+                var url = "/dms/Document/GetDMSBookChildList?parentId=" + id + "&levelUpto="+lvl+"&hierarchyId=@Model.HierarchyId";
+                GetChildList(url, node, id, false, null)
+            }
+           
+        }
+        else {
+            ul.show();            
+        }
+    }
+
+    function MultiLevelExpandCollapse(OrganizationId, level) {
+       
+        var node = $('#org-' + OrganizationId).parent('li');
+        node.find('.hr-ec').toggleClass('hr-org-expand hr-org-collapse');
+        var lvl = eval(node.attr('lvl'));
+        var id = node.attr('id');
+        var ul = node.find('ul[class=' + lvl + ']');
+        var ec = node.find('.hr-ec');
+        ec.removeClass("hr-org-expand");
+        ec.addClass("hr-org-collapse");
+        if (ul.length > 0) {
+            ul.remove();
+        }
+        hierarchyId = $("#HierarchyId").val();
+        if (id == undefined) {
+            var url = "/dms/Document/GetDMSBookChildList?parentId=" + OrganizationId + "&levelUpto=" + level + "&hierarchyId=@Model.HierarchyId";
+            GetChildList(url, node, OrganizationId, false, null)
+        }
+        else {
+            var url = "/dms/Document/GetDMSBookChildList?parentId=" + id + "&levelUpto=" + level + "&hierarchyId=@Model.HierarchyId";
+            GetChildList(url, node, id, false, null)
+        }
+
+       // GetChildList(url, node, id, false, null)
+    }
+    function CollapseAll(OrganizationId) {
+        var node = $('#org-' + OrganizationId).parent('li');
+        var lvl = eval(node.attr('lvl'));
+        var ec = node.find('.hr-ec');
+        ec.removeClass("hr-org-collapse");
+        ec.addClass("hr-org-expand");
+        var ul = node.find('ul[class=' + lvl + ']');
+        ul.remove();
+        //OnComplete();
+    }
+    function Collapse(e, rootli) {
+        var node = $(e).parent('div').parent('li');
+        var lvl = eval(node.attr('lvl'));
+        var ul = node.find('ul[class=' + lvl + ']');
+        ul.remove();
+        //OnComplete();
+    }
+
+    function OnExpandCollapseClick(e) {
+
+        //var node = $(e).parent('div').parent('li');
+        //var lvl = eval(node.attr('lvl'));
+        //const treenode = document.querySelector('.tree');
+
+        var rootli = $('.root-li');
+        //OnBegin();
+        var isExpand = $(e).hasClass('hr-org-expand');
+        $(e).toggleClass('hr-org-expand hr-org-collapse');
+        if (isExpand) {
+            Expand(e, rootli);
+
+            
+            //if (lvl == 1) {
+            //    treenode.style.cssText += 'justify-content:unset !important';
+            //}
+            
+        }
+        else {
+            Collapse(e, rootli);
+            //treenode.style.justifyContent = 'center';
+        }
+    }
+
+    function OnManage(source, orgId, relationshipId, hierarchyId) {
+        var rsv = encodeURIComponent("/hrs/organizationchart/index?a=1");
+        if (type1 == "OrgExcel") {
+            rsv = encodeURIComponent("/hrs/organizationchart/index?type=OrgExcel");
+        }
+        var url = "/hrs/Organizationhierarchy/" + source + (orgId == null ? "" : "?orgId=" + orgId) +  "&relationshipId=" + relationshipId + "&hierarchyId=" + hierarchyId+ "&ru=" + rsv;
+        window.location.href = url;
+
+    }
+    function OnOrgManage(source, id) {
+        var rsv = encodeURIComponent("/hrs/organizationchart/index?a=1");
+        if (type1 == "OrgExcel") {
+            rsv = encodeURIComponent("/hrs/organizationchart/index?type=OrgExcel");
+        }
+
+        var url = "/hrs/Organization/" + source + (id == null ? "" : "?id=" + id + "&ru=" + rsv +  "&hierarchyId=" + hierarchyId + "&orgId=" + orgId + "&date=" + asonDate);
+        window.location.href = url;
+                                }
+
+    function onAddRootNode() {
+        var rsv = encodeURIComponent("//hrs/organizationchart/index?a=1");
+        window.location.href = "/hrs/organization/create?parentOrganizationId=0&hierarchyid=1&rs=" + rsv;
+    }
+
+    $('#left').click(function () {
+        event.preventDefault();
+        $('#chartdiv').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+
+    });
+
+    $('#right').click(function () {
+        event.preventDefault();
+        $('#chartdiv').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+
+    });
+
+    $('#left1').click(function () {
+        event.preventDefault();
+        $('#chartdiv').animate({
+            scrollLeft: "-=1075px"
+        }, "slow");
+
+    });
+
+    $('#right1').click(function () {
+        event.preventDefault();
+        $('#chartdiv').animate({
+            scrollLeft: "+=1075px"
+        }, "slow");
+
+    });
+
+</script>
+
+@Html.AntiForgeryToken()
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.ParentId)
+@Html.HiddenFor(x => x.Name)                            
+
+<div class="col-12" id="appWrapper">
+    <script type="text/x-kendo-template" id="template-org">
+        <div class="row-12 org-node #:data.CssClass#" id="org-#:data.Id#" style="Height:80px !important">
+            @*@if (Model.RequestSource == "HRDirect")
+            {*@
+
+        <div class="col">
+        <div class="row">
+            <div class="chartText" style="white-space:normal;font-size:12px;font-weight:bold;padding-top:10px;padding-bottom:15px;width:80%;">
+                                     # if (data.NodeType == "Book" || data.NodeType == "Page") { #
+                               <img class="book-img-h" src="/cms/Document/GetImageMongo?id=#:data.BookImage#" onerror="OnBookError(this);">
+            @*</div>*@   # } #
+                  #: Name #
+        @*#if (data.CreatedDate!=null)
+        {#
+        <br>#:CreatedDate#
+        #}#*@
+            </div>
+            <div class="hr-org-menu-div" style="padding-top:15px;padding-bottom:15px;width:20%;">
+        #if(NodeType=="Document"){#
+                <span id="hr-org-menu-#:data.Id#" permission="@ViewBag.Permissions" type="#:data.NodeType#" isAdmin="@_userContext.IsSystemAdmin"
+                      orgId="#:data.Id#" hc="0" lvl="0" count="#:data.Count#" bookId="#:data.Id#"
+                      pageId="#:data.DocumentId#"
+                      jobId="0" rl="Abc"
+                      orl="Xyz" pt="1"
+                      pPosId="1" nt="A" ccHolderId="1"
+                      orgHierarchyId="1" hierarchyId="#:data.HierarchyId#" parentId="#:data.ParentId#"
+                      userId="1" noteId="#:data.Id#" orgHierarchyNoteId="#:data.UserHierarchyNoteId#" orgName="#:data.Name#"
+                      class="hr-org-menu k-icon k-i-more-vertical" onclick="OpenContextMenu(this,0,0)">
+                </span>
+        #}#
+            </div>
+        </div>
+        </div>
+
+
+                @*}
+            else
+            {
+                 <div class="hr-org-menu-div">
+                <span id="hr-org-menu-#:data.Id#"
+                      orgId="#:data.Id#" hc="0" lvl="0"
+                      jobId="0" rl="Abc"
+                      orl="Xyz" pt="1"
+                      pPosId="1" nt="A" ccHolderId="1"
+                      orgHierarchyId="1" hierarchyId="#:data.HierarchyId#"
+                      userId="1" noteId="#:data.NoteId#" orgHierarchyNoteId="#:data.OrgHierarchyNoteId#" orgName="#:data.OrganizationName#"
+                      class="hr-org-menu k-icon k-i-more-horizontal" onclick="OpenContextMenu(this,0,0)">
+                </span>
+            </div>
+            }*@
+         @*<div>
+
+                <img class="chartImage" src="/Cms/document/getimagemongo?id=#:data.PhotoId#"  onerror='OnPhotoError(this);' />
+            </div>*@
+
+            @*<div class="chartText borderTop" style="white-space:normal;font-size:10px;font-weight:bold;">
+                Cost Center : #: CostCenter #
+            </div>*@
+
+            # if (data.DirectChildCount>0) { #
+            <span  class="hr-org-expand hr-ec" style="top:100px" onclick="OnExpandCollapseClick(this)"></span>
+            <span class="hr-dhc" style="top:100px" title="#:data.DirectChildCount# direct reportees">#:data.DirectChildCount#</span>
+            # } #
+
+        </div>
+    </script>
+
+                        @*<div class="row col-12" style="margin-top:15px;padding-right:unset;">
+                            <div class="col-6">
+                                <button style="float:left" id="left" class="scrollbtn"><i class="fas fa-chevron-left"></i></button>
+                                <button style="float:left" id="right" class="scrollbtn"><i class="fas fa-chevron-right"></i></button>
+
+                            </div>
+                            <div class="col-6">
+                                <button style="float:right" id="right1" class="scrollbtn"><i class="fas fa-chevron-right"></i></button>
+                                <button style="float:right" id="left1" class="scrollbtn"><i class="fas fa-chevron-left"></i></button>
+                            </div>
+                        </div>*@
+
+                            <div class="tree" id="chartdiv">
+                                <div id="wrapper">
+                                    <ul class="0">
+                                        <li class="root-li" lvl='0' id="@Model.Id">
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        </div>
+                       
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@*</div>*@
+<input type="hidden" id="SelectedPageId" />
+@*@(Html.Kendo().Menu()
+                       .Name("menu")
+                       .Events(e => e.Select("OnMenuClick"))
+                       .HtmlAttributes(new { @class = "dropdown-menu" })
+                       .Items(items =>
+                       {
+                           items.Add().Text("Read Book").HtmlAttributes(new { @id = "readBook" });
+                        })
+                       .Orientation(MenuOrientation.Vertical)
+
+    )*@
+<script>
+    var selectedView = "default";
+    function OnSwitchView(view) {
+        if (view == 'hierarchy') {
+            selectedView = 'hierarchy';
+            var url = "/dms/Document/DMSBookListHierarchyView?id=@ViewBag.Id";
+
+             LoadPartailView(url, $('#bookview'));
+
+        } else if (view == 'scroll') {
+            selectedView = 'scroll';
+            var url = "/dms/Document/DMSBookListScrollView?id=@ViewBag.Id";
+
+            LoadPartailView(url, $('#bookview'));
+
+        } else {
+            selectedView = 'default';
+             var url = "/dms/Document/DMSBook?id=@ViewBag.Id";
+            LoadPartailView(url, $('#bookview'));
+        }
+    }
+    $(document).ready(function () {
+
+
+        if ('@ViewBag.BookId' != '' && '@ViewBag.BookId' != 'null')
+        {
+            var url = '/cms/NtsService/ServiceBookBrowse?bookId=@ViewBag.BookId';
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: 'Browse Book', Width: 1200, Height: 1000 });
+        }
+    });
+    function OnStarClick(star, serviceId) {
+        var comment = '';
+        ShowLoaderTarget($('.rating-popup'));
+        $.ajax({
+            url: '/Nts/UpdateRating?ntsType=2&ntsId=' + serviceId + '&rating=' + star + '&comment=' + comment + '&userId=@_userContext.UserId',
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                HideLoaderTarget($('.rating-popup'));
+
+            }
+        });
+    }
+
+    function OnRemoveRating(serviceId) {
+        var comment = '';
+        ShowLoaderTarget($('.rating-popup'));
+        $.ajax({
+            url: '/Nts/RemoveRating?ntsType=2&ntsId=' + serviceId +  '&userId=@_userContext.UserId',
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                HideLoaderTarget($('.rating-popup'));
+
+            }
+        });
+    }
+    function OnStarHover(star) {
+        $('.rating-star-value').html('&nbsp;');
+        $("span[id^='rating-star-']").removeClass('rating-rated-1');
+        $("span[id^='rating-star-']").removeClass('rating-rated-2');
+        $("span[id^='rating-star-']").removeClass('rating-rated-3');
+        $("span[id^='rating-star-']").removeClass('rating-rated-4');
+        $("span[id^='rating-star-']").removeClass('rating-rated-5');
+        switch (star) {
+            case 1:
+                $('.rating-star-1').addClass('rating-rated-1');
+                $('.rating-star-value').html('1/5');
+                break;
+            case 2:
+                $('.rating-star-1').addClass('rating-rated-2');
+                $('.rating-star-2').addClass('rating-rated-2');
+                $('.rating-star-value').html('2/5');
+                break;
+            case 3:
+                $('.rating-star-1').addClass('rating-rated-3');
+                $('.rating-star-2').addClass('rating-rated-3');
+                $('.rating-star-3').addClass('rating-rated-3');
+                $('.rating-star-value').html('3/5');
+                break;
+            case 4:
+                $('.rating-star-1').addClass('rating-rated-4');
+                $('.rating-star-2').addClass('rating-rated-4');
+                $('.rating-star-3').addClass('rating-rated-4');
+                $('.rating-star-4').addClass('rating-rated-4');
+                $('.rating-star-value').html('4/5');
+                break;
+            case 5:
+                $('.rating-star-1').addClass('rating-rated-5');
+                $('.rating-star-2').addClass('rating-rated-5');
+                $('.rating-star-3').addClass('rating-rated-5');
+                $('.rating-star-4').addClass('rating-rated-5');
+                $('.rating-star-5').addClass('rating-rated-5');
+                $('.rating-star-value').html('5/5');
+                break;
+            default:
+        }
+    }
+    function ResetStar(star) {
+        $('.rating-star-value').html('&nbsp;');
+        $("span[id^='rating-star-']").removeClass('rating-rated-1');
+        $("span[id^='rating-star-']").removeClass('rating-rated-2');
+        $("span[id^='rating-star-']").removeClass('rating-rated-3');
+        $("span[id^='rating-star-']").removeClass('rating-rated-4');
+        $("span[id^='rating-star-']").removeClass('rating-rated-5');
+        switch (star) {
+            case 1:
+                $('.rating-star-1').addClass('rating-rated-1');
+                $('.rating-star-value').html('1/5');
+                break;
+            case 2:
+                $('.rating-star-1').addClass('rating-rated-2');
+                $('.rating-star-2').addClass('rating-rated-2');
+                $('.rating-star-value').html('2/5');
+                break;
+            case 3:
+                $('.rating-star-1').addClass('rating-rated-3');
+                $('.rating-star-2').addClass('rating-rated-3');
+                $('.rating-star-3').addClass('rating-rated-3');
+                $('.rating-star-value').html('3/5');
+                break;
+            case 4:
+                $('.rating-star-1').addClass('rating-rated-4');
+                $('.rating-star-2').addClass('rating-rated-4');
+                $('.rating-star-3').addClass('rating-rated-4');
+                $('.rating-star-4').addClass('rating-rated-4');
+                $('.rating-star-value').html('4/5');
+                break;
+            case 5:
+                $('.rating-star-1').addClass('rating-rated-5');
+                $('.rating-star-2').addClass('rating-rated-5');
+                $('.rating-star-3').addClass('rating-rated-5');
+                $('.rating-star-4').addClass('rating-rated-5');
+                $('.rating-star-5').addClass('rating-rated-5');
+                $('.rating-star-value').html('5/5');
+                break;
+            default:
+        }
+    }
+    function onAfterCategoryCreate()
+    {
+        var url = "/cms/NtsService/ServiceBookListScrollView?templateCodes=@ViewBag.TemplateCodes&permissions=@ViewBag.Permissions";
+        LoadPartailView(url, $('#cms-content'));
+    }
+   
+    function OnAfterServiceCreate()
+    {
+        //window.location.href = window.location.href;
+        //$("#tree-container").empty();
+        //$("#tree-container").append('<div id="contentTreeView" class="category-tree"></div>');
+
+
+        OnSwitchView('hierarchy');
+        // $("#kgrdCards").data("kendoListView").dataSource.read({ templateCodes: '@ViewBag.TemplateCodes'});
+        //var tree = $('#contentTreeView').fancytree('getTree');
+        //tree.reload();
+    }
+    function onReadMore(id, templateCode, documentId) {       
+        var url = '/dms/document/DmsBookBrowse?documentNoteId=' + id + '&templateCode=' + templateCode + '&documentId=' + documentId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Read Book', Width: 1200, Height: 1000 });
+        return false;
+    }
+
+    function onBookPageCommentClick()
+    {
+        var serviceId = document.getElementById("pageServiceId").innerText;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ServiceComments", "Cms", new { @area= "" })?serviceId=' + serviceId + '&IsAddCommentEnabled=true';
+        win.OpenWindow({ Title: 'Page Comments', Width: 1200, Height: 600 });
+        return false;
+    }
+    function onRelatedPageClick() {
+        $('.desc-popup-card').webuiPopover('destroy').webuiPopover({
+            width: 350,
+            height: 350,
+            trigger: 'hover',
+            placement: 'left',
+            delay: {
+                show: null,
+                hide: 300
+            },
+            content: function (e) {
+                // var content = e.$element.data('content');
+                content = "<div id='related-page'></div>";
+                   @*var dataSource1 = new kendo.data.DataSource({
+                    transport: {
+                        read: {
+                            url: "/cms/NtsService/GetRelatedBooks?bookId=@Model.BookDetails.Id",
+                            dataType: "json",
+                        }
+                    },
+                });*@
+
+                return content;
+            }
+        });
+    }
+
+    function onBookDownload(page)
+    {
+         var pageId = '';
+         if (page==='page') {
+             pageId = $('#SelectedPageId').val();
+         }
+         @*url = '/cms/NtsService/onBookDownload?bookId=@Model.BookDetails.Id&pageId=' + pageId;
+         window.open(url, '_blank');*@
+         return false;
+    }
+
+   
+
+</script>

@@ -1,0 +1,137 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model WorkboardDuplicateViewModel;
+@{
+    ViewData["Title"] = "Join Workboard";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+<style>
+    .titlebar {
+        color: #6d6e70;
+        font-weight: 700;
+        font-size: 14pt;
+        line-height: 30px;
+        margin-left: 40px;
+        margin-right: 40px;
+        margin-top: 15px;
+    }
+
+    .name-section {
+        margin-left: 40px;
+        margin-right: 40px;
+    }
+
+    p {
+        font-family: proxima-nova,"Tikal Sans",Helvetica,Arial,sans-serif;
+        color: #6d6e70;
+    }
+
+    .button-set {
+        margin-left: 40px;
+        margin-right: 40px;
+    }
+
+    .checkbox-section {
+        margin-left: 40px;
+        margin-right: 40px;
+    }
+</style>
+<div class="row-12" style="margin-left:15px;">
+     <form asp-area="cms" asp-controller="Workboard" asp-action="DuplicateWorkboard" method="post" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+
+
+        <div class="titlebar">
+            <span>Duplicate This Workboard</span>
+        </div>
+
+        <div class="main-content">
+            <div class="text-danger" asp-validation-summary="All"></div>
+            <div class="name-section">
+                <p>New Workboard Name</p>
+                <input asp-for="WorkBoardName" type="text" class="form-control" style="margin-bottom :10px" />
+                <p>Data to copy</p>
+            </div>
+
+
+            <section class="checkbox-section">
+
+                <input asp-for="IsUserData" type="checkbox" data-toggle="collapse" data-target="#demo"  onchange="onUserChange()" checked />
+                <span style="margin-left: 10px; font-size: 12pt; font-weight: 500;">
+                    Users and Strom Data
+                </span>
+
+                <div class="dashboard-type" id="demo">
+                    <ul class="checkbox-list">
+                      @*  <li>
+                            <label for="chat">
+                                <input asp-for="IsCharts" type="checkbox" name="dashboard-type" value="chat" checked />
+                                <span style="margin-left: 10px; font-size: 12pt; font-weight: 500;">
+                                    Chat
+                                </span>
+                            </label>
+                        </li>*@
+                        <li>
+                            <label for="comments">
+                                <input asp-for="IsComments" type="checkbox"  checked />
+                                <span style="margin-left: 10px; font-size:12pt; font-weight: 500;">
+                                    Comments
+                                </span>
+                            </label>
+                        </li>
+                        <li>
+                            <label for="tasks">
+                                <input asp-for="IsTasks" type="checkbox"  checked />
+                                <span style="margin-left: 10px; font-size:12pt; font-weight: 500;">
+                                    Tasks
+                                </span>
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+            <hr />
+            <div class="button-pane">
+                <div class="button-set">
+                    <button type="submit" class="btn btn-primary">
+                        <span>Duplicate</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+                @Html.HiddenFor(x => x.WorkBoardId)
+
+    </form>
+</div>
+<script>
+
+    function onUserChange()
+    {
+        var x = document.getElementById("demo");
+    if (x.style.display === "none") {
+      x.style.display = "block";
+    } else {
+      x.style.display = "none";
+    }
+
+    }
+
+      var onAjaxSuccess = function (data) {
+
+          if (data.success) { 
+                    var workboardId=data.WorkBoardId;
+                    var win = GetMainWindow();
+                     win.CloseWindow({ MethodName: "openWorkBoard", Prms:  workboardId  });
+
+        }
+         else {
+               $(".text-danger").removeClass("validation-summary-valid");
+               $(".text-danger").addClass("validation-summary-errors");
+               $(".text-danger").html(data.error);
+               return false;
+         }
+               return false;
+
+    };
+</script>

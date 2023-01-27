@@ -1,0 +1,454 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Direct Sales";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model ItemsViewModel
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .avatar-myProfile {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .avatar-mysign {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .bold {
+        font: bold
+    }
+</style>
+<form asp-controller="InventoryManagement" asp-action="ManageDirectSaleItems" class="" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+      data-ajax="true" data-ajax-method="POST">
+    <div class="text-danger" asp-validation-summary="All"></div>
+    <div style="width: 100%;" class="p-3">
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Proposal Information</legend>
+            <div class="row col-12">
+                <div class="col-1">
+                    <label>Proposal Code</label>
+                </div>
+                <div class="col-5">
+                    @Html.DisplayFor(x => x.ProposalNo)
+                </div>
+                <div class="col-1">
+                    <label>Proposal Type</label>
+                </div>
+                <div class="col-5">
+                    @Html.DisplayFor(x => x.ProposalTypeName)
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Manage Items</legend>
+            <div class="row col-12">
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Item Head</label>
+                    </div>
+                    <input type="text" asp-for="ItemHead" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Item Category</label>
+                    </div>
+                    <input type="text" asp-for="ItemCategory" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Item Sub Category</label>
+                    </div>
+                    <input type="text" asp-for="ItemSubCategory" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Item Name</label>
+                    </div>
+                    <input type="text" asp-for="Item" class="form-control" />
+                    @*<button class="btn btn-primary" onclick="AddItem()"><i class="fas fa-plus"></i></button>*@
+                </div>
+            </div>
+            <div class="row col-12">
+                <div class="col-2 form-group">
+                    <div class="col-form-label required">
+                        <label>Sales Rate</label>
+                    </div>
+                    <input type="number" asp-for="SaleRate" id="SaleRate" class="form-control" required="required" />
+                </div>
+                <div class="col-2 form-group">
+                    <div class="col-form-label required">
+                        <label>Item Quantity</label>
+                    </div>
+                    <input type="number" asp-for="ItemQuantity" id="ItemQuantity" class="form-control" required="required" />
+                </div>
+                <div class="col-6 form-group">
+                    <div class="col-form-label">
+                        <label>Item Description</label>
+                    </div>
+                    <input type="text" asp-for="ItemDescription" class="form-control" style="width:100%;" />
+                </div>
+
+                <div class="col-2 form-group">
+                    <div class="col-form-label required">
+                        &nbsp;
+                    </div>
+                    <input type="submit" class="btn btn-primary" value="Add" style="margin:5px;" onclick="SaveData(event)" />
+                    <input type="button" class="btn btn-primary" value="Close" style="margin:5px;" onclick="closeNav()" />
+                </div>
+                </div>
+
+
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Items List</legend>
+            <div id="ItemsGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </fieldset>
+    </div>
+
+
+    @Html.HiddenFor(x => x.DataAction)
+    @Html.HiddenFor(x => x.NoteId)
+    @Html.HiddenFor(x => x.DirectSalesId)
+    @Html.HiddenFor(x => x.Amount)
+</form>
+<script>
+    var columnDefs = [
+        {
+            field: "ItemName",
+            headerName: "Item Name"
+        },
+        //{
+        //    field: "ProposalDate",
+        //    headerName: "Proposal Date"
+        //},
+        {
+            field: "ItemDescription",
+            headerName: "Item Description"
+        },
+        {
+            field: "ItemQuantity",
+            headerName: "Quantity",
+
+        },
+        {
+            field: "SaleRate",
+            headerName: "Sale Rate",
+
+        },
+        {
+            field: "Amount",
+            headerName: "Amount",
+
+        },
+        {
+            headerName: "Actions",
+            field: "NoteId",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuItem' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    $(function () {
+        $("#ItemHead").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=IMS_ITEM_TYPE",
+                    }
+                }
+            }
+        });
+
+        $("#ItemCategory").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            cascadeFrom: "ItemHead",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/IMS/InventoryMaster/GetItemCategoryListByItemType",
+                        data: filterItemCategory,
+                    }
+                }
+            }
+        });
+
+        $("#ItemSubCategory").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            cascadeFrom: "ItemCategory",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/IMS/InventoryMaster/GetItemSubCategoryListByItemCategory",
+                        data: filterItemSubCategory,
+                    }
+                }
+            }
+        });
+       
+    $("#Item").kendoDropDownList({
+        dataTextField: "ItemName",
+        dataValueField: "Id",
+        optionLabel: "--All--",
+        filter: "contains",
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/IMS/InventoryManagement/GetItemList",
+                }
+            }
+        }
+    });
+        getItemsData();
+    $.contextMenu({
+        selector: '#tree-menuItem',
+        trigger: 'left',
+        build: function ($trigger, e) {
+
+
+            var id = $trigger.data('idvalue');
+
+            var status = $trigger.data('status');
+
+            switch (0) {
+                case 0:
+
+                    return {
+                        callback: function (key, options) {
+                            switch (key) {
+                                case 'delete':
+                                    onDeleteItem(id);
+                                    break;
+
+
+
+                                default:
+                            }
+                        },
+                        items: {
+                            "delete": { name: "Delete", icon: "fas fa-trash" }
+                        }
+                    };
+
+
+            }
+        }
+    });
+    });
+    function filterItemCategory() {
+        var itemtype = $("#ItemHead").val();
+        return {
+            itemtypeId: itemtype,
+        }
+    }
+
+    function filterItemSubCategory() {
+        var itemcategory = $("#ItemCategory").val();
+        return {
+            itemCategoryId: itemcategory,
+        }
+    }
+    function onDeleteItem(id) {
+        var flag = confirm('Do you really want to delete this item?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteSalesItem", "InventoryManagement", new { @area= "IMS" })?NoteId=' + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+
+                    if (result.success) {
+                        getItemsData();
+                        kendo.alert("Deleted Successfully.");
+                    } else {
+                        getItemsData();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    getItemsData();
+                }
+            });
+            return false;
+        }
+    }
+    function AddItem()
+    {
+        var win = GetMainWindow();
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterItemCreate&source=Create&dataAction=Create&templateCodes=N_IMS_IMS_ITEM_MASTER';
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Add Item', Width: 1000, Height: 800 });
+        return false;
+    }
+    function getItemsData() {
+        document.getElementById("ItemsGrid").innerHTML = "";
+        gridConfig(
+            "ItemsGrid",
+            "/IMS/InventoryManagement/ReadItemsData?directSalesId=@Model.DirectSalesId",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<script type="text/javascript">
+
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            closeNav()
+        }
+        else {
+            ShowNotification(res.error, "error");
+            showError(res.error);
+        }
+    };
+
+
+    function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function onFileUploadSuccess(e) {
+        //
+        if (e.response.success) {
+            // alert(e.response.fileId);
+            //console.log(e);
+            // set file id to hdden fileid proprty
+            $.ajax({
+                url: "/user/ChangeUserProfilePhoto?photoId=" + e.response.fileId,
+                type: "GET",
+                contentType: "application/json",
+                dataType: "JSON",
+                success: function (response) {
+                    //
+                    $(".avatar-myProfile").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+                    $("#PhotoId").val(e.response.fileId);
+                }
+            });
+
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    function confirmDelete() {
+        //
+        //        alert("Banner Delete");
+        $(".avatar-myProfile").attr("src", "/images/200.png");
+        $("#PhotoId").val('');
+        var logoupload = $("#files").data("kendoUpload");
+        //console.log(logoupload);
+        logoupload.clearFile(function (file) { return true; });
+    }
+            //function OnSave(event) {
+            //
+            //    var multiSelect = $("#UserRoles").data("kendoMultiSelect");
+            //    var value = multiSelect.value();
+
+            //   // $("#UserRoles").kendoMultiSelect.Data(Read);
+
+            //}
+    function SaveData(e) {
+        debugger;
+        
+        var ItemHead = $("#ItemHead").data("kendoDropDownList").value();
+        var ItemCategory = $("#ItemCategory").data("kendoDropDownList").value();
+        var ItemSubCategory = $("#ItemSubCategory").data("kendoDropDownList").value();
+        var Item = $("#Item").data("kendoDropDownList").value();
+        var SaleRate = $("#SaleRate").val();
+        var ItemQuantity = $("#ItemQuantity").val();
+          
+        if (ItemHead == null || ItemHead == '' || ItemHead == undefined) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("ItemHead is required");
+                e.preventDefault();
+                return false;
+            }
+        if (ItemCategory == null || ItemCategory == '' || ItemCategory == undefined) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("ItemCategory is required");
+                e.preventDefault();
+                return false;
+            }
+        if (ItemSubCategory == null || ItemSubCategory == '' || ItemSubCategory == undefined) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("ItemSubCategory is required");
+                e.preventDefault();
+                return false;
+            }
+        if (Item == null || Item == '' || Item == undefined) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("Item is required");
+                e.preventDefault();
+                return false;
+        }
+        if (SaleRate == null || SaleRate == '' || SaleRate == undefined || SaleRate == 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("SaleRate is required");
+            e.preventDefault();
+            return false;
+        }
+        if (ItemQuantity == null || ItemQuantity == '' || ItemQuantity == undefined || ItemQuantity == 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("ItemQuantity is required");
+            e.preventDefault();
+            return false;
+        }
+           
+        }
+</script>
+

@@ -1,0 +1,381 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceDashboardController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model ServiceViewModel;
+
+@{
+    ViewBag.Title = "Performance Result";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+
+        HideLoader($("#global-overlay"));
+
+
+        $("#EmployeeId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "PersonFullName",
+            dataValueField: "UserId",
+            filter: "contains",
+            change: OnEmpChange,
+            //cascadeFrom: "DepartmentId",
+            dataSource:
+            {
+                serverFiltering: true,
+                transport:
+                {
+                    read:
+                    {
+                        dataType: "json",
+                        url: "/PMS/PerformanceDocument/ReadUsers?deptId="+'@Model.DepartmentId',
+                    }
+                }
+            }
+        });
+
+        getPerformanceResultData();
+
+    });    
+
+    function OnEmpChange() {
+        var doc = $("#PerDocId").data("kendoDropDownList").value();
+        var dept = $("#DepartmentId").data("kendoDropDownList").value();
+        var emp = $("#EmployeeId").data("kendoDropDownList").value();
+        var url = "/Pms/Performance/GetPerformanceDetails?MasterId=" + doc + '&deptId=' + dept + '&userId=' + emp;
+        getPerformanceResultData(url);
+    }         
+        
+    function OnTaskAssChartDataBound(e) {
+        var view = e.sender.dataSource.view();
+        if (view.length === 0) {
+            $('#no-data-taskchart').show();
+
+        } else {
+            $('#no-data-taskchart').hide();
+        }
+    }
+     
+        
+    function onFilterReset() {
+        var newvalue = new Array();
+        //var multiselectTaskStatus = $("#mdlTaskStatus").data("kendoMultiSelect");
+        //multiselectTaskStatus.value(newvalue);
+        var multiselectTaskAssigned = $("#EmployeeId").data("kendoDropDownList");
+        multiselectTaskAssigned.value(newvalue);
+        var search = {
+            performanceId: '@Model.Id',
+        };
+       // $("#kgdProjectGridView").data("kendoGrid").dataSource.read(search);
+        getPerformanceResultData();
+
+    }
+
+    function onView(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View Task', Width: 600, Height: 600 });
+        return false;
+    }
+     function OpenTask(taskId, templateCode) {
+
+        var portalId = $('#GlobalPortalId').val();
+         //var url = '/Cms/Page?lo=Popup&pageType=Task&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + taskId;
+         var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + taskId;
+        // var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterTaskCreate&source=View&dataAction=View&templateCodes=PMS_GOAL_ADHOC_TASK&portalId=' + portalId + '&recordId=' + Id;
+        //var url = '/Cms/Page?lo=Popup&pageType=Task&source=Versioning&dataAction=Edit&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + taskId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["ViewTask"])', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+</script>
+<script>
+    var columnDefs = [
+        { field: "MasterName", headerName:"@Resource["MasterName"]" ,minWidth:150},
+        { field: "Name", headerName: "@Resource["DocumentName"]", minWidth: 160 },
+        { field: "OwnerUserName", headerName: "@SharedResource["Owner"]", minWidth: 150 },
+        { field: "EmployeeNo", headerName: "@SharedResource["EmployeeNo"]", minWidth: 150 },
+        { field: "DepartmentName", headerName: "@SharedResource["DepartmentName"]", minWidth: 170},
+        { field: "JobName", headerName: "@SharedResource["JobName"]", minWidth: 150},
+        { field: "ServiceStatusName", headerName: "@SharedResource["Status"]", minWidth: 120 },
+        { field: "TotalGoal", headerName: "@Resource["TotalGoal"]", minWidth: 150 },
+        { field: "TotalCompetency", headerName: "@Resource["TotalCompetency"]", minWidth: 170 },
+        { field: "TotalCompetencyWeightage", headerName: "@Resource["TotalCompetencyWeightage"]", minWidth: 240 },
+        { field: "TotalGoalWeightage", headerName: "@Resource["TotalGoalWeightage"]", minWidth: 220},
+        { field: "GoalNoOfMidYearReviewCompleted", headerName: "@Resource["NoOfMidYearReviewCompletedGoal"]", minWidth: 300 },
+        { field: "GoalNoOfEndYearReviewCompleted", headerName: "@Resource["NoOfEndYearReviewCompletedGoal"]", minWidth: 300 },
+        { field: "CompetencyNoOfMidYearReviewCompleted", headerName: "@Resource["NoOfMidYearReviewCompletedCompetency"]", minWidth: 350 },
+        { field: "CompetencyNoOfEndYearReviewCompleted", headerName: "@Resource["NoOfEndYearReviewCompletedCompetency"]",  minWidth: 350},
+    { field: "CalculatedRating", headerName: "@Resource["CalculatedRating"]", minWidth: 170 },
+    { field: "CalculatedRatingRounded", headerName: "@Resource["CalculatedRatingRounded"]", minWidth: 220 },
+    { field: "AdjustedRating", headerName: "@Resource["AdjustedRating"]", minWidth: 170 },
+    { field: "AdjustedRatingRounded", headerName: "@Resource["AdjustedRatingRounded"]", minWidth: 220},
+    { field: "FinalRating", headerName: "@Resource["FinalRating"]", minWidth: 150},
+    { field: "FinalRatingRounded", headerName: "@Resource["FinalRatingRounded"]", minWidth: 220},
+    { field: "ReadyForPerformanceRating", headerName: "@Resource["ReadyForPerformanceRating"]", minWidth: 250},
+        {
+        field: "Id", headerName: "@Resource["Comment"]", minWidth: 250,
+            cellRenderer: params => {
+                return htmlDecode(params.data.ReadyForPerformanceRating);
+            }
+        },
+    ];
+
+    function getPerformanceResultData(urlnew) {
+           var url = "";
+        if (urlnew != "" && urlnew != null) {
+            url = urlnew;
+        } else {
+            url = "/Pms/Performance/GetPerformanceDetails?MasterId=" + '@Model.Id' +'&deptId='+'@Model.DepartmentId';
+
+        }
+        document.getElementById("kgdPerResultView").innerHTML = "";
+        gridConfig(
+            "kgdPerResultView",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function htmlDecode(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+</script>
+
+<div class="row hr-pad-top-10">
+    <div class="col-md-6">
+        <h4>
+        </h4>
+    </div>
+</div>
+
+    <div id="appWrapper" class="hr-pad-top-15">
+        
+        <div class="row">
+            
+            <div class="col-sm-6">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">Bell Curve Chart</div>
+                    <div class="panel-body">
+                        @(Html.Kendo().Chart<ProjectDashboardChartViewModel>
+    ()
+    .Name("chartTaskByStatus")
+    .Legend(legend => legend
+    .Position(ChartLegendPosition.Bottom)
+    )
+    .DataSource(ds => ds
+    .Read(read => read.Action("GetPerformanceChart", "PerformanceDashboard", new { @area = "Pms", pdmId = Model.Id,deptId=Model.DepartmentId }))
+    )
+    .SeriesColors(new string[] { "#ff9800", "#fad84a", "#4caf50", "#03a9f4" })
+    .Series(series =>
+    {
+        //series.Donut(model => model.Value, model => model.Type)
+        //.Labels(labels => labels
+        //    .Visible(true)
+        //    .Position(ChartPieLabelsPosition.Center)
+        //    .Background("transparent")
+
+        //);
+        series.Area(model => model.Type, model => model.Value)
+        .Line(line => line.Style(ChartSeriesLineStyle.Smooth));
+    })
+    .CategoryAxis(categoryAxis => categoryAxis
+    .Title("No. Of Users")
+    .MajorGridLines(majorGridLines => majorGridLines.Visible(false))    
+    .Labels(labels => labels
+    .Visible(true))
+    .Max(5)
+    )
+    .ValueAxis(valueAxis => valueAxis.Numeric()    
+    .Title("Scores")
+    .MajorGridLines(majorGridLines => majorGridLines.Visible(false))
+    .MajorUnit(1)
+    //.Visible(false)
+    )
+    .HtmlAttributes(new { @style = "height:300px;" })
+    .Tooltip(tooltip => tooltip
+    .Visible(true)
+    // .Template("#= category # - #= kendo.format('{0:P}', percentage) #")
+    )   
+    )
+    @*<div id="no-data-stagechart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>No Data Found</span></div>*@
+
+</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="panel panel-info">
+                    <div class="panel-heading">Status Chart</div>
+                    <div class="panel-body">
+                        @(Html.Kendo().Chart<ProjectDashboardChartViewModel>
+    ()
+    .Name("chartTaskByType")
+    .Legend(legend => legend
+    .Position(ChartLegendPosition.Bottom)
+    )
+    .DataSource(ds => ds
+    .Read(read => read.Action("GetPerformanceChart", "PerformanceDashboard", new { @area = "Pms", pdmId = Model.Id, deptId = Model.DepartmentId }))
+
+    )
+    .SeriesColors(new string[] { "#03a9f4", "#ff9800", "#fad84a", "#4caf50" })
+    .Series(series =>
+    {
+        series.Column(model => model.Type, model => model.Value);
+    })
+    .CategoryAxis(categoryAxis => categoryAxis
+    .Title("No. Of Users").MajorGridLines(lines => lines.Visible(false))
+    .Max(5)
+    )
+    .ValueAxis(valueAxis => valueAxis.Numeric()
+    .Title("Scores")
+    .MajorGridLines(majorGridLines => majorGridLines.Visible(false))
+    .MajorUnit(1)    
+    )
+    .HtmlAttributes(new { @style = "height:300px;" })
+    .Tooltip(tooltip => tooltip
+    .Visible(true)
+    .Template("#= category #"))    
+    )
+    @*<div id="no-data-taskchart" class="no-data" style="text-align:center"><i class="fad fa-file-exclamation no-data-icon"></i>&nbsp;<span>No Data Found</span></div>*@
+
+</div>
+                </div>
+            </div>
+        </div>            
+
+        <div class="row">
+            <div class="col-12">
+                <div class="panel panel-filter">
+                    <div class="panel-heading"> @SharedResource["Filter"]</div>
+                    <div class="panel-body">
+                        <div class="row" style="padding:5px;">
+                            <div class="col-4">
+                                Employee<br />
+                                <div id="EmployeeId" style="width:90%;"></div>
+                            </div>                           
+                                                        
+                            <div class="col-4">
+                                <br />
+                                <button class="btn btn-filter-reset" onclick="onFilterReset()" title="@SharedResource["Reset"] @SharedResource["Filter"]">@SharedResource["Reset"]</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Performance Result Details</div>
+                    <div class="panel-body">
+                        <div id="kgdPerResultView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+

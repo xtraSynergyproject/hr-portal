@@ -1,0 +1,433 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Sales Return Receive";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@model GoodsReceiptViewModel
+
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+    .jsgrid-grid-body {
+        height:auto!important;
+    }
+
+
+    .required {
+        color: red;
+    }
+
+    .avatar-myProfile {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .avatar-mysign {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .bold {
+        font: bold
+    }
+</style>
+
+<div class="row" style="margin:10px;margin-bottom:60px;">
+
+    <form asp-controller="InventoryManagement" asp-action="ManageSalesReturnReceiveItem" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div style="width: 100%;" class="p-3">
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Select Warehouse to Receive Item</legend>
+                <div class="row">
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label>Warehouse<span class="required">*</span></label>
+                    </div>
+                    <div class="col-8" style="padding-bottom:10px;">
+                        <input type="text" asp-for="WarehouseId" class="form-control" required />
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Sales Return Items</legend>
+                <div id="SRItemsGrid" style="width: 100%;" class="ag-theme-alpine"></div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Challan Details</legend>
+                <div class="card pad-10" style="padding-top:0px;">
+                    <div class="row col-12" style="padding:10px;">
+                        <div class="col-1" style="padding-bottom:10px;">
+                            <label>Date</label>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <input type="text" asp-for="ChallanDate" class="form-control"  />
+                        </div>
+                        <div class="col-1" style="padding-bottom:10px;">
+                            <label>No</label>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <input type="text" asp-for="ChallonNo" class="form-control" />
+                        </div>
+                        <div class="col-1" style="padding-bottom:10px;">
+                            <label>File</label>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <div id="challanDocFile" class="dm-uploader">
+                                <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                                <div class="btn btn-primary btn-block ">
+                                    <span>Open the file Browser</span>
+                                    <input type="file" title='Click to add Files' />
+                                </div>
+                            </div>
+                            @*<input type="text" asp-for="ChallonFile" class="form-control" required />*@
+                        </div>
+
+                    </div>
+                </div>
+            </fieldset>
+
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Invoice Details</legend>
+                <div class="card pad-10" style="padding-top:0px;">
+                    <div class="row col-12" style="padding:10px;">
+                        <div class="col-1" style="padding-bottom:10px;">
+                            <label>Date</label>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <input type="text" asp-for="InvoiceDate" class="form-control"  />
+                        </div>
+                        <div class="col-1" style="padding-bottom:10px;">
+                            <label>No</label>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <input type="text" asp-for="InvoiceNo" class="form-control" />
+                        </div>
+                        <div class="col-1" style="padding-bottom:10px;">
+                            <label>File</label>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            @*<input type="text" asp-for="InvoiceFile" class="form-control" required />*@
+                            <div id="invoiceDocFile" class="dm-uploader">
+                                <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                                <div class="btn btn-primary btn-block ">
+                                    <span>Open the file Browser</span>
+                                    <input type="file" title='Click to add Files' />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            &nbsp;
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Receive</legend>
+                <div class="card pad-10" style="padding-top:0px;">
+                    <div class="row col-12" style="padding:10px;">
+                        <div class="col-1" style="padding-bottom:10px;">
+                            <label>Date<span class="required">*</span></label>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <input type="text" asp-for="ReceiveDate" class="form-control" required />
+                        </div>
+                        <div class="col-1" style="padding-bottom:10px;">
+                            <label>Remark<span class="required">*</span></label>
+                        </div>
+                        <div class="col-7" style="padding-bottom:10px;">
+                            <input type="text" asp-for="Remark" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            @if(Model.ReceiptStatus == "SERVICE_STATUS_DRAFT")
+            {
+        <fieldset class="fieldset" style="padding-bottom:0px;">
+            <div class="row pad-10">
+                <div class="col-9">
+                </div>
+                <div class="col-3" style="text-align:right;">
+                    <input id="btnSave" type="submit" class="btn btn-primary" value="Save" style="margin:5px;" onclick="SaveData(event)" />
+                    <input type="button" class="btn btn-danger" value="Close" style="margin:5px;" onclick="closeNav()" />
+                </div>
+            </div>
+        </fieldset>
+            }
+            
+            </div>
+
+                @Html.HiddenFor(x => x.DataAction)
+                @Html.HiddenFor(x => x.ServiceId)
+                @Html.HiddenFor(x => x.UdfNoteTableId)
+                @Html.HiddenFor(x => x.POItemsData)
+                @Html.HiddenFor(x => x.GoodsReceiptReferenceId)
+                @Html.HiddenFor(x => x.ReceiptType)
+                @Html.HiddenFor(x => x.ItemHeadId)
+                @Html.HiddenFor(x => x.ChallonFile)
+                @Html.HiddenFor(x => x.InvoiceFile)
+</form>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+       
+         $("#InvoiceDate").kendoDatePicker({
+             value: new Date(),
+           //  format: "dd.MM.yyyy"
+         });
+        $("#ChallanDate").kendoDatePicker({
+            value: new Date(),
+           // format: "dd.MM.yyyy"
+        });
+        $("#ReceiveDate").kendoDatePicker({
+            value: new Date(),
+            //format: "dd.MM.yyyy"
+        });
+        $("#WarehouseId").kendoDropDownList({
+            dataTextField: "WarehouseName",
+            dataValueField: "Id",
+
+             optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+           
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetWarehouseList",
+                    }
+                }
+            }
+        });  
+
+    $("#SRItemsGrid").jsGrid({
+        width: "100%",       
+
+        inserting: false,
+        editing: false,
+        sorting: true,
+        paging: true,
+        multiselect: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        controller: {
+            loadData: function (filter) {
+
+                return $.ajax({
+                    type: "GET",
+                    url: "/IMS/InventoryManagement/GetDeliveryChallanItems?id=@Model.GoodsReceiptId",
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+            onItemEditing: function (e) {
+                debugger;
+                if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                    //
+                    e.grid.updateItem();
+                }
+            },
+            updateItem: function (item) {
+                debugger;
+            },            
+        },
+        fields: [            
+            {
+                name: "ItemName",
+                title: "Item Name",
+                type: "text",
+                editing: false
+            },
+            {
+                name: "ItemQuantity",
+                title: "Return Qty",
+                type: "text",
+                editing: false
+            },            
+            {
+                name: "ItemQuantity",
+                title: "Received Qty",
+                type: "text",
+                editing: false
+            },
+        ]
+    })
+        uploadDocFile();
+    });
+   
+    function uploadDocFile() {
+        $("#challanDocFile").dmUploader({ //
+            url: '/Cms/Document/SaveFile',
+            multiple: false,
+            // extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs 
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#ChallonFile").val(data.fileId);
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+        $("#invoiceDocFile").dmUploader({ //
+            url: '/Cms/Document/SaveFile',
+            multiple: false,
+            // extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs 
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#InvoiceFile").val(data.fileId);
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }
+    
+    function SaveData(e) {
+        var selectedDataItems = [];
+        debugger;
+        var entityGrid = $("#POItemsGrid").data("JSGrid");
+        if (entityGrid._editingRow != null) {
+            entityGrid.updateItem();
+        }
+      
+        for (var i = 0; i < entityGrid.data.length; i++) {
+            if (entityGrid.data[i].Select == true) {
+                selectedDataItems.push(entityGrid.data[i]);
+                var qty = parseFloat(entityGrid.data[i].ReceivedQuantity) + parseFloat(entityGrid.data[i].ItemQuantity) - parseFloat(entityGrid.data[i].ReturnedToVendorQuantity);
+                if (qty > parseFloat(entityGrid.data[i].POQuantity)) {
+                    $(".text-danger").removeClass("validation-summary-valid");
+                    $(".text-danger").addClass("validation-summary-errors");
+                    ShowNotification("[Invalid Input]Sum of Received Quantity is exceeding PO quantity excluding Returned Quantity if any. ItemName:[{" + entityGrid.data[i].ItemName + "]", "error");
+                    e.preventDefault();
+                    return false
+                    break;
+                }
+                else
+                {
+                    $(".text-danger").removeClass("validation-summary-errors");
+                    $(".text-danger").addClass("validation-summary-valid");
+                }
+            }
+        } 
+        $("#POItemsData").val(JSON.stringify(selectedDataItems));
+
+        if (selectedDataItems.length == 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("select at leaset one column");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#WarehouseId").data("kendoDropDownList").value() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Warehouse is required");
+            e.preventDefault();
+            return false;
+        }
+        if ($("#InvoiceNO").val() == "" && $("#ChallonNo").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Please enter either chalan No or invoice no");
+            e.preventDefault();
+            return false;
+        }
+    }
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            var win = GetMainWindow();
+            closeNav();
+            win.parent.ShowNotification("Sales Return Receipt Updated Successfully","success");
+        }
+        else {           
+            ShowNotification(res.error,"error");
+        }
+    };
+
+
+    function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "OnAfterUpdate" });
+        return false;
+    }
+</script>

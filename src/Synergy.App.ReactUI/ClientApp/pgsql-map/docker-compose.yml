@@ -1,0 +1,45 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+  db:
+    image: postgres
+#    dns:
+#      - 8.8.8.8
+#      - 4.2.2.4
+    #container_name: pgsql-map
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: Synergywelcome1
+      PGDATA : /var/lib/postgresql/data/pgsqlmapdata
+    volumes:
+     - ./postgresql.conf:/var/lib/postgresql/data/pgsqlmapdata/postgresql.conf
+     - type: volume
+       source: data
+       target: /var/lib/postgresql/data/pgsqlmapdata
+    ports:
+      - "5432:5432"
+
+  pgbouncer:
+    #container_name: pgsql-map-pgbouncer
+#    dns:
+#      - 8.8.8.8
+#      - 4.2.2.4
+    depends_on:
+      - db
+    volumes:
+      - ./userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    restart: always
+    image: pgbouncer/pgbouncer
+    env_file:
+      - ./env/pgbouncer.env
+    ports:
+      - 6432:6432
+
+volumes:
+  data:
+
+networks:
+  default:
+    external:
+      name: cmssynergy_default

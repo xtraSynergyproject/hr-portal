@@ -1,0 +1,548 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.TAA.Controllers.RosterScheduleController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+
+@{
+
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model RosterScheduleViewModel
+
+<style >
+    .k-input[readonly] {
+        background-color: #ceced259;
+    }
+</style>
+
+<script type="text/javascript">
+
+    var onAjaxSuccess = function(res) {        
+        if (res.success) {
+            Close();
+        }
+        else {
+            
+            //$(".text-danger").removeClass("validation-summary-valid");
+            //$(".text-danger").addClass("validation-summary-errors");
+            //$(".text-danger").html(res.error);
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            //var msg = ExtractError(err);
+            $(".hr-v-summary ul").html(res.error);
+            window.scrollTo(0, 0);
+        }
+    }
+
+</script>
+
+@Html.ValidationSummary(false, "", new { @class = "k-block k-error-colored mp-pad-5 hr-v-summary" })
+@Html.AntiForgeryToken()
+
+<div id="appWrapper" style="padding-left:55px">
+    <form asp-area="Taa" asp-controller="RosterSchedule" asp-action="Manage" class="form-horizontal"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div class="row hr-pad-top-15">
+            <div class="row">
+                <div class="col-xs-2">
+                    @*@(Html.Kendo().RadioButton().Value(RosterDutyTypeEnum.Pattern.ToString()).Name(@Resource["type1"]).Checked(Model.DraftRosterDutyType == RosterDutyTypeEnum.Pattern ? true : false).HtmlAttributes(new { @name = "DraftRosterDutyType", @OnClick = "OnChange()" }).Label(RosterDutyTypeEnum.Pattern.ToString()))*@
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" class="custom-control-input" id="type1" name="DraftRosterDutyType" value="@RosterDutyTypeEnum.Pattern.ToString()" onchange="OnChange();">
+                        <label class="custom-control-label" for="type1">@RosterDutyTypeEnum.Pattern.ToString()</label>
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    @*@(Html.Kendo().RadioButton().Value(RosterDutyTypeEnum.Custom.ToString()).Name(@Resource["type2"]).Checked(true).HtmlAttributes(new { @name = "DraftRosterDutyType", @OnClick = "OnChange()" }).Label(RosterDutyTypeEnum.Custom.ToString()))*@
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" class="custom-control-input" id="type2" name="DraftRosterDutyType" value="@RosterDutyTypeEnum.Custom.ToString()" onchange="OnChange();" checked>
+                        <label class="custom-control-label" for="type2">@RosterDutyTypeEnum.Custom.ToString()</label>
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    @*@(Html.Kendo().RadioButton().Value(RosterDutyTypeEnum.DayOff.ToString()).Name(@Resource["type3"]).Checked(Model.DraftRosterDutyType == RosterDutyTypeEnum.DayOff ? true : false).HtmlAttributes(new { @name = "DraftRosterDutyType", @OnClick = "OnChange()" }).Label(RosterDutyTypeEnum.DayOff.ToString()))*@
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" class="custom-control-input" id="type3" name="DraftRosterDutyType" value="@RosterDutyTypeEnum.DayOff.ToString()" onchange="OnChange();">
+                        <label class="custom-control-label" for="type3">@RosterDutyTypeEnum.DayOff.ToString()</label>
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    @*@(Html.Kendo().RadioButton().Value(RosterDutyTypeEnum.PublicHoliday.ToString()).Name(@Resource["type4"]).Checked(Model.DraftRosterDutyType == RosterDutyTypeEnum.PublicHoliday ? true : false).HtmlAttributes(new { @name = "DraftRosterDutyType", @OnClick = "OnChange()" }).Label(RosterDutyTypeEnum.PublicHoliday.ToString()))*@
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" class="custom-control-input" id="type4" name="DraftRosterDutyType" value="@RosterDutyTypeEnum.PublicHoliday.ToString()" onchange="OnChange();">
+                        <label class="custom-control-label" for="type4">@RosterDutyTypeEnum.PublicHoliday.ToString()</label>
+                    </div>
+                </div>
+            </div>
+        </div><br />
+        <div class="row" id="template">
+            <div class="form-group col-xs-12 col-sm-2">
+                <div class="col-xs-12 label-div" style="text-align:center;">
+                    @*@(Html.Kendo().DropDownList().Name("ShiftPattern")
+                                            .OptionLabel("Select")
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("GetCustomIdNameList", "RosterSchedule", new { area = "Taa" });
+                                                });
+                                            })
+                                            .Events(e => e.Change("OnShiftChange"))
+                                            .DataTextField("Name")
+                                            .DataValueField("Id")
+                                            .Filter(FilterType.Contains)
+                                            .AutoBind(true)
+                    )*@
+
+                    <input id="ShiftPattern" />
+                </div>
+            </div>
+        </div> <br />
+        <hr />
+        <div class="row">
+            <div class="form-group col-xs-12 col-sm-2">
+                <div class="col-xs-12 label-div" style="text-align:center;">
+
+                </div>
+            </div>
+            @*<div class="form-group col-xs-12 col-sm-2">
+                <div class="col-xs-12 label-div" style="text-align:center;">
+                    @Html.Label("Enabled", new { @class = "control-label" })
+                </div>
+            </div>*@
+            <div class="form-group col-xs-12 col-sm-3">
+                <div class="col-xs-12 label-div" style="text-align:center;">
+                    <span class="control-label">@Resource["StartTime"]</span>
+
+                </div>
+            </div>
+            <div class="form-group col-xs-12 col-sm-3">
+                <div class="col-xs-12 label-div" style="text-align:center;">
+                    <span class="control-label">@Resource["EndTime"]</span>
+
+                </div>
+            </div>
+            <div class="form-group col-xs-12 col-sm-2">
+                <div class="col-xs-12 label-div" style="text-align:center;">
+                    <span class="control-label">@Resource["FallOnNextDay"]</span>
+
+                </div>
+            </div>
+        </div>
+        <hr />
+
+        <div class="row">
+            <div class="form-group col-xs-12 col-sm-2">
+                <div class="col-xs-12 label-div">
+                    <span class="control-label">@Resource["Duty1"]</span>
+
+                </div>
+            </div>
+            @*<div class="form-group col-xs-12 col-sm-2" style="text-align:center;">
+                @(Html.Kendo().CheckBox().Checked(Model.Duty1Enabled).Name("Duty1Enabled"))
+            </div>*@
+            <div class="form-group col-xs-12 col-sm-3">
+                @*@(Html.Kendo().TimePickerFor(x => x.DraftDuty1StartTime)
+                                        //.Name("ScheduleTime")
+                                        //.Value(null)
+                                        .HtmlAttributes(new { style = "width: 100%", title = "timepicker" })
+                        // .DateInput()
+                )*@
+                <input asp-for="DraftDuty1StartTime" id="DraftDuty1StartTime" title="timepicker" style="width: 100%;" />
+            </div>
+            <div class="form-group col-xs-12 col-sm-3">
+                @*@(Html.Kendo().TimePickerFor(x => x.DraftDuty1EndTime)
+                                        //.Name("ScheduleTime")
+                                        //.Value(Model.Duty1EndTime)
+                                        .HtmlAttributes(new { style = "width: 100%", title = "timepicker" })
+                        //.DateInput()
+                )*@
+                <input asp-for="DraftDuty1EndTime" id="DraftDuty1EndTime" title="timepicker" style="width: 100%;" />
+            </div>
+            <div class="form-group col-xs-12 col-sm-2" style="text-align:center;">
+                @*@(Html.Kendo().CheckBox().Checked(Model.Duty1FallsNextDay).Name("DraftDuty1FallsNextDay"))*@
+                <input type="checkbox" id="DraftDuty1Falls" />
+            </div>
+        </div>
+        <hr />
+
+        <div class="row">
+            <div class="form-group col-xs-12 col-sm-2">
+                <div class="col-xs-12 label-div">
+                    <span class="control-label">@Resource["Duty2"]</span>
+                </div>
+            </div>
+            @*<div class="form-group col-xs-12 col-sm-2" style="text-align:center;">
+                @(Html.Kendo().CheckBox().Checked(Model.Duty2Enabled).Name("Duty2Enabled"))
+            </div>*@
+            <div class="form-group col-xs-12 col-sm-3">
+                @*@(Html.Kendo().TimePickerFor(x => x.DraftDuty2StartTime)
+                                        //.Name("ScheduleTime")
+                                        //.Value(Model.Duty2StartTime)
+                                        .HtmlAttributes(new { style = "width: 100%", title = "timepicker" })
+                        //.DateInput()
+                )*@
+                <input asp-for="DraftDuty2StartTime" id="DraftDuty2StartTime" title="timepicker" style="width: 100%;" />
+            </div>
+            <div class="form-group col-xs-12 col-sm-3">
+                @*@(Html.Kendo().TimePickerFor(x => x.DraftDuty2EndTime)
+                                        //.Name("ScheduleTime")
+                                        //.Value(Model.Duty2EndTime)
+                                        .HtmlAttributes(new { style = "width: 100%", title = "timepicker" })
+                        // .DateInput()
+                )*@
+                <input asp-for="DraftDuty2EndTime" id="DraftDuty2EndTime" title="timepicker" style="width: 100%;" />
+            </div>
+            <div class="form-group col-xs-12 col-sm-2" style="text-align:center;">
+                @*@(Html.Kendo().CheckBox().Checked(Model.DraftDuty2FallsNextDay).Name("DraftDuty2FallsNextDay"))*@
+                <input type="checkbox" id="DraftDuty2Falls" />
+            </div>
+        </div>
+        <hr />
+
+        <div class="row">
+            <div class="form-group col-xs-12 col-sm-2">
+                <div class="col-xs-12 label-div">
+                    <span class="control-label">@Resource["Duty3"]</span>
+                </div>
+            </div>
+            @*<div class="form-group col-xs-12 col-sm-2" style="text-align:center;">
+                @(Html.Kendo().CheckBox().Checked(Model.Duty3Enabled).Name("Duty3Enabled"))
+            </div>*@
+            <div class="form-group col-xs-12 col-sm-3">
+                @*@(Html.Kendo().TimePickerFor(x => x.DraftDuty3StartTime)
+                                        //.Name("ScheduleTime")
+                                        //.Value(Model.Duty2StartTime)
+                                        .HtmlAttributes(new { style = "width: 100%", title = "timepicker" })
+                        //.DateInput()
+                )*@
+                <input asp-for="DraftDuty3StartTime" id="DraftDuty3StartTime" title="timepicker" style="width: 100%;" />
+            </div>
+            <div class="form-group col-xs-12 col-sm-3">
+                @*@(Html.Kendo().TimePickerFor(x => x.DraftDuty3EndTime)
+                                        //.Name("ScheduleTime")
+                                        //.Value(Model.Duty2EndTime)
+                                        .HtmlAttributes(new { style = "width: 100%", title = "timepicker" })
+                        // .DateInput()
+                )*@
+
+                <input asp-for="DraftDuty3EndTime" id="DraftDuty3EndTime" title="timepicker" style="width: 100%;" />
+            </div>
+            <div class="form-group col-xs-12 col-sm-2" style="text-align:center;">
+                @*@(Html.Kendo().CheckBox().Checked(Model.DraftDuty3FallsNextDay).Name("DraftDuty3FallsNextDay"))*@
+                <input type="checkbox" id="DraftDuty3Falls" />
+            </div>
+        </div>
+        <hr />
+
+        <br />
+
+        <div class="row">
+            <div class="form-group col-xs-12 col-sm-6">
+                <div class="col-lg-3 label-div">
+                    * @SharedResource["Requiredfields"]
+                </div>
+                <div class="col-lg-9">
+                    &nbsp;
+                </div>
+            </div>
+            <div class="form-group col-xs-12 col-sm-6" style="text-align:right">
+                <div class="col-lg-3 label-div">
+                    &nbsp;
+                </div>
+                <div class="col-lg-9">
+                    @*@Html.Kendo().Button().Name("btnCancel").Content(@SharedResource["Cancel"]).Icon("cancel").Events(x => x.Click("OnCancel")).HtmlAttributes(new { @type = "button" })*@
+                    <button type="button" class="btn btn-light" id="btnCancel" onclick="OnCancel();">@SharedResource["Cancel"]</button>
+                    @*@Html.Kendo().Button().Name("btnSubmit").Content(@SharedResource["Save"]).Events(x => x.Click("OnSubmit")).Icon("check-outline").HtmlAttributes(new { @class = "k-primary" })*@
+                    <button type="submit" class="btn btn-primary" id="btnSubmit" onclick="OnSubmit(event);">@SharedResource["Save"]</button>
+                </div>
+            </div>
+
+        </div>
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.UserIds)
+        @Html.HiddenFor(x => x.RosterDates)
+        @Html.HiddenFor(x => x.DraftDuty1Enabled)
+        @Html.HiddenFor(x => x.DraftDuty2Enabled)
+        @Html.HiddenFor(x => x.DraftDuty3Enabled)
+        @Html.HiddenFor(x => x.ShiftPatternName)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.Duty1FallsNextDay)
+        @Html.HiddenFor(x => x.DraftDuty2FallsNextDay)
+        @Html.HiddenFor(x => x.DraftDuty3FallsNextDay)
+    </form>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        if ('@Model.Duty1FallsNextDay' == 'True') {
+            $('#DraftDuty1Falls').prop('checked', true);
+        }
+        if ('@Model.DraftDuty2FallsNextDay' == 'True') {
+            $('#DraftDuty2Falls').prop('checked', true);
+        }
+        if ('@Model.DraftDuty3FallsNextDay' == 'True') {
+            $('#DraftDuty3Falls').prop('checked', true);
+        }
+
+        $("#DraftDuty1StartTime").kendoTimePicker();
+        $("#DraftDuty2StartTime").kendoTimePicker();
+        $("#DraftDuty3StartTime").kendoTimePicker({value:'@Model.DraftDuty3StartTime'});
+
+        $("#DraftDuty1EndTime").kendoTimePicker();
+        $("#DraftDuty2EndTime").kendoTimePicker({value:'@Model.DraftDuty2EndTime'});
+        $("#DraftDuty3EndTime").kendoTimePicker({value:'@Model.DraftDuty3EndTime'});
+
+         $("#ShiftPattern").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+             filter: "contains",
+             optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            change: OnShiftChange,
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Taa/RosterSchedule/GetCustomIdNameList",
+                    }
+                }
+            }
+         });
+
+
+        $('#type1').prop('checked', '@Model.DraftRosterDutyType' == '@RosterDutyTypeEnum.Pattern' ? true : false);
+        $('#type3').prop('checked', '@Model.DraftRosterDutyType' == '@RosterDutyTypeEnum.DayOff '? true : false);
+        $('#type4').prop('checked', '@Model.DraftRosterDutyType' == '@RosterDutyTypeEnum.PublicHoliday' ? true : false);
+
+
+        readonly();
+    });
+
+   function OnCancel(e) {
+
+        win = GetMainWindow();
+        win.CloseWindow();
+    }
+    function Close(e) {
+
+        win = GetMainWindow();
+        win.CloseWindow({ MethodName: "OnAfterCreate" });
+    }   
+
+    
+    function OnChange(e) {
+        $("#DraftDuty1StartTime").val('');
+        $("#DraftDuty1EndTime").val('');
+        $("#DraftDuty2StartTime").val('');
+        $("#DraftDuty2EndTime").val('');
+        $("#DraftDuty3StartTime").val('');
+        $("#DraftDuty3EndTime").val('');
+
+        $("#DraftDuty1Falls").attr("checked", false);
+        $("#DraftDuty2Falls").attr("checked", false);
+        $("#DraftDuty3Falls").attr("checked", false);
+
+        readonly();
+    }
+
+    function readonly() {
+
+        var type = $("input[name='DraftRosterDutyType']:checked").val();
+
+
+        if (type != '' && type == "@RosterDutyTypeEnum.Pattern") {
+            $("#DraftDuty1StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty1EndTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty2StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty2EndTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty3StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty3EndTime").data("kendoTimePicker").readonly();
+
+            $("#DraftDuty1Falls").attr("disabled", true);
+            $("#DraftDuty2Falls").attr("disabled", true);
+            $("#DraftDuty3Falls").attr("disabled", true);
+
+            $("#template").show();
+        }
+        else if (type != '' && type == "@RosterDutyTypeEnum.Custom") {
+            $("#DraftDuty1StartTime").data("kendoTimePicker").readonly(false);
+            $("#DraftDuty1EndTime").data("kendoTimePicker").readonly(false);
+            $("#DraftDuty2StartTime").data("kendoTimePicker").readonly(false);
+            $("#DraftDuty2EndTime").data("kendoTimePicker").readonly(false);
+            $("#DraftDuty3StartTime").data("kendoTimePicker").readonly(false);
+            $("#DraftDuty3EndTime").data("kendoTimePicker").readonly(false);
+
+            $("#template").hide();
+            $("#DraftDuty1Falls").attr("disabled", false);
+            $("#DraftDuty2Falls").attr("disabled", false);
+            $("#DraftDuty3Falls").attr("disabled", false);
+        }
+        else if (type != '' && type == "@RosterDutyTypeEnum.DayOff") {
+            $("#DraftDuty1StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty1EndTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty2StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty2EndTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty3StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty3EndTime").data("kendoTimePicker").readonly();
+            $("#template").hide();
+            $("#DraftDuty1Falls").attr("disabled", true);
+            $("#DraftDuty2Falls").attr("disabled", true);
+            $("#DraftDuty3Falls").attr("disabled", true);
+        }
+        else if (type != '' && type == "@RosterDutyTypeEnum.PublicHoliday") {
+            $("#DraftDuty1StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty1EndTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty2StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty2EndTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty3StartTime").data("kendoTimePicker").readonly();
+            $("#DraftDuty3EndTime").data("kendoTimePicker").readonly();
+            $("#template").hide();
+            $("#DraftDuty1Falls").attr("disabled", true);
+            $("#DraftDuty2Falls").attr("disabled", true);
+            $("#DraftDuty3Falls").attr("disabled", true);
+        }
+
+    }
+        function OnShiftChange(e) {
+            var text = $("#ShiftPattern").data("kendoDropDownList").text();
+            if (text=="") {
+                $("#ShiftPatternName").val('');
+            }
+            else {
+                $("#ShiftPatternName").val(text);
+            }
+        var t = $("#ShiftPattern").val();
+
+        $.ajax({
+            type: "POST",
+            url: "/taa/RosterSchedule/GetShiftPattern",
+            data: { 'templateId': t },
+            success: function (data) {
+
+                $("#DraftDuty1StartTime").val(data.items.Duty1StartTimeVal);
+                $("#DraftDuty1EndTime").val(data.items.Duty1EndTimeVal);
+                $("#DraftDuty2StartTime").val(data.items.Duty2StartTimeVal);
+                $("#DraftDuty2EndTime").val(data.items.Duty2EndTimeVal);
+                $("#DraftDuty3StartTime").val(data.items.Duty3StartTimeVal);
+                $("#DraftDuty3EndTime").val(data.items.Duty3EndTimeVal);
+
+
+                if (data.items.Duty1FallsNextDay)
+                    $("#DraftDuty1Falls").attr("checked", true);
+                else
+                    $("#DraftDuty1Falls").attr("checked", false);
+
+
+                if (data.items.Duty2FallsNextDay)
+                    $("#DraftDuty2Falls").attr("checked", true);
+                else
+                    $("#DraftDuty2Falls").attr("checked", false);
+
+                if (data.items.Duty3FallsNextDay)
+                    $("#DraftDuty3Falls").attr("checked", true);
+                else
+                    $("#DraftDuty3Falls").attr("checked", false);
+
+
+            },
+            dataType: "json",
+        });
+    }
+    function OnCancel(e) {
+    window.parent.Close(false);
+    }
+
+    function ConvertTimeformat(str) {
+        var time = str;
+        var hours = Number(time.match(/^(\d+)/)[1]);
+        var minutes = Number(time.match(/:(\d+)/)[1]);
+        var AMPM = time.match(/\s(.*)$/)[1];
+        if (AMPM == "PM" && hours < 12) hours = hours + 12;
+        if (AMPM == "AM" && hours == 12) hours = hours - 12;
+        var sHours = hours.toString();
+        var sMinutes = minutes.toString();
+        if (hours < 10) sHours = "0" + sHours;
+        if (minutes < 10) sMinutes = "0" + sMinutes;
+
+        //Creating the todays date in the right format
+       // var today = new Date();
+       // var dd = today.getDate();
+       // var mm = today.getMonth() + 1;//January is 0!`
+       // var yyyy = today.getFullYear();
+       // if (dd < 10) { dd = '0' + dd }
+       // if (mm < 10) { mm = '0' + mm }
+       // var todaysdate = dd + '/' + mm + '/' + yyyy + " "; //<--I added an extra space!
+      //  var hoursNminutes = sHours + ":" + sMinutes
+        //CREATE THE RIGHT FORMAT FOR DATE.PARSEXACT "dd/MM/yyyy HH:mm"
+       // var dateToParse = { todaysdate:hoursNminutes:00}
+        var dateToParse = sHours + ':' + sMinutes + ':' + 00;
+        return dateToParse;
+    }
+
+
+
+    function OnSubmit(e) {        
+
+        $('#Duty1FallsNextDay').val($('#DraftDuty1Falls').is(":checked"));
+        $('#DraftDuty2FallsNextDay').val($('#DraftDuty2Falls').is(":checked"));
+        $('#DraftDuty3FallsNextDay').val($('#DraftDuty3Falls').is(":checked"));
+
+        if ($("#DraftDuty1StartTime").val() != "") {
+            var drftduty1 = ConvertTimeformat($("#DraftDuty1StartTime").val());
+            $("#DraftDuty1StartTime").val(drftduty1);
+        }
+
+        if ($("#DraftDuty2StartTime").val() != "") {
+            var  drftduty2 = ConvertTimeformat($("#DraftDuty2StartTime").val());
+            $("#DraftDuty2StartTime").val(drftduty2);
+        }
+        if ($("#DraftDuty3StartTime").val() != "") {
+            var drftduty3 = ConvertTimeformat($("#DraftDuty3StartTime").val());
+            $("#DraftDuty3StartTime").val(drftduty3);
+        }
+
+        if ($("#DraftDuty1EndTime").val() != "") {
+            var drftduty4 = ConvertTimeformat($("#DraftDuty1EndTime").val());
+            $("#DraftDuty1EndTime").val(drftduty4);
+        }
+
+        if ($("#DraftDuty2EndTime").val() != "") {
+            var drftduty5 = ConvertTimeformat($("#DraftDuty2EndTime").val());
+            $("#DraftDuty2EndTime").val(drftduty5);
+        }
+
+        if ($("#DraftDuty3EndTime").val() != "") {
+            var drftduty6 = ConvertTimeformat($("#DraftDuty3EndTime").val());
+            $("#DraftDuty3EndTime").val(drftduty6);
+        }       
+            
+
+        $("#DraftDuty1Falls").attr("disabled", false);
+        $("#DraftDuty2Falls").attr("disabled", false)
+        $("#DraftDuty3Falls").attr("disabled", false)
+    }
+    function filterType() {
+        return {
+            NtsType: $("#NtsType").val()
+        };
+    }
+    function ShowErrors(err) {
+        
+        //$(".hr-v-summary").removeClass("validation-summary-valid");
+        //$(".hr-v-summary").addClass("validation-summary-errors");
+        ////var msg = ExtractError(err);
+        //$(".hr-v-summary ul").html(err);
+
+        $(".text-danger").removeClass("validation-summary-valid");
+        $(".text-danger").addClass("validation-summary-errors");
+        $(".text-danger").html(err);        
+    }
+
+</script>

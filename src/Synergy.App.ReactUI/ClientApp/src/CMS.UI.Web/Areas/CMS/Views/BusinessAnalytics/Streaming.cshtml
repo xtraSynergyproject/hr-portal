@@ -1,0 +1,234 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = null;
+}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.1.1/adapter.min.js" ></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+<script type="text/javascript" src="~/js/janus.js" ></script>
+<script type="text/javascript" src="~/js/streamingtest.js"></script>
+<script>
+	$(function() {
+		$(".navbar-static-top").load("navbar.html", function() {
+			$(".navbar-static-top li.dropdown").addClass("active");
+			$(".navbar-static-top a[href='streamingtest.html']").parent().addClass("active");
+		});
+		$(".footer").load("footer.html");
+	});
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cerulean/bootstrap.min.css" type="text/css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css"/>
+
+
+
+<style>
+.rounded {
+	border-radius: 5px;
+}
+
+.centered {
+	display: block;
+	margin: auto;
+}
+
+.relative {
+	position: relative;
+}
+
+.navbar-brand {
+	margin-left: 0px !important;
+}
+
+.navbar-default {
+	-webkit-box-shadow: 0px 3px 5px rgba(100, 100, 100, 0.49);
+	-moz-box-shadow:    0px 3px 5px rgba(100, 100, 100, 0.49);
+	box-shadow:         0px 3px 5px rgba(100, 100, 100, 0.49);
+}
+
+.navbar-header {
+	padding-left: 40px;
+}
+
+.margin-sm {
+	margin: 5px !important;
+}
+.margin-md {
+	margin: 10px !important;
+}
+.margin-xl {
+	margin: 20px !important;
+}
+.margin-bottom-sm {
+	margin-bottom: 5px !important;
+}
+.margin-bottom-md {
+	margin-bottom: 10px !important;
+}
+.margin-bottom-xl {
+	margin-bottom: 20px !important;
+}
+
+.divider {
+	width: 100%;
+	text-align: center;
+}
+
+.divider hr {
+	margin-left: auto;
+	margin-right: auto;
+	width: 45%;
+}
+
+.fa-2 {
+	font-size: 2em !important;
+}
+.fa-3 {
+	font-size: 4em !important;
+}
+.fa-4 {
+	font-size: 7em !important;
+}
+.fa-5 {
+	font-size: 12em !important;
+}
+.fa-6 {
+	font-size: 20em !important;
+}
+
+div.no-video-container {
+	position: relative;
+}
+
+.no-video-icon {
+	width: 100%;
+	height: 240px;
+	text-align: center;
+}
+
+.no-video-text {
+	text-align: center;
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	left: 0px;
+	font-size: 24px;
+}
+
+.meetecho-logo {
+	padding: 12px !important;
+}
+
+.meetecho-logo > img {
+	height: 26px;
+}
+
+pre {
+	white-space: pre-wrap;
+	white-space: -moz-pre-wrap;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	word-wrap: break-word;
+}
+
+.januscon {
+	font-weight: bold;
+	animation: pulsating 1s infinite;
+}
+
+</style>
+
+
+
+<a href="https://github.com/meetecho/janus-gateway"><img style="position: absolute; top: 0; left: 0; border: 0; z-index: 1001;" src="https://s3.amazonaws.com/github/ribbons/forkme_left_darkblue_121621.png" alt="Fork me on GitHub"></a>
+
+<nav class="navbar navbar-default navbar-static-top">
+</nav>
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+				<h1>Plugin Demo: Streaming
+					<button class="btn btn-default" autocomplete="off" id="start">Start</button>
+				</h1>
+			</div>
+			<div class="container" id="details">
+				<div class="row">
+					<div class="col-md-12">
+						<h3>Demo details</h3>
+						<p>This demo showcases the functionality provided by the Streaming plugin.
+						In particular, it provides three different streaming approaches, namely:</p>
+						<p><ol>
+							<li>An on-demand stream originated by a file (a song, in this case):
+							different users accessing this stream would receive a personal view
+							of the stream itself.</li>
+							<li>A pseudo-live stream, still originated by a file (an audio recording
+							of a radio running commentary): different users accessing this stream
+							would all receive the same, shared view of the stream.</li>
+							<li>A live stream, originated by a gstreamer script: as for the pseudo-live
+							stream, different users will get the same feed.</li>
+						</ol></p>
+						<p>You can try them all within the same session: just choose the stream
+						you're interested in and press the <code>Watch</code> button to start
+						the playout. Stopping it will allow you to switch to a different one.</p>
+						<p>Press the <code>Start</code> button above to launch the demo.</p>
+					</div>
+				</div>
+			</div>
+			<div class="container hide" id="streams">
+				<div class="col-md-6">
+					<div class="row">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title">Streams <i id="update-streams" class="fa fa-refresh" title="Update list of streams" style="cursor: pointer;"></i></h3>
+							</div>
+							<div class="panel-body" id="list">
+								<div class="btn-group btn-group-sm">
+									<button class="btn btn-primary" autocomplete="off" id="watch">Watch or Listen</button>
+									<div class="btn-group btn-group-sm">
+										<button autocomplete="off" id="streamset" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+											Streams list<span class="caret"></span>
+										</button>
+										<ul id="streamslist" class="dropdown-menu" role="menu">
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row hide" id="info">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title"><i class="fa fa-info-circle"></i> Metadata</h3>
+							</div>
+							<div class="panel-body">
+								<pre id="metadata" style="word-break: break-word;"></pre>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6" id="videos">
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<hr>
+	<div class="footer">
+	</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+

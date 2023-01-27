@@ -1,0 +1,220 @@
+﻿
+@using Synergy.App.ViewModel;
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.Extensions;*@
+@model AssessmentViewModel
+@{
+    ViewData["Title"] = "Manage Questions";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+<style>
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+    .k-grid td {       
+        vertical-align: top;
+    }
+</style>
+<script type="text/javascript">
+
+
+    function OnAfterServiceCreate() {
+       // $("#kgrdAssessment").data("kendoGrid").dataSource.read();
+    }
+    function OnDeleteQuestion(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        kendo.confirm("Are you sure that you want to delete the selected item?").then(function () {
+            $.ajax({
+                type: "POST",
+                url: "/TAS/TalentAssessment/DeleteAssessmentQuestion?Id=" + dataItem.NoteId,
+
+                success: function (data) {
+
+                    kendo.alert("Question Deleted Successfully");
+                    //var grid = $("#kgrdAssessmentQuestions").data("JSGrid");
+                    //grid.render();
+                    $("#kgrdAssessmentQuestions1").data("kendoGrid").dataSource.read({ AssessmentId:'@Model.AssessmentId'});
+                },
+                dataType: "json",
+            });
+        }, function () {
+
+        });
+    }
+
+    function OnAddQuestions() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/TAS/TalentAssessment/MapAssessmentQuestions?assessmentId=" + '@Model.AssessmentId' + "&assessmentTypeId="+'@Model.AssessmentTypeId';
+        win.OpenWindow({ Title: 'Add Questions', Width: 1400, Height: 800 });
+        return false;
+    }
+
+    function AfterMapQuestions() {
+        var grid = $("#kgrdAssessmentQuestions").data("JSGrid");
+        grid.render();
+         //$("#kgrdAssessmentQuestions1").data("kendoGrid").dataSource.read({ AssessmentId:'@Model.AssessmentId'});
+    }
+
+    function Close() {
+        win = GetMainWindow();
+        win.CloseWindow();
+    }
+
+    function onError(e, status) {
+
+        if (e.errors) {
+            //console.log(e.errors);
+            ShowNotification(e.errors.SequenceNo.errors, "error");
+        }
+    }
+
+    function OnSave(arg) {
+        
+        ShowLoader($('#kgrdAssessmentQuestions1'));
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "/TAS/TalentAssessment/UpdateSequenceNo?Id=" + arg.model.Id + '&sequenceNo='+arg.model.SequenceOrder + '&assessmentId='+ '@Model.AssessmentId',
+            success: function (res) {
+
+                if (res.success) {
+                    $("#kgrdAssessmentQuestions1").data("kendoGrid").dataSource.read({ AssessmentId:'@Model.AssessmentId'});
+                    //AfterMapQuestions();
+                    HideLoader($('#kgrdAssessmentQuestions1'));
+                    ShowNotification("Updates Successfully", "success");
+                }
+                else {
+                    $("#kgrdAssessmentQuestions1").data("kendoGrid").dataSource.read({ AssessmentId:'@Model.AssessmentId'});
+                    //AfterMapQuestions();
+                    ShowNotification(res.error, "error");
+                    HideLoader($('#kgrdAssessmentQuestions1'));
+                }
+            },
+        });
+    }
+
+</script>
+
+
+
+<div class="row">
+    <div class="col-md-12">
+        <button type='button' class='btn btn-primary' onclick='OnAddQuestions();'><i class='fa fas fa-plus'></i>&nbsp;Add Questions</button>
+        <div id="kgrdAssessmentQuestions"></div>
+        @*@(Html.Kendo().Grid<AssessmentQuestionsViewModel>().Name("kgrdAssessmentQuestions1")
+        .Columns(col =>
+        {
+            col.Command(command =>
+            {
+                command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteQuestion").HtmlAttributes(new { @class = "action-icon", @title = "Delete" });
+                command.Edit().Text(" ").UpdateText(" ").CancelText(" ");
+            }).Title("Action").Width(150);
+            //col.Command(command => {  }).Width(100);
+            col.Bound(c => c.SequenceOrder).Title("Sequence No").Width(100);
+            col.Bound(c => c.Topic).Title("Topic").Width(200);
+            col.Bound(c => c.CompetencyLevel).Title("Competency Level").Width(200);
+            col.Bound(c => c.IndicatorName).Title("Indicator Name").Width(200);
+            col.Bound(c => c.Question).Title("Question").Width(250);
+            col.Bound(c => c.QuestionDescription).Title("Question Description").Width(250);
+            col.Bound(c => c.QuestionArabic).Title("Question Arabic").Width(250);
+            col.Bound(c => c.QuestionDescriptionArabic).Title("Question Description Arabic").Width(250);
+            col.Bound(c => c.QuestionType).Title("Question Type").Width(150);
+
+        })
+        .Events(e=>e.Save("OnSave"))
+        .ToolBar(toolbar =>
+        {
+            toolbar.Custom().Text("Add Questions").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAddQuestions();" });
+        })
+        .Editable(e=>e.Mode(GridEditMode.InLine))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+        .Resizable(resize => resize.Columns(true))
+        .Height(720)
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Read(read => read.Action("ReadMappedQuestions", "TalentAssessment", new { Area="TAS", AssessmentId=Model.AssessmentId}))
+
+        .Model(model => model.Id("Id")))
+        )*@
+    </div>
+</div>
+<script>
+
+
+    $("#kgrdAssessmentQuestions").jsGrid({
+        width: "100%",
+        height: "600px",
+
+        inserting: false,
+        editing: true,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        deleteConfirm: "Do you really want to delete client?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                return $.ajax({
+                    type: "GET",
+                    url: "/tas/TalentAssessment/ReadMappedQuestions1?AssessmentId=@Model.AssessmentId",
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+
+            updateItem: function (item) {
+                OnSave(item);
+            },
+            deleteItem: function (item)
+            {
+                OnDeleteQuestion(item.NoteId);
+            }
+        },
+        //onItemEditing: function (e) {
+        //    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+        //        //  
+        //        e.grid.updateItem();
+        //    }
+        //                        },
+
+        fields: [
+            { name: "SequenceOrder", type: "text",  },
+            { name: "Topic", type: "text", },
+            { name: "CompetencyLevel", type: "text", },
+            { name: "IndicatorName", type: "text", },
+            { name: "Question", type: "text", },
+            { name: "QuestionDescription", type: "text", width: 150 },
+            { name: "QuestionArabic", type: "text", },
+            { name: "QuestionDescriptionArabic", type: "text",width:150 },
+            { name: "QuestionType", type: "text", },
+            { type: "control"     },
+
+        ]
+                            });
+
+
+</script>
+

@@ -1,0 +1,316 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pay.Controllers.PayrollBatchController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+
+@{
+    ViewData["Title"] = @Resource["ManagePayrollBatch"];
+    Layout = null;
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+<script>
+    @*function OnDeleteHiringManager(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var flag = confirm('Do you really want to delete?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "HiringManager", new { @area="Recruitment"})?Id=' + dataItem.id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        $("#kgrdHiringManager").data("kendoGrid").dataSource.read();
+                        kendo.alert("Hiring Manager Deleted Successfully");
+                    } else {
+                        $("#kgrdHiringManager").data("kendoGrid").dataSource.read();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    $("#kgrdHiringManager").data("kendoGrid").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }*@
+
+    function OnEditDependant(e) {
+        
+        //e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        //var portalId = $('#GlobalPortalId').val();
+
+        //var url = '/Cms/Page?lo=Popup&cbm=AfterCreateDependent&source=Versioning&dataAction=Edit&pageName=Dependent&portalId=' + portalId + '&recordId=' + dataItem.id;
+
+        //var win = GetMainWindow();
+        //win.iframeOpenUrl = url;
+        //win.OpenWindow({ Title: 'Manage Dependent', Width: 1200, Height: 600 });
+        //return false;
+    }
+
+    function OnCreatePayrollBatch() {
+        var url = '/Pay/PayrollBatch/ManagePayrollBatch';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["CreatePayrollBatch"])', Width: 450, Height: 750, Position: 'Right' });
+        @*var url = "/pay/payrollrun/GetPayrollClosedCount";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            cache: false,
+            async: false,
+            success: function (data) {
+                
+                if (data.success) {
+                    alert(data);
+                    var url = '/Pay/PayrollBatch/ManagePayrollBatch';
+                    var win = GetMainWindow();
+                    win.iframeOpenUrl = url;
+                    win.OpenWindow({ Title: '@Html.Raw(Resource["CreatePayrollBatch"])', Width: 450, Height: 750, Position: 'Right' });
+                } else {
+                    kendo.alert("Please close all existing payroll before creating new payroll.");
+                }
+            }
+        });*@
+        return false;
+
+    }
+
+    function Detail(id, PayrollBatchId) {       
+       // e.preventDefault();
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //alert(dataItem.Id, dataItem.PayrollBatchId);
+
+        var url = "/Pay/PayrollRunResult/Index?payrollRunId=" + id + "&payrollBatchId=" + PayrollBatchId
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["PayrollDetails"])', Width: 1200, Height: 800 });
+        return false;
+    }
+
+    function AfterCreatePayrollBatch() {
+        $("#kgrdPayrollBatch").data("kendoGrid").dataSource.read();
+    }
+
+</script>
+
+<style>
+    .fa-plus {
+        margin-top: 5px;
+    }
+</style>
+
+<div style="padding:15px;">
+    <h4>@ViewBag.Title</h4>
+    <hr />
+    <div class="row">
+        <div class="col-12">
+            <script>
+                        var columnDefs = [
+                            {
+                                field: "Id",
+                                headerName: "@Resource["ManagePayroll"]",
+                                cellRenderer: params => {
+                                   
+                                    return "<div class='btn-group grid-menu' id='tree-menup' data-idvalue='" + params.value + "' data-PayrollBatchId='" + params.data.PayrollBatchId+"' ><i class='fas fa-ellipsis-v'></i></div>"
+                                }
+                            },
+                            {
+                                field: "ExecutionStatus",
+                                headerName: "@SharedResource["Status"]",
+                                cellRenderer: params => {
+                                    return executionStatus[params.value]
+                                }
+                            },
+                            {
+                                field: "Name",
+                                headerName:"@Resource["PayrollName"]",width:200
+                            },
+                            {
+                                field: "PayrollStateEnd",
+                                headerName: "@Resource["PayrollState"]", width: 200,
+                                cellRenderer: params => {
+                                    return payrollStateEnd[params.value]
+                                }
+
+                            },
+                            {
+                                field: "PayrollBatchId_PayrollStartDate",
+                                headerName: "@Resource["PayrollStartDate"]", width: 200,
+                                cellRenderer: params => {
+                                    return moment(params.value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateFormatForMoment')
+                                }
+
+                            },
+                            {
+                                field: "PayrollBatchId_PayrollEndDate",
+                                headerName: "@Resource["PayrollEndDate"]", width: 200,
+                                cellRenderer: params => {
+                                    return moment(params.value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateFormatForMoment')
+                                }
+
+                            },
+                            {
+                                field: "TotalProcessed",
+                                headerName: "@Resource["No.ofEmployeesProcessed"]", width: 200,
+                            },
+                              {
+                                  field: "TotalSucceeded",
+                                headerName: "@Resource["No.ofEmployeesSucceeded"]", width: 200,
+                            },
+                              {
+                                  field: "TotalEarning",
+                                headerName: "@Resource["TotalEarning"]", width: 200,
+                            },
+                              {
+                                  field: "TotalDeduction",
+                                headerName: "@Resource["TotalDeduction"]", width: 200,
+                            },
+                              {
+                                  field: "NetAmount",
+                                headerName: "@Resource["NetAmount"]", width: 200,
+                            },
+                            //  {
+                            //      field: "PayrollBatchId",v
+
+                            //},
+
+
+
+
+
+                        ];
+                        //$(function () {
+                           
+                              $(function () {
+                            GetPayrollBatchData();
+                             $.contextMenu({
+                                 selector: '#tree-menup',
+                                trigger: 'left',
+                                build: function ($trigger, e) {
+
+
+                                    var id = $trigger.data('idvalue');
+                                    var batchId = $trigger.data('payrollbatchid');
+
+                                    switch (0) {
+                                        case 0:
+                                            return {
+                                                callback: function (key, options) {
+                                                    switch (key) {
+
+                                                        case 'view':                                                           
+                                                            Detail(id, batchId);
+                                                            break;
+
+
+                                                        default:
+                                                    }
+                                                },
+                                                items: {
+
+
+                                                    "view": { name: "Detail", icon: "fas fa-eye" },
+
+
+                                                }
+                                            };
+
+
+                                    }
+                                }
+                            });
+                        });
+                       // });
+
+                function GetPayrollBatchData() {
+                            document.getElementById("kgrdPayrollBatch").innerHTML = "";
+                            gridConfig(
+                                "kgrdPayrollBatch",
+                                "/Pay/PayrollRun/ReadPayrollBatchList",
+                                columnDefs,
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+            </script>
+            <button type="submit" class="btn btn-primary" onclick="return OnCreatePayrollBatch();"><i class="fa fa-plus pr-1"></i>@Resource["CreatePayrollBatch"]</button>
+            <div id="kgrdPayrollBatch" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            @*@(Html.Kendo().Grid<dynamic>()
+            .Name("kgrdPayrollBatch")
+            .Columns(columns =>
+            {
+
+                columns.Command(c => c.Custom("Detail").Text(Resource["ManagePayroll"]).HtmlAttributes(new { @class = "btn btn-sm btn-primary " }).Click("Detail")).Width(170);
+                columns.Bound("ExecutionStatus").ClientTemplateId("ExecutionStatusTemplate").Title(@SharedResource["Status"]).Width(200);
+                columns.Bound("Name").Title(@Resource["PayrollName"]).Width(200);
+                columns.Bound("PayrollStateEnd").ClientTemplateId("PayrollStateEndTemplate").Title(@Resource["PayrollState"]).Width(200);
+                columns.Bound("PayrollBatchId_PayrollStartDate").ClientTemplateId("StartDateTemplate").Title(@Resource["PayrollStartDate"]).Width(200);
+                columns.Bound("PayrollBatchId_PayrollEndDate").ClientTemplateId("EndDateTemplate").Title(@Resource["PayrollEndDate"]).Width(200);
+                columns.Bound("TotalProcessed").Title(@Resource["No.ofEmployeesProcessed"]).Width(200);
+                columns.Bound("TotalSucceeded").Title(@Resource["No.ofEmployeesSucceeded"]).Width(200);
+                columns.Bound("TotalEarning").Title(@Resource["TotalEarning"]).Width(200);
+                columns.Bound("TotalDeduction").Title(@Resource["TotalDeduction"]).Width(200);
+                columns.Bound("NetAmount").Title(Resource["NetAmount"]).Width(200);
+                columns.Bound("PayrollBatchId").Visible(false);
+            })
+            .ToolBar(toolbar =>
+            {
+                //toolbar.Excel();
+                toolbar.Custom().Text(Resource["CreatePayrollBatch"]).IconClass("fa fas fa-plus icon").HtmlAttributes(new { @style = "background-color:#007bff;color:#fff;margin-left:5px;", onclick = "OnCreatePayrollBatch();" });
+
+            })
+            .Scrollable(x => x.Enabled(true))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable(srt => srt.Enabled(true))
+            .Selectable(select => select.Enabled(false))
+            .Filterable(f => f.Extra(false)
+            .Operators(o => o.ForString(s => s.Clear()
+            .Contains("Contains")
+            .IsEqualTo("Is equal to")
+            )))
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5))
+            .AutoBind(true)
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(10)
+            .Read(read => read.Action("ReadPayrollBatchList", "PayrollRun"))
+            .Model(model => model.Id("Id"))
+            )
+        )*@
+        </div>
+    </div>
+</div>
+<script type="text/x-kendo-tmpl" id="StartDateTemplate">
+    #:moment(data.PayrollBatchId_PayrollStartDate).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateFormatForMoment')#
+</script>
+<script type="text/x-kendo-tmpl" id="EndDateTemplate">
+    #:moment(data.PayrollBatchId_PayrollEndDate).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateFormatForMoment')#
+</script>
+<script>
+    var executionStatus = JSON.parse('@Html.Raw(EnumExtension.EnumToJson(typeof(PayrollExecutionStatusEnum)))');
+    var payrollStateEnd = JSON.parse('@Html.Raw(EnumExtension.EnumToJson(typeof(PayrollStateEnum)))');
+</script>
+<script type="text/x-kendo-tmpl" id="ExecutionStatusTemplate">
+    #:executionStatus[data.ExecutionStatus]#
+</script>
+<script type="text/x-kendo-tmpl" id="PayrollStateEndTemplate">
+    #:payrollStateEnd[data.PayrollStateEnd]#
+</script>
+
+

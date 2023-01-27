@@ -1,0 +1,315 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration configuration
+@inject IStringLocalizer<Synergy.App.BLS.Areas.Controllers.BLSApplicationController> Resource
+@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Microsoft.Extensions.Configuration;
+
+@model BLSVisaAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Reschedule Form";
+    Layout = null;
+}
+
+<style>
+    #AppointmentDate_dateview .k-calendar .k-content .k-link {
+        background-color: #87db87;
+    }
+
+    #AppointmentDate_dateview .k-calendar .k-content .k-state-disabled .k-link {
+        background-color: #fb5454;
+    }
+
+</style>
+<script>
+    @*function onDateChange() {
+        debugger;
+
+        var dateVal2 = kendo.toString($("#AppointmentDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+
+        var locVal = $("#LocationId").val();
+        var serviceTypeVal = $("#ServiceTypeId").val();
+        var visaTypeVal = $("#VisaTypeId").val();
+
+        var slotDataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/BLS/BLSApplication/GetSlotsList?date=" + dateVal2 + "&loc=" + locVal + "&serviceType=" + serviceTypeVal + "&visaType=" + visaTypeVal,
+                    dataType: "json"
+                }
+            },
+        });
+
+        var applicantsCount = parseInt(@Model.blsApplicantList.Count());
+
+        for (var j = 0; j < applicantsCount; j++) {
+            $("#AppointmentSlot" + j).val("");
+            var dropdownlist = $("#AppointmentSlot" + j).data("kendoDropDownList");
+            dropdownlist.enable(true);
+            dropdownlist.setDataSource(slotDataSource);
+        }
+    }*@
+
+    var applicantsCount = parseInt(@Model.ApplicantsNo);
+    function onDateChange() {
+        debugger;
+
+
+        var dateVal2 = kendo.toString($("#AppointmentDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+
+        var locVal = $("#LegalLocationId").val();
+        var serviceTypeVal = $("#ServiceTypeId").val();
+        var visaTypeVal = $("#VisaTypeId").val();
+        var category = $("#AppointmentCategoryId").val();
+
+        var slotDataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/BLS/BLSApplication/GetSlotsList?date=" + dateVal2 + "&loc=" + locVal + "&serviceType=" + serviceTypeVal + "&visaType=" + visaTypeVal + "&category=" + category,
+                    dataType: "json"
+                }
+            },
+        });
+
+        for (var j = 0; j < applicantsCount; j++) {
+            $("#AppointmentSlot"+j).val("");
+            var dropdownlist = $("#AppointmentSlot" + j).data("kendoDropDownList");
+            dropdownlist.value("");
+            dropdownlist.enable(true);
+            dropdownlist.setDataSource(slotDataSource);
+        }
+
+
+    }
+
+    $(function () {
+
+        var presentDate = new Date();
+        $("#AppointmentDate").kendoDatePicker({
+            format: "yyyy/MM/dd",
+            //value: "YYYY-MM-DD",
+            disableDates: disableDates,
+            select: onDateChange,
+            change: onDateChange,
+            min: presentDate,
+            month: {
+                empty: '<div class="k-state-disabled">#= data.value #</div>'
+            }
+        });
+    });
+
+     function disableDates(date) {
+        debugger;
+        if (date != "" && date !="YYYY-MM-DD" && date!=null) {
+            var today = new Date();
+            var fullslot = $("#FullSlot").val();
+            var day = "" + date.getDay();
+            var dateVal2 = kendo.toString(date, 'yyyy-MM-dd');
+
+            today.setDate(today.getDate() - 1);
+
+            var diff = date - today;
+
+            var daydiff = diff / (1000 * 60 * 60 * 24);
+            if (date < today) {
+                return true;
+            }
+            else if ('@Model.Holidays'.indexOf(dateVal2) !== -1)
+            {
+                return true;
+            }
+            else if (fullslot != null && fullslot.indexOf(dateVal2) !== -1) {
+                return true;
+            }
+            else if (daydiff < '@Model.MaximumAllowedDays' && '@Model.WeekDays'.indexOf(day) !== -1) {
+                return false;
+            }
+            //else if (date.getYear() == today.getYear() && date.getMonth() == today.getMonth() && date.getDate() == today.getDate())
+            //{
+            //    return false;
+            //}
+            else {
+                return true;
+            }
+        }
+        return true;
+    }
+
+    function reschedule(e) {
+        debugger;
+        $("#validation-summary2").html("");
+        $("#validation-summary2").css("display", "none");
+        var captachVal = $("#RSDCaptchaInputText").val();
+
+        if ($("#AppointmentDate").val() == "") {
+            $("#validation-summary2").html("Please Choose Reschedule Appointment Date");
+            $("#validation-summary2").css("display", "block");
+            e.preventDefault();
+            return false;
+        }              
+
+        var ApplicantsData = [];
+        for (var k = 0; k < applicantsCount; k++) {
+            if ($("#AppointmentSlot" + k).val() == '') {
+                var j = Number(k) + 1;
+                $("#validation-summary2").html("Select Appointment Slot For Applicant " + j);
+                $("#validation-summary2").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+
+            ApplicantsData[k] = {};
+            ApplicantsData[k]["AppointmentSlot"] = $("#AppointmentSlot"+k).val();
+            ApplicantsData[k]["FirstName"] = $("#blsApplicantList_" + k +"__FirstName").val();
+            ApplicantsData[k]["LastName"] = $("#blsApplicantList_" + k +"__LastName").val();
+            ApplicantsData[k]["DateOfBirth"] = $("#blsApplicantList_" + k +"__DateOfBirth").val();
+            ApplicantsData[k]["PassportTypeId"] = $("#blsApplicantList_" + k +"__PassportTypeId").val();
+            ApplicantsData[k]["PassportNo"] = $("#blsApplicantList_" + k + "__PassportNo").val();
+            ApplicantsData[k]["PassportCountryId"] = $("#blsApplicantList_" + k + "__PassportCountryId").val();
+            ApplicantsData[k]["IssueDate"] = $("#blsApplicantList_" + k +"__IssueDate").val();
+            ApplicantsData[k]["ExpiryDate"] = $("#blsApplicantList_" + k +"__ExpiryDate").val();
+            ApplicantsData[k]["IssuePlace"] = $("#blsApplicantList_" + k +"__IssuePlace").val();
+            ApplicantsData[k]["ParentId"] = "@Model.Id";
+            ApplicantsData[k]["Id"] = $("#blsApplicantList_" + k + "__Id").val();
+        }
+
+        if (captachVal == '' || captachVal == null) {
+            $("#validation-summary2").html("Please Enter Captcha");
+            $("#validation-summary2").css("display", "block");
+            e.preventDefault();
+            return false;
+        }  
+
+        var detailsString = JSON.stringify(ApplicantsData);
+        $("#ApplicantsDetailsList").val(detailsString);
+
+        ShowLoader($('#cms-content'));
+    }
+
+
+
+
+</script>
+
+
+<form asp-controller="BLSApplication" asp-action="ManageRescheduleDetails" class="form-horizontal"
+      id="details" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess2"
+      data-ajax="true" data-ajax-method="POST">
+
+    <div id="validation-summary2" class="text-danger" asp-validation-summary="All"></div>
+
+    <div class="form-group">
+        <label for="AppointmentDate" class="form-label required">
+            @Resource["AppointmentDate"]
+        </label>
+        <div>
+            <input asp-for="AppointmentDate" style="width:100%" required />
+        </div>
+    </div>
+
+    @for (var i = 0; i < Model.blsApplicantList.Count(); i = i + 1)
+    {
+        <div class="container">
+            <h6>@Resource["Applicant"] @(i + 1)</h6>
+
+            <div class="col-12">
+                <div>
+                    <label for="GivenName@(i)" class="form-label required">@Resource["FirstName"]</label>
+                    <input type="text" asp-for="@Model.blsApplicantList[i].FirstName" class="form-control" id="GivenName@(i)" style="width:100%" disabled />
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div>
+                        <label for="AppointmentSlot@(i)" class="form-label required">@Resource["AppointmentSlot"]</label>
+                        <input id="AppointmentSlot@(i)" style="width:100%;" required />
+                        <script>
+                                $(function () {
+                                    $("#AppointmentSlot@(i)").kendoDropDownList({
+                                        optionLabel: "--Select--",
+                                        dataTextField: "Name",
+                                        dataValueField: "Name",
+                                        filter: "contains",
+                                        autoBind: true,
+                                        enable: false,
+                                        template: kendo.template($("#Slottemplate").html())
+                                    });
+                                });
+                        </script>
+                        <script id="Slottemplate" type="text/x-kendo-template">
+                            #if(data.Code=="Exist"){#
+                            <div style='background: indianred;border-radius: 14px;padding: 4px 18px 4px 18px;'>
+                             <span style='color:white' class='k-disabled'>
+                              #: data.Name #
+                            </span>
+                            </div>
+                            #}else{#
+                            <div style='background: green;border-radius: 14px;padding: 4px 18px 4px 18px;'>
+                             <span style='color:white'>
+                              #: data.Name #
+                            </span>
+                            </div>
+                            #}#
+
+                        </script>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <hr />
+
+        @Html.HiddenFor(m => m.blsApplicantList[i].LastName)
+        @Html.HiddenFor(m => m.blsApplicantList[i].PassportTypeId)
+        @Html.HiddenFor(m => m.blsApplicantList[i].PassportNo)
+        @Html.HiddenFor(m => m.blsApplicantList[i].PassportCountryId)
+        @Html.HiddenFor(m => m.blsApplicantList[i].Id)
+        @Html.HiddenFor(m => m.blsApplicantList[i].ParentId)
+        @Html.HiddenFor(m => m.blsApplicantList[i].IssuePlace)
+        @Html.HiddenFor(m => m.blsApplicantList[i].IssueDate)
+        @Html.HiddenFor(m => m.blsApplicantList[i].ExpiryDate)
+        @Html.HiddenFor(m => m.blsApplicantList[i].DateOfBirth)
+        @Html.HiddenFor(m => m.blsApplicantList[i].FirstName)
+
+    }
+
+    <div class="text-center">
+        <dnt-captcha asp-captcha-generator-max="999999"
+                     asp-captcha-generator-min="111111"
+                     asp-captcha-generator-language="English"
+                     asp-captcha-generator-display-mode="ShowDigits"
+                     asp-use-relative-urls="true"
+                     asp-show-refresh-button="true"
+                     asp-placeholder=""
+                     asp-font-name="Tahoma"
+                     asp-font-size="20"
+                     asp-fore-color="#222222"                     
+                     asp-back-color="#ccc"
+                     asp-text-box-class="form-control"
+                     asp-text-box-template="<div class='form-group'><label class='form-label required text-left d-block' for='captcha' id='RSDCaptchaInputText'>Captcha</label>{0}</div>"
+                     asp-validation-message-class="text-danger"
+                     asp-validation-error-message="Please enter captcha"
+                     asp-refresh-button-class="fas fa-redo btn-sm"
+                     asp-use-noise="false" />
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary btn-block" onclick="reschedule(event)">@Resource["RescheduleAppointment"]</button>
+        </div>
+    </div>
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.ServiceId)
+    @Html.HiddenFor(m => m.NtsNoteId)
+    @Html.HiddenFor(m => m.LegalLocationId)
+    @Html.HiddenFor(m => m.ServiceTypeId)
+    @Html.HiddenFor(m => m.VisaTypeId)
+    @Html.HiddenFor(m => m.AppointmentCategoryId)
+    @Html.HiddenFor(m => m.ApplicantsDetailsList)
+
+</form>

@@ -1,0 +1,236 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+@{
+    ViewData["Title"] = "JSC Map View";
+    Layout = null;
+}
+
+<style>
+
+    .required {
+        color: red;
+    }
+
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+
+
+
+
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Portal End*/
+</style>
+
+<script>
+    $(document).ready(function () {
+
+    });
+
+    function onViewMap(mapname, maplat, maplong) {
+        debugger;
+        var lat = maplat;
+        var long = maplong;
+        var locname = mapname;
+        if (lat != '' && long != '') {
+            var map = L.map('map').setView([lat, long], 13); 
+            /*var map = L.map('map').setView([51.505, -0.09], 13); */
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            L.marker([lat, long]).addTo(map)
+                .bindPopup(locname)
+                .openPopup();
+        } else {
+
+        }
+    }
+
+
+</script>
+
+<div class="splitter-container">
+    <div class="left">
+        <h5>@ViewData["Title"]</h5>
+
+        <div id="JSCMapTreeView" class="demo treeview"></div>
+
+    </div>
+
+    <div class="right pad-l-t-15" id="jscmapview-content">
+        @*MapView*@
+        @*<div class="row col-12" id="divmap">
+            <div id="map">
+
+            </div>
+        </div>*@
+    </div>
+
+</div> 
+<div id="overlay" class=""></div>
+
+<script>
+    var nodeid;
+
+    $('#JSCMapTreeView')
+        .jstree({
+            'core': {
+                'data': function (node, cb) {
+                    if (node.id === "#") {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/EGov/SmartCity/GetJSCMapViewTreeList",
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                    }
+                    else {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/EGov/SmartCity/GetJSCMapViewTreeList?id=" + node.id,
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+    $(function () {
+        $.contextMenu({
+            selector: '.jstree-anchor',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                var id = $trigger.attr('data_id');
+                var itemName = $trigger.attr('data_name');
+                var type = $trigger.attr('data_type');
+                var lati = $trigger.attr('data_latitude');
+                var long = $trigger.attr('data_Longitude');
+
+                switch (type) {
+                    case 'Root':
+                        return {
+
+                            };
+                    case 'WARD':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'openWard':
+                                        alert("Id :" + id + "\n name:" + itemName + "\n type: " + type + "\n lati :" + lati + "\n long :" + long);
+                                        /*onViewMap(itemName,lati,long);*/
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "openWard": { name: "Open Ward", icon: "fas fa-album-collection" },
+                            }
+                        };
+                    case 'LOCALITY':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'openLocality':
+                                        alert("Id :" + id + "\n name:" + itemName + "\n type: " + type + "\n lati :" + lati + "\n long :" + long);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "openLocality": { name: "Open Locality", icon: "fas fa-album-collection" },
+                            }
+                        };
+                    case 'LANDMARK':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'openLandmark':
+                                        alert("Id :" + id + "\n name:" + itemName + "\n type: " + type + "\n lati :" + lati + "\n long :" + long);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "openLandmark": { name: "Open Landmark", icon: "fas fa-album-collection" },
+                            }
+                        };
+                }
+            }
+        });
+    });
+
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+</script>

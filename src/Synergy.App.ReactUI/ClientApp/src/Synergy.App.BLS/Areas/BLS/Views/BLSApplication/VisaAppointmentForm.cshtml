@@ -1,0 +1,731 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration configuration
+@inject IStringLocalizer<Synergy.App.BLS.Areas.Controllers.BLSApplicationController> Resource
+@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Microsoft.Extensions.Configuration;
+@model BLSVisaAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Visa Appointment Form";
+    Layout = null;
+}
+
+<style>
+    #AppointmentDate_dateview .k-calendar .k-content .k-link {
+        background-color: #87db87;
+    }
+
+    #AppointmentDate_dateview .k-calendar .k-content .k-state-disabled .k-link {
+        background-color: #fb5454;
+    }
+</style>
+<script>
+    $("#IsVisaIssuedEarlier").kendoDropDownList({
+        //optionLabel: "--Select--",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        filter: "contains",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/LOV/GetLOVIdNameList?lovType=BLS_VISA_ISSUED_PREVIOUSLY",
+                }
+            }
+        }
+    });
+    $("#visaId").kendoDropDownList({
+        optionLabel: "--Select--",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        filter: "contains",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/BLS/BLSApplication/GetVisaTypeList",
+                }
+            }
+        }
+    });
+
+    $("#locId").kendoDropDownList({
+        optionLabel: "--Select--",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        filter: "contains",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/BLS/BLSApplication/GetLocationList"
+                }
+            }
+        }
+    });
+
+    function OnCategory() {
+        $("#AppointmentDate").data("kendoDatePicker").value("");
+        var locVal = $("#locId").val();
+        var category = $("#AppointmentCategoryId").val();
+        $.ajax({
+            type: "GET",
+            url: "/BLS/BLSApplication/GetAppointmentDate?loc=" + locVal + "&category=" + category,
+            dataType: "json",
+            success: function (data) {
+                $("#FullSlot").val(data);
+                $("#AppointmentDate").data("kendoDatePicker").value("");
+
+            }
+        });
+
+
+        //var text=$("#AppointmentCategoryId").data("kendoDropDownList").text();
+        //if (text == "Premium") {
+        //    $('#screen2').modal('show');
+        //}
+    }
+
+    $("#AppointmentCategoryId").kendoDropDownList({
+        //optionLabel: "--Select--",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        filter: "contains",
+        change: OnCategory,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/BLS/BLSApplication/GetAppointmentCategoryList",
+                }
+            }
+        }
+    });
+
+
+    var applicantsCount = parseInt(@Model.ApplicantsNo);
+
+
+    var presentDate = new Date();
+    $("#TravelDate").kendoDatePicker({
+        format: "yyyy/MM/dd",
+        value: "YYYY-MM-DD",
+        min: presentDate,
+        month: {
+            empty: '<div class="k-state-disabled">#= data.value #</div>'
+        }
+    });
+
+    //function onDateChange() {
+    //    debugger;
+
+
+    //    var dateVal2 = kendo.toString($("#AppointmentDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+
+    //    var locVal = $("#locId").val();
+    //    var serviceTypeVal = $("#ServiceTypeId").val();
+    //    var visaTypeVal = $("#VisaTypeId").val();
+    //    var category = $("#AppointmentCategoryId").val();
+
+    //    var slotDataSource = new kendo.data.DataSource({
+    //        transport: {
+    //            read: {
+    //                url: "/BLS/BLSApplication/GetSlotsList?date=" + dateVal2 + "&loc=" + locVal + "&serviceType=" + serviceTypeVal + "&visaType=" + visaTypeVal + "&category=" + category,
+    //                dataType: "json"
+    //            }
+    //        },
+    //    });
+
+    //    for (var j = 0; j < applicantsCount; j++) {
+    //        $("#AppointmentSlot"+j).val("");
+    //        var dropdownlist = $("#AppointmentSlot" + j).data("kendoDropDownList");
+    //        dropdownlist.value("");
+    //        dropdownlist.enable(true);
+    //        dropdownlist.setDataSource(slotDataSource);
+    //    }
+
+
+    //}
+
+
+
+    //var presentDate = new Date();
+    //$("#AppointmentDate").kendoDatePicker({
+    //    format: "yyyy/MM/dd",
+    //    value: "YYYY-MM-DD",
+    //    disableDates: disableDates,
+    //    change: onDateChange,
+    //    //min: presentDate,
+    //    //month: {
+    //    //    empty: '<div class="k-state-disabled">#= data.value #</div>'
+    //    //}
+    //});
+
+
+
+    function onFormSave(e) {
+        var today = new Date();
+        today.setDate(today.getDate() + 180);
+        var travel = $("#TravelDate").val();
+        var visa = $("#VisaTypeId").val();
+        var photo = $("#ApplicantPhotoId").val();
+        //if ($("#AppointmentCategoryId").val() == '') {
+        //    $(".validation-summary").html("Please Choose Appointment Category");
+        //    $(".validation-summary").css("display", "block");
+        //    e.preventDefault();
+        //    return false;
+        //}
+        //if ($("#AppointmentDate").val() == '') {
+        //    $(".validation-summary").html("Please Choose Appointment Date");
+        //    $(".validation-summary").css("display", "block");
+        //    e.preventDefault();
+        //    return false;
+        //}
+         if (visa == '') {
+            $(".validation-summary").html("Please Choose Visa Type");
+            $(".validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+        if (travel == '' && travel !='YYYY-MM-DD') {
+            $(".validation-summary").html("Please Enter Travel Date");
+            $(".validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+         if (photo == '') {
+            $(".validation-summary").html("Please Upload Photo");
+            $(".validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+
+        var ApplicantsData = [];
+        for (var k = 0; k < applicantsCount; k++) {
+
+            var birth = kendo.toString($("#DateOfBirth" + k).val(), 'yyyy/MM/dd');
+            var issue = kendo.toString($("#IssueDate" + k).val(), 'yyyy/MM/dd');
+            var expiry = kendo.toString($("#ExpiryDate" + k).val(), 'yyyy/MM/dd');
+
+            //if ($("#AppointmentSlot" + k).val() =='') {
+            //    $(".validation-summary").html("Please choose AppointmentSlot");
+            //    $(".validation-summary").css("display", "block");
+            //    e.preventDefault();
+            //    return false;
+            //}
+            if ($("#GivenName" + k).val() =='') {
+                $(".validation-summary").html("Please Enter First Name");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if ($("#SurName" + k).val()=='') {
+                $(".validation-summary").html("Please Enter Last Name");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if ($("#DateOfBirth" + k).val() == "YYYY-MM-DD") {
+                $(".validation-summary").html("Please Enter Date of Birth");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if (new Date(birth) >= new Date()) {
+                $(".validation-summary").html("Date of Birth should be less than current date");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if ($("#IssueDate" + k).val() == "YYYY-MM-DD") {
+                $(".validation-summary").html("Please Enter Issue Date");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if (new Date(issue) >= new Date()) {
+                $(".validation-summary").html("IssueDate should be less than current date");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if ($("#ExpiryDate" + k).val() == "YYYY-MM-DD") {
+                $(".validation-summary").html("Please Enter Expiry Date");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if (new Date(expiry) < today) {
+                $(".validation-summary").html("Passport should have at least 6 months validity");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if ($("#PassportType" + k).val() =='') {
+                $(".validation-summary").html("Please choose Passport Type");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            if ($("#PassportNumber" + k).val() =='') {
+                $(".validation-summary").html("Please Enter PassportNumber");
+                $(".validation-summary").css("display", "block");
+                e.preventDefault();
+                return false;
+            }
+            ApplicantsData[k] = {};
+            ApplicantsData[k]["AppointmentSlot"] = $("#AppointSlot"+k).val();
+            ApplicantsData[k]["FirstName"] = $("#GivenName"+k).val();
+            ApplicantsData[k]["LastName"] = $("#SurName"+k).val();
+            ApplicantsData[k]["DateOfBirth"] = $("#DateOfBirth"+k).val();
+            ApplicantsData[k]["PassportTypeId"] = $("#PassportType"+k).val();
+            ApplicantsData[k]["PassportNo"] = $("#PassportNumber"+k).val();
+            ApplicantsData[k]["PassportCountryId"] = $("#PassportCountry"+k).val();
+            ApplicantsData[k]["IssueDate"] = $("#IssueDate"+k).val();
+            ApplicantsData[k]["ExpiryDate"] = $("#ExpiryDate"+k).val();
+            ApplicantsData[k]["IssuePlace"] = $("#IssuePlace"+k).val();
+            ApplicantsData[k]["ParentId"] = "@Model.Id";
+            ApplicantsData[k]["Id"] = $("#SlotId" + k).val();
+
+        }
+        var x = $("#visaForm").valid();
+        if (x == false) {
+            e.preventDefault();
+            return false;
+        }
+
+        var detailsString = JSON.stringify(ApplicantsData);
+        $("#ApplicantsDetailsList1").val(detailsString);
+
+        //VAS
+        debugger;
+        var selected = [];
+        $('#VAS input:checked').each(function () {
+            selected.push($(this).attr('id'));
+        });
+        $("#ValueAddedServices").val(selected.join(','));
+
+        ShowLoader($('#cms-content'));
+    }
+    function OnPassportCountryChange(e) {
+       var num= this.element.attr('data-index')
+        GetPassportDetails(num, this.value());
+    }
+
+    function GetPassportDetails(num,c) {
+        
+        var passport = $("#PassportNumber"+num).val();
+        var country = $("#PassportCountry" + num).val();
+        if (passport === null || passport === undefined || passport === '' || country === null || country === undefined || country === '') {
+            return false;
+        }
+        ShowLoader($('#cms-content'));
+        var api = '@configuration.GetValue(typeof(string),"WebApiUrl")';
+        var url = api + 'bls/query/IntegratePassportDetail?passportNo=' + passport+'&countryId='+country;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            async: true,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            dataType: "json",
+            success: function (data) {
+                $("#GivenName" + num).val();
+                $("#SurName" + num).val();
+                $("#IssuePlace" + num).val();
+                $("#DateOfBirth" + num).val();
+                $("#IssueDate" + num).val();
+                $("#ExpiryDate" + num).val();
+
+                $("#GivenName" + num).val(data.FirstName);
+                $("#SurName" + num).val(data.LastName);
+                $("#IssuePlace" + num).val(data.IssuePlace);
+                $("#DateOfBirth" + num).val(data.DateOfBirthT);
+                $("#IssueDate" + num).val(data.IssueDateT);
+                $("#ExpiryDate" + num).val(data.ExpiryDateT);
+                HideLoader($('#cms-content'));
+            },
+            error: function (errData) {
+                HideLoader($('#cms-content'));
+                console.log(errData);
+
+            }
+        });
+    }
+
+</script>
+
+<form asp-controller="BLSApplication" asp-action="ManageBLSVisaAppointment" class="form-horizontal"
+      id="visaForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess2"
+      data-ajax="true" data-ajax-method="POST">
+
+    <div class="validation-summary text-danger" asp-validation-summary="All"></div>
+    <div class="row">
+        <div class="col-sm-6 col-md-4 col-lg-4 pt-3">
+
+            <div>
+                <label class="form-label ">
+                    @Resource["ApplicantEmail"]
+                </label>
+                <input asp-for="ApplicantEmail" class="form-control" style="width:100%" required disabled />
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-4 col-lg-4 pt-3">
+
+            <div>
+                <label class="form-label ">
+                    @Resource["PhoneNumber"]
+                </label>
+                <input asp-for="CurrentContactNumber" class="form-control" style="width:100%" required disabled />
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-4 col-lg-4 pt-3">
+
+            <div>
+                <label class="form-label">
+                    @Resource["Location"]
+                </label>
+                <input asp-for="LegalLocationId" id="locId" style="width:100%" required disabled />
+            </div>
+        </div>
+
+        @*<div class="col-sm-12 col-md-6 col-lg-6 pt-3">
+                <div>
+                    <label class="form-label">
+                        <span class="required">*</span>  Appointment Category
+                    </label>
+                    <input asp-for="AppointmentCategoryId" style="width:100%" required disabled />
+
+                </div>
+            </div>*@
+        <div class="col-sm-6 col-md-4 col-lg-4 pt-3">
+
+            <div>
+                <label class="form-label ">
+                    <span class="required">*</span>@Resource["VisaType"]
+                </label>
+                <input asp-for="VisaTypeId" id="visaId" style="width:100%" required />
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-4 pt-3">
+            <div>
+                <label for="TravelDate" class="form-label ">
+                    <span class="required">*</span>@Resource["TravelDate"]
+                </label>
+                <input asp-for="TravelDate" style="width:100%" required />
+            </div>
+        </div>
+
+
+        <div class="col-sm-6 col-md-4 col-lg-4 pt-3">
+            <div>
+                <label for="IsVisaIssuedEarlier" class="form-label ">
+                    @Resource["PreviousSchengenVisainthelast2years"]
+                </label>
+                <input asp-for="IsVisaIssuedEarlier" style="width:100%" required />
+            </div>
+        </div>
+
+        @*<div class="col-sm-12 col-md-6 col-lg-6 pt-3">
+
+                <div>
+                    <label for="AppointmentDate" class="form-label">
+                        <span class="required">*</span>  Appointment Date
+                    </label>
+                    <input asp-for="AppointmentDate" style="width:100%" required placeholder="YYYY-MM-DD"/>
+                </div>
+            </div>*@
+
+        <div class="col-sm-6 col-md-4 col-lg-4 pt-3">
+            <div>
+                <label class="form-label">
+                    @Resource["NumberofApplicants"]
+                </label>
+                <input asp-for="ApplicantsNo" class="form-control" style="width:100%" required disabled />
+            </div>
+        </div>
+
+    </div>
+    <br />
+    <h6 style="text-align:center">@Resource["APPLICANTSDETAILS"]</h6>
+
+    @*@for (var i = 0; i < Model.ApplicantsNo; i = i + 1)*@
+    @{var i = 0;}
+    @foreach (var item in Model.blsApplicantList)
+    {
+        @:<script> applicant=@i;</script>
+        <div class="container">
+            <h6>@Resource["Applicant"] @(i + 1)</h6>
+            <div class="row">
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <div>
+                        <label for="AppointSlot@(i)" class="form-label"><span class="required">*</span>@Resource["AppointmentSlot"]</label>
+                        <input type="text" id="AppointSlot@(i)" class="form-control" style="width:100%;" value="@item.AppointmentSlot" readonly />
+                        @*<script>
+                                $(function () {
+                                    $("#AppointmentSlot@(i)").kendoDropDownList({
+                                        optionLabel: "--Select--",
+                                        dataTextField: "Name",
+                                        dataValueField: "Name",
+                                        filter: "contains",
+                                        autoBind: true,
+                                        enable: false,
+                                        select: function (e) {
+                                            if (e.dataItem.Code == "Exist") {
+                                                e.preventDefault();
+                                            }
+                                        },
+                                        template: kendo.template($("#Slottemplate").html())
+                                    });
+                                });
+                            </script>
+                            <script id="Slottemplate" type="text/x-kendo-template">
+                                #if(data.Code=="Exist"){#
+                                <div style='background: indianred;border-radius: 14px;padding: 4px 18px 4px 18px;'>
+                                 <span style='color:white' class='k-disabled'>
+                                  #: data.Name #
+                                </span>
+                                </div>
+                                #}else{#
+                                <div style='background: green;border-radius: 14px;padding: 4px 18px 4px 18px;'>
+                                 <span style='color:white'>
+                                  #: data.Name #
+                                </span>
+                                </div>
+                                #}#
+
+                            </script>*@
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <div>
+                        <label for="PassportCountry@(i)" class="form-label"><span class="required">*</span>@Resource["PassportIssueCountry"]</label>
+                        <input data-index="@i" id="PassportCountry@(i)" style="width:100%;" required  />
+                        <script>
+                            $(function () {
+                                $("#PassportCountry@(i)").kendoDropDownList({
+                                    optionLabel: "--Select--",
+                                    dataTextField: "Name",
+                                    dataValueField: "Id",
+                                    filter: "contains",
+                                    autoBind: true,
+                                    change: OnPassportCountryChange,
+                                    dataSource: {
+                                        transport: {
+                                            read: {
+                                                url: "/bls/BLSApplication/GetCountryList",
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <div>
+                        <label for="PassportNumber@(i)" class="form-label"><span class="required">*</span>@Resource["PassportNumber"]</label>
+                        <input type="text" class="form-control" id="PassportNumber@(i)" style="width:100%" required onchange="GetPassportDetails(@i)" />
+
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <div>
+                        <label for="GivenName@(i)" class="form-label"><span class="required">*</span>@Resource["FirstName"]</label>
+                        <input type="text" class="form-control" id="GivenName@(i)" style="width:100%" required />
+
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <div>
+                        <label for="SurName@(i)" class="form-label"><span class="required">*</span>@Resource["LastName"]</label>
+                        <input id="SurName@(i)" type="text" class="form-control" required style="width:100%" />
+
+                    </div>
+                </div>
+
+
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <label for="DateOfBirth@(i)" class="form-label"><span class="required">*</span>@Resource["DateofBirth"]</label>
+                    <input id="DateOfBirth@(i)" style="width: 100%" required />
+                    <script>
+                        $(function () {
+                            $("#DateOfBirth@(i)").kendoDatePicker({
+                            format: "yyyy/MM/dd",
+                            value: "YYYY-MM-DD"
+                        });
+                        });
+
+                    </script>
+
+                </div>
+
+
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <div>
+                        <label for="PassportType@(i)" class="form-label"><span class="required">*</span>@Resource["PassportType"]</label>
+                        <input id="PassportType@(i)" style="width:100%;" required />
+                        <script>
+                            $(function () {
+                                $("#PassportType@(i)").kendoDropDownList({
+                                    optionLabel: "--Select--",
+                                    dataTextField: "Name",
+                                    dataValueField: "Id",
+                                    filter: "contains",
+                                    autoBind: true,
+                                    dataSource: {
+                                        transport: {
+                                            read: {
+                                                url: "/Cms/LOV/GetLOVIdNameList?lovType=BLS_PASSPORT_TYPE",
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+
+                @*<div class="col-sm-12 col-md-6 col-lg-6 pt-3">
+                        <div>
+                            <label for="PassportNumber@(i)" class="form-label"><span class="required">*</span>Passport Number</label>
+                            <input type="text" class="form-control" id="PassportNumber@(i)" style="width:100%" required />
+
+                        </div>
+                    </div>*@
+
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <label for="IssueDate@(i)" class="form-label"><span class="required">*</span>@Resource["IssueDate"]</label>
+                    <input id="IssueDate@(i)" style="width: 100%" required />
+                    <script>
+                        $(function () {
+                            $("#IssueDate@(i)").kendoDatePicker({
+                                format: "yyyy/MM/dd",
+                                value: "YYYY-MM-DD"
+                            });
+                        });
+                    </script>
+                </div>
+
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <label for="ExpiryDate@(i)" class="form-label"><span class="required">*</span>@Resource["ExpiryDate"]</label>
+                    <input id="ExpiryDate@(i)" style="width: 100%" required />
+                    <script>
+                        $(function () {
+                            $("#ExpiryDate@(i)").kendoDatePicker({
+                                format: "yyyy/MM/dd",
+                                value: "YYYY-MM-DD"
+                            });
+                        });
+                    </script>
+
+                </div>
+
+
+                <div class="col-sm-12 col-md-4 col-lg-4 pt-3">
+                    <div>
+                        <label for="IssuePlace@(i)" class="form-label">@Resource["IssuePlace"]</label>
+                        <input required type="text" class="form-control" id="IssuePlace@(i)" style="width:100%" />
+
+                    </div>
+                </div>
+                <input type="text" class="form-control" id="SlotId@(i)" style="display:none;" value="@item.Id" />
+
+            </div>
+        </div>
+
+        <hr />
+        i++;
+
+    }
+    @*<hr />*@
+    <div class="row" style="padding:10px">
+        <div class="col-sm-12 col-md-4 col-lg-4">
+            Choose Other Value Added Services:
+        </div>
+        <div class="col-sm-12 col-md-8 col-lg-8" id="VAS">
+            @*<div>
+                <input type="checkbox" id="isSMS" asp-for="IsSMS" /><label for="isSMS" class="mb-0 ml-2">@Resource["SMS"]</label>
+            </div>
+            <div>
+                <input type="checkbox" id="isPhotograph" asp-for="IsPhotograph" /><label for="isPhotograph" class="mb-0 ml-2">@Resource["Printout"]</label>
+            </div>*@
+
+            @for (var j = 0; j < ViewBag.ValueAddedServices.Count; j++)
+            {
+                <div>
+                    <input type="checkbox" id="@ViewBag.ValueAddedServices[j].Id" /><label for="@ViewBag.ValueAddedServices[j].Id" class="mb-0 ml-2">@ViewBag.ValueAddedServices[j].ServiceType</label>
+                </div>
+            }
+            <div>
+                <p>
+                    Travel Insurance is mandatory for travel insurance. Click Here to get your travel insurance.
+                </p>
+                <p>
+                    The Value Added Services are optional and doesn't in any way influence or fast track my application. The decision to grant a visa
+                    is purely a decision of the Consulate and BLS has no influence over the same.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    @*<input type="text" asp-for="ApplicantsDetailsList" hidden />
+        <input type="text" asp-for="TotalAmount" hidden />*@
+
+    <div class="row" style="padding:10px">
+        <div class="validation-summary text-danger" asp-validation-summary="All"></div>
+        <div class="col-12 " style="text-align:right">
+            <button type="submit" class="btn btn-primary" style="float:right;" onclick="onFormSave(event)">@Resource["Submit"]</button>
+        </div>
+    </div>
+    @Html.HiddenFor(x => x.Id)
+    @Html.HiddenFor(x => x.DataAction)
+    @Html.HiddenFor(x => x.IsVisaIssuedEarlier)
+    @Html.HiddenFor(x => x.ApplicantEmail)
+    @Html.HiddenFor(x => x.ServiceId)
+    @Html.HiddenFor(x => x.ApplicantsNo)
+    @Html.HiddenFor(x => x.LegalLocationId)
+    @Html.HiddenFor(x => x.CurrentContactNumber)
+    @Html.HiddenFor(x => x.AppointmentId)
+    @Html.HiddenFor(x => x.AppointmentFor)
+    @Html.HiddenFor(x => x.ApplicantsDetailsList1)
+    @Html.HiddenFor(x => x.TotalAmount)
+    @Html.HiddenFor(x => x.ApplicantPhotoId)
+    @Html.HiddenFor(x => x.ImageId)
+    @Html.HiddenFor(x => x.AppointmentCategoryId)
+    @Html.HiddenFor(x => x.AppointmentDate)
+    @Html.HiddenFor(x => x.ValueAddedServices)
+</form>
+<div class="modal fade" id="screen2" tabindex="-1" role="dialog" aria-labelledby="premiumLounge" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="margin-bottom:250px;">
+            <div class="modal-header" style="text-align:center">
+                <h6 class="modal-title" id="premiumLounge">@Resource["PremiumLounge"]</h6>
+                <button type="button" class="close" data-dismiss="modal">
+                    <i class="fa-solid fa-rectangle-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="text-align:center;">
+                    This is optional service for additional charge. Kindly visit additional service page for more information.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+

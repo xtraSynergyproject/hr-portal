@@ -1,0 +1,172 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@model ApplicationDocumentViewModel
+
+@{
+    ViewData["Title"] = "Application Document";
+    Layout = null;
+}
+<div>
+    <h4>@ViewBag.Title</h4>
+    <hr />
+    <div class="row">
+        <div class="col-12">
+            <button type='button' class='btn btn-primary' onclick='OnCreateApplicationDocument();'><i class='fa fas fa-plus'></i>&nbsp;Create Application Document</button>
+            <br /><br />
+            <div id="kgrdApplicationDocument" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+     @*var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);*@
+      @*var HierarchyType1 = '@Html.Raw(EnumExtension.EnumToJson(typeof(HierarchyTypeEnum)))';
+    var HierarchyTypeObj1 = JSON.parse(HierarchyType1);*@
+    var columnDefs = [
+
+         {
+            headerName: "Actions",
+            field: "Id",
+            maxWidth: 140,
+
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBin13' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+         },
+        
+           {
+            field: "DocumentName",
+           },
+           {
+               field: "Code",
+
+           },
+            {
+               field: "DocumentFileName",
+
+           },
+       
+    ];
+
+    $(function () {
+
+        getApplicationDocumentData();
+
+       // $.contextMenu('update');
+      //  $('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-menuBin13',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        EditApplicationDocument(id);
+                                        break;
+
+                                    case 'delete':
+                                        Delete(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+    function getApplicationDocumentData() {
+        document.getElementById("kgrdApplicationDocument").innerHTML = "";
+        gridConfig(
+            "kgrdApplicationDocument",
+            "/cms/ApplicationDocument/ReadApplicationDocumentData",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<script>
+    function OnCreateApplicationDocument() {
+        debugger;
+        var url = "/cms/ApplicationDocument/ApplicationDocument";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Manage Application Document', Width: 600, Height: 600  });
+        return false;
+
+    }
+
+    function Delete(id) {
+       // e.preventDefault();
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var flag = confirm('Do you really want to delete the Application Document?');
+
+        if (flag) {
+            $.ajax({
+                url: '@Url.Action("Delete", "ApplicationDocument", new { @area="Cms"})?Id=' + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        getApplicationDocumentData();
+                     //   $("#kgrdMenuGroup").data("kendoGrid").dataSource.read();
+                        kendo.alert("Application Document Details Deleted Successfully");
+                    } else {
+                        getApplicationDocumentData();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    getApplicationDocumentData();
+                }
+            });
+            return false;
+        }
+    }
+
+    function EditApplicationDocument(id) {
+
+        var win = GetMainWindow();
+        var url = "/cms/ApplicationDocument/EditApplicationDocument?Id=" + id;
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Manage Application Document', Width: 600, Height: 600 });
+        return false;
+    }
+
+   
+
+</script>
+
+

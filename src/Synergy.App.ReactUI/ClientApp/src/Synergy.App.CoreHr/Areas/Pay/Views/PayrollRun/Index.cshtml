@@ -1,0 +1,350 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pay.Controllers.PayrollRunController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+@using Kendo.Mvc.Extensions;
+@model ListOfValueViewModel
+
+@{
+    ViewData["Title"] = "Manage Accrual";
+    Layout = null;
+}
+<script type="text/javascript">
+    function OnDataBound(arg) {
+        $("#kgrdAccrual tbody tr").each(function () {
+            var currentDataItem = $("#kgrdAccrual").data("kendoGrid").dataItem($(this));
+
+            var correct = $(this).find(".k-grid-Correct");
+            var del = $(this).find(".k-grid-Delete");
+
+            correct.click(function () {
+                OnManage("Correct", currentDataItem.Id);
+            });
+            del.click(function () {
+                OnManage("Delete", currentDataItem.Id);
+            });
+
+        });
+    }
+    function FilterGrid() {
+        var search = {
+
+        };
+        return search;
+    }
+
+</script>
+<script>
+
+    var columnDefs = [
+        {
+            field: "EOSAccrual",
+            headerName:"@Resource["ManageAccrual"]",
+            cellRenderer: params => {
+                return "if (" + params.data.PayrollStateEnd + " != '9') { <input type=\"button\" value=\"Manage Accrual\" class=\"btn btn-sm btn-primary\" onclick=\"OnCorrect('" + params.data.Id + "','" + params.data.PayrollId + "','" + params.data.VacationAccrual + "','" + params.data.FlightTicketAccrual + "','" + params.data.EOSAccrual + "','" + params.data.LoanAccrual + "','" + params.data.SickLeaveAccrual +"')\"/> }"; //only for enum
+            }
+        },
+           {
+               field: "YearMonthText",
+                headerName:"@Resource["AccuralDate"]",
+           },
+           {
+               field: "EOSAccrual",
+               headerName: "@Resource["EOSAccural"]",
+               cellRenderer: params => {
+                   return "<a href=\"javascript:OpenAccrual('" + params.data.Id + "','EOSAccrual');\"><span class='" + params.data.EOSAccrualStatusCss + "'>" + params.data.EOSAccrualText + "</span></a>"; //only for enum
+               }
+           },
+           {
+               field: "FlightTicketAccrual",
+               headerName: "@Resource["FlightTicketAccrual"]",
+               cellRenderer: params => {
+                   return "<a href=\"javascript:OpenAccrual('" + params.data.Id + "','FlightTicketAccrual');\"><span class='" + params.data.FlightTicketAccrualStatusCss + "'>" + params.data.FlightTicketAccrualText + "</span></a>"; //only for enum
+               }
+           },
+
+        {
+            field: "VacationAccrual",
+             headerName: "@Resource["VacationAccrual"]",
+               cellRenderer: params => {
+                   return "<a href=\"javascript:OpenAccrual('" + params.data.Id + "','VacationAccrual');\"><span class='" + params.data.VacationAccrualStatusCss + "'>" + params.data.VacationAccrualText + "</span></a>"; //only for enum
+               }
+        },
+        {
+            field: "SickLeaveAccrual",
+            headerName: "@Resource["SickLeaveAccrual"]",
+               cellRenderer: params => {
+                   return "<a href=\"javascript:OpenAccrual('" + params.data.Id + "','SickLeaveAccrual');\"><span class='" + params.data.SickLeaveAccrualStatusCss + "'>" + params.data.SickLeaveAccrualText + "</span></a>"; //only for enum
+               }
+        },
+        {
+           
+            field: "LoanAccrual",
+            headerName: "@Resource["LoanAccrual"]",
+               cellRenderer: params => {
+                   return "<a href=\"javascript:OpenAccrual('" + params.data.Id + "','LoanAccrual');\"><span class='" + params.data.LoanAccrualStatusCss + "'>" + params.data.LoanAccrualText + "</span></a>"; //only for enum
+               }
+        }
+    ];
+
+    $(function () {
+
+        getPayrollData();
+
+
+
+
+    });
+
+    function getPayrollData() {
+        document.getElementById("kgrdAccrual").innerHTML = "";
+        gridConfig(
+            "kgrdAccrual",
+            "/Pay/PayrollRun/ReadPayrollData",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<div id="appWrapper">
+    <div class="formHeader">
+        <h4>
+            @Resource["ManageAccrual"]
+        </h4>
+    </div>
+    @*<div class="row">
+            <a class="k-button k-button-icontext" href="#" id="btnPost" onclick="return OnManage('Create',null);">
+                <span class="k-icon k-i-arrowhead-w"></span>Create PayRoll
+            </a>
+        </div><br />*@
+<div>
+
+
+    @*@(Html.Kendo().Grid<AccrualViewModel>
+                            ().Name("kgrdAccrual")
+                            .Columns(col =>
+                            {
+                                //col.Command(c => c.Custom("Detail").Text("Manage Payroll").HtmlAttributes(new { @class = "btn btn-sm btn-primary " }).SendDataKeys(true).Click("Detail")).Width(130).Visible(2255.HasPermission());
+                                //col.Bound(c => c.ExecutionStatus).ClientTemplate("<span class='#:data.ExecutionStatusCss#'>#=data.ExecutionStatusText#</span>").Width(100);
+
+
+                                col.Bound(c => c.AccrualDate).Format(ERP.Utility.Constant.Annotation.DateMonthAndYear).Width(150);
+                                col.Bound(c => c.VacationAccrual).Width(150).ClientTemplate("#=VacationAccrual==true ? 'YES' : 'NO' #");
+                                col.Bound(c => c.FlightTicketAccrual).Width(150).Width(150).ClientTemplate("#=FlightTicketAccrual==true ? 'YES' : 'NO' #");
+                                col.Bound(c => c.LoanAccrual).Width(150).Width(150).ClientTemplate("#=LoanAccrual==true ? 'YES' : 'NO' #");
+                                col.Bound(c => c.EOSAccrual).Width(150).Width(150).ClientTemplate("#=EOSAccrual==true ? 'YES' : 'NO' #");
+                                col.Bound(c=>c.CreatedDate).Width(150);
+                                //col.Bound(c => c.TotalSucceeded).Width(100);
+                                //col.Bound(c => c.TotalEarning).Width(100);
+                                //col.Bound(c => c.TotalDeduction).Width(100);
+                                //col.Bound(c => c.NetAmount).Width(100);
+
+                                // col.Command(c => c.Custom("Detail").Text("Manage Payroll").HtmlAttributes(new { @class = "btn btn-sm btn-primary " }).SendDataKeys(true).Click("Edit")).Width(150).Visible(2255.HasPermission());
+
+
+                                //col.Bound(c => c.Id).Width(150).Filterable(false).ClientTemplate("#if (PayrollRunId == null) {# <a href=\"javascript:Execute(#=Id#);\">Execute</a> #} #");
+                                //col.Add().Width(150).Filterable(false).Template("#if (ParentId != null) {# <a href=\"javascript:Correct(#=Id#,#=PayrollRunId#);\">Correct</a> #} #");
+                                // col.Command(c => c.Custom("Execute").Text("Execute").SendDataKeys(true).Click("Execute")).Width(100).Visible(801.HasPermission());
+                                //col.Command(command =>
+                                //{
+                                //    if(1082.HasPermission())
+                                //        command.Custom("Correct").Text("Edit");
+                                //    // if (1084.HasPermission())
+                                //    //command.Custom("Delete").Text("Delete");
+                                //}).Width(200);
+                            })
+                            .ToolBar(toolbar =>
+                            {
+                                if (2255.HasPermission())
+                                {
+                                    toolbar.Custom().Text("Create Accrual").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreate();" });
+                                }
+                            })
+                            .Events(e => e.DataBound("OnDataBound"))
+                            .Scrollable(scrollable => scrollable.Enabled(true).Height(550))
+                            // .ClientDetailTemplateId("template")
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(false))
+                            .Filterable()
+                             .Pageable(pageable => pageable
+                                               .Refresh(true)
+                                               .PageSizes(new[] { 10, 50, 100, 200, 500 })
+                                               .ButtonCount(10))
+                            .DataSource(
+                            dataSource => dataSource
+                            .Ajax()
+                            .PageSize(1000)
+
+                            .Events(events => events.Error("OnError"))
+                            .Read(read => read.Action("ReadAccrualData", "Accrual"))
+                            //.Update(update => update.Action("Update", "Payroll"))
+                            //.Destroy(destroy => destroy.Action("Delete", "Payroll"))
+                            .Model(model => model.Id(p => p.Id))
+                            )
+
+
+        )*@
+   
+    <div id="kgrdAccrual" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    @*@(Html.Kendo().Grid<PayrollRunViewModel>
+                    ().Name("kgrdAccrual")
+                    .Columns(col =>
+                    {
+                        // col.Command(c => c.Custom("Detail").Text("Manage Accrual").HtmlAttributes(new { @class = "btn btn-sm btn-primary " }).SendDataKeys(true).Click("Correct")).Width(100).Visible(2255.HasPermission());
+                        col.Bound(c => c.EOSAccrual).Width(80).Title(@Resource["ManageAccrual"]).ClientTemplate("#if (PayrollStateEnd != '9') {# <input type=\"button\" value=\"Manage Accrual\" class=\"btn btn-sm btn-primary\" onclick=\"OnCorrect('#=Id#','#=PayrollId#','#=VacationAccrual#','#=FlightTicketAccrual#','#=EOSAccrual#','#=LoanAccrual#','#=SickLeaveAccrual#')\"/> #} #");
+                        // col.Bound(c => c.ExecutionStatus).ClientTemplate("<span class='#:data.ExecutionStatusCss#'>#=data.ExecutionStatusText#</span>").Width(100);
+                        col.Bound(c => c.YearMonthText).Title(@Resource["AccuralDate"]).Width(80);
+                        col.Bound(c => c.EOSAccrual).Width(80).Title(@Resource["EOSAccural"]).ClientTemplate("<a href=\"javascript:OpenAccrual('#=Id#','EOSAccrual');\"><span class='#:data.EOSAccrualStatusCss#'>#=data.EOSAccrualText#</span></a>");
+                        col.Bound(c => c.FlightTicketAccrual).Width(80).Title(@Resource["FlightTicketAccrual"]).ClientTemplate("<a href=\"javascript:OpenAccrual('#=Id#','FlightTicketAccrual');\"><span class='#:data.FlightTicketAccrualStatusCss#'>#=data.FlightTicketAccrualText#</span></a>");
+                        col.Bound(c => c.VacationAccrual).Width(80).Title(@Resource["VacationAccrual"]).ClientTemplate("<a href=\"javascript:OpenAccrual('#=Id#','VacationAccrual');\"><span class='#:data.VacationAccrualStatusCss#'>#=data.VacationAccrualText#</span></a>");
+                        col.Bound(c => c.SickLeaveAccrual).Width(80).Title(@Resource["SickLeaveAccrual"]).ClientTemplate("<a href=\"javascript:OpenAccrual('#=Id#','SickLeaveAccrual');\"><span class='#:data.SickLeaveAccrualStatusCss#'>#=data.SickLeaveAccrualText#</span></a>");
+                        col.Bound(c => c.LoanAccrual).Width(80).Title(@Resource["LoanAccrual"]).ClientTemplate("<a href=\"javascript:OpenAccrual('#=Id#','LoanAccrual');\"><span class='#:data.LoanAccrualStatusCss#'>#=data.LoanAccrualText#</span></a>");
+
+                    })
+
+                            //.Events(e => e.DataBound("OnDataBound"))
+                            .Scrollable(scrollable => scrollable.Enabled(true).Height(450))
+                            // .ClientDetailTemplateId("template")
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(false))
+                            .Filterable()
+                            .Pageable(pageable => pageable
+                            .Refresh(true)
+                            .PageSizes(new[] { 10, 50, 100, 200, 500 })
+                            .ButtonCount(10))
+                            .DataSource(
+                            dataSource => dataSource
+                            .Ajax()
+                            .PageSize(20)
+
+                           // .Events(events => events.Error("OnError"))
+                            .Read(read => read.Action("ReadPayrollData", "PayrollRun",new { area="Pay"}))
+                            .Model(model => model.Id(p => p.Id))
+                            )
+
+
+        )*@
+
+</div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".k-grid .k-grid-btnAdd span").addClass("k-icon k-add");
+    });
+    function OnDataBound() {
+    }
+    function Close(dorefresh, mode) {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+
+        if (dorefresh) {
+
+            if (mode == "Create") {
+                getPayrollData();
+               // $("#kgrdAccrual").data("kendoGrid").dataSource.read();
+                ShowNotification('@SharedResource["DeletedSuccessfully"]');
+            }
+            else if (mode == "Correct") {
+                getPayrollData();
+              //  $("#kgrdAccrual").data("kendoGrid").dataSource.read();
+                ShowNotification('@SharedResource["CorrectedSuccessfully"]');
+            }
+        }
+    }
+    function OnEnd(e) {
+        if (e.type == "destroy") {
+            if (e.response.success) {
+                ShowNotification('@SharedResource["DeletedSuccessfully"]');
+            }
+            else {
+                var msg = ExtractError(e.response.errors, true);
+                alert(msg);
+            }
+          //  $("#kgrdAccrual").data("kendoGrid").dataSource.read();
+            getPayrollData();
+        }
+    }
+    function OnEdit(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        iframeOpenUrl = "/Pay/Payroll/correct?Id=" + dataItem.Id;
+        var wnd = $("#kiframepopupwindow").data("kendoWindow");
+        wnd.setOptions({
+            width: 1200,
+            height: 650,
+            title: "@ViewBag.Title"
+        });
+        wnd.center().open();
+    }
+
+    function OpenAccrual(id, accrual) {
+      
+        //win.iframeOpenUrl = "/Pay/PayrollRun/CorrectAccural?payrollId=" + PayrollId + "&payrollRunId=" + Id;
+
+      
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Pay/PayrollReport/" + accrual + "?payrollRunId=" + id + "&layoutMode=Popup&disableSearch=true";
+        win.OpenWindow({ Title: accrual, Width: 1400, Height: 650 });
+    }
+    function Execute(Id) {
+        //e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+       
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Pay/PayrollRun/Create?payrollId=" + Id;
+        win.OpenWindow({ Title: "Payroll Batch", Width: 1600, Height: 850 });
+
+    }
+    function OnCorrect(Id, PayrollId, VacationAccrual, FlightTicketAccrual, EOSAccrual, LoanAccrual, SickLeaveAccrual) {
+
+        if (VacationAccrual == 1 || VacationAccrual == 2 || FlightTicketAccrual == 1 || FlightTicketAccrual == 2
+        || EOSAccrual == 1 || EOSAccrual == 2 || LoanAccrual == 1 || LoanAccrual == 2
+            || SickLeaveAccrual == 1 || SickLeaveAccrual == 2) {
+            kendo.alert('@SharedResource["StatusCompletewait"]');
+        }
+        else {
+
+           
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/Pay/PayrollRun/CorrectAccural?payrollId=" + PayrollId + "&payrollRunId=" + Id;
+            win.OpenWindow({ Title: "Manage Accrual", Width: 350, Height: 500 });
+
+        }
+        return false;
+    }
+    function OnClose()
+    {
+       // $("#kgrdAccrual").data("kendoGrid").dataSource.read();
+        getPayrollData();
+    }
+    function Detail(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        window.location.href = "/Pay/PayrollRunResult/Index?payrollRunId=" + dataItem.Id + "&payrollId=" + dataItem.PayrollId
+
+
+    }
+    function OnManage(source, id) {
+
+        
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Pay/Payroll/Create"
+        win.OpenWindow({ Title: "Payroll Batch", Width: 1200, Height: 800 });
+
+    }
+
+    function OnCreate() {
+       
+         var win = GetMainWindow();
+        win.iframeOpenUrl = "/Pay/Accrual/Create"
+        win.OpenWindow({ Title: "Accrual", Width: 800, Height: 400 });
+    }
+</script>
+
+

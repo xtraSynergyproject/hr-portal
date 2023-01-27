@@ -1,0 +1,244 @@
+﻿@{
+    ViewData["Title"] = "Order Status";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+<div class="row pad-10 no-gutters page-content">
+    <div class="container" style="padding:0px;max-width:100%">
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li class="nav-item"><a data-toggle="tab" href="#draft" class="nav-link active" role="tab" aria-controls="draft" aria-selected="true" onclick="onOrderStatusList()"><i class="far fa-file-alt" style="margin-left:15px;"></i><br />ORDER STATUS</a></li>
+        </ul>
+        <div class="tab-content" style="border: 1px solid silver;border-top:none;">
+            <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+                <div style="width: 100%;" class="p-3">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Search Criteria</legend>
+                        <div class="text-danger" asp-validation-summary="All"></div>
+                        <div class="row">
+                            <div class="col-4 form-group">
+                                <div class="col-form-label required">
+                                    <label>Select Financial Year</label>
+                                </div>
+                                <input id="FinancialYearId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    &nbsp;
+                                </div>
+                                &nbsp;
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    &nbsp;
+                                </div>
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Search" onclick="OnSearch()" />
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Reset" onclick="OnReset()" />
+                                <input type="button" id="btnPrint" class="btn btn-primary btn-control" style="color:white" value="Print" onclick="OnPrint()" />
+                                <input type="button" id="btnDownload" class="btn btn-primary btn-control" style="color:white" value="Download" onclick="OnDownload()" />
+                                @*<button class="btn btn-warning" onclick="AddVendor()"><i class="fas fa-plus"></i> Add Vendor</button>*@
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset class="fieldset" id="itemFieldSet" style="display:none;">
+                        <legend class="fs-legend">Order Status List</legend>
+                        <div id="ItemListGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <div id="detailPage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        document.getElementById("btnPrint").disabled = true;
+        document.getElementById("btnDownload").disabled = true;
+
+        $("#FinancialYearId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--Select--",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetInvertoryFinancialYear",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function onOrderStatusList() {
+
+    }
+    var columnDefs = [
+        //{
+        //    headerName: "Quarter",
+        //    field: "Quarter",
+        //    //rowGroup: true, hide: true
+        //},
+        {
+            headerName: "Month-Year",
+            field: "MonthYear",
+            //rowGroup: true, hide: true
+            cellRenderer: params => {
+                var data1 = "";
+                if (params.value == 'TOTAL') {
+                    data1 = "<span style='font-weight: 500;/*background-color: #c5ffff;*/'>" + params.value + "</span> ";
+                }
+                else if (params.value == 'GRAND TOTAL') {
+                    data1 = "<span style='font-weight: 500;'>" + params.value + "</span> ";
+                } else {
+                    data1 = "<span>" + params.value + "</span> ";
+                }
+                return data1;
+            }
+        },
+        {
+            headerName: "Previous Year Balance",
+            field: "PreviousYearBalance",
+            type: "rightAligned",
+            /*aggFunc: 'sum'*/
+            cellRenderer: params => {
+                var data1 = "";
+                if (params.data.MonthYear == 'TOTAL' && params.value != 0) {
+                    data1 = "<span style='font-weight: 500;/*background-color: #c5ffff;*/'>" + params.value + " </span> ";
+                }
+                else if (params.data.MonthYear == 'GRAND TOTAL' && params.value != 0) {
+                    data1 = "<span style='font-weight: 500;'>" + params.value + "</span> ";
+                }
+                else if ((params.data.MonthYear == 'TOTAL' || params.data.MonthYear == 'GRAND TOTAL') && params.value == 0) {
+                    data1 = "<span> </span> ";
+                }
+                else {
+                    data1 = "<span>" + params.value + "</span> ";
+                }
+                return data1;
+            }
+        },
+        {
+            headerName: "New Orders Value",
+            field: "NewOrdersValue",
+            type: "rightAligned",
+            /*aggFunc: 'sum'*/
+            cellRenderer: params => {
+                var data1 = "";
+                if (params.data.MonthYear == 'TOTAL' && params.value != 0) {
+                    data1 = "<span style='font-weight: 500;/*background-color: #c5ffff;*/'>" + params.value + " </span> ";
+                }
+                else if (params.data.MonthYear == 'GRAND TOTAL' && params.value != 0) {
+                    data1 = "<span style='font-weight: 500;'>" + params.value + "</span> ";
+                }
+                else {
+                    data1 = "<span>" + params.value + "</span> ";
+                }
+                return data1;
+            }
+        },
+        {
+            headerName: "Billed Orders Value",
+            field: "BilledOrdersValue",
+            type: "rightAligned",
+            /*aggFunc: 'sum'*/
+            cellRenderer: params => {
+                var data1 = "";
+                if (params.data.MonthYear == 'TOTAL' && params.value != 0) {
+                    data1 = "<span style='font-weight: 500;/*background-color: #c5ffff;*/'>" + params.value + " </span> ";
+                }
+                else if (params.data.MonthYear == 'GRAND TOTAL' && params.value != 0) {
+                    data1 = "<span style='font-weight: 500;'>" + params.value + "</span> ";
+                }
+                else if ((params.data.MonthYear == 'TOTAL' || params.data.MonthYear == 'GRAND TOTAL') && params.value == 0) {
+                    data1 = "<span> </span> ";
+                }
+                else {
+                    data1 = "<span>" + params.value + "</span> ";
+                }
+                return data1;
+            }
+        },
+        {
+            headerName: "Closing Balance",
+            field: "ClosingBalance",
+            type: "rightAligned",
+            /*aggFunc: 'sum'*/
+            cellRenderer: params => {
+                var data1 = "";
+                if (params.data.MonthYear == 'TOTAL' && params.value != 0) {
+                    data1 = "<span style='font-weight: 500;/*background-color: #c5ffff;*/'>" + params.value + " </span> ";
+                }
+                else if (params.data.MonthYear == 'GRAND TOTAL' && params.value != 0) {
+                    data1 = "<span style='font-weight: 500;'>" + params.value + "</span> ";
+                }
+                else if ((params.data.MonthYear == 'TOTAL' || params.data.MonthYear == 'GRAND TOTAL') && params.value == 0) {
+                    data1 = "<span> </span> ";
+                }
+                else {
+                    data1 = "<span>" + params.value + "</span> ";
+                }
+                return data1;
+            }
+        }
+
+    ];
+
+    $(function () {
+/*        GetItemListGrid("");*/
+    });
+
+    function GetItemListGrid(financialYear) {
+        document.getElementById("ItemListGrid").innerHTML = "";
+        gridConfig(
+            "ItemListGrid",
+            "/Ims/InventoryManagement/ReadOrderStatusData?financialYearId=" + financialYear,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            false,
+            20);
+    }
+
+    function OnSearch() {
+        //alert("Search");
+        if ($("#FinancialYearId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Financial Year field is required");
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+            $(".text-danger").html("");
+        }
+        $("#itemFieldSet").show();
+
+        var finyear = $("#FinancialYearId").data("kendoDropDownList").value();
+
+        GetItemListGrid(finyear);
+
+    }
+    function OnReset() {
+        //alert("Reset");
+        $("#FinancialYearId").data("kendoDropDownList").value(-1);
+        $("#itemFieldSet").hide();
+        document.getElementById("btnPrint").disabled = true;
+        document.getElementById("btnDownload").disabled = true;
+    }
+    function OnPrint() {
+        alert("Print");
+    }
+    function OnDownload() {
+        alert("Download");
+    }
+</script>

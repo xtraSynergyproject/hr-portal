@@ -1,0 +1,332 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model PageViewModel
+
+<style>
+    .cms-manageportal-footer {
+/*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+/*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+</style>
+
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+    <div class="row">
+        <div class="pad-15">
+            <button type="button" class="btn btn-light" style="border:2px solid">Save Button Text</button>
+        </div>
+        <div class="pad-15">
+            <button type="button" class="btn btn-light" style="border:2px solid">Save Button CSS</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="pad-15">
+            @*@(Html.Kendo().CheckBox().Name("resetbutton").Checked(true).Label("Enable Reset Button"))*@
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="resetbutton" checked>
+                <label class="form-label" for="resetbutton" style="padding-top:1px;">&nbsp;Enable Reset Button</label>
+            </div>
+        </div>
+        <div class="pad-15">
+            <button type="button" class="btn btn-light" style="border:2px solid">Reset Button Text</button>
+        </div>
+        <div class="pad-15">
+            <button type="button" class="btn btn-light" style="border:2px solid">Reset Button CSS</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="pad-15">
+            @*@(Html.Kendo().CheckBox().Name("backbutton").Checked(true).Label("Enable Back Button"))*@
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="backbutton" checked>
+                <label class="form-label" for="backbutton" style="padding-top:1px;">&nbsp;Enable Back Button</label>
+            </div>
+        </div>
+        <div class="pad-15">
+            <button type="button" class="btn btn-light" style="border:2px solid">Back Button Text</button>
+        </div>
+        <div class="pad-15">
+            <button type="button" class="btn btn-light" style="border:2px solid">Back Button CSS</button>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="pad-15 no-gutters" style="width: 100%;">
+            <div class="pad-b-15 card col-12 page" data-mode="@Model.DataAction" id="@Model.Id" data-parent-id="@Model.ParentId" data-page-content-type="Page" data-portal-id="@Model.PortalId"
+                 data-sequence="@Model.SequenceOrder" data-menu-name="@Model.MenuName" data-hide-menu="@Model.HideInMenu" data-is-root="@Model.IsRootPage" data-name="@Model.Name">
+                <div class="card-header page-header bg-info">
+                    <span id="page-name" class="page-title content-editable" data-placeholder="Page Name" style="padding-left:3px" contenteditable="true">
+                        @Model.Title
+                    </span>
+                    <span class="cms-settings-box" onclick="OpenPageSettings(this)">
+                        <i class="cursor-p fa fa-cog" title="Settings"></i>
+                    </span>
+
+                </div>
+                <div class="card-body" id="component-container">
+                    <div id="builder"></div>
+                </div>
+            </div>
+
+            @*<div class="pad-b-15 card col-12 page" data-mode="@Model.DataAction" id="@Model.Id" data-parent-id="@Model.ParentId" data-page-content-type="Page" data-portal-id="@Model.PortalId"
+                     data-sequence="@Model.SequenceOrder" data-menu-name="@Model.MenuName" data-hide-menu="@Model.HideInMenu" data-is-root="@Model.IsRootPage" data-name="@Model.Name">
+                    <div class="card-header page-header bg-info">
+                        <span id="page-name" class="page-title content-editable" data-placeholder="Page Name" style="padding-left:3px" contenteditable="true">
+                            @Model.Title
+                        </span>
+                        <span class="cms-settings-box" onclick="OpenPageSettings(this)">
+                            <i class="cursor-p fa fa-cog" title="Settings"></i>
+                        </span>
+
+                    </div>
+                    <div class="card-body" id="component-container">
+                        <div id="groups" class="groups">
+                            @if (Model.Groups != null)
+                            {
+                                foreach (var group in Model.Groups)
+                                {
+                                    <div class="cms-group card group" id="@group.Id" data-mode="@group.DataAction.ToString()" data-type="@group.PageRowType.ToString()" data-page-content-type="Group" data-sequence="@group.SequenceOrder" data-parent-id="@group.ParentId" data-page-id="@group.PageId">
+                                        <div class="group-header card-header bg-secondary">
+                                            <span id="group-name" class="content-editable" data-placeholder="Group Name" style="padding-left:3px" contenteditable="true">
+                                                @group.Title
+                                            </span>
+                                            <span class="cms-delete-box">
+                                                <i class="cms-delete fa fa-trash-alt" onclick="DeleteGroup(this)" title="Delete group"></i>
+                                                <span class="cms-delete-confirm-box">
+                                                    <i class="cms-delete-yes fa fa-check" onclick="ConfirmDeleteGroup(this)" title="Confirm delete"></i>&nbsp;
+                                                    <i class="cms-delete-no fa fa-times" onclick="DiscardDeleteGroup(this)" title="Discard delete"></i>
+                                                </span>
+
+                                            </span>
+
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row no-gutters cms-components">
+                                                @foreach (var col in Model.Columns.Where(x => x.ParentId == group.Id))
+                                                {
+                                                    <div class="@col.CssClass row no-gutters column" data-css-class="@col.CssClass" id="@col.Id" data-mode="@col.DataAction.ToString()" data-page-content-type="Column" data-sequence="@col.SequenceOrder" data-page-id="@col.PageId" data-parent-id="@col.ParentId">
+                                                        @foreach (var cell in Model.Cells.Where(x => x.ParentId == col.Id))
+                                                        {
+                                                            <div class="cms-component card col-12 cell" id="@cell.Id" data-mode="@cell.DataAction.ToString()" data-page-content-type="Cell" data-sequence="@cell.SequenceOrder" data-page-id="@cell.PageId" data-parent-id="@cell.ParentId">
+                                                                <div class="component-header bg-light card-header">
+                                                                    <span id="comp-name" class="component-title content-editable" data-placeholder="Component Name" style="padding-left:3px" contenteditable="true">
+                                                                        @cell.Title
+                                                                    </span>
+                                                                    <span class="cms-settings-box" onclick="OpenSettings(this)">
+                                                                        <i class="cursor-p fa fa-cog" title="Settings"></i>
+                                                                    </span>
+                                                                    <span class="cms-delete-box">
+                                                                        <i class="cms-delete fa fa-trash-alt" onclick="DeleteGroup(this)" title="Delete Component"></i>
+                                                                        <span class="cms-delete-confirm-box">
+                                                                            <i class="cms-delete-yes fa fa-check" onclick="ConfirmDeleteGroup(this)" title="Confirm delete"></i>&nbsp;
+                                                                            <i class="cms-delete-no fa fa-times" onclick="DiscardDeleteGroup(this)" title="Discard delete"></i>
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="card-body component" id="component-container">
+                                                                    @foreach (var comp in Model.Components.Where(x => x.ParentId == cell.Id))
+                                                                    {
+                                                                        switch (comp.ComponentType.Value)
+                                                                        {
+                                                                            case ComponentTypeEnum.RichText:
+                                                                                @(Html.Kendo().Editor()
+                                                                              .Name(comp.Id)
+                                                                              .HtmlAttributes(new {rows = "5", style = "width:100%; height:100%", data_page_content_type = "Component",data_mode=comp.DataAction.ToString(),data_page_id=comp.PageId,data_sequence=comp.SequenceOrder,data_component_type= comp.ComponentType})
+                                                                              .StyleSheets(css => css
+                                                                                .Add(Url.Content("~/lib/kendo/editor/editorStyles.css"))
+                                                                              )
+                                                                              .Tools(tools => tools
+                                                                                    .Clear()
+                                                                                    .Bold().Italic().Underline().Strikethrough()
+                                                                                    .JustifyLeft().JustifyCenter().JustifyRight().JustifyFull()
+                                                                                    .InsertUnorderedList().InsertOrderedList()
+                                                                                    .Outdent().Indent()
+                                                                                    .CreateLink().Unlink()
+                                                                                    .InsertImage()
+                                                                                    .InsertFile()
+                                                                                    .SubScript()
+                                                                                    .SuperScript()
+                                                                                    .TableEditing()
+                                                                                    .ViewHtml()
+                                                                                    .Formatting()
+                                                                                    .CleanFormatting()
+                                                                                    .FormatPainter()
+                                                                                    .FontName()
+                                                                                    .FontSize()
+                                                                                    .ForeColor().BackColor()
+
+                                                                                ).Value(comp.Content)
+                                                                              )
+
+                                                                                break;
+                                                                            case ComponentTypeEnum.Image:
+                                                                                break;
+                                                                            case ComponentTypeEnum.Form:
+                                                                                break;
+                                                                            case ComponentTypeEnum.Heading:
+                                                                                break;
+                                                                            case ComponentTypeEnum.Action:
+                                                                                break;
+                                                                            default:
+                                                                                break;
+                                                                        }
+                                                                    }
+
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <div class="card cms-new-group">
+                            <div class="row">
+                                <div class="col-12 pad-t-b-10" style="text-align:center;color:gray;justify-content:center;">
+                                    <i class="fa fal fa-2x fa-plus-circle" style="cursor:pointer;" onclick="ToggleNewGroup();"></i>
+                                </div>
+                                <div class="col-12 row pad-15" id="new-row-container" style="display:none;margin-left:0px;margin-right:0px;">
+                                    <div class="col-3 row no-gutters">
+                                        <div class="col-12 row no-gutters new-row-item" onclick="AddNewGroup('FullWidth')">
+                                            <div class="col-12 new-row-cell">&nbsp;</div>
+                                        </div>
+                                        <div class="col-12">Full Width</div>
+                                    </div>
+                                    <div class="col-3 row no-gutters">
+                                        <div class="col-12 row no-gutters new-row-item" onclick="AddNewGroup('Article')">
+                                            <div class="col-3 new-row-cell">&nbsp;</div>
+                                            <div class="col-9 new-row-cell">&nbsp;</div>
+                                        </div>
+                                        <div class="col-12">Article</div>
+                                    </div>
+                                    <div class="col-3 row no-gutters">
+                                        <div class="col-12 row no-gutters new-row-item" onclick="AddNewGroup('TwoColumns')">
+                                            <div class="col-6 new-row-cell">&nbsp;</div>
+                                            <div class="col-6 new-row-cell">&nbsp;</div>
+                                        </div>
+                                        <div class="col-12">Two Columns</div>
+                                    </div>
+                                    <div class="col-3 row no-gutters">
+                                        <div class="col-12 row no-gutters new-row-item" onclick="AddNewGroup('ThreeColumns')">
+                                            <div class="col-4 new-row-cell">&nbsp;</div>
+                                            <div class="col-4 new-row-cell">&nbsp;</div>
+                                            <div class="col-4 new-row-cell">&nbsp;</div>
+                                        </div>
+                                        <div class="col-12">Three Columns</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>*@
+        </div>
+    </div>
+</div>
+
+    <script type="text/javascript">
+    $(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+            //alert("1");
+            closeNavPortal();
+            var tree = window.parent.$("#contentTreeView").data("kendoTreeView");
+            tree.dataSource.read();
+            //alert("2");
+
+
+        }
+    });
+    function closeNavPortal() {
+      
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function onFileUploadSuccessLogo(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-mylogoimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#LogoId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onFileUploadSuccessBanner(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-mybannerimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BannerId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    </script>

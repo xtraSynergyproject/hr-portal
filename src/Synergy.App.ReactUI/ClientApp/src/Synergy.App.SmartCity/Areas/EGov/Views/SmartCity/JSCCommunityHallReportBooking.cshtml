@@ -1,0 +1,262 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model EGovDashboardViewModel
+@inject Synergy.App.Common.IUserContext _userContext;
+
+@{
+    ViewData["Title"] = "Community Hall Booking Report";
+    Layout = null;
+}
+
+<style>
+    .summary-card {
+        width: 400px;
+        margin-right: 100px;
+    }
+
+    .summary-card-body {
+        width: 400px;
+    }
+
+    .border-right {
+        border-right: 1px solid #006699 !important;
+    }
+
+    .summary-card-header {
+        width: 400px;
+    }
+
+    a {
+        color: dodgerblue;
+    }
+
+    .value {
+        color: #346cb0;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .k-grid-header .k-header {
+        position: relative;
+        vertical-align: bottom;
+        cursor: default;
+        font-weight: 600 !important;
+    }
+
+    .k-grid .k-grid-header .k-header .k-link {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+    td[role="gridcell"] {
+        white-space: normal;
+    }
+
+    .k-grid {
+        font-size: 14px;
+    }
+
+    .bg-complst-pending {
+        /*background-color:#FF2E2E;*/
+        background-color: #ff6c6c;
+    }
+
+    .bg-complst-inprogress {
+        /*background-color: #FFBF00;*/
+        background-color: #ffd24c;
+    }
+
+    .bg-complst-notpertaining {
+        /*background-color: #9AA394;*/
+        background-color: #b8beb4;
+    }
+
+    .bg-complst-disposed {
+        /*background-color: #228B22;*/
+        background-color: #64ad64;
+    }
+
+    .complst-count-text {
+        left: 5px;
+        bottom: 0px;
+        position: absolute;
+        font-weight: 600;
+    }
+
+    .complst-count {
+        text-align: right;
+        font-size: 48px;
+    }
+
+    .complst-value {
+        color: #ffffff;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+
+        $("#HallId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            dataTextField: "Name",
+            dataValueField: "CommunityHallId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetJSCCommunityHallIdNameList"
+                    }
+                },
+            },
+        });
+
+        $("#FromDate").kendoDatePicker({
+            value: new Date(new Date().setMonth(new Date().getMonth() - 6)),
+            format: "dd-MM-yyyy",
+            dateInput: false
+        });
+        $("#FromDate").attr("disabled", "disabled");
+
+        $("#ToDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd-MM-yyyy",
+            dateInput: false
+        });
+        $("#ToDate").attr("disabled", "disabled");
+
+    });
+
+    function onSearch() {
+        debugger;
+        //var hid = $("#HallId").data("kendoDropDownList").value();
+        //var fdt = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        //var tdt = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        
+        getCommunityHallData();
+    }
+    function onReset() {
+        debugger;
+        $("#HallId").data("kendoDropDownList").value(-1);
+        $("#FromDate").data("kendoDatePicker").value(new Date(new Date().setMonth(new Date().getMonth() - 6)));
+        $("#ToDate").data("kendoDatePicker").value(new Date());
+
+        getCommunityHallData();
+    }
+
+    var columnDefs = [
+        {
+            title: "Community Hall",
+            field: "Name",
+        },
+        {
+            title: "Community Type",
+            field: "CommunityTypeName",
+        },
+        {
+            title: "Ward",
+            field: "WardName",
+        },
+        {
+            title: "Details",
+            field: "Details",
+        },
+        {
+            title: "Standard Rate",
+            field: "StandardRate",
+        }
+    ];
+
+    function getCommunityHallData(){
+        var hid = $("#HallId").data("kendoDropDownList").value();
+        var fdt = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var tdt = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+
+        var url = "/EGov/SmartCity/GetCommunityHallReportData?isAvailable=false&hallId=" + hid + "&fromDate=" + fdt + "&toDate=" + tdt;
+        $("#kGridView").kendoGrid({
+            toolbar: ["search", "excel"],
+            excel: {
+                fileName: "CommunityHallBookingList.xlsx",
+                filterable: true,
+                allPages: true
+            },
+            //excelExport: function (e) {
+            //    e.workbook.fileName = "WardDepartment.xlsx";
+            //    e.sender.showColumn(1);
+            //    e.sender.hideColumn(2);
+            //    //e.preventDefault();
+            //    //exportFlag = true;
+            //    setTimeout(function () {
+            //    e.sender.saveAsExcel();
+            //    });
+            //},
+            //pdf: {
+            //    allPages: true,
+            //    avoidLinks: true,
+            //    paperSize: "A4",
+            //    margin: { top: "2cm", left: "1cm", right: "1cm", bottom: "1cm" },
+            //    landscape: true,
+            //    repeatHeaders: true,
+            //    template: $("#page-template").html(),
+            //    scale: 0.8
+            //},
+            dataSource: {
+                transport: {
+                    read: url
+                },
+            },
+            height: 550,
+            groupable: false,
+            sortable: true,
+            resizable: true,
+            reorderable: true,
+            pageable: true,
+            //columnMenu: true,
+            columns: columnDefs
+        });
+    }
+
+    $(function () {
+        getCommunityHallData();
+    });
+
+</script>
+
+<div class="container" style="padding:10px;margin-top:20px;">
+    <div class="row">
+        <div class="col">
+            <h5>@ViewData["Title"]</h5>
+        </div>
+    </div>
+    <div class="row" style="padding-top:10px;padding-bottom:10px;">
+        <div class="col-3">
+            <label style="font-weight:bold;">Select Community Hall</label>
+            <input id="HallId" style="width: 100%;" />
+        </div>
+        <div class="col-3">
+            <label style="font-weight:bold;">From Date</label>
+            <input id="FromDate" style="width: 100%;" />
+        </div>
+        <div class="col-3">
+            <label style="font-weight:bold;">To Date</label>
+            <input id="ToDate" style="width: 100%;" />
+        </div>
+        <div class="col" style="padding-top:15px;">
+            <button class="btn btn-primary mt-3" onclick="onSearch()" style="margin-right:10px;"><i class="fas fa-magnifying-glass"></i>  Search</button>
+            <button class="btn btn-info mt-3" onclick="onReset()"><i class="fas fa-rotate-left"></i> Reset</button>
+        </div>
+    </div>
+    <div class="row" style="padding-top:10px;padding-bottom:10px;">
+        <div class="col-12">
+            &nbsp;
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 p-2">
+            <div id="kGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+
+</div>

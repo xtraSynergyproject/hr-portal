@@ -1,0 +1,249 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model FileViewModel
+
+<style>
+    .cms-manageportal-footer {
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+
+    .pad-5 {
+        padding-top: 10px;
+    }
+    
+</style>
+
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <div>
+        @*@(Html.Kendo().Upload().Multiple(false)
+            .Name("files")
+            .Async(a => a
+            .Save("SaveTaskAttachment", "Task", new { @Area="Cms", @referenceTypeId=Model.ReferenceTypeId, @referenceTypeCode=Model.ReferenceTypeCode})
+            .AutoUpload(true)
+            )
+                .Events(e => e.Success("onFileUploadSuccess")
+                )
+                //.Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" })
+                ////.MaxFileSize(2097152)
+                //)
+                .HtmlAttributes(new { @class = "hr-large" })
+        )*@
+
+        @*<div class="row">
+        <div class="col">
+            <div id="iconFile" class="dm-uploader">
+                <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                <div class="btn btn-primary btn-block ">
+                    <span>Open the file Browser</span>
+                    <input type="file" title='Click to add Files' />
+                </div>
+            </div>
+
+        </div>*@
+        @*if multiple use this*@
+
+        @*<div class="col">
+            <div class="card h-100">
+                <div class="card-header">
+                    File List
+                </div>
+                <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                    <li id="nofiles" class="text-muted text-center empty">No files uploaded.</li>
+                </ul>
+            </div>
+        </div>*@
+        @*if multiple use this*@
+        @*</div>*@
+
+        @{
+            await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.MongoFileId), Value = Model.MongoFileId, PostUrl = string.Concat("/Cms/Task/SaveTaskAttachment?referenceTypeId=",Model.ReferenceTypeId, "&referenceTypeCode=" ,Model.ReferenceTypeCode) });
+        }
+    </div>
+   
+    <div>
+        <h6>Attachments list</h6>
+        @*@(Html.Kendo().ListView<FileViewModel>()
+            .Name("AttachmentlistView")
+            .TagName("div")
+            .ClientTemplateId("template")
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .Read(read => read.Action("GetTaskAttachmentList", "Task",new { @Area = "Cms", @taskId = Model.ReferenceTypeId}))
+            .PageSize(21)
+            )
+            //.Pageable(pageable => pageable
+            //   .Refresh(true)
+            //   .ButtonCount(5)
+            //   .PageSizes(new[] { 5, 15, 21 })
+            //)
+        )*@
+        <div id="AttachmentlistView"></div>
+    </div>
+   
+    @Html.HiddenFor(x => x.ReferenceTypeCode)
+    @Html.HiddenFor(x => x.ReferenceTypeId)
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="row col-12" style="margin:5px;padding:5px;">
+
+    <div class="col-9" style="padding:5px;">
+      <span>#:FileName#</span>
+    </div>
+    <div class="col-3" onclick="onDownload('#=Id#')" style="cursor:pointer" title="Click here to download">
+        <span style="font-size: 20px;text-align: center">
+        <i class='fal fa-download li-fal'></i>
+        </span>
+    </div>
+
+    </div>
+</script>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/Task/GetTaskAttachmentList?taskId="+'@Model.ReferenceTypeId',
+                    dataType: "json"
+                }
+            },
+            pageSize:20
+        });
+
+        $("#AttachmentlistView").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#template").html())
+        });
+
+
+
+     //   uploadFile();
+        //upload Callback
+
+    });
+
+
+    @*function uploadFile() {
+        $("#iconFile").dmUploader({ //
+            url: '/Cms/Task/SaveTaskAttachment?referenceTypeId=@Model.ReferenceTypeId&referenceTypeCode=@Model.ReferenceTypeCode',
+            multiple: false,
+            extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#AttachmentlistView").data("kendoListView").dataSource.read();
+
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }*@
+
+
+    function onFileUploadSuccess()
+    {
+        $("#AttachmentlistView").data("kendoListView").dataSource.read();
+    }
+
+     var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+
+            ShowNotification("Saved Successfully", "success");
+            @*var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("ManageNote", "Template", new { @area = "Cms" })?templateId='+ TemplateId, $('#detailPage'));*@
+        }
+        else {
+            showError(res.error);
+        }
+    };
+    var showError = function (error) {
+
+        //#validation-summary-manageform
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    function onDownload(id) {
+        url = '/cms/Document/GetFileMongo?fileId=' + id;
+        window.open(url, '_blank');
+        return false;
+    }
+</script>

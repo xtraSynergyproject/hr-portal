@@ -1,0 +1,124 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model TagViewModel
+
+@{
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    .kgrdPDM {
+        width: 100% !important;
+    }
+</style>
+
+
+<script>
+    function OnRefresh()
+    {
+       @*$("#kgrdTag").data("kendoGrid").dataSource.read({ TagCategoryId: '@Model.NoteId' });*@
+         $.ajax({
+                url:'@Url.Action("SyncTags", "TagCategory", new { @area="Cms"})?CategoryId=@Model.NoteId',
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    if (result.success) {
+                        //$("#kgrdTag").data("kendoGrid").dataSource.read();
+                        kendo.alert("Syncing has been initaited successfully.");
+                    }
+                },
+                error: function (ert) {
+                    getTagData();
+                    //$("#kgrdTag").data("kendoGrid").dataSource.read();
+                }
+            });
+    }
+
+    $(document).ready(function () {
+        getTagData();
+    });
+
+    var columnDefs = [        
+        { headerName: "Tag Name", field: "NoteSubject" },        
+    ];
+
+    function getTagData() {
+        var noteId = '@Model.NoteId';
+        
+        document.getElementById("kgrdTag").innerHTML = "";
+        gridConfig(
+            "kgrdTag",
+            "/cms/TagCategory/ReadTagData?TagCategoryId=" + noteId,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }    
+
+</script>
+
+<div>
+    <h4>@ViewBag.Title</h4>
+
+    <hr />
+
+    <div class="row">
+        <input type="hidden" value="@ViewBag.TagCategoryId" id="hiddenCategoryid" />
+
+        <div class="col-md-12">
+            <button type='button' class='btn btn-primary' onclick='OnRefresh();'><i class='fas fa-sync-alt'></i>&nbsp;Refresh</button>
+            <br /><br />
+            <div id="kgrdTag" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+
+        @*<div class="col-md-12">
+            @(Html.Kendo().Grid<TagViewModel>
+    ().Name("kgrdTag").HtmlAttributes(new { @class = "kgrdPDM" })
+    .Columns(col =>
+    {
+
+        //col.Bound(c => c.Id);
+        col.Bound(c => c.NoteSubject).Title("Tag Name");
+
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Custom().Text("Refresh").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnRefresh();" });
+    })
+    .Scrollable(x => x.Enabled(true))
+
+    .Sortable(srt => srt.Enabled(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+    // .Events(e => e.DataBound("onDataBound"))
+    .Resizable(resize => resize.Columns(true))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("ReadTagData", "TagCategory", new { Area="cms", TagCategoryId=Model.NoteId }))
+      .Model(m =>
+      {
+          m.Id(model => model.Id);
+          m.Id(model => model.NoteId);
+
+
+      }))
+    )
+        </div>*@
+
+    </div>
+</div>

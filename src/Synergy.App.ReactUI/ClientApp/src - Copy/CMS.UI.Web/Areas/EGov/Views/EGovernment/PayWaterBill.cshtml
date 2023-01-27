@@ -1,0 +1,195 @@
+﻿
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@model PayBillViewModel
+@{
+    ViewData["Title"] = "Pay Water Bill";
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+   // Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+
+}
+<style>
+    .kgrdPDMS {
+        width: 100% !important;
+    }
+</style>
+<script type="text/javascript">
+
+
+    function onPay() {
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "";
+        win.OpenWindow({ Title: '', Width: 450, Height: 700 });
+        return false;
+    }
+
+    function OnSubmit() {
+
+        var consumerno = document.getElementById("consumerNo").value;
+        if (consumerno == "") {
+            alert("please enter consumer no to get bill");
+        }
+        else {
+            $("#gridDiv").show();
+        /*$("#kgrdGrid").data("kendoGrid").dataSource.read({ consumerNo: consumerno });*/
+            getPayWaterBilldData(consumerno);
+        }
+    }
+
+    function OnReset() {
+
+        /*$("#kgrdGrid").data("kendoGrid").dataSource.read({ consumerNo: "" });*/
+        getPayWaterBilldData();
+        document.getElementById("consumerNo").value = "";
+        $("#gridDiv").hide();
+    }
+
+    var columnDefs = [
+        {
+            headerName: "Pay",
+            field: "ConsumerNo",
+            cellRenderer: params => {
+                return "<input type='button' class='btn btn-primary' onclick='onPay()' value='Pay' />";
+            }
+        },
+        {
+            headerName: "ConsumerNo",
+            field: "ConsumerNo",
+        },
+        {
+            headerName: "ConsumerName",
+            field: "ConsumerName",
+        },
+        {
+            headerName: "Account Id/IVRS Id",
+            field: "AccountId",
+        },
+        {
+            headerName: "BillMonth",
+            field: "BillMonth",
+        },
+        {
+            headerName: "BillIssueDate",
+            field: "BillIssueDate",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
+            }
+        },
+        {
+            headerName: "BillAmount",
+            field: "BillAmount",
+        },
+        {
+            headerName: "MinimumPayableAmount",
+            field: "MinimumPayableAmount",
+        },
+        {
+            headerName: "PayByDate",
+            field: "PayByDate",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
+            }
+        },
+        {
+            headerName: "TotalAmount",
+            field: "TotalAmount",
+        }
+    ];
+
+    $(function () {
+
+        getPayWaterBilldData();
+
+    });
+
+    function getPayWaterBilldData(consumerNo) {
+        document.getElementById("kgrdGrid").innerHTML = "";
+        var consNo = consumerNo;
+        if (consNo == undefined) {
+            consNo = "";
+        }
+        /*alert(consNo);*/
+        gridConfig(
+            "kgrdGrid",
+            "/EGov/EGovernment/ReadWaterBillData?consumerNo=" + consNo,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+</script>
+
+
+
+<div class="row" style="padding:10px;margin-top:20px;">
+
+ 
+
+       <input type="text" placeholder="Enter Consumer No" id="consumerNo" class="form-control" style="width:260px;margin-left:8px"/> &nbsp;&nbsp;
+
+
+        <button value="Submit" onclick="OnSubmit()" class="btn btn-success" style="width: 100px; height: 35px;">Submit</button> &nbsp;&nbsp;
+        <button value="Reset" onclick="OnReset()" class="btn btn-info" style="width: 100px; height: 35px;">Reset</button>
+
+
+  
+   
+        <div class="col-md-12" style="margin-top:7px;display:none" id="gridDiv">
+
+            <div id="kgrdGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+            @*@(Html.Kendo().Grid<PayBillViewModel>
+    ().Name("kgrdGrid").NoRecords(x=>x.Template("<span style='margin:300px;'><strong>There is No last Transaction for this IVRS Id</strong></span>"))
+    .Columns(col =>
+    {
+
+        col.Command(command =>
+        {
+            command.Custom("Pay").Text("Pay").Click("onPay").HtmlAttributes(new { @class = "btn btn-primary" });
+        }).Title("Pay").Width(100);
+        col.Bound(c=>c.ConsumerNo);
+        col.Bound(c=>c.ConsumerName);
+        col.Bound(c => c.AccountId).Title("Account Id/IVRS Id");
+        col.Bound(c => c.BillMonth);
+        col.Bound(c => c.BillIssueDate).Format(ApplicationConstant.DateAndTime.DefaultDateFormat);
+        col.Bound(c => c.BillAmount);
+        col.Bound(c => c.MinimumPayableAmount);
+        col.Bound(c => c.PayByDate).Format(ApplicationConstant.DateAndTime.DefaultDateFormat);
+        col.Bound(c => c.TotalAmount);
+
+    })
+    .Scrollable(x => x.Enabled(true))
+    .Sortable(srt => srt.Enabled(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+    .Resizable(resize => resize.Columns(true))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("ReadWaterBillData", "EGovernment", new { Area="Egov" }))
+    .Model(model => model.Id(x=>x.ConsumerNo)))
+    )*@
+        </div>
+</div>
+

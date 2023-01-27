@@ -1,0 +1,330 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRDirectController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+
+@model PersonProfileViewModel
+@{
+    ViewBag.Title = @SharedResource["Service"];
+    //  Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    //Layout = null;
+}
+<Script>
+  var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+    var columnDefs = [
+        {
+            field: "ServiceNo",
+            cellRenderer: params => {
+                debugger;
+                return "<a style='cursor:pointer;color:blue;' href='javascript:OpenService(\"" + params.data.Id + "\",\"" + params.data.TemplateMasterCode + "\");'>" + params.value + " </a>";
+                //"<a target='_self' class='hover' style='cursor:pointer' onclick=\"OnEdit('# =ServiceId#')\">#=ServiceNo#</a>"
+
+            }
+        },
+        { field: "TemplateDisplayName", headerName:"ServiceType" },
+        { field: "ServiceSubject", headerName: "ServiceSubject" },
+
+        {
+            field: "StartDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+
+
+        { field: "ServiceStatusName", headerName: "ServiceStatus"},
+        {
+            field: "DueDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        }
+
+            ];
+
+
+            $(function () {
+
+                getService();
+
+
+            });
+
+    function getService() {
+        document.getElementById("myGridService").innerHTML = "";
+        //var templateId = $("#TemplateId").val();
+        //var projectNo = $("#ProjectNo").val();
+        //var noteNo = $("#NoteNo").val();
+        //var docDescription = $("#DocumentName").val();
+        gridConfig(
+            "myGridService",
+            "@Url.Action("ReadServiceList", "HrDirect", new { @area = "CHR", userId = Model.UserId })",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+            }
+</Script>
+<div class="col-12">
+    @*<button type='button' class='btn btn-primary' onclick='OnService();'><i class='fa fas fa-plus'></i>&nbsp;Add Misconduct</button>*@
+    @*<br /><br />*@
+    <div id="myGridService" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+</div>
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .date {
+        margin-left: 1%;
+        margin-right: 1%
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+</style>
+
+
+<script>
+
+
+
+
+    function OnService() {
+        var portalId = $('#GlobalPortalId').val();
+            //'8edc86b3-9934-46e3-95de-d76c816404b4';//;
+
+
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=BusinessTrip&portalId=' + portalId /*+ '&prms=' + prms*/;
+        //LoadCmsPartialView(url, 'Service', true, 1000, 600, 'Create Project');
+        //return false;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["BusinessTrip"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+
+
+
+    function OnAfterServiceCreate(service) {
+
+        //$("#BusinessTripGridView").data("kendoGrid").dataSource.read();
+        Window.Parent.getService();
+    }
+
+    function OnEmployeechange(e) {
+        var dataItem = e.sender.dataItem();
+        var id = dataItem.UserId;
+        var Status = {
+            Id: id,
+        };
+        $("#BusinessTripGridView").data("kendoGrid").dataSource.read(Status);
+    }
+
+    function OpenService(serviceId, templateCode) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterOpenService&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + serviceId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["ViewService"])', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+
+    function OnDownload(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        url = '/Cms/Report?rptName=CHR/LeaveReport.trdp&rptUrl=chr/query/GetLeaveReport/' + dataItem.Id + '&rptUrl2=chr/query/GetLeaveServiceStepTask/' + dataItem.Id + '&lo=@LayoutModeEnum.Popup';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Report', Width: 800, Height: 700 });
+
+    }
+    function OnAfterOpenService(service) {
+        //alert("Hello OnAfterOpenService");
+        $("#ServiceGridView").data("kendoGrid").dataSource.read();
+    }
+</script>
+
+
+
+
+@*<div class="row">
+    <div class="col-12">
+
+        <div class="panel panel-primary">
+            <div class="panel-heading"></div>
+            <div class="panel-body">
+                @(Html.Kendo().Grid<ServiceViewModel>()
+                                .Name("ServiceGridView")
+                                .Columns(columns =>
+                                {
+                                    //columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+                                    columns.Bound(p => p.ServiceNo).Title(@SharedResource["ServiceNo"]).ClientTemplate("<input type='button' class='btn btn-link' onclick='OpenService(\"#= Id #\",\"#= TemplateMasterCode #\")' value='#=ServiceNo#'/>").Width(300); ;
+                                    columns.Bound(p => p.TemplateTemplateMasterName).Title(@Resource["ServiceType"]).Width(170);
+                                    columns.Bound(p => p.ServiceSubject).Title(@SharedResource["ServiceName"]).Width(170);
+                                    columns.Bound(p => p.StartDate).Title(@SharedResource["StartDate"]).Format("{0:dd MMM yyyy}").Width(170);
+                                    columns.Bound(p => p.ServiceStatusName).Title(@SharedResource["ServiceStatus"]).Width(300);
+                                    columns.Bound(p => p.DueDate).Title(@SharedResource["DueDate"]).Width(250).Format("{0:dd MMM yyyy}");
+                                    //columns.Command(command =>
+                                    //{
+                                    //   command.Custom("Download").Text("<i class='fa fas fa-arrow-to-bottom'></i>").Click("OnDownload").HtmlAttributes(new { @class = "action-icon", title = "Download Performance Document" });
+                                    //    }).Width(150);
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Excel();
+                                    //toolbar.Pdf();
+                                    toolbar.Search().Text(@SharedResource["Search"]);
+                                })
+    //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    .ColumnMenu(col=>col.Filterable(false))
+    .Height(700)
+    .Editable()
+    .Pageable()
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+    //.Events(events => events.DataBound("onDataBound"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .AutoSync(true)
+        .ServerOperation(false)
+        //.Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+
+        })
+        //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+        //.Create("DetailProducts_Create", "Grid")
+        .Read("ReadServiceList", "HrDirect", new { @area = "CHR", userId=Model.UserId})
+    //.Update("DetailProducts_Update", "Grid")
+    //.Destroy("DetailProducts_Destroy", "Grid")
+    )
+)
+            </div>
+        </div>
+    </div>
+</div>*@
+
+
+
+

@@ -1,0 +1,67 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.LMS.Controllers.LearningController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model TemplateViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    //Layout = null;
+    Layout = "~/Areas/Core/Views/Shared/_Reference.cshtml";
+}
+
+<script type="text/javascript">
+          $(document).ready(function () {
+              var container = $('.appWrapper');
+              var url = '/cms/page?portalId=@Model.PortalId&pageName=@Model.PageName';
+              ShowLoader(container);
+              $.ajax({
+                  url: url,
+                  type: 'GET',
+                  cache: false,
+                  success: function (data) {
+                      var formio = $('#formio-container').html();
+                      if (formio != undefined) {
+                          var formio = document.getElementById('formio-container');
+                          LoadFormIo({ uiJson: data.uiJson, dataJson: data.dataJson }, formio);
+                      }
+                      HideLoader(container);
+                  },
+                  error: function (errData) {
+                      container.html(errData);
+                      HideLoader(container);
+                  }
+              });
+          });
+    function onAjaxSuccess() {
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?introDone=true&lo=Popup&templateType=Service&cbm=@Model.CallBackMethodName&source=Create&dataAction=Create&templateCodes=@Model.Code&portalId=@Model.PortalId';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateService"])', Reload:true });
+        return false;
+    }
+
+</script>
+<div class="appWrapper">
+    <form asp-area="CSC" asp-controller="CommonService" asp-action="ManageServiceIntroduction" method="post" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="row p-3 no-gutters" style="width:100%;">
+            <div class="row col-12 pb-3">
+                <div class="col-12" style="text-align:center;align-content:center;">
+
+                    <button type="submit" value="@Html.Raw(SharedResource["Submit"])"  class="btn btn-primary">@SharedResource["Next"]</button>
+                    <input type="checkbox" asp-for="SkipIntro" value="@Html.Raw(Resource["Skip"])" />&nbsp;&nbsp;@Resource["Skip Next Time"]
+                </div>
+            </div>
+            <div class="col-12 pb-3" id="intro-content">
+                <div id="formio-container">
+                </div>
+            </div>
+            @*<div class="col-12">
+                    <button type="submit" value="Submit" class="btn btn-primary">Next</button>
+                </div>*@
+        </div>
+    </form>
+</div>
+
+

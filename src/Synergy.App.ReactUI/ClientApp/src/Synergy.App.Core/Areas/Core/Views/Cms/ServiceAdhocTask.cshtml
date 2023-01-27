@@ -1,0 +1,301 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.NtsTaskController> Resource
+
+@{
+    //Layout = null;
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@model ServiceTemplateViewModel;
+
+<style>
+</style>
+
+<script>
+    function OnCreate() {
+        
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("SelectAdhocTaskTemplate", "NtsTask", new { @area = "Cms" })?templateCode=@Model.TemplateCode&moduleId=@Model.ModuleId';
+        win.OpenWindow({ Title: 'Adhoc Task', Width: 1200, Height: 600 });
+        return false;
+    }
+    function backtoNtsTaskIndex(prm) {
+
+        var tempid = prm.tempid;
+        var tempname = prm.tempname;
+         
+
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var win = GetMainWindow();
+        var prms = encodeURIComponent("parentServiceId=@Model.ServiceId")
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=' + tempid+'&portalId=' + portalId + '&prms=' + prms;
+        win.iframeOpenUrl = url;
+        //win.iframeOpenUrl = '@Url.Action("NtsTaskPage", "NtsTask", new { @area = "Cms" })?lo=Popup&cbm=OnAfterTaskCreate&templateid=' + tempid + '&serviceId=@Model.ServiceId&portalId=' + portalId +'&pageName=TaskList';
+        win.OpenWindow({ Title: 'Adhoc Task : '+tempname, Width: 1200, Height: 600 });
+        return false;
+
+    }
+
+    function OnAfterTaskCreate(task) {
+        
+        $("#kgridAdhocTask").data("kendoGrid").dataSource.read();
+    }
+    function OnView(id, TaskStatusCode, TemplateCode) {
+        
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+       // var id = dataItem.Id;
+       
+            var source = '@RequestSourceEnum.View.ToString()';
+            var action = '@DataActionEnum.View.ToString()';
+            var pagename = "NtsTaskPage";
+            if (TaskStatusCode ==='TASK_STATUS_DRAFT') {
+                source = "Edit";
+                action = "Edit";
+        }
+        var portalId = window.parent.$('#GlobalPortalId').val();
+         var url = '/Cms/Page?popup=true&lo=Popup&cbm=OnAfterTaskCreate&source=Versioning&dataAction=Edit&templateCodes=' + TemplateCode +'&portalId=' + portalId + '&recordId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Edit Task', Width: 1200, Height: 600 });
+        return false;
+    }
+
+
+
+    var deleteEvent = null;
+    function OnDelete(e) {
+        deleteEvent = e;
+        $('#confirmDelete').data("kendoDialog").open();
+    }
+    function ConfirmDelete() {
+        $('#confirmDelete').data("kendoDialog").close();
+        DeleteItem(deleteEvent);
+    }
+    function DeleteItem(e) {
+        var dataItem = $("#kgridAdhocTask").data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+        return false;
+    }
+    function OnDataboundAdhocTask(e) {
+        $("#kgridAdhocTask tbody tr").each(function () {
+           var currentDataItem = $("#kgridAdhocTask").data("kendoGrid").dataItem($(this));
+            if (currentDataItem.TaskStatusCode !== 'TASK_STATUS_DRAFT') {
+                var del = $(this).find(".action-delete");
+                del.hide();
+            }
+        });
+    }
+
+    function FilterAdhocTaskGrid() {
+        return {
+            adhocTaskTemplateIds: "@Model.AdhocTaskTemplateId",
+            serviceId: "@Model.ServiceId"
+        };
+    }
+
+    function DeleteTask(id, ParentServiceId) {
+        
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        var flag = confirm('@Html.Raw(Resource["DoyoureallywanttodeletetheTask?"])');
+        if (flag) {
+            $.ajax({
+                url: '/cms/NtsTask/DeleteTask?taskId=' + Id + '&serviceId=' + ParentServiceId,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    kendo.alert("@SharedResource["DeletedSuccessfully"]");
+                    $("#kgridAdhocTask").data("kendoGrid").dataSource.read();
+
+                },
+                error: function (ert) {
+                    $("#kgridAdhocTask").data("kendoGrid").dataSource.read();
+
+
+                }
+            });
+            return false;
+        }
+        return false;
+    }
+</script>
+<script>
+
+     var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+
+    var columnDefs = [
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuTaskBin' data-idvalue='" + params.value + "' data-status=\"" + params.data.TaskStatusCode + "\" data-parent=\"" + params.data.ParentServiceId + "\" data-noteid=\"" + params.data.TemplateCode + "\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+        {
+            field: "TaskNo",
+
+        },
+           {
+               field: "TaskSubject",
+           },
+           {
+               field: "TaskStatusName",
+               headerName:"Status"
+           },
+           {
+               field: "AssigneeUserName",
+               headerName: "Assignee Name"
+           },
+
+        {
+            field: "OwnerUserName",
+            headerName:"Owner Name"
+        },
+        {
+            field: "TemplateName",
+            headerName: "Template Name"
+        },
+        {
+            field: "DisplayStartDate",
+            headerName: "Start Date"
+        },
+        {
+            field: "DisplayDueDate",
+            headerName: "Due Date"
+        },
+    ];
+
+    $(function () {
+
+        getAdhocTaskData();
+
+       // $.contextMenu('update');
+      //  $('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-menuTaskBin',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var code = $trigger.data('noteid');
+                var status = $trigger.data('status');
+                var parent = $trigger.data('parent');
+                switch (0) {
+                    case 0:
+                        var abc = {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnView(id, status, code);
+                                        break;
+                                    case 'delete':
+                                        DeleteTask(id, parent);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+                            }
+                        };
+                        
+                        if (status != 'TASK_STATUS_DRAFT') {
+                            delete abc["items"]["delete"];
+                        }
+                        return abc;
+
+                }
+            }
+        });
+
+
+    });
+
+    function getAdhocTaskData() {
+        document.getElementById("kgridAdhocTask").innerHTML = "";
+        gridConfig(
+            "kgridAdhocTask",
+            "/cms/NtsTask/LoadServiceAdhocTaskGrid?adhocTaskTemplateIds=@Model.AdhocTaskTemplateId&serviceId=@Model.ServiceId",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+<div class="row" style="padding:20px;">
+    <button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Add New Adhoc Task</button>
+    <br /><br />
+    <div id="kgridAdhocTask" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    @*@(Html.Kendo().Grid<TaskViewModel>
+    ()
+    .Name("kgridAdhocTask")
+    .Columns(columns =>
+    {
+        var c = columns.Command(command =>
+        {
+            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+            command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("DeleteTask").HtmlAttributes(new { @class = "action-icon" });
+
+        }).Width(120);
+
+        columns.Bound(x => x.Id).Visible(false);
+        columns.Bound(x => x.TaskNo);
+        columns.Bound(x => x.TaskSubject);
+        columns.Bound(x => x.TaskStatusName).Title("Status");
+        columns.Bound(x => x.AssigneeUserName).Title("Assignee Name");
+        columns.Bound(x => x.OwnerUserName).Title("Owner Name");
+        columns.Bound(x => x.TemplateName).Title("Template Name");
+        columns.Bound(x => x.DisplayStartDate).Title("Start Date");
+        columns.Bound(x => x.DisplayDueDate).Title("Due Date");
+    })
+
+    .ToolBar(toolbar =>
+    {
+        if (Model.TemplateCode.IsNotNullAndNotEmpty())
+        {
+            toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Add New Adhoc Task</button>");
+
+        }
+        else
+        {
+            toolbar.ClientTemplate("<p style='font-size:18px'>  No Adhoc task template is configured for this service. Please configure the Adhoc task template</p>");
+        }
+    })
+    .Events(e => e.DataBound("OnDataboundAdhocTask"))
+    .Scrollable(x => x.Enabled(true))
+    .Sortable(srt => srt.Enabled(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+
+    .PageSizes(true)
+    .ButtonCount(5))
+    //.AutoBind(true)
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+
+    //.Events(events => events.Error("OnError"))
+    .Read(read => read.Action("LoadServiceAdhocTaskGrid", "NtsTask", new { @area = "Cms" }).Data("FilterAdhocTaskGrid"))
+    //.Model(model => model.Id(p => p.Id))
+
+    )
+
+    )*@
+</div>

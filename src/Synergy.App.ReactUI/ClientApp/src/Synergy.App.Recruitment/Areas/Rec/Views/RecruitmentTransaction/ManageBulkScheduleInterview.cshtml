@@ -1,0 +1,125 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Manage List Of Value";
+    Layout = "/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model RecApplicationViewModel
+
+<script type="text/javascript">
+     $(document).ready(function () {
+
+         $("#ScheduleInterveiwDate").kendoDatePicker({
+             value: new Date(),
+             format: "dd.MM.yyyy"
+         });
+
+        if ('@ViewBag.Success' == "True") {
+           
+        }
+     });
+
+    function closeNav() {
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'OnCloseIframePopupPage'});
+        return false;
+    }
+
+    function OnSave(e) {
+        
+        ShowLoader($('#divScheduleInterview'));
+        var date = kendo.toString($("#ScheduleInterveiwDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        if (date == "" || data == null)
+        {
+            HideLoader($('#divScheduleInterview'));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Schedule Interview Date is Required");
+            e.preventDefault();
+            return false;
+        }
+        else if ($("#ScheduleInterveiwComments").val() == "") {
+            HideLoader($('#divScheduleInterview'));
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Comments is Required");
+            e.preventDefault();
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+    }
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            HideLoader($('#divScheduleInterview'));
+            ShowNotification("Saved Successfully", "success");
+            closeNav();
+        }
+        else {
+            HideLoader($('#divScheduleInterview'));
+            showError(res.error);
+        }
+    };
+    
+</script>
+
+<style>
+    .cms-bulkinterview-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+</style>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <form asp-area="Rec" asp-controller="RecruitmentTransaction" asp-action="ManageBulkScheduleInterview" class="form-horizontal"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST" id="bulkScheduleInterviewForm">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div id="divScheduleInterview">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <label class="col-form-label">Schedule Interview Date<span class="required">*</span><br></label>
+                    </div>
+                    <div class="col-12">
+                        <input type="text" asp-for="ScheduleInterveiwDate" id="ScheduleInterveiwDate" class="form-control" />
+                        @*@Html.Kendo().DateTimePickerFor(x => x.ScheduleInterveiwDate).Format("{0:dd MMM yyyy HH:mm}").HtmlAttributes(new { @style = "width:275px", @onkeydown = "javascript:return false;" }).Min(DateTime.Today)*@
+                    </div>
+                </div>
+                <div class="row">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <label class="col-form-label">Comments<span class="required">*</span><br></label>
+                    </div>
+                    <div class="col-12">
+                        <textarea asp-for="ScheduleInterveiwComments" class="norm-input" style="height:120px;"></textarea>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-12 pad-15">
+                &nbsp;
+            </div>
+            <div class="cms-footer">
+                <input type="button" class="btn btn-light" value="Close" onclick="closeNav()" />
+                <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave(event)" />
+            </div>
+        </div>
+        @Html.HiddenFor(x => x.ApplicationIds)
+    </form>
+</div>

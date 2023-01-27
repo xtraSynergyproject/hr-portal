@@ -1,0 +1,381 @@
+﻿@{
+    ViewData["Title"] = "Location Dashboard";
+    Layout = null;
+}
+
+@*@using Syncfusion.EJ2
+@using Syncfusion.EJ2.Maps*@
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.Common;
+@using Synergy.App.ViewModel;
+
+<div style="text-align: center;background: #359efa;color: white;">@ViewBag.StateName</div>
+<div class="row pad-10">
+    <div class="col-md-6">
+        @*@Html.EJS().Maps("map1").Load("mapsLoad").ZoomSettings(new Syncfusion.EJ2.Maps.MapsZoomSettings*@
+{
+   MaxZoom = 100,
+   MinZoom = -10,
+   Enable = true,
+   MouseWheelZoom = false,
+   PinchZooming = false,
+   //ShouldZoomInitially = true
+}).Layers(layer =>
+{
+   layer.ShapeSettings(new MapsShapeSettings { Autofill = true })
+   .MarkerSettings(ViewBag.District)
+   .MarkerClusterSettings(new MapsMarkerClusterSettings { AllowClustering = true, Height = 40, Width = 40, Shape = MarkerType.Image })
+   .TooltipSettings(new MapsTooltipSettings { Visible = true, ValuePath = "name" })
+   .DataLabelSettings(new MapsDataLabelSettings { Visible = true, LabelPath = "name", SmartLabelMode = SmartLabelMode.Trim })
+   .ShapeData(ViewBag.usmap).Add();
+}).Render()
+    </div>
+    <div class="col-md-6">       
+        @*@(Html.EJS().AccumulationChart("TrackChart").Series(series =>
+                                                        {
+                                                            series.DataLabel(dl => dl.Visible(true).Name("text").Position(Syncfusion.EJ2.Charts.AccumulationLabelPosition.Outside).Font(ft => ft.FontWeight("600")))
+                                                                  .XName("Name")
+                                                                  .YName("Count")
+                                                                  .Name("Tracks")
+                                                                  .Type(Syncfusion.EJ2.Charts.AccumulationType.Pie)
+                                                                  .Radius("90%")
+                                                                  .StartAngle(0)
+                                                                  .EndAngle(360)
+                                                                  .InnerRadius("0%")                                                                  
+                                                                  //.Palettes(new[] { "#ff6358", "#7CDDDD", "#fdce3e", "#5ec232", "#FF7300", "#007ED6" })
+                                                                  .Explode(true)
+                                                                  .ExplodeOffset("5%")
+                                                                  .ExplodeIndex(1)
+                                                                  .DataSource(ViewBag.dataSource).Add();
+
+                                                        })
+.EnableSmartLabels(true)
+.EnableAnimation(false)
+.Title("Track")
+.Tooltip(tp => tp.Enable(true).Format("${point.x} : <b>${point.y}</b>"))
+.LegendSettings(leg => leg.Visible(true)
+.ToggleVisibility(false)
+.Position(Syncfusion.EJ2.Charts.LegendPosition.Bottom)
+.Height("20%")
+.Width("44%")).PointClick("onTrackSeriesClick")
+.Render()
+                            )*@
+    </div>
+</div>
+<div style="text-align: center;background: #359efa;color: white;">Tracks</div>
+<div class="row pad-10">
+    @foreach (var item in ViewBag.dataSource as List<TrackChartViewModel>)
+    {
+    <div class="col-md-6">
+        @*@(Html.EJS().AccumulationChart(item.Name).Series(series =>
+                                                        {
+                                                            series.DataLabel(dl => dl.Visible(true).Name("text").Position(Syncfusion.EJ2.Charts.AccumulationLabelPosition.Outside).Font(ft => ft.FontWeight("600")))
+                                                                  .XName("Keyword")
+                                                                  .YName("Count")
+                                                                  .Name(item.Name)
+                                                                  .Type(Syncfusion.EJ2.Charts.AccumulationType.Pie)
+                                                                  .Radius("90%")
+                                                                  .StartAngle(0)
+                                                                  .EndAngle(360)
+                                                                  .InnerRadius("0%")
+                                                                  //.Palettes(new[] { "#ff6358", "#7CDDDD", "#fdce3e", "#5ec232", "#FF7300", "#007ED6" })
+                                                                  .Explode(true)
+                                                                  .ExplodeOffset("5%")
+                                                                  .ExplodeIndex(1)
+                                                                  .DataSource(ViewData[item.Name]).Add();
+
+                                                        })
+.EnableSmartLabels(true)
+.EnableAnimation(false)
+.Title(item.Name)
+.Tooltip(tp => tp.Enable(true).Format("${point.x} : <b>${point.y}</b>"))
+.LegendSettings(leg => leg.Visible(true)
+.ToggleVisibility(false)
+.Position(Syncfusion.EJ2.Charts.LegendPosition.Bottom)
+.Height("20%")
+.Width("44%")).PointClick("onKeywordSeriesClick")
+.Render()
+                            )*@
+    </div>
+    }
+</div>
+@*<div class="row">
+    @Html.EJS().Maps("container1").Height("100%").Load("mapsLoad").TooltipRender("tooltipRender").TitleSettings(title => title.Text("Dewas CCTV Monitor")).LegendSettings(
+      legend => legend.Visible(true).Mode(Syncfusion.EJ2.Maps.LegendMode.Interactive).Height("50").Width("50").ShowLegendPath("name").ValuePath("name")
+      .Position(
+
+          Syncfusion.EJ2.Maps.LegendPosition.Top)).ZoomSettings(new Syncfusion.EJ2.Maps.MapsZoomSettings
+          {
+              MaxZoom = 100,
+              MinZoom = -10,
+              Enable = true,
+              MouseWheelZoom = false,
+              PinchZooming = false,
+              ShouldZoomInitially = true
+          }).Layers(new List<Syncfusion.EJ2.Maps.MapsLayer>
+          {
+          new Syncfusion.EJ2.Maps.MapsLayer
+          {
+             ShapeData = ViewBag.usmap,
+          //ShapeDataPath = "name",
+          //ShapePropertyPath = "name",
+          LayerType = Syncfusion.EJ2.Maps.ShapeLayerType.OSM,
+          //MarkerClusterSettings =   new MapsMarkerClusterSettings { AllowClustering= true, Height=40, Width=40, Shape =MarkerType.Image },
+          MarkerSettings = ViewBag.District,
+          //DataSource = ViewBag.Markers
+          }
+          }).Render()
+</div>*@
+
+<script>
+    var maps; function mapsLoad(args) {
+        var theme = 'Material';
+        args.maps.theme = (theme.charAt(0).toUpperCase() + theme.slice(1));
+        maps = args.maps;
+    }
+
+    function tooltipRender(args) {
+        if (!args.options.data) {
+            args.cancel = true;
+        }
+    }
+
+    function onMarkerClick(id,name) {
+        var portalId = $('#GlobalPortalId').val();
+        var customurl = encodeURIComponent('locationId=' + id +'&districtName='+name);
+        var url = '/Cms/Page?pageName=PoliceStationMap&portalId=' + portalId + '&customUrl=' + customurl;
+        //$(".toggle-nav").trigger("click");
+        LoadCmsPartialView(url, 'Custom');
+    }
+    function onTrackSeriesClick(e) {        
+        var text = e.point.x;  
+        text = text.replaceAll(" ", "%20");
+        var portalId = $('#GlobalPortalId').val();
+        var customurl = encodeURIComponent('track=' + text +'&ruturnPageName=LocationDashobard');
+        var url = '/Cms/Page?pageName=SocialMediaDashboard&portalId=' + portalId + '&customUrl=' + customurl;
+        LoadCmsPartialView(url, 'Custom');
+
+    }
+    function onKeywordSeriesClick(e) {           
+        var text = e.point.x;         
+        text = text.replaceAll(" ", "%20");        
+        var portalId = $('#GlobalPortalId').val();
+        var customurl = encodeURIComponent('keyword=' + text + '&ruturnPageName=LocationDashobard');
+        var url = '/Cms/Page?pageName=SocialMediaDashboard&portalId=' + portalId + '&customUrl=' + customurl; 
+        LoadCmsPartialView(url, 'Custom');
+    }
+</script>
+
+<style>
+
+    .markerbox {
+        background-color: yellow;
+        font-size: 18px;
+        border-radius: 46px;
+        width: auto;
+        padding-left: 20px;
+        padding-right: 20px;
+        text-align: center;
+        position: absolute;
+        transform: rotate(-45deg);
+        left: 50%;
+        top: 50%;
+        margin: -10px 0 0 -15px;
+    }
+
+    #map1 {
+        height:90vh;
+        width:100%;
+    }
+</style>
+
+<style>
+    #container {
+        cursor: pointer;
+        display: block;
+    }
+
+    .marker-event {
+        pointer-events: auto !important;
+    }
+
+    .pin {
+        /* width: 40px;
+        height: 40px;*/
+        width: 55px;
+        height: 55px;
+        border-radius: 50% 50% 50% 0;
+        background: #CA091A;
+        position: absolute;
+        transform: rotate(-45deg);
+        left: 50%;
+        top: 50%;
+        margin: -10px 0 0 -15px;
+    }
+
+    .pin-label {
+       /* width: 30px;
+        height: 25px;*/
+        width: 44px;
+        height: 44px;
+        font-size: 15px;
+        font-weight: bold;
+        margin: 8px 0 0 5px;
+        background: #fff;
+        text-align: center;
+        padding-top: 2px;
+        position: absolute;
+        border-radius: 50%;
+        transform: rotate( 45deg );
+    }
+
+    .bounce {
+        animation-name: bounce;
+        animation-fill-mode: both;
+        animation-duration: 1s;
+    }
+
+    .pulse {
+        border-radius: 50%;
+        height: 30px;
+        width: 30px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        margin: 30px 0px 0px 0px;
+        transform: rotateX( 55deg );
+        z-index: -2;
+    }
+
+        .pulse:after {
+            content: "";
+            border-radius: 50%;
+            height: 40px;
+            width: 40px;
+            position: absolute;
+            margin: -13px 0 0 -13px;
+            animation: pulsate 1s ease-out;
+            animation-iteration-count: infinite;
+            opacity: 0;
+            box-shadow: 0 0 1px 2px #00cae9;
+            animation-delay: 1.1s;
+        }
+
+    @@keyframes pulsate {
+        0% {
+            transform: scale(0.1, 0.1);
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(1.2, 1.2);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes bounce {
+        0% {
+            opacity: 0;
+            transform: translateY(-2000px) rotate(-45deg);
+        }
+
+        60% {
+            opacity: 1;
+            transform: translateY(30px) rotate(-45deg);
+        }
+
+        80% {
+            transform: translateY(-10px) rotate(-45deg);
+        }
+
+        100% {
+            transform: translateY(0) rotate(-45deg);
+        }
+    }
+
+    .menu .menu-options .menu-option {
+        word-break: break-all;
+        padding: 0;
+        font-weight: 500;
+        z-index: 1;
+        font-size: 14px;
+        padding: 10px 40px 10px 20px;
+        cursor: pointer;
+        border-bottom: solid;
+        border-color: lightgrey;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    .menu {
+        width: 120px;
+        z-index: 2;
+        box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
+        position: fixed;
+        display: none;
+        transition: 0.2s display ease-in;
+        cursor: pointer;
+    }
+
+        .menu .menu-options {
+            list-style: none;
+            padding: 10px 0;
+            z-index: 1;
+            margin: unset;
+            cursor: pointer;
+        }
+
+            .menu .menu-options .menu-option {
+                cursor: pointer;
+                font-weight: 500;
+                z-index: 1;
+                font-size: 14px;
+                padding: 10px 40px 10px 20px;
+                cursor: pointer;
+                border-bottom: solid;
+                border-color: lightgrey;
+            }
+
+                .menu .menu-options .menu-option:hover {
+                    background: white; /*//rgba(0, 0, 0, 0.2);*/
+                    color: black;
+                    cursor: pointer;
+                }
+
+    button {
+        background: grey;
+        border: none;
+    }
+
+        button .next {
+            color: green;
+        }
+
+        button[disabled=false]:hover .next {
+            color: red;
+            animation: move 0.5s;
+            animation-iteration-count: 2;
+        }
+
+    @@keyframes move {
+        from {
+            transform: translate(0%);
+        }
+
+        50% {
+            transform: translate(-40%);
+        }
+
+        to {
+            transform: transform(0%);
+        }
+    }
+</style>
+
+@*@Html.EJS().ScriptManager()*@

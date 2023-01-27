@@ -1,0 +1,720 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@using Newtonsoft.Json;
+@{
+    Layout = null;
+}
+@model EGovDashboardViewModel
+@inject IUserContext _userContext;
+
+<style>
+
+    .title-bg1 {
+        background-color: #070f74;
+        padding: 6px 0 2px 20px;
+        margin: 0;
+        font-size: 20px;
+        color: #fff;
+        border-radius: 12px 12px 0 0;
+        height: auto;
+        font-weight: 500;
+    }
+
+    .indiv-block-bg1 {
+        /* background-color: #F5EBBC; */
+        height: 100px;
+        width: 230px;
+        border-radius: 20px;
+        margin-left: 20px;
+        overflow: hidden !important;
+        /* border: 1px solid #e66c80; */
+        background-color: #cdcdcd;
+    }
+
+    .label1 {
+        font-size: 20px;
+    }
+
+    .cancel-button {
+        background: #eb7c63;
+        order: 2;
+    }
+
+    .k-listview-content {
+        height: unset !important;
+        overflow-y: hidden !important;
+    }
+
+    .k-listview {
+        border-style: none !important;
+        height: unset !important;
+    }
+
+    #listView, #listViewPO, #listViewPU {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        display: flex;
+    }
+
+    .card {
+        float: left;
+        position: relative;
+        width: 290px;
+        height: 236px;
+        margin: 0 10px;
+        padding: 0;
+    }
+
+    .k-listview:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .footer-item {
+        cursor: pointer;
+        border: 1px solid;
+        border-radius: 30px;
+        padding: 4px;
+        padding-left: 13px;
+        margin-left: 10px;
+    }
+
+    /* .chartdiv {
+        border: 1px solid #b7abab;
+        padding:10px;
+    }*/
+
+    .chartdiv {
+        border: 1px solid #ffffff;
+        padding: 10px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 10px 10px 10px 10px #e6e5e59e /*#d5d1d1*/;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        min-height: 400px !important;
+    }
+    .childDiv {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+
+
+        //$.ajax({
+        //    type: "GET",
+        //    url: "/Cms/BusinessAnalytics/GetChartDataByItemNameWithParams?itemName=Projects By Location",
+        //    success: function (response) {
+        //        if (response != "" && response != null) {
+        //            eval(response);
+        //        }
+        //    },
+        //    error: function (response) {
+        //        alert("error");
+        //    },
+        //});
+
+        //Ward
+        $("#WardId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: '@ApplicationConstant.PlaceHolder_AllOption',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetWardList",
+                    }
+                }
+            }
+        });
+
+        //Collector
+        @*$("#CollectorId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: '@ApplicationConstant.PlaceHolder_AllOption',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/EGovernment/GeCollectorListForJammu",
+                    }
+                }
+            }
+        });*@
+
+        //Revenue Type
+        @*$("#RevenueTypeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: '@ApplicationConstant.PlaceHolder_AllOption',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/LOV/GetLOVIdNameList?lovType=JSC_REVENUE_TYPE",
+                    }
+                }
+            }
+        });*@
+
+
+        //chart by asset ward
+        var url = "/EGov/SmartCity/GetAssetCountByWard";
+        barChart(url, "assetChartChild", "Property By Ward");
+            //$.ajax({
+            //    type: 'GET',
+            //    url: url,
+            //    success: function (res) {
+            //        if (res) {
+
+            //            var chartid = "assetChart";
+            //            var vals = res.ItemValueSeries;
+            //            itcode = res.Code;
+            //            var chart = "#"+chartid;
+            //            var options = {
+            //                series: vals,
+            //                title: {
+            //                    text: "Assets By Ward"
+            //                },
+            //                chart: {
+            //                    id: chartid,
+            //                    width: 460,
+            //                    height: 380,
+            //                    type: 'pie',                               
+            //                },
+            //                //noData: {
+            //                //    text: "!No Data Found",
+            //                //    align: 'center',
+            //                //    verticalAlign: 'middle',
+            //                //    offsetX: 0,
+            //                //    offsetY: 0,
+            //                //    style: {
+            //                //        color: "#363642",
+            //                //        fontSize: '14px',
+            //                //    }
+            //                //},
+            //                legend: {
+            //                    position: 'bottom'
+            //                },
+            //                labels: res.ItemValueLabel,
+            //                colors: ['#26a0fc', '#26e7a6', '#f2a818', '#13b713', '#f10b0b', '#008ffb', '#f2a818'],                      
+            //                dataLabels: {
+            //                    enabled: true,
+            //                    style: {
+            //                        colors: ['#000']
+            //                    },
+            //                },
+
+            //            };
+
+            //            document.getElementById(chartid).innerHTML = "";
+            //            var chart = new ApexCharts(document.querySelector(chart), options);
+            //            chart.render();
+            //        }
+            //    }
+            //});
+
+
+        //chart by popular projects
+        var url2 = "/Egov/SmartCity/GetAssetAllotmentCountByWard";
+        stackBardChart(url2, "assetAllotmentChartChild", "Property Type By Ward");
+        //$.ajax({
+        //    type: 'GET',
+        //    url: url2,
+        //    success: function (res) {
+        //        if (res) {
+        //            var vals = res.ItemValueSeries;
+
+        //            var chart1 = "#assetAllotmentChart";
+        //            var options1 = {
+        //                series: [{
+        //                    //name: "No Of Projects",
+        //                    data: vals,
+        //                }],
+        //                title: {
+        //                    text: "Asset Allotment By Ward"
+        //                },
+        //                colors: ['#26a0fc', '#26e7a6', '#f2a818', '#13b713', '#f10b0b', '#008ffb', '#f2a818'],
+        //                chart: {
+        //                    type: 'bar',
+        //                    height: 350
+        //                },
+        //                plotOptions: {
+        //                    bar: {
+        //                        horizontal: false,
+        //                        columnWidth: '15%',
+        //                        endingShape: 'rounded',
+        //                        distributed: true
+        //                    },
+        //                },
+        //                dataLabels: {
+        //                    enabled: false
+        //                },
+        //                stroke: {
+        //                    show: true,
+        //                    width: 2,
+        //                    colors: ['transparent']
+        //                },
+        //                xaxis: {
+        //                    categories: res.ItemValueLabel,
+        //                    //title: {
+        //                    //    text: 'Scores'
+        //                    //}
+        //                },
+        //                yaxis: {
+        //                    labels: {
+        //                        formatter: function (val) {
+        //                            return val.toFixed(0);
+        //                        }
+        //                    }
+        //                },
+        //                fill: {
+        //                    opacity: 1
+        //                },
+        //            };
+
+        //            var typechart = new ApexCharts(document.querySelector(chart1), options1);
+        //            typechart.render();
+        //        }
+        //    }
+        //});
+
+        ////chart by revenue status
+        //var url3 = "/Egov/SmartCity/GetAssetPaymentCountByPaymentStatus";
+        //donutChart(url3, "revenueByStatusChild", "Revenue By Status");
+
+        ////chart by revenue ward
+        //var url4 = "/Egov/SmartCity/GetAssetPaymentCountByWard";
+        //barChart(url4, "revenueByWardChild", "Revenue By Ward");
+
+        ////chart by revenue collector
+        //var url5 = "/Egov/SmartCity/GetAssetPaymentCountByCollector";
+        //barChart(url5, "revenueByCollectorChild", "Revenue By Collector");
+
+        ////chart by revenue asset type
+        //var url6 = "/Egov/SmartCity/GetAssetPaymentCountByAssetType";
+        //pieChart(url6, "revenueByAssetTypeChild", "Revenue By Asset Type");
+               
+
+    });
+
+    function barChart(url, chartId, chartTitle) {
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    var vals = res.ItemValueSeries;
+
+                    var chart1 = "#" + chartId;
+                    var options1 = {
+                        series: [{
+                            //name: "No Of Projects",
+                            data: vals,
+                        }],
+                        title: {
+                            text: chartTitle
+                        },
+                        colors: ['#26a0fc', '#26e7a6', '#f2a818', '#13b713', '#f10b0b', '#008ffb', '#f2a818'],
+                        chart: {
+                            type: 'bar',
+                            height: 350
+                        },
+                        plotOptions: {
+                            bar: {
+                                horizontal: false,
+                                columnWidth: '15%',
+                                endingShape: 'rounded',
+                                distributed: true
+                            },
+                        },
+                        dataLabels: {
+                            enabled: false
+                        },
+                        stroke: {
+                            show: true,
+                            width: 2,
+                            colors: ['transparent']
+                        },
+                        xaxis: {
+                            categories: res.ItemValueLabel,
+                            //title: {
+                            //    text: 'Scores'
+                            //}
+                        },
+                        yaxis: {
+                            labels: {
+                                formatter: function (val) {
+                                    return val.toFixed(0);
+                                }
+                            }
+                        },
+                        fill: {
+                            opacity: 1
+                        },
+                    };
+
+                    document.getElementById(chartId).innerHTML = "";
+                    var typechart = new ApexCharts(document.querySelector(chart1), options1);
+                    typechart.render();
+                }
+            }
+        });
+    }
+
+    function pieChart(url, chartId, chartTitle) {
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+
+                    var vals = res.ItemValueSeries;
+                    itcode = res.Code;
+                    var chart = "#" + chartId;
+                    var options = {
+                        series: vals,
+                        title: {
+                            text: chartTitle
+                        },
+                        chart: {
+                            id: chartId,
+                            width: 460,
+                            height: 380,
+                            type: 'pie',
+                        },
+                        //noData: {
+                        //    text: "!No Data Found",
+                        //    align: 'center',
+                        //    verticalAlign: 'middle',
+                        //    offsetX: 0,
+                        //    offsetY: 0,
+                        //    style: {
+                        //        color: "#363642",
+                        //        fontSize: '14px',
+                        //    }
+                        //},
+                        legend: {
+                            position: 'bottom'
+                        },
+                        labels: res.ItemValueLabel,
+                        colors: ['#26a0fc', '#26e7a6', '#f2a818', '#13b713', '#f10b0b', '#008ffb', '#f2a818'],
+                        dataLabels: {
+                            formatter: function (val, opts) {
+                                return opts.w.config.series[opts.seriesIndex]
+                            },
+                        },
+                        //dataLabels: {
+                        //    enabled: true,
+                        //    style: {
+                        //        colors: ['#000']
+                        //    },
+                        //},
+
+                    };
+
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                }
+            }
+        });
+    }
+
+    function donutChart(url, chartId, chartTitle) {
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    var vals = res.ItemValueSeries;
+                    var chart = "#" + chartId;
+                    var options = {
+                        series: vals,
+                        dataLabels: {
+                            formatter: function (val, opts) {
+                                return opts.w.config.series[opts.seriesIndex]
+                            },
+                        },
+                        title: {
+                            text: chartTitle
+                        },
+                        chart: {
+                            id: chartId,
+                            width: 460,
+                            height: 380,
+                            type: 'donut',
+                        },
+                        legend: {
+                            position: 'bottom'
+                        },
+                        labels: res.ItemValueLabel,
+                        /*colors: res.ItemStatusColor,*/
+
+                    };
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                }
+            }
+        });
+    }
+
+    function stackBardChart(url, chartId, chartTitle) {
+
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    
+                    var chart = "#" + chartId;
+                    var options = {
+                        colors: [
+                            '#FA4443', '#FD6A6A', '#FFBF00', '#00E396', '#4CAF50', '#2E93fA', '#66DA26', '#546E7A', '#E91E63', '#FF9800', '#1f77b4', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+                        ],
+                        series: res.stackBarValues,
+                        dataLabels: {
+                            enabled: false,
+                        },
+                        title: {
+                            text: chartTitle
+                        },
+                        chart: {
+                            type: 'bar',
+                            height: 350,
+                            stacked: true,
+                            toolbar: {
+                                show: true
+                            },
+                            zoom: {
+                                enabled: true
+                            },
+                            events: {
+                                click: function (chart, w, e) {
+                                    OnSeriesClick(chart, w, e);
+                                }
+                            }
+                        },
+                        responsive: [{
+                            breakpoint: 480,
+                            options: {
+                                legend: {
+                                    position: 'bottom',
+                                    offsetX: -10,
+                                    offsetY: 0
+                                }
+                            }
+                        }],
+                        plotOptions: {
+                            bar: {
+                                horizontal: false,
+                                //borderRadius: 20
+                            },
+                        },
+                        xaxis: {
+                            categories: res.ItemValueLabel,
+                        },
+                        legend: {
+                            position: 'right',
+                            offsetY: 40
+                        },
+                        fill: {
+                            opacity: 1
+                        }
+                    };
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                }
+            }
+        });
+
+        
+    }
+
+
+    function FilterResults(flag) {
+        if (flag) {
+            var wardId = $("#WardId").val();
+            //var collectorId = $("#CollectorId").val();
+
+            //var url = "/EGov/SmartCity/GetAssetCountByWard?wardId=" + wardId + "&collectorId=" + collectorId;
+            var url = "/EGov/SmartCity/GetAssetCountByWard?wardId=" + wardId;
+            refreshApexCharts("assetChart", "assetChartChild", url, "Asset By Ward", "bar");
+
+            //var url2 = "/Egov/SmartCity/GetAssetAllotmentCountByWard?wardId=" + wardId + "&collectorId=" + collectorId;
+            var url2 = "/Egov/SmartCity/GetAssetAllotmentCountByWard?wardId=" + wardId;
+            refreshApexCharts("assetAllotmentChart", "assetAllotmentChartChild", url2, "Asset Allotment By Ward", "stackBardChart");
+
+            //var url3 = "/Egov/SmartCity/GetAssetPaymentCountByPaymentStatus?wardId=" + wardId + "&collectorId=" + collectorId;
+            //refreshApexCharts("revenueByStatus", "revenueByStatusChild", url3, "Revenue By Status", "donut");
+
+            //var url4 = "/Egov/SmartCity/GetAssetPaymentCountByWard?wardId=" + wardId + "&collectorId=" + collectorId;
+            //refreshApexCharts("revenueByWard", "revenueByWardChild", url4, "Revenue By Ward", "bar");
+
+            //var url5 = "/Egov/SmartCity/GetAssetPaymentCountByCollector?wardId=" + wardId + "&collectorId=" + collectorId;
+            //refreshApexCharts("revenueByCollector", "revenueByCollectorChild", url5, "Revenue By Collector", "bar");
+
+            //var url6 = "/Egov/SmartCity/GetAssetPaymentCountByAssetType?wardId=" + wardId + "&collectorId=" + collectorId;
+            //refreshApexCharts("revenueByAssetType", "revenueByAssetTypeChild", url6, "Revenue By Asset Type", "pie");
+           
+        }
+        else {
+
+            var dropdownBox = $("#WardId").data("kendoDropDownList");
+            dropdownBox.text("");
+            dropdownBox.value("");
+
+            //var dropdownBox = $("#CollectorId").data("kendoDropDownList");
+            //dropdownBox.text("");
+            //dropdownBox.value("");
+
+            var url = "/EGov/SmartCity/GetAssetCountByWard";
+            refreshApexCharts("assetChart", "assetChartChild", url, "Asset By Ward", "bar");
+
+            var url2 = "/Egov/SmartCity/GetAssetAllotmentCountByWard";
+            refreshApexCharts("assetAllotmentChart", "assetAllotmentChartChild", url2, "Asset Allotment By Ward", "stackBardChart");
+
+            //var url3 = "/Egov/SmartCity/GetAssetPaymentCountByPaymentStatus";
+            //refreshApexCharts("revenueByStatus", "revenueByStatusChild", url3, "Revenue By Status", "donut");
+
+            //var url4 = "/Egov/SmartCity/GetAssetPaymentCountByWard";
+            //refreshApexCharts("revenueByWard", "revenueByWardChild", url4, "Revenue By Ward", "bar");
+
+            //var url5 = "/Egov/SmartCity/GetAssetPaymentCountByCollector";
+            //refreshApexCharts("revenueByCollector", "revenueByCollectorChild", url5, "Revenue By Collector", "bar");
+
+            //var url6 = "/Egov/SmartCity/GetAssetPaymentCountByAssetType";
+            //refreshApexCharts("revenueByAssetType", "revenueByAssetTypeChild", url6, "Revenue By Asset Type", "pie");
+
+        }
+    }
+
+    function refreshApexCharts(parentId, childId, url, Title, chartType) {
+        debugger;
+        var list = document.getElementById(childId);
+        list.parentNode.removeChild(list);
+        var listParent = document.getElementById(parentId);
+        listParent.innerHTML = "<div id='" + childId + "'  class='childDiv' style='width:100%;'></div>";
+        if (chartType == "bar") {
+            barChart(url, childId, Title);
+        }
+        //else if (chartType == "pie") {
+        //    pieChart(url, childId, Title);
+        //}
+        //else if (chartType == "donut") {
+        //    donutChart(url, childId, Title);
+        //}
+        else if (chartType == "stackBardChart") {
+            stackBardChart(url, childId, Title);
+        }
+    }
+
+</script>
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="page-section">
+                <div class="row no-gutters p-2">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <h4>PROPERTY DASHBOARD</h4>
+                    </div>                    
+                </div>
+
+                <hr />
+                <div class="row no-gutters p-2">                    
+                    <div class="col-lg-3 col-md-3 col-sm-6">Ward
+                        <input id="WardId" style="width:90%;" />
+                    </div>
+                    @*<div class="col-lg-3 col-md-3 col-sm-6">Collector
+                        <input id="CollectorId" style="width:90%;" />
+                    </div>*@
+                    @*<div class="col-lg-3 col-md-3 col-sm-6">Revenue Type
+                        <input id="RevenueTypeId" style="width:90%;" />                        
+                    </div>*@
+                    <div class="col-lg-3 col-md-3 col-sm-6" style="padding-top:20px;">
+                        <button class="btn btn-primary mx-1" onclick="FilterResults(true)"><i class="fa fa-search" aria-hidden="true"></i></button>
+                        <button class="btn btn-secondary" onclick="FilterResults(false)"><i class="fa-solid fa-filter-circle-xmark"></i></button>
+                    </div>
+                </div>
+                <hr />
+                <br />
+                <div class="row pad-20">
+                    @*<div class="col-lg-6 col-md-6 col-sm-12 p-1">
+                        <div class="chartdiv" id="revenueByWard">
+                            <div id="revenueByWardChild" class="childDiv" style="width:100%;"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 p-1">
+                        <div class="chartdiv" id="revenueByAssetType">
+                            <div id="revenueByAssetTypeChild" class="childDiv" style="width:100%;"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 p-1">
+                        <div class="chartdiv" id="revenueByCollector">
+                            <div id="revenueByCollectorChild" class="childDiv" style="width:100%;"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 p-1">
+                        <div class="chartdiv" id="revenueByStatus">
+                            <div id="revenueByStatusChild" class="childDiv" style="width:100%;"></div>
+                        </div>
+                    </div>*@
+
+                    <div class="col-lg-6 col-md-6 col-sm-12 p-1">
+                        <div class="chartdiv" id="assetChart">
+                            <div id="assetChartChild" class="childDiv" style="width:100%;"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 p-1">
+                        <div class="chartdiv" id="assetAllotmentChart">
+                            <div id="assetAllotmentChartChild" class="childDiv" style="width:100%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+                
+                
+
+
+
+                @*<div class="row-12 pad-20" style="background:#efecec;">
+                        <div class="col-6 pad-10">
+                            <div class="chartdiv" id="chartByUndertaken"></div>
+                        </div>
+                        <div class="col-6 pad-10">
+                            <div class="chartdiv" id="chartByLocation"></div>
+                        </div>
+                    </div>*@
+
+                @*<div class="row pad-20" style="background:#efecec;">
+                        <div class="col-12 pad-10">
+                            <div class="chartdiv" id="chartByCategories"></div>
+                        </div>
+                    </div>
+                    <div class="row pad-20" style="background:#efecec;">
+                        <div class="chartdiv col-12 pad-10">
+                            <div style="padding: 10px; font-size: 14px; font-weight: 900; font-family: Helvetica, Arial, sans-serif;">Projects By Location</div>
+                            <div class="" id="ProjectsByLocation"></div>
+                        </div>
+                    </div>*@
+
+

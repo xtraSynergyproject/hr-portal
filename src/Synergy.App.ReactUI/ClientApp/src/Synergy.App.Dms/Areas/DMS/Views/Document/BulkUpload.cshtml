@@ -1,0 +1,634 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.ViewModel;
+
+@model EDRDataViewModel
+
+@{
+    ViewData["Title"] = @Resource["BulkUpload"];
+    Layout = null;
+}
+
+
+<script>
+    $(function () {
+
+        serviceRoot = "/dms/document/GetWorkspaceList";
+
+        homogeneous = new kendo.data.HierarchicalDataSource({
+            transport: {
+                read: {
+                    url: serviceRoot,
+                    dataType: "json"
+                }
+            },
+            schema: {
+                model: {
+                    id: "id",
+                    hasChildren: "hasChildren"
+                }
+            }
+        });
+
+
+        $("#WorkspaceId").kendoDropDownTree({
+            placeholder: "Select ...",
+            dataSource: homogeneous,
+            template: kendo.template($("#dropdowntree-template").html()),
+            height: "150px",
+            dataTextField: "Name",
+            dataValueField: "id",
+            placeholder: '@SharedResource["Select"]',
+            value: "@Model.WorkspaceId"
+        });
+
+
+
+
+        var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+
+        //var ALLOWED_EXTENSIONS = [".xlsx"];
+
+        $("#upload").kendoUpload({
+            async: {
+                saveUrl: "@Url.Action("UploadExcel", "Document", new { area = "dms"})"
+            },
+            multiple: false,
+            localization: {
+                "select": "Select file to import..."
+            },
+            select: function (e) {
+                var extension = e.files[0].extension.toLowerCase();
+                //if (ALLOWED_EXTENSIONS.indexOf(extension) == -1) {
+                //    alert("Please, select a supported file format");
+                //    e.preventDefault();
+                //}
+            },
+            success: function (e) {
+                // Load the converted document into the spreadsheet
+
+                spreadsheet.fromJSON(e.response);
+                $("#btnSubmit").data("kendoButton").enable(true);
+                //$("#download-data").val(JSON.stringify(spreadsheet.toJSON()));
+
+            }
+        });
+
+        $(".download").click(function () {
+
+            $("#download-data").val(JSON.stringify(spreadsheet.toJSON()));
+            $("#download-extension").val($(this).data("extension"));
+
+        });
+
+      //  uploadFile();
+    });
+
+    function uploadFile() {
+        $("#iconFile").dmUploader({ //
+            url: '/Cms/Document/SaveFile',
+            multiple: false,
+            extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                var isSkipExistingFile = $("#IsSkipExistingFile").val();
+                data = { skipExistingFile: isSkipExistingFile };
+                //upload callback
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }
+
+
+    function OnSuccess(response) {
+        if (response.success) {
+            //hideLoader();
+            kendo.alert("@SharedResource["SavedSuccessfully"]");
+            var value = $("#FileType").data("kendoDropDownList").value();
+
+            var revision = $("#Revision").data("kendoDropDownList");
+            revision.dataSource.read({ type: value });
+        }
+        else {
+            ShowErrors(response.errors);
+        }
+    }
+    function OnSave() {
+        ShowLoader($('#dcontent'));
+        var msg = ""
+        if ($("#WorkspaceId").val() == "") {
+            msg = "Please select Workspace </br>";
+        }
+        if ($("#FileId").val() == "") {
+            msg += "Please select Template </br>";
+        }
+        if (msg != "") {
+
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            //var msg1 = ExtractError(msg);
+            $(".hr-v-summary ul").html(msg);
+            HideLoader($('#dcontent'));
+            return false;
+
+        }
+        ShowLoader($('#main-div'));
+        var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+        var data = JSON.stringify(spreadsheet.toJSON());
+        var templateMasterId = $("#FileId").data("kendoDropDownList").value();
+        var templateMastername = $("#FileId").data("kendoDropDownList").text();
+        var workspaceId = "";
+        var parentId = $("#WorkspaceId").data("kendoDropDownTree").value().id;
+        var url = "/dms/document/ValidateGalfarEngineeringDocuments"
+         $.ajax({
+            url: url,
+            type: "POST",
+             data: { 'data': data, 'templateId': templateMasterId, 'templateName': templateMastername, 'workspaceId': workspaceId,'folderId':parentId},
+            success: function (data) {
+                if (data.excelData != null && data.excelData != "") {
+                    spreadsheet.fromJSON(JSON.parse(data.excelData));
+                    //OnSaveAgain();
+
+                }
+                else if (data.success == true) {
+                    HideLoader($('#main-div'));
+                    $(".hr-v-summary").removeClass("validation-summary-errors");
+                    $(".hr-v-summary").addClass("validation-summary-valid");
+                    $(".hr-v-summary ul").html("");
+                    var msg = "Documents Uploaded Successfully";
+                    kendo.alert(msg);
+
+                }
+                else {
+                    HideLoader($('#main-div'));
+                    kendo.alert("Document Uploaded Failed, Try Again")
+                    var msg = "";
+                    for (var i = 0; i < data.errors.length; i++) {
+                        msg += data.errors[i] + "<br/>";
+                    }
+                    ShowError(msg);
+                }
+                HideLoader($('#main-div'));
+               // kendo.alert("Document Uploaded Failed, Try Again")
+            }
+         });
+        return true;
+    }
+    function OnSaveAgain() {
+        var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+        var data = JSON.stringify(spreadsheet.toJSON());
+        var templateMasterId = $("#FileId").val();
+        var templateMastername = $("#FileId").data("kendoDropDownList").text();
+        var workspaceId = $("#WorkspaceId").val();
+        var parentId = $("#ParentId").val();
+        var url = "/dms/EDRAndMDR/LoadGalfarEngineeringDocuments1"
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: { 'data': data, 'templateMasterId': templateMasterId, 'templateMasterName': templateMastername, 'workspaceId': workspaceId, 'folderId': parentId },
+            success: function (data) {
+
+                if (data.excelData != null && data.excelData != "") {
+                    spreadsheet.fromJSON(JSON.parse(data.excelData));
+                    OnSaveAgain();
+                }
+                else if (data.success) {
+                    HideLoader($('#dcontent'));
+                    $(".hr-v-summary").removeClass("validation-summary-errors");
+                    $(".hr-v-summary").addClass("validation-summary-valid");
+                    $(".hr-v-summary ul").html("");
+                    var msg = "Documents Uploaded Successfully";
+                    alert(msg);
+
+
+                }
+                else {
+                    HideLoader($('#dcontent'));
+                    var msg = "";
+                    for (var i = 0; i < data.errors.length; i++) {
+                        msg += data.errors[i] + "<br/>";
+                    }
+                    ShowError(msg);
+                }
+            }
+        });
+        return true;
+    }
+    function OnSaveAgain2() {
+        ShowLoader($('#dcontent'));
+        var validateMsg = ""
+        if ($("#WorkspaceId").val() == "") {
+            validateMsg = "Please select Workspace </br>";
+        }
+        if ($("#FileId").val() == "") {
+            validateMsg += "Please select Template </br>";
+        }
+        if (validateMsg != "") {
+
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            //var msg1 = ExtractError(msg);
+            $(".hr-v-summary ul").html(msg);
+            HideLoader($('#dcontent'));
+            return false;
+        }
+        var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+        var data = JSON.stringify(spreadsheet.toJSON());
+        var templateMasterId = $("#FileId").val();
+        var templateMastername = $("#FileId").data("kendoDropDownList").text();
+        var workspaceId = $("#WorkspaceId").val();
+        var parentId = $("#ParentId").val();
+        var url = "/dms/EDRAndMDR/LoadGalfarEngineeringDocuments2"
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: { 'data': data, 'templateMasterId': templateMasterId, 'templateMasterName': templateMastername, 'workspaceId': workspaceId, 'folderId': parentId},
+            success: function (data) {
+
+                if (data.excelData != null && data.excelData != "") {
+                    spreadsheet.fromJSON(JSON.parse(data.excelData));
+                    var msg ="";
+                    for (var i = 0; i < data.errors.length; i++) {
+                        msg += data.errors[i] + "<br/>";
+                    }
+                    ShowError(msg);
+                    OnSaveAgain3(data.errors);
+                }
+                else if (data.success) {
+                    HideLoader($('#dcontent'));
+                    //$(".hr-v-summary").removeClass("validation-summary-errors");
+                    //$(".hr-v-summary").addClass("validation-summary-valid");
+                    //$(".hr-v-summary ul").html("");
+                    var msg = "Documents Uploaded Successfully";
+                    alert(msg);
+
+
+                }
+                else {
+                    HideLoader($('#dcontent'));
+                    var msg = "";
+                    for (var i = 0; i < data.errors.length; i++) {
+                        msg += data.errors[i] + "<br/>";
+                    }
+                    ShowError(msg);
+                }
+            }
+        });
+        return true;
+    }
+    function OnSaveAgain3(errorMessage) {
+        var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+        var data = JSON.stringify(spreadsheet.toJSON());
+        var templateMasterId = $("#FileId").val();
+        var templateMastername = $("#FileId").data("kendoDropDownList").text();
+        var workspaceId = $("#WorkspaceId").val();
+        var parentId = $("#ParentId").val();
+        var url = "/dms/EDRAndMDR/LoadGalfarEngineeringDocuments2"
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: { 'data': data, 'templateMasterId': templateMasterId, 'templateMasterName': templateMastername, 'workspaceId': workspaceId, 'folderId': parentId, 'errorMessage': errorMessage },
+            success: function (data) {
+                if (data.excelData != null && data.excelData != "") {
+                    spreadsheet.fromJSON(JSON.parse(data.excelData));
+                    var msg = "";
+                    for (var i = 0; i < data.errors.length; i++) {
+                        msg += data.errors[i] + "<br/>";
+                    }
+                    ShowError(msg);
+                    OnSaveAgain3(data.errors);
+                }
+                else if (data.success) {
+                    HideLoader($('#dcontent'));
+                    //$(".hr-v-summary").removeClass("validation-summary-errors");
+                    //$(".hr-v-summary").addClass("validation-summary-valid");
+                    //$(".hr-v-summary ul").html("");
+                    var msg = "Documents Uploaded Successfully";
+                    alert(msg);
+
+
+                }
+                else {
+                    HideLoader($('#dcontent'));
+                    var msg = "";
+                    for (var i = 0; i < data.errors.length; i++) {
+                        msg += data.errors[i] + "<br/>";
+                    }
+                    ShowError(msg);
+                }
+            }
+        });
+        return true;
+    }
+    function OnChange(e) {
+        var value = $("#FileType").data("kendoDropDownList").value();
+
+        if (value != '' && value != null) {
+            $("#uploadbox").show();
+            $("#savebox").show();
+            $("#download-type").val(value);
+
+            var revision = $("#Revision").data("kendoDropDownList");
+            revision.dataSource.read({ type: value });
+
+            //var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+            //spreadsheet.activeSheet().range(kendo.spreadsheet.SHEETREF).clear();
+
+        }
+        else {
+            $("#uploadbox").hide();
+            $("#savebox").hide();
+            var revision = $("#Revision").data("kendoDropDownList");
+            revision.dataSource.read({ type: null });
+
+             var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+            spreadsheet.activeSheet().range(kendo.spreadsheet.SHEETREF).clear();
+        }
+
+    }
+    function OnRevChange(e) {
+        var value = $("#FileType").data("kendoDropDownList").value();
+        var rev = $("#Revision").data("kendoDropDownList").value();
+
+        if (value != '' && value != null) {
+
+            if (rev != '' && rev != null) {
+                $.ajax({
+                    type: "POST",
+                    url: "/dms/EDRAndMDR/Load?type=" + value + "&revision=" + rev,
+                    success: function (data) {
+                        var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+
+                        spreadsheet.fromJSON(data);
+                    },
+                    dataType: "json",
+                });
+            }
+            else {
+                var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+                spreadsheet.activeSheet().range(kendo.spreadsheet.SHEETREF).clear();
+            }
+        }
+    }
+    function onDataBound(e) {
+        var defaultItem = e.sender.dataSource.at(0);
+        if (defaultItem != null) {
+            e.sender.value(defaultItem.RevisionNo);
+            OnRevChange();
+        }
+    }
+    function Filter() {
+        return {
+            type: null
+
+        };
+    }
+    function onFileUploadSuccess1(e) {
+
+        if (e.response.success) {
+            var msg = "Images Uploaded Successfully";
+            alert(msg);
+        }
+        else {
+
+            //ShowError();
+        }
+        return true;
+    }
+    function OnFileUploadError1(e) {
+
+        //ShowError(msg);
+    }
+
+    function SelectWorkspace() {
+
+        var url = "/dms/EDRAndMDR/SelectWorkspace";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["SelectWorkspace"])', Width: 700, Height: 650 });
+        return false;
+    }
+    function SetIds(parentid, workspaceid) {
+        $("#ParentId").val(parentid);
+        $("#WorkspaceId").val(workspaceid);
+    }
+    function ShowError(err) {
+        //kendo.ui.progress($("#divTemplateGrid"), false);
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        $(".hr-v-summary ul").html(err);
+    }
+    function OnDocumentUploadData(e) {
+
+        var isSkipExistingFile = $("#IsSkipExistingFile").val();
+        e.data = { skipExistingFile: isSkipExistingFile };
+        return true;
+
+    }
+
+    function onSelectFolder(e) {
+
+        var dropdowntree = $("#WorkspaceId").data("kendoDropDownTree");
+            var treeviewSelect = function (e) {
+                if (e.sender.dataItem(e.node).type == 'workspace') {
+                    e.preventDefault()
+                }
+            };
+
+            dropdowntree.treeview.bind("select", treeviewSelect);
+    }
+
+    function onTemplateChange() {
+        ShowLoader($('#main-div'));
+        var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+        spreadsheet.fromJSON("");
+        var id = $("#FileId").val()
+        $.ajax({
+            url: '/dms/document/UploadExcelTemplateJson?templateId=' + id,
+            dataType: "json",
+            success: function (data) {
+                var spreadsheet = $("#spreadsheet").data("kendoSpreadsheet");
+                spreadsheet.fromJSON(data);
+                HideLoader($('#main-div'));
+            },
+            error: function (result){
+                
+            }
+        });
+
+    }
+</script>
+<script id="fileTemplate" type="text/x-kendo-template">
+    <span class='k-progress'></span>
+    <div class='file-wrapper'>
+        <h8 class='file-heading file-name-heading'>Name: #=name#</h8>
+        <strong class="k-upload-status">
+            <button type='button' class='k-upload-action'></button>
+            <button type='button' class='k-upload-action'></button>
+        </strong>
+    </div>
+</script>
+
+<style>
+    .download {
+        width: 260px;
+    }
+</style>
+
+
+
+@Html.ValidationSummary(false, "", new { @class = "k-block k-error-colored mp-pad-5 hr-v-summary" })
+@Html.AntiForgeryToken()
+
+<div class="row" style=" margin-top: 1%;" id="main-div">
+    <div class="col">
+        @*@(Html.Kendo().DropDownTreeFor(x=>x.WorkspaceId)
+               .TemplateId("dropdowntree-template")
+                .Events(x=>x.Select("onSelectFolder"))
+                        .ValueTemplateId("dropdowntree-value-template")
+
+                        .HtmlAttributes(new { style = "width: 100%" })
+                        .Placeholder(@SharedResource["Select"])
+                        .DataSource(dataSource => dataSource
+                            .Read(read => read
+                                .Action("GetWorkspaceList", "Document")
+                            )
+                        )
+            )*@
+
+        <input asp-for="WorkspaceId" id="WorkspaceId" style="width: 100%" />
+
+        <!-- Template -->
+        <script id="dropdowntree-template" type="text/kendo-ui-template">
+            #: item.Name #
+        </script>
+
+        <!-- Template -->
+        <script id="dropdowntree-value-template" type="text/kendo-ui-template">
+            <span> #: data.Name # </span>
+        </script>
+    </div>
+
+    <div class="col">
+        @*@(Html.Kendo().DropDownListFor(m => m.FileId)
+          .DataTextField("Name")
+          .DataValueField("Id")
+          .OptionLabel(@SharedResource["Select"])
+          .Events(e=>e.Change("onTemplateChange"))
+          .DataSource(source => {
+              source.Read(read =>
+              {
+                  read.Action("GetDocumentTemplateList", "Document");
+              });
+          })
+          .HtmlAttributes(new { style = "width: 100%" })
+    )*@
+    </div>
+
+    <div class="col">
+        @*@(Html.Kendo().Upload()
+                                        .Name("files")
+                                        .TemplateId("fileTemplate")
+                                        .Async(a => a
+                                        .Save("SaveFile", "Document",new { area="dms", skipCompression = true})
+                                        .AutoUpload(false)
+                                        )
+                                        .Events(events => events
+                                        .Upload("OnDocumentUploadData")
+                                        )
+                                        .Directory(true)
+                                        .Validation(validation => validation.MaxFileSize(1000000000000))
+                                )
+            @Html.Kendo().CheckBoxFor(model => model.IsSkipExistingFile).Label(@Resource["SkipExistingFiles"])*@
+
+        <div class="row">
+            @*<div class="col">
+            <div id="iconFile" class="dm-uploader">
+                <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                <div class="btn btn-primary btn-block ">
+                    <span>Open the file Browser</span>
+                    <input type="file" title='Click to add Files' />
+                </div>
+            </div>
+
+        </div>*@
+            @*if multiple use this*@
+
+            @*<div class="col">
+            <div class="card h-100">
+                <div class="card-header">
+                    File List
+                </div>
+                <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                    <li id="nofiles" class="text-muted text-center empty">No files uploaded.</li>
+                </ul>
+            </div>
+        </div>*@
+            @*if multiple use this*@
+            @{
+                await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { CallbackMethod = "OnDocumentUploadData", Property = "bulkupload" });
+            }
+            <input type="hidden" id="bulkupload" />
+        </div>
+    </div>
+
+    @*<div class="col">
+
+            <input type="file" name="file" id="upload" />
+
+        </div>*@
+
+    <div class="col">
+        @*@Html.Kendo().Button().Name("btnSubmit").Content(@SharedResource["Upload"]).Icon("check-outline").Events(x => x.Click("OnSave")).HtmlAttributes(new { @class = "btn btn-success" }).Enable(false)*@
+        <button type="button" class="btn btn-success" name="btnSubmit" onclick="OnSave();">@SharedResource["Upload"]</button>
+    </div>
+
+</div>
+
+<div id="spreadSheet">
+
+    @Html.HiddenFor(x => x.Data)
+    @Html.HiddenFor(x => x.Extension)
+    @Html.HiddenFor(x => x.ParentId)
+    @*@(Html.Kendo().Spreadsheet()
+                .Name("spreadsheet")
+                .HtmlAttributes(new { style = "width:100%;" })
+    )*@
+
+</div>

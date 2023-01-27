@@ -1,0 +1,803 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model ServiceViewModel
+@{
+    ViewBag.Title = "All Service";
+    Layout = null;
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        function FilterSerData() {
+            return data = {
+                moduleCodes: '@Model.ModuleCode',
+                templateCodes: '@Model.TemplateCode',
+                categoryCodes: '@Model.TemplateCategoryCode',
+                showAllOwnersService: '@ViewBag.ShowAllOwnersService',
+                isDisableCreate: '@ViewBag.IsDisableCreate'
+            };
+        }
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Property/NoDuesCertificate/ReadNDCServiceDataInProgress",
+                    data: FilterSerData,
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#kgrdService").kendoListView({
+            dataSource: dataSource,
+            dataBound: OnDataBoundPending,
+            template: kendo.template($("#templateService").html())
+        });
+
+        //OverDue
+        function FilterSerODData() {
+            return data = {
+                moduleCodes: '@Model.ModuleCode',
+                templateCodes: '@Model.TemplateCode',
+                categoryCodes: '@Model.TemplateCategoryCode',
+                showAllOwnersService: '@ViewBag.ShowAllOwnersService',
+            };
+        }
+
+        var dataSourceOD = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Property/NoDuesCertificate/ReadNDCServiceDataOverdue",
+                    data: FilterSerODData,
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#kgrdServiceOverDue").kendoListView({
+            dataSource: dataSourceOD,
+            dataBound: OnDataBoundOverdue,
+            template: kendo.template($("#templateServiceOverdue").html())
+        });
+
+        //Completed
+        var dataSourceCom = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Property/NoDuesCertificate/ReadNDCServiceDataCompleted",
+                    data: FilterSerODData,
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#kgrdServiceCompleted").kendoListView({
+            dataSource: dataSourceCom,
+            dataBound: OnDataBoundCompleted,
+            template: kendo.template($("#templateServiceCompleted").html())
+        });
+
+        //Closed
+        var dataSourceCom = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Property/NoDuesCertificate/ReadNDCServiceDataClosed",
+                    data: FilterSerODData,
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#kgrdServiceClosed").kendoListView({
+            dataSource: dataSourceCom,
+            dataBound: OnDataBoundCompleted,
+            template: kendo.template($("#templateServiceClosed").html())
+        });
+    });
+
+    function OnDataBoundPending(arg) {
+        document.getElementById('kgrdService').style.border = 'none';
+        var data = $("#kgrdService").data("kendoListView").dataSource.data();
+        if (data.length == 0) {
+            $('#no-data-pending').show();
+        } else {
+            $('#no-data-pending').hide();
+        }
+    }
+
+    function OnDataBoundOverdue(arg) {
+        document.getElementById('kgrdServiceOverDue').style.border = 'none';
+        var data = $("#kgrdServiceOverDue").data("kendoListView").dataSource.data();
+        if (data.length == 0) {
+            $('#no-data-overdue').show();
+        } else {
+            $('#no-data-overdue').hide();
+        }
+    }
+    function OnDataBoundCompleted(arg) {
+        document.getElementById('kgrdServiceCompleted').style.border = 'none';
+        var data = $("#kgrdServiceCompleted").data("kendoListView").dataSource.data();
+        if (data.length == 0) {
+            $('#no-data-complete').show();
+        } else {
+            $('#no-data-complete').hide();
+        }
+    }
+    var isFiltered = false;
+
+    function createService() {
+         var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=@Model.TemplateCode' + '&portalId=' + portalId ;
+            LoadCmsPartialView(url, 'Service', true, 1000, 600, 'Apply for No Dues Certificate');
+            return false;
+    }
+
+    function OpenService(serviceId, tempCode) {
+
+        var id = serviceId;
+        var source = '@RequestSourceEnum.View.ToString()';
+        var action = '@DataActionEnum.View.ToString()';
+
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=' + source + '&dataAction=' + action + '&templateCodes=' + tempCode + '&portalId=' + portalId + '&recordId=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title:  'Service', Width: 1200, Height: 600 });
+        return false;
+    }
+    function IframePostbackScript() {
+        $("#kgrdService").data("kendoListView").dataSource.read();
+        $("#kgrdServiceOverDue").data("kendoListView").dataSource.read();
+        $("#kgrdServiceCompleted").data("kendoListView").dataSource.read();
+    }
+
+    function OnDowload(id, tempCode) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Property/NoDuesCertificate/DownloadNoDueCertificate?propertyServiceId=" + id;
+        win.OpenWindow({ Title: 'Download No Dues Certficate', Width: 1000, Height: 700});
+        return false;
+    }
+
+    $("#mysearch").keyup(function () {
+        var val = $('#mysearch').val();
+
+        var listView = $("#kgrdService").data("kendoListView");
+        listView.dataSource.filter({
+            logic: "or",
+            filters: [
+                {
+                    field: "ServiceSubject",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "ServiceNo",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "OwnerDisplayName",
+                    operator: "contains",
+                    value: val
+                },
+            ]
+        });
+
+        var listView1 = $("#kgrdServiceOverDue").data("kendoListView");
+        listView1.dataSource.filter({
+            logic: "or",
+            filters: [
+                {
+                    field: "ServiceSubject",
+                   operator: "contains",
+                    value: val
+                },
+                {
+                    field: "ServiceNo",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "OwnerDisplayName",
+                    operator: "contains",
+                    value: val
+                },
+
+            ]
+        });
+
+
+        var listView2 = $("#kgrdServiceCompleted").data("kendoListView");
+        listView2.dataSource.filter({
+            logic: "or",
+            filters: [
+                {
+                    field: "ServiceSubject",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "ServiceNo",
+                    operator: "contains",
+                    value: val
+                },
+                {
+                    field: "OwnerDisplayName",
+                    operator: "contains",
+                    value: val
+                },
+            ]
+        });
+
+    });
+    function CloseShare() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function sortbydate() {
+        var listView = $("#kgrdService").data("kendoListView");
+        listView.dataSource.sort({ field: "DisplayDueDate", dir: "asc" });
+    }
+    function sortbyname() {
+        var listView = $("#kgrdService").data("kendoListView");
+        listView.dataSource.sort({ field: "ServiceSubject", dir: "asc" });
+    }
+
+    function sortbyowner() {
+        var listView = $("#kgrdService").data("kendoListView");
+        listView.dataSource.sort({ field: "OwnerDisplayName", dir: "asc" });
+    }
+
+
+    function filterreset() {
+        //resetParam();
+        var listView = $("#kgrdService").data("kendoListView");
+        //$("#todoheading").html("Task");
+        listView.dataSource.filter({});
+        listView.dataSource.sort({ field: "CreatedDate", dir: "desc" });
+    }
+    function OnAfterServiceCreate(task) {
+        //alert("TaskLIst");
+        $("#kgrdService").data("kendoListView").dataSource.read();
+        $("#kgrdServiceOverDue").data("kendoListView").dataSource.read();
+        $("#kgrdServiceCompleted").data("kendoListView").dataSource.read();
+    }
+</script>
+
+<script type="text/x-kendo-tmpl" id="templateService">
+    <div @*class="item-hover"*@>
+        <div class="row" style="padding:3px;margin-left:10px" id="step-template-#=Id#">
+            @*<div class="col-xs-1 col-sm-1" style=" margin-top: 4px;
+    margin-left: 40px;">
+               <h1>#=TaskOwnerFirstLetter#</h1>
+            </div>*@
+            <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:17%">
+                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="#=OwnerDisplayName#">#=OwnerDisplayName#</span>
+            </div>
+            @*<div class="col-2" style="margin: 10px 0px 10px 0px;max-width:17%">
+                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="#=TemplateDisplayName#">#=TemplateDisplayName#</span>
+            </div>*@
+
+            <div class="col-3" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:23%" onclick="OpenService('#:Id#','#:TemplateCode#');" title="Click to open Service">
+                <span style="font-size: 1em; color:Highlight">#if(ServiceSubject != null) {# #:ServiceSubject# #} else{# 'NA' #}#</span>
+            </div>
+            <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:12%">
+                <span class="bg-primary" style=" color:white;font-size:1em;border-radius:10px;margin-bottom:5px ;padding:5px; text-align:center;white-space:nowrap;">#=ServiceNo#</span>
+            </div>
+             <div class="col-1" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:15%">
+                <span style="font-size:1em; color:green">#if(ServiceStatusName != null) {# #:ServiceStatusName# #} else{# NA #}#</span>
+            </div>
+            <div class="col-1" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:15%">
+                <span style="font-size:1em; color:green">#if(DisplayStartDate != null) {# #:DisplayStartDate# #} else{# NA #}#</span>
+            </div>
+            <div class="col-1" style="margin: 10px 0px 10px 0px;max-width:15%">
+                <div style="font-size: 1em;color:chocolate">#=DisplayDueDate#</div>
+            </div>
+        </div>
+        <div id="step-edit-div-#=Id#"></div>
+        <hr style="margin-bottom: 1px !important;">
+
+    </div>
+</script>
+
+
+<script type="text/x-kendo-tmpl" id="templateServiceOverdue">
+    <div class="item-hover">
+        <div class="row" style="padding:3px;margin-left:10px" id="step-template-#=Id#">
+           <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:17%">
+                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="#=OwnerDisplayName#">#=OwnerDisplayName#</span>
+            </div>
+            @*<div class="col-2" style="margin: 10px 0px 10px 0px;max-width:17%">
+                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="#=TemplateDisplayName#">#=TemplateDisplayName#</span>
+            </div>*@
+
+            <div class="col-3" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:23%" onclick="OpenService('#:Id#','#:TemplateCode#');" title="Click to open Service">
+                <span style="font-size: 1em; color:Highlight">#if(ServiceSubject != null) {# #:ServiceSubject# #} else{# 'NA' #}#</span>
+            </div>
+            <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:12%">
+                <span class="bg-warning" style=" color:white;font-size:1em;border-radius:10px;margin-bottom:5px ;padding:5px; text-align:center;white-space:nowrap;">#=ServiceNo#</span>
+            </div>
+             <div class="col-1" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:15%">
+                <span style="font-size:1em; color:green">#if(ServiceStatusName != null) {# #:ServiceStatusName# #} else{# NA #}#</span>
+            </div>
+            <div class="col-1" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:15%">
+                <span style="font-size:1em; color:green">#if(DisplayStartDate != null) {# #:DisplayStartDate# #} else{# NA #}#</span>
+            </div>
+            <div class="col-1" style="margin: 10px 0px 10px 0px;max-width:15%">
+                <div style="font-size: 1em;color:chocolate">#=DisplayDueDate#</div>
+            </div>
+        </div>
+        <div id="step-edit-div-#=Id#"></div>
+        <hr style="margin-bottom: 1px !important;">
+
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="templateServiceCompleted">
+    <div class="item-hover">
+        <div class="row" style="padding:3px;margin-left:10px" id="step-template-#=Id#">
+            <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:17%">
+                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="#=OwnerDisplayName#">#=OwnerDisplayName#</span>
+            </div>
+            @*<div class="col-2" style="margin: 10px 0px 10px 0px;max-width:17%">
+                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="#=TemplateDisplayName#">#=TemplateDisplayName#</span>
+            </div>*@
+           <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:16%">
+                <span class="fromcolor" style="font-size: 1em; display: inline-block;" title="Download No Due Certificate">#if(ServiceStatusName =='Complete'){# <i class="fas fa-download" onclick="OnDowload('#:Id#','#:TemplateCode#');"></i> #}#</span>
+            </div>
+
+            <div class="col-3" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:23%" onclick="OpenService('#:Id#','#:TemplateCode#');" title="Click to open Service">
+                <span style="font-size: 1em; color:Highlight">#if(ServiceSubject != null) {# #:ServiceSubject# #} else{# 'NA' #}#</span>
+            </div>
+            <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:12%">
+                <span class=" #if(ServiceStatusName =='Complete') {# bg-success #} else if (ServiceStatusName =='Canceled'){# bg-danger #}  else{# bg-success #}#" style=" color:white;font-size:1em;border-radius:10px;margin-bottom:5px ;padding:5px; text-align:center;white-space:nowrap;">#=ServiceNo#</span>
+            </div>
+             <div class="col-1" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:10%">
+                <span style="font-size:1em; color:green">#if(ServiceStatusName != null) {# #:ServiceStatusName# #} else{# NA #}#</span>
+            </div>
+            <div class="col-1" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:10%">
+                <span style="font-size:1em; color:green">#if(DisplayStartDate != null) {# #:DisplayStartDate# #} else{# NA #}#</span>
+            </div>
+            <div class="col-1" style="margin: 10px 0px 10px 0px;max-width:10%">
+                <div style="font-size: 1em;color:chocolate">#=DisplayDueDate#</div>
+            </div>
+        </div>
+        <div id="step-edit-div-#=Id#"></div>
+        <hr style="margin-bottom: 1px !important;">
+
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="templateServiceClosed">
+    <div class="item-hover">
+        <div class="row" style="padding:3px;margin-left:10px" id="step-template-#=Id#">
+            <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:17%">
+                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="#=OwnerDisplayName#">#=OwnerDisplayName#</span>
+            </div>
+            @*<div class="col-2" style="margin: 10px 0px 10px 0px;max-width:17%">
+                <span class="fromcolor" style="font-size: 1em; color:green; display: inline-block;" title="#=TemplateDisplayName#">#=TemplateDisplayName#</span>
+            </div>*@
+            <div class="col-3" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:23%" onclick="OpenService('#:Id#','#:TemplateCode#');" title="Click to open Service">
+                <span style="font-size: 1em; color:Highlight">#if(ServiceSubject != null) {# #:ServiceSubject# #} else{# 'NA' #}#</span>
+            </div>
+            <div class="col-2" style="margin: 10px 0px 10px 0px;max-width:12%">
+                <span class="bg-success" style=" color:white;font-size:1em;border-radius:10px;margin-bottom:5px ;padding:5px; text-align:center;white-space:nowrap;">#=ServiceNo#</span>
+            </div>
+             <div class="col-1" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:15%">
+                <span style="font-size:1em; color:green">#if(ServiceStatusName != null) {# #:ServiceStatusName# #} else{# NA #}#</span>
+            </div>
+            <div class="col-1" style="margin: 10px 0px 10px 0px;cursor:pointer;max-width:15%">
+                <span style="font-size:1em; color:green">#if(DisplayStartDate != null) {# #:DisplayStartDate# #} else{# NA #}#</span>
+            </div>
+            <div class="col-1" style="margin: 10px 0px 10px 0px;max-width:15%">
+                <div style="font-size: 1em;color:chocolate">#=DisplayDueDate#</div>
+            </div>
+        </div>
+        <div id="step-edit-div-#=Id#"></div>
+        <hr style="margin-bottom: 1px !important;">
+
+    </div>
+</script>
+
+<style>
+    .dropdown-toggle::after {
+        content: none;
+    }
+
+    .iconwothtext {
+        display: flex;
+        cursor: pointer;
+        align-items: center;
+    }
+
+    .leftmenustyle {
+        font-size: 14px;
+        color: #4b4f56;
+        margin-bottom: 6px;
+        font-weight: normal;
+        margin-top: 6px;
+        padding-left: 5px;
+        border-bottom: 1px medium rgba(255, 255, 255, .5);
+    }
+
+    .col-1 {
+        flex: none !important;
+    }
+    /* The hero image */
+    .head-image {
+        object-fit: fill;
+    }
+
+    /* Place text in the middle of the image */
+    .head-text {
+        text-align: left;
+        position: absolute;
+        top: 28%;
+        color: white;
+    }
+
+    .head-img {
+        max-width: 100%;
+        max-height: 149px;
+        width: 100%;
+        object-fit: none;
+    }
+
+    .main {
+        margin-top: 1%;
+        text-align: right;
+    }
+
+    /* Bootstrap 4 text input with search icon */
+
+    .has-search .form-control {
+        padding-left: 2.375rem;
+        /*width: 100%;*/
+    }
+
+    .form-group {
+        width: 40%;
+    }
+
+    .has-search .form-control-feedback {
+        position: absolute;
+        z-index: 2;
+        display: block;
+        width: 2.375rem;
+        height: 2.375rem;
+        line-height: 2.375rem;
+        text-align: center;
+        pointer-events: none;
+        color: #aaa;
+    }
+
+    .task-card {
+        margin-left: 15px;
+        margin-bottom: 30px;
+        margin-top: 1%;
+        border-radius: 6px;
+        color: #333;
+        background: #fff;
+        width: 98%;
+        box-shadow: 0 4px 20px 0 rgb(0 0 0 / 14%), 0 7px 10px -5px #fff;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid #eee;
+        min-height: 160px;
+    }
+
+    .sub-div {
+        overflow-y: scroll;
+        height: 260px;
+        overflow-x: hidden;
+    }
+
+    .card-heading {
+        margin-left: 1%;
+        font-weight: bold;
+        margin-top: 12px;
+    }
+
+    .item-hover:hover {
+        background-color: #d3d3d340;
+        cursor: pointer !important;
+    }
+
+    .no-data {
+        text-align: center;
+        margin-top: 5%;
+        font-size: 16px;
+        font-weight: 500;
+        display: none;
+    }
+
+    .no-data-icon {
+        color: #c8aa4d;
+        font-size: 40px;
+    }
+
+    .k-dropdown:hover {
+        transform: none !important;
+    }
+
+    .k-select:hover {
+        transform: none !important;
+    }
+
+    .k-input:hover {
+        transform: none !important;
+    }
+
+    .k-state-hover :hover {
+        transform: none !important;
+    }
+
+    span:hover {
+        transform: none !important;
+    }
+
+    .k-link:hover {
+        transform: none !important;
+    }
+
+    h6:hover {
+        transform: none !important;
+    }
+
+    .form-control:hover {
+        transform: none !important;
+    }
+
+    input:hover {
+        transform: none !important;
+    }
+
+    .task-title {
+        padding: 10px;
+        background-color: #1c4893;
+        font-weight: bold;
+        text-align: left;
+        color: #ffffff;
+        margin-left: 0px;
+        margin-right: 10px;
+    }
+</style>
+
+
+<div class="row main">
+    <div class="col-sm-6 form-group" style="text-align:left;">
+        @if (ViewBag.IsDisableCreate == false)
+        {
+        <button onclick="createService()" class="btn btn-primary">Apply for No Dues Certificate</button>
+        }
+    </div>
+    <!-- Actual search box -->
+    <div class="col-sm-6 form-group has-search pull-right">
+        <span class="fa fa-search form-control-feedback"></span>
+        <input id="mysearch" type="text" class="form-control" placeholder="Search by Request No and Subject">
+    </div>
+
+</div>
+
+<div class="task-card">
+    <div style="background-color:#efefef!important">
+        <div class="row" style="height: 50px;">
+            <div class="col-md-11">
+                <div class="row" style="float: left; margin-left: 15px; margin-top: 8px;">
+                    <div class="col-xs-2">
+                        <i class="fad fa-calendar-alt" style="font-size: 17px; margin-top: 9px;"> </i>
+                    </div>
+                    <div class="col-xs-2" id="inprogress">
+                        @if (ViewBag.IsDisableCreate == false)
+                        {
+                            <h5 class="card-heading" style="color:black;margin-top: 9px;margin-left:10px;">In Progress/Draft Request&nbsp;<span class="label label-warning" id="inprogress-task"></span></h5>
+                        }
+                        else
+                        {
+                    <h5 class="card-heading" style="color:black;margin-top: 9px;margin-left:10px;">In Progress Request&nbsp;<span class="label label-warning" id="inprogress-task"></span></h5>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 pull-right">
+                <div class="btn-group" id="filter" style="margin-top:15px">
+                    <a class="k-icon k-i-more-horizontal dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size:20px; color: gray">
+                    </a>
+                    <ul class="dropdown-menu" style="position:absolute;top:20px;right:0px;left:auto; min-width:180px; color:gray">
+                        <div class="iconwothtext" style="padding-left:10px" onclick="sortbydate()">
+                            <span class="k-icon k-i-calendar-date" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Sort By Date
+                            </div>
+                        </div>
+                        <div class="iconwothtext" style="padding-left:10px" onclick="sortbyname()">
+                            <span class="k-icon k-i-convert-lowercase" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Sort By Subject
+                            </div>
+                        </div>
+                        <div class="iconwothtext" style="padding-left:10px" onclick="sortbyowner()">
+                            <span class="k-icon k-i-user" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Sort By Owner
+                            </div>
+                        </div>
+
+                        <div class="iconwothtext" style="padding-left:10px" onclick="filterreset()">
+                            <span class="k-icon k-i-reset" style="font-size:18px"> </span> <div class="leftmenustyle" style="font-size:13px">
+                                Reset
+                            </div>
+                        </div>
+
+                    </ul>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+    <hr style="margin-bottom: 1px !important;border-width: 0px;border-color: orange;">
+    <div class="row task-title text-left bg-primary">
+        <div class="col-2" style="max-width:17%">Requested By</div>
+        <div class="col-3" style="max-width:23%">Subject</div>
+        <div class="col-1" style="max-width:12%">Requested No</div>
+        <div class="col-2" style="max-width:15%">Status</div>
+        <div class="col-1" style="max-width:15%">Start Date</div>
+        <div class="col-1" style="max-width:15%">Due Date</div>
+    </div>
+    <div class="sub-div">
+
+        @*@(Html.Kendo().ListView<ServiceViewModel>()
+            .Name("kgrdService")
+            .TagName("div")
+            .ClientTemplateId("templateService")
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .Read(read => read.Action("ReadNDCServiceDataInProgress", "NoDuesCertificate", new { Area = "Property", moduleCodes=Model.ModuleCode, templateCodes=Model.TemplateCode, categoryCodes=Model.TemplateCategoryCode, showAllOwnersService=ViewBag.ShowAllOwnersService, isDisableCreate = ViewBag.IsDisableCreate }))
+                )
+            .Events(events => events
+            .DataBound("OnDataBoundPending"))
+            .HtmlAttributes(new { @style = "min-width:1000px;overflow-x:scroll" })
+        )*@
+
+        <div id="kgrdService" style="min-width:1000px;overflow-x:scroll"></div>
+
+        @Html.HiddenFor(x => x.Id)
+        <div id="no-data-pending" class="no-data"><i class="fad fa-file-exclamation no-data-icon"></i><br /><br /><span>No Request</span></div>
+
+    </div>
+</div>
+
+<div class="task-card">
+    <div style="background-color:#efefef!important">
+        <div class="row" style="height: 50px;">
+            <div class="row" style="float: left; margin-left: 30px; margin-top: 8px;">
+                <div class="col-xs-2">
+                    <i class="fad fa-calendar-alt" style="font-size: 17px; margin-top: 9px;"> </i>
+                </div>
+                <div class="col-xs-2" id="overdue">
+                    <h5 class="card-heading" style="color:black;margin-top: 9px;margin-left:10px;">Overdue Request &nbsp; <span class="label label-danger" id="overdue-task"></span></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr style="margin-bottom: 1px !important;border-width: 0px;border-color: red;">
+    <div class="row task-title text-left bg-warning">
+        <div class="col-2" style="max-width:17%">Requested By</div>
+        <div class="col-3" style="max-width:23%">Subject</div>
+        <div class="col-1" style="max-width:12%">Requested No</div>
+        <div class="col-2" style="max-width:15%">Status</div>
+        <div class="col-1" style="max-width:15%">Start Date</div>
+        <div class="col-1" style="max-width:15%">Due Date</div>
+    </div>
+    <div class="sub-div">
+        @*@(Html.Kendo().ListView<ServiceViewModel>()
+            .Name("kgrdServiceOverDue")
+            .TagName("div")
+            .ClientTemplateId("templateServiceOverdue")
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .Read(read => read.Action("ReadNDCServiceDataOverdue", "NoDuesCertificate", new { Area = "Property", moduleCodes = Model.ModuleCode, templateCodes = Model.TemplateCode, categoryCodes = Model.TemplateCategoryCode, showAllOwnersService = ViewBag.ShowAllOwnersService }))
+            )
+            .Events(events => events
+            .DataBound("OnDataBoundOverdue"))
+        )*@
+
+        <div id="kgrdServiceOverDue"></div>
+
+        @Html.HiddenFor(x => x.Id)
+        <div id="no-data-overdue" class="no-data"><i class="fad fa-file-exclamation no-data-icon"></i><br /><br /><span>No Request</span></div>
+
+    </div>
+</div>
+<div class="task-card">
+    <div style="background-color:#efefef!important">
+        <div class="row" style="height: 50px;">
+            <div class="row" style="float: left; margin-left: 30px; margin-top: 8px;">
+                <div class="col-xs-2">
+                    <i class="fad fa-calendar-alt" style="font-size: 17px; margin-top: 9px;"> </i>
+                </div>
+                <div class="col-xs-2" id="completedService">
+                    <h5 class="card-heading" style="color:black;margin-top: 9px;margin-left:10px;">Completed/Cancel/Reject Request &nbsp; <span class="label label-danger" id="complete-Service"></span></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr style="margin-bottom: 1px !important;border-width: 0px;border-color: red;">
+    <div class="row task-title text-left bg-success">
+        <div class="col-2" style="max-width:17%">Requested By</div>
+        <div class="col-2" style="max-width:16%">Download No Dues Certificate</div>
+        <div class="col-3" style="max-width:23%">Subject</div>
+        <div class="col-1" style="max-width:12%">Requested No</div>
+        <div class="col-2" style="max-width:10%">Status</div>
+        <div class="col-1" style="max-width:10%">Start Date</div>
+        <div class="col-1" style="max-width:10%">Due Date</div>
+
+    </div>
+    <div class="sub-div">
+
+        @*@(Html.Kendo().ListView<ServiceViewModel>()
+            .Name("kgrdServiceCompleted")
+            .TagName("div")
+            .ClientTemplateId("templateServiceCompleted")
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+            .Read(read => read.Action("ReadNDCServiceDataCompleted", "NoDuesCertificate", new { Area = "Property", moduleCodes = Model.ModuleCode, templateCodes = Model.TemplateCode, categoryCodes = Model.TemplateCategoryCode, showAllOwnersService = ViewBag.ShowAllOwnersService }))
+                )
+               .Events(events => events
+            .DataBound("OnDataBoundCompleted"))
+        )*@
+
+        <div id="kgrdServiceCompleted"></div>
+        @Html.HiddenFor(x => x.Id)
+        <div id="no-data-complete" class="no-data"><i class="fad fa-file-exclamation no-data-icon"></i><br /><br /><span>No Request </span></div>
+
+    </div>
+</div>
+<div class="task-card">
+    <div style="background-color:#efefef!important">
+        <div class="row" style="height: 50px;">
+            <div class="row" style="float: left; margin-left: 30px; margin-top: 8px;">
+                <div class="col-xs-2">
+                    <i class="fad fa-calendar-alt" style="font-size: 17px; margin-top: 9px;"> </i>
+                </div>
+                <div class="col-xs-2" id="closedService">
+                    <h5 class="card-heading" style="color:black;margin-top: 9px;margin-left:10px;">Resolved Request &nbsp; <span class="label label-danger" id="close-Service"></span></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr style="margin-bottom: 1px !important;border-width: 0px;border-color: red;">
+    <div class="row task-title text-left bg-success">
+        <div class="col-2" style="max-width:17%">Requested By</div>
+        <div class="col-3" style="max-width:23%">Subject</div>
+        <div class="col-1" style="max-width:12%">Requested No</div>
+        <div class="col-2" style="max-width:15%">Status</div>
+        <div class="col-1" style="max-width:15%">Start Date</div>
+        <div class="col-1" style="max-width:15%">Due Date</div>
+    </div>
+    <div class="sub-div">
+
+        @*@(Html.Kendo().ListView<ServiceViewModel>()
+            .Name("kgrdServiceClosed")
+            .TagName("div")
+            .ClientTemplateId("templateServiceClosed")
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+            .Read(read => read.Action("ReadNDCServiceDataClosed", "NoDuesCertificate", new { Area = "Property", moduleCodes = Model.ModuleCode, templateCodes = Model.TemplateCode, categoryCodes = Model.TemplateCategoryCode, showAllOwnersService = ViewBag.ShowAllOwnersService, mode = ViewBag.Mode, templateCode = ViewBag.TemplateCode }))
+                )
+               .Events(events => events
+            .DataBound("OnDataBoundCompleted"))
+        )*@
+
+        <div id="kgrdServiceClosed"></div>
+        @Html.HiddenFor(x => x.Id)
+        <div id="no-data-complete" class="no-data"><i class="fad fa-file-exclamation no-data-icon"></i><br /><br /><span>No Request </span></div>
+
+    </div>
+</div>
+
+
+

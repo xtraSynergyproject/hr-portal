@@ -1,0 +1,373 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.NtsServiceController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model ServiceViewModel;
+
+@{
+    ViewBag.Title = "Work Performance";
+    Layout = null;
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+    .k-event {
+        /* top: 107px !important;
+        width: 215px !important;
+        left: 658px !important;
+        height: 105px !important;*/
+        /*background-color: #dcdada !important;*/
+        background-color: transparent !important;
+    }
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    .banner-container {
+        position: relative;
+        color: white;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 14px;
+        left: 60px;
+        font-size: 35px;
+    }
+
+    .SYN-task-pending {
+        height: 46px;
+        width: 45px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 2px;
+        text-align: center;
+        background: url(/images/Reminder.png);
+        background-repeat: no-repeat;
+    }
+    .SYN-task-overdue {
+        height: 46px;
+        width: 45px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0px;
+        text-align: center;
+        background: url(/images/Notification.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-task-completed {
+        height: 46px;
+        width: 45px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0px;
+        text-align: center;
+        background: url(/images/Calendar.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-overdue {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/service-overdue.png);
+        background-repeat: no-repeat;
+    }
+    
+    .SYN-service-completed {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/service-completed.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-pending {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/service-pending.png);
+        background-repeat: no-repeat;
+    }    
+
+    /*.k-scheduler-dayview .k-scheduler-table td,*/
+    .k-scheduler-weekview tr:nth-child(2) .k-scheduler-table td,
+    .k-scheduler-monthview .k-scheduler-table td {
+        height: 110px !important;
+    }
+    .k-scheduler-table k-scheduler-header-all-day tr{
+        min-height:120px !important;
+    }
+
+    .k-event, kendo-scheduler .k-event {
+        min-height: 110px !important;
+    }
+    .k-toolbar, .panelheader, .k-grid-pager {
+        background-color: #fff !important;
+    }
+</style>
+<script>
+    //function onDatewiseSearch() {
+    //    var dates = {
+    //        StartDate: kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+    //        DueDate: kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd'),
+    //    };
+    //    $("#chartDateWiseSearch").data("kendoChart").dataSource.read(dates);
+    //}
+
+    $(document).ready(function () {
+        
+     });
+
+
+    function OnService(date, status) {                
+        var url = "/cms/NtsService/ServiceHome?serviceStatus=" + status + "&lo=Popup&moduleCodes=@Model.ModuleCode"+"&date="+date;
+        var win = GetMainWindow();
+        //var url = '/Cms/Page?popup=true&lo=Popup&pageType=Custom&source=Main&dataAction=None&pageName=ServiceHome&portalId=' + portalId /*+ '&prms=' + prms*/;
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["Services"])', Width: 1000, Height: 1000 });
+        return false;
+    }
+
+    function OnNotification(date) {
+        var url = "/PortalAdmin/NotificationTemplate/NotificationIndex?date=" + date + "&lo=Popup&refType=NTS_Service";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Notifications', Width: 1400, Height: 800 });
+        return false;
+    }
+</script>
+
+
+@*<div class="banner-container">
+    <img style="width:100%; height:100px" src="~/images/NTS/Service.jpeg" />
+    <div class="banner-text">@Resource["ServiceHomeDashboard"]</div>
+</div>*@
+@*<div class="row hr-pad-top-10">
+    <div class="col-md-6">
+        <h4>
+        </h4>
+    </div>
+</div>*@
+
+
+<div id="appWrapper" class="hr-pad-top-15">
+
+    <div class="row">
+
+    </div>
+
+    <div class="row">
+
+    </div>
+
+
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-primary">
+                @*<div class="panel-heading">@Resource["ServiceDetails"]</div>*@
+                <div class="panel-body">
+                    @(Html.Kendo().Scheduler<DashboardCalendarViewModel>()
+                                            .Name("scheduler")
+                                            //.Events(e => e.DataBound("OnSchedulerDataBound"))
+                                            .Date(DateTime.Now.Date)
+                                            .StartTime(DateTime.Now.Date)
+                                            .Height(600)
+                                            .Views(views =>
+                                            {
+                                                views.DayView(x => x.AllDaySlot(true).Title(SharedResource["Day"]).Editable(false).MajorTick(1440).AllDayEventTemplateId("DayTemplate")
+                                                                );
+                                                views.WeekView(x => x.AllDaySlot(true).Title(SharedResource["Week"]).Editable(false).MajorTick(1440).AllDayEventTemplateId("WeekTemplate")
+                                                );
+                                                views.MonthView(x => x.Selected(true).Title(SharedResource["Month"]).Editable(false).EventHeight("auto").EventTemplateId("MonthTemplate")
+                                                );
+                                                //views.AgendaView(x => x.Editable(false).Title(SharedResource["Agenda"]).EventTemplateId("ajendaTemplate")
+                                                //);
+                                            })
+                                                    //.Selectable(true)
+                                                    //.Events(e => e.Edit("OnTask"))
+                                                    .Resources(resource =>
+                                                    {
+                                                        resource.Add(m => m.NtsId)
+                                                        .Title("Nts")
+                                                        .Name("Nts")
+                                                        .DataTextField("Text")
+                                                        .DataValueField("Value")
+                                                        .DataColorField("Color")
+                                                        .BindTo(new[] {
+                                                                new { Text = "Task", Value = "T", Color = "#e6f2ff" } ,
+                                                                new { Text = "Service", Value = "S", Color = "#c6ecd9" } ,
+                                                                new { Text = "Note", Value = "N", Color = "#ffd9b3" }
+                                                        });
+
+                                                    })
+                                            .DataSource(d => d
+                                            .Read("ReadWorkPerformanceCalendarData", "NtsService", new { moduleCodes = Model.ModuleCode })
+                                            )
+             )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/x-kendo-tmpl" id="DayTemplate">
+    <div class="row">
+    <div class="col">
+        <div class="row">
+             <div>
+               <a class="SYN-service-overdue" href="javascript:void(0);" #if(BacklogCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_OVERDUE')" #}# title="Backlog"><label id="taskAssODue">#if(BacklogCount>0){# #: BacklogCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-pending" href="javascript:void(0);" #if(OpenCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_INPROGRESS')" #}# title="Open"><label id="taskAssPen">#if(OpenCount>0){# #: OpenCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-completed" href="javascript:void(0);" #if(ClosedCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_CLOSE')" #}# title="Closed"><label id="taskAssCom">#if(ClosedCount>0){# #: ClosedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+        <div class="row">
+             <div>
+               <a class="SYN-task-overdue" href="javascript:void(0);" #if(NotificationCount>0){# onclick="OnNotification('#= kendo.toString(start, 'yyyy-MM-dd') #','NOTIFICATION')" #}# title="Notification"><label id="taskAssODue">#if(NotificationCount>0){# #: NotificationCount# #}else{# 0 #}#</label></span></a>
+               <a class="SYN-task-pending" href="javascript:void(0);" #if(ReminderCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','REMINDER')" #}# title="Reminder"><label id="taskAssPen">#if(ReminderCount>0){# #: ReminderCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-completed" href="javascript:void(0);" #if(NotStartedCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_NOT_STARTED')" #}#  title="Planned"><label id="taskAssCom">#if(NotStartedCount>0){# #: NotStartedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+    </div>
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="WeekTemplate">
+    <div class="row" style="height:100px;">
+    <div class="col">
+        <div class="row">
+             <div>
+               <a class="SYN-service-overdue" href="javascript:void(0);" #if(BacklogCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_OVERDUE')" #}# title="Backlog"><label id="taskAssODue">#if(BacklogCount>0){# #: BacklogCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-pending" href="javascript:void(0);" #if(OpenCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_INPROGRESS')" #}# title="Open"><label id="taskAssPen">#if(OpenCount>0){# #: OpenCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-completed" href="javascript:void(0);" #if(ClosedCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_CLOSE')" #}# title="Closed"><label id="taskAssCom">#if(ClosedCount>0){# #: ClosedCount# #}else{# 0 #}#</label></a>
+            </div>
+        </div>
+        <div class="row">
+             <div>
+               <a class="SYN-task-overdue" href="javascript:void(0);" #if(NotificationCount>0){# onclick="OnNotification('#= kendo.toString(start, 'yyyy-MM-dd') #','NOTIFICATION')" #}# title="Notification"><label id="taskAssODue">#if(NotificationCount>0){# #: NotificationCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-pending" href="javascript:void(0);" #if(ReminderCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','REMINDER')" #}# title="Reminder"><label id="taskAssPen">#if(ReminderCount>0){# #: ReminderCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-completed" href="javascript:void(0);" #if(NotStartedCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_NOT_STARTED')" #}#  title="Planned"><label id="taskAssCom">#if(NotStartedCount>0){# #: NotStartedCount# #}else{# 0 #}#</label></a>
+                </div>
+        </div>
+    </div>
+    </div>
+</script>
+<script type="text/x-kendo-tmpl" id="MonthTemplate">
+    <div class="row" >
+    <div class="col">
+        <div class="row">
+             <div>
+               <a class="SYN-service-overdue" href="javascript:void(0);" #if(BacklogCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_OVERDUE')" #}# title="Backlog"><label id="taskAssODue">#if(BacklogCount>0){# #: BacklogCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-pending" href="javascript:void(0);" #if(OpenCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_INPROGRESS')" #}# title="Open"><label id="taskAssPen">#if(OpenCount>0){# #: OpenCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-service-completed" href="javascript:void(0);" #if(ClosedCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_CLOSE')" #}# title="Closed"><label id="taskAssCom">#if(ClosedCount>0){# #: ClosedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+        <div class="row">
+             <div>
+               <a class="SYN-task-overdue" href="javascript:void(0);" #if(NotificationCount>0){# onclick="OnNotification('#= kendo.toString(start, 'yyyy-MM-dd') #','NOTIFICATION')" #}# title="Notification"><label id="taskAssODue">#if(NotificationCount>0){# #: NotificationCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-pending" href="javascript:void(0);" #if(ReminderCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','REMINDER')" #}# title="Reminder"><label id="taskAssPen">#if(ReminderCount>0){# #: ReminderCount# #}else{# 0 #}#</label></a>
+               <a class="SYN-task-completed" href="javascript:void(0);" #if(NotStartedCount>0){# onclick="OnService('#= kendo.toString(start, 'yyyy-MM-dd') #','SERVICE_STATUS_NOT_STARTED')" #}#  title="Planned"><label id="taskAssCom">#if(NotStartedCount>0){# #: NotStartedCount# #}else{# 0 #}#</label></a>
+
+             </div>
+        </div>
+    </div>
+    </div>
+</script>
+@*<script type="text/x-kendo-tmpl" id="ajendaTemplate">
+    <a onclick="return OnEventClick('#: data.NtsId #', '#: data.Id #');" class="template-link" style="color:rgba(98, 105, 117, 1);" title="#:data.title#( #= kendo.toString(start, 'dd MMM yyyy') # - #= kendo.toString(DueDate, 'dd MMM yyyy') #, #= StatusName #)">#: title #</a>
+</script>*@

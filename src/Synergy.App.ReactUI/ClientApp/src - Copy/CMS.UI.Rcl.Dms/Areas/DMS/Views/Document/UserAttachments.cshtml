@@ -1,0 +1,380 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@using Cms.UI.ViewModel;
+
+@{
+    ViewData["Title"] = Resource["UserAttachments"];
+    Layout = null;
+}
+
+<script>
+    window.OnDocError = (obj) => {
+
+        obj.style.display = "none"
+        //obj.onerror = null;
+        //obj.src = '';
+        //obj.width = 50;
+        //obj.height = 50;
+        //obj.style.marginTop = "35%";
+        //obj.className = "e-list-icon e-fe-pdf"
+        var dis = document.getElementById(obj.id.split("_")[1]);
+        dis.style.display = "block";
+        var ext = obj.id.substring(obj.id.lastIndexOf(".") + 1);
+        if (ext.toLowerCase().includes("pdf")) {
+            dis.className = "fal fa-file-pdf";
+            dis.style.color = "red";
+        } else if (ext.toLowerCase().includes("xlsx") || ext.toLowerCase().includes("Xls")) {
+            dis.className = "fal fa-file-excel";
+            dis.style.color = "green";
+        } else if (ext.toLowerCase().includes("doc")) {
+            dis.className = "fal fa-file-word";
+            dis.style.color = "darkblue";
+        } else if (ext.toLowerCase().includes("pptx") || ext.toLowerCase().includes("ppt")) {
+            dis.className = "fal fa-file-powerpoint";
+            dis.style.color = "orange";
+        }
+
+        //dis.width = 50;
+        //dis.height = 50;
+        dis.style.paddingTop = "75px";
+        dis.style.fontSize = "40px";
+
+    };
+    /*$("p").hide();*/
+    $(document).ready(function () {
+        var menu = $("#menu"),
+            original = menu.clone(true);
+
+        original.find(".k-state-active").removeClass("k-state-active");
+
+        $("#apply").click(function (e) {
+            e.preventDefault();
+            var clone = original.clone(true);
+
+            menu.getKendoContextMenu().destroy();
+            clone.appendTo("#example");
+
+            initMenu();
+        });
+
+        var initMenu = function () {
+            menu = $("#menu").kendoContextMenu({
+                target: "#listview-context-menu",
+                filter: ".product",
+                animation: {
+                    open: { effects: "fadeIn" },
+                    duration: 500
+                },
+                select: function (e) {
+                    // Do something on select
+                }
+            });
+        };
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/dms/Document/GetAttachments",
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listView").kendoListView({
+            dataSource: dataSource,
+            scrollable: "endless",
+            selectable: '@ListViewSelectionMode.Single',
+            template: kendo.template($("#template").html())
+        });
+    });
+
+    function select(e) {
+
+        menu = $(e.item).children(".k-link").text();
+        dataItem = $("#listView").data("kendoListView").dataItem($(e.target));
+        if (menu == "Preview") {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=' + dataItem.Id + "&canEdit=false";
+            win.OpenWindow({ Title: '@Html.Raw(Resource["PreviewAttachment"])', Width: 1000, Height: 700 });
+            return false;
+        } else if (menu == "Download File") {
+            window.location.href = "/cms/Document/GetFileMongo?fileId=" + dataItem.Id;
+        } else if (menu == "View Details") {
+            var portalId = $('#GlobalPortalId').val();
+            //var url = '/Cms/Page?lo=Popup&pageType=Note&source=View&dataAction=View&templateCodes=' + dataItem.templateCode + '&recordId=' + dataItem.ReferenceId + '&portalId=' + portalId;
+            //var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=' + dataItem.templateCode + '&recordId=' + dataItem.ReferenceId + '&portalId=' + portalId;
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=' + dataItem.TemplateCode + '&portalId=' + portalId + '&recordId=' + dataItem.ReferenceId;
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["Details"])', Width: 1200, Height: 650 });
+            return false;
+        }
+    }
+
+    //function onSearchFileName() {
+    //
+    //    var searchString = $("#Search").data("kendoTextBox");
+    //    //$.ajax({
+    //    //    url: '/dms/document/SearchDocumentByFileString?searchString=' + str,
+    //    //    dataType: "json",
+    //    //    success: function (result) {
+    //    //        if (result.success) {
+    //    //            var tst = paper.findViewByModel(rootNode);
+    //    //            refreshDiagram(tst.model);
+    //    //        }
+    //    //    }
+    //    //});
+    //    var listView = $("#listView").data("kendoListView");
+    //    var listViewDataSource = listView.dataSource;
+    //    listViewDataSource.filter([]);
+    //    var filter = {
+    //        logic: "and",
+    //        filters: [] // ready for filter from each of the dropdowns and search bar
+    //    };
+
+    //    var searchFilter = {
+    //        logic: "or",
+    //        filters: [
+    //            { field: "FullName", operator: "startswith", value: searchString },
+    //        ]
+    //    };
+    //    filter.filters.push(searchFilter);
+
+    //    // apply filter query to datasource
+    //    listViewDataSource.query({
+    //        filter: filter
+    //    });
+    //}
+    ////var $w = $('#width');
+    //$w.on('input change', function () {
+    //    console.log(this.value);
+    //    var cols = document.getElementsByClassName('product');
+    //    for (i = 0; i < cols.length; i++) {
+    //        cols[i].style.width = this.value;
+    //        cols[i].style.height = this.value + 50;
+    //    }
+
+    //    //paper.setDimensions(parseInt(this.value, 10), parseInt($h.val(), 10));
+    //});
+
+    function setZoom(zoom, el) {
+
+        transformOrigin = [0, 0];
+        el = el || instance.getContainer();
+        var p = ["webkit", "moz", "ms", "o"],
+            s = "scale(" + zoom + ")",
+            oString = (transformOrigin[0] * 2) + "% " + (transformOrigin[1] * 120) + "%";
+
+        for (var i = 0; i < p.length; i++) {
+            el.style[p[i] + "Transform"] = s;
+            el.style[p[i] + "TransformOrigin"] = oString;
+        }
+
+        el.style["transform"] = s;
+        el.style["transformOrigin"] = oString;
+
+    }
+
+    $('#Search').on('keyup', function () {
+           var listView = $("#listView").data("kendoListView");
+       var listViewDataSource = listView.dataSource;
+        var search = $.trim($(this).val());
+        if (search != "")
+            listViewDataSource.filter({ field: "FullName", operator: "contains", value: search });
+        else
+            listViewDataSource.filter({});
+        return;
+    });
+
+
+    //setZoom(5,document.getElementsByClassName('container')[0]);
+
+    function showVal(a) {
+        var zoomScale = Number(a) / 2;
+              var cols = document.getElementsByClassName('product');
+        for (i = 0; i < cols.length; i++) {
+            setZoom(zoomScale, cols[i])
+        }
+
+    }
+</script>
+
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="product" title="#:FullName#">
+        <div class="preview">
+    @*<img class="profile-img" src="/cms/Document/GetFileMongo?fileId=#:SnapshotMongoId#" style="text-align: center;" />*@
+
+                    <img id="img_#:Id#_#:FullName#" width="200" height="200"  src="/Cms/document/getimagemongo/#:Id#" onerror="OnDocError(this)">
+    <div id="#:Id#" style="display:none"></div>
+    </div>
+
+        <span id="fileName" class="span_text">#:DisplayName#</span>
+    <br>
+    <span class="dateText">#:CreatedDateDisplay#</span>
+        @*<p>#:kendo.toString(UnitPrice, "c")#</p>*@
+    </div>
+</script>
+
+@Resource["FileNameContains"]  @*@(Html.Kendo().TextBox().Name(@SharedResource["Search"]))*@
+<input type="text" id="@SharedResource["Search"]"  />
+@*<input id="width" type="range" value="150" step="1" min="150" max="500" onchange="showVal(this.value)" autocomplete="off" />*@
+<br />
+<br />
+
+@*@(Html.Kendo().ListView<CMS.UI.ViewModel.AttachmentViewModel>()
+                     .Name("listView")
+                     .TagName("div")
+                     .Scrollable(ListViewScrollableMode.Endless)
+                     .ClientTemplateId("template")
+                     .Selectable(ListViewSelectionMode.Single)
+                     //.Events(events=> events.Change("OnChange")
+                     //)
+                     .DataSource(dataSource => dataSource
+                     .Ajax().Read(read => read
+                     .Action("GetAttachments", "Document", new { area = "dms" })
+                     )
+         )//  .Pageable()
+    )*@
+
+<div id="listView"></div>
+
+@(Html.Kendo().ContextMenu()
+        .Name("menu")
+        .Target("#listView")
+        .Filter(".product")
+        .Animation(animation =>
+        {
+            animation.Open(open =>
+            {
+                open.Fade(FadeDirection.In);
+                open.Duration(500);
+            });
+        })
+        .Events(e=>e.Select("select"))
+        .Items(items =>
+        {
+
+
+            items.Add()
+                 .Text(@Resource["Preview"]).SpriteCssClasses("k-icon k-i-eye");
+
+            items.Add().Separator(true);
+
+            items.Add()
+                 .Text(@Resource["DownloadFile"]).SpriteCssClasses("k-icon k-i-download");
+
+            items.Add().Separator(true);
+
+            items.Add()
+                 .Text(@Resource["ViewDetails"]).SpriteCssClasses("k-icon k-i-document-manager");
+
+
+        })
+    )
+<style>
+
+    .svg-inline--fa {
+        height: unset !important;
+    }
+
+    .k-sprite.k-icon {
+        font-size: 16px;
+        padding-top: 6%;
+    }
+
+    .dateText {
+        color: grey;
+        font-size: 10px;
+    }
+
+    .span_text {
+        font-size: 12px;
+    }
+
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+    }
+
+    .k-listview-content {
+        overflow: hidden;
+    }
+
+    #fileName {
+        word-wrap: break-word;
+    }
+
+    .preview {
+        height: 80%;
+        text-align: center;
+    }
+
+
+    .product {
+        float: left;
+        position: relative;
+        width: 200px;
+        height: 250px;
+        margin: 10px;
+        padding: 0;
+        border-style: solid;
+        border-width: 1px;
+        border-color: #dee2e6;
+        word-wrap: break-word;
+    }
+
+    .k-listview {
+        border-color: #ffffff;
+        color: #212529;
+        background-color: #fff;
+    }
+
+    .preview img {
+        /*  width: 100%;
+        height: 100%;*/
+    }
+
+    .product h3 {
+        margin: 0;
+        padding: 3px 5px 0 0;
+        max-width: 96px;
+        overflow: hidden;
+        line-height: 1.1em;
+        font-size: .9em;
+        font-weight: normal;
+        text-transform: uppercase;
+        color: #999;
+    }
+
+    .product p {
+        visibility: hidden;
+    }
+
+    .product:hover p {
+        visibility: visible;
+        position: absolute;
+        width: 110px;
+        height: 110px;
+        top: 0;
+        margin: 0;
+        padding: 0;
+        line-height: 110px;
+        vertical-align: middle;
+        text-align: center;
+        color: #fff;
+        background-color: rgba(0,0,0,0.75);
+        transition: background .2s linear, color .2s linear;
+        -moz-transition: background .2s linear, color .2s linear;
+        -webkit-transition: background .2s linear, color .2s linear;
+        -o-transition: background .2s linear, color .2s linear;
+    }
+
+    .k-listview:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+</style>

@@ -87,6 +87,8 @@ const navigation = () => {
           title: 'Documents',
           path: '/dashboards/document-management/documents'
         },
+       
+       
       
         // {
         //   title: 'Department Hierarchy',
@@ -242,17 +244,17 @@ const navigation = () => {
       title: 'Leave',
       icon: 'mdi:shield-outline',
       children: [
-        {
+       {
           title: 'Leave Details',
-          path: '/apps/roles'
+          path: '/dashboards/leave-details'
         },
         {
-          title: 'Business Trip',
-          path: '/apps/permissions'
+          title: 'Bussiness Trip',
+          path: '/dashboards/bussiness-trip'
         },
         {
           title: 'Time Permission',
-          path: '/apps/'
+          path: '/dashboards/time-permison'
         }
       ]
     },
@@ -264,7 +266,7 @@ const navigation = () => {
       children: [
         {
           title: 'Salary Info',
-          path: '/pages/faq'
+          path: '/dashboards/payroll'
         },
         {
           title: 'PaySlip',

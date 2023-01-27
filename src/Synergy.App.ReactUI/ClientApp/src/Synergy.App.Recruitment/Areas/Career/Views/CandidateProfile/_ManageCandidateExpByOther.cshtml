@@ -1,0 +1,229 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+
+@{
+    ViewData["Title"] = "Manage Experience By Other";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model CandidateExperienceByOtherViewModel
+
+<style>
+    .k-switch-label-on, .k-switch-label-off {
+        display: flex
+    }
+
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+    .cms-managecandedu-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+
+    }
+
+</style>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <form asp-controller="CandidateProfile" asp-action="ManageCandidateExpByOther" method="post" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+
+        @*<form asp-controller="CandidateProfile" asp-action="ManageCandidateExpByOther" method="post" class="form-horizontal">*@
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="SequenceOrder" type="number" min="0" class="form-control" placeholder="Sl No" autocomplete="off" style="width:80%;" required="required" />
+                    <label for="SequenceOrder">Sl No <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <div>
+                        <label for="sector">Other Type <span class="required">*</span></label>
+                    </div>
+                    <input class="form-control" asp-for="OtherTypeId" style="width:80%" required />
+                    @*@(Html.Kendo().DropDownListFor(x=>x.OtherTypeId)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                                 .Filter(FilterType.Contains)
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetListOfValueList", "ListOfValue", new { @area = "Recruitment", @type = "LOV_COUNTRY" });
+                                        //read.Action("GetLocationList", "CandidateProfile");
+                                    });
+                                })
+                                .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                //.Value()
+                                .HtmlAttributes(new { @class="form-control", style = "width: 80%" })
+                    )*@
+                </div>
+            </div>
+
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="NoOfYear" type="number" class="form-control" placeholder="No Of Years" autocomplete="off" style="width:80%;" required="required" />
+                    <label for="NoOfYear">No Of Years <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-15">
+                &nbsp;
+            </div>
+
+            <div class="cms-slidebar-footer">
+                <input type="button" class="btn btn-light" value="Close" onclick="closeNavCandExpByOther()" />
+                <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.CandidateId)
+        @Html.HiddenFor(x => x.IsLatest)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.Json)
+    </form>
+</div>
+
+<script type="text/javascript">
+      var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("SavedSuccessfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("UpdatedSuccessfully", "success");
+            }
+            closeNavCandExpByOther();
+            window.parent.GetCandidateExperiencebyOther();
+           // window.parent.getApplicationDocumentData();
+        }
+        else {
+
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+
+        }
+    };
+    $(document).ready(function () {
+    $("#OtherTypeId").kendoDropDownList({
+            optionLabel: "--Select--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.OtherTypeId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetLOVIdNameList?lovType=LOV_COUNTRY",
+                    }
+                }
+            }
+        });
+        if ('@ViewBag.Success' == "True") {
+          //
+         //   window.parent.parent.$("#kgrdCandExpByOther").data("kendoGrid").dataSource.read();
+            closeNavCandExpByOther();
+        }
+    });
+    function OnSave(evt) {
+
+        if ($("#OtherTypeId").data("kendoDropDownList").value() == "") {
+            //
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Other Type is required");
+            evt.preventDefault();
+            return false;
+
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+    }
+
+
+
+    function closeNavCandExpByOther() {
+        //window.parent.CloseIframePopup();
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'RefreshCO' });
+        return false;
+    }
+
+    //function onFileUploadSuccess(e) {
+    //    //alert(e.response.fileId);
+    //    //
+    //    if (e.response.success) {
+    //        $("#AttachmentId").val(e.response.fileId);
+    //    }
+    //    else {
+    //        //var msg = ExtractError(e.response.errors, true);
+    //        //alert(msg);
+    //    }
+    //    return true;
+    //}
+
+
+    //function onProfileDel() {
+    //    //
+    //    //  $('#dlg_DeleteConfirmation').data("kendoDialog").open();
+
+    //    if ( $("#PhotoId").val()!='') {
+    //     //
+    //        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+    //            confirmDelete();
+    //        }, function () {
+
+    //        });
+    //    }
+
+    //}
+
+    //function confirmDelete() {
+    // //
+    //    //        alert("Banner Delete");
+    //    $(".avatar-myProfile").attr("src", "/images/200.png");
+    //    $("#PhotoId").val('');
+    //    var logoupload = $("#files").data("kendoUpload");
+    //    //console.log(logoupload);
+    //    logoupload.clearFile(function (file) { return true; });
+    //}
+
+    //function onExpFileUploadSuccess(e) {
+    //    if (e.response.success) {
+    //        $("#AttachmentId").val(e.response.fileId);
+    //        //document.getElementById('IsLatestOfferLetterSalarySlip').checked = true;
+    //    }
+    //    else {
+    //        //var msg = ExtractError(e.response.errors, true);
+    //        //alert(msg);
+    //    }
+    //    return true;
+    //}
+</script>
+

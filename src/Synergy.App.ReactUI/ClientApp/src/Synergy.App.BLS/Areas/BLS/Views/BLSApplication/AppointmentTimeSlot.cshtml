@@ -1,0 +1,245 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration configuration
+@inject IStringLocalizer<Synergy.App.BLS.Areas.Controllers.BLSApplicationController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Microsoft.Extensions.Configuration;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Time Slot";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+@model BLSTimeSlotViewModel
+
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner" style="margin-left:10px;">
+
+
+            <form asp-area="BLS" asp-controller="BLSApplication" asp-action="ManageTimeSlot" method="post" class="form-horizontal" id="myForm">
+                <div class="text-danger" asp-validation-summary="All"></div>
+                <div class="row" style="padding:10px;">
+                    <div class="col-6 pad-10">
+                        <div class="form-label-group">
+                            <div>
+                                <label for="LocationId">@Resource["Location"]</label>
+                            </div>
+
+                            <input asp-for="LocationId" id="LocationId" class="form-control" style="width:80%" required="required" />
+
+                        </div>
+                    </div>
+
+                    <div class="col-6 pad-10">
+                        <div class="form-label-group">
+                            <div>
+                                <label for="SlotCategoryId">@Resource["SlotCategory"]</label>
+                            </div>
+                            <input asp-for="SlotCategoryId" type="text" class="form-control" style="width:80%" required="required" />
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="padding:10px;">
+                    <div class="col-6 pad-10">
+                        <div class="form-label-group">
+                            <div>
+                                <label for="SlotDuration">@Resource["SlotDuration"]</label>
+                            </div>
+
+                            <input asp-for="SlotDuration" id="SlotDuration" class="form-control" style="width:80%" required="required" onkeyup="onkeypressv()"/>
+
+                        </div>
+                    </div>
+
+                    <div class="col-6 pad-10">
+                        <div class="form-label-group">
+                            <div>
+                                <label for="NoOfCounter">@Resource["NoOfCounter"]</label>
+                            </div>
+                            <input asp-for="NoOfCounter" type="text" class="form-control" style="width:80%" required="required" />
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="padding:10px;">
+                    <div class="col-6 pad-10">
+                        <div class="form-label-group">
+                            <div>
+                                <label for="Day">@Resource["Day"]</label>
+                            </div>
+
+                            <input asp-for="Day" id="Day" class="form-control" style="width:80%" required="required" />
+
+                        </div>
+                    </div>
+
+                    <div class="col-6 pad-10">
+                        <div class="form-label-group">
+                            @*<div>
+                        <label for="NoOfCounter">No Of Counter</label>
+                    </div>
+                    <input asp-for="NoOfCounter" type="text" class="form-control" style="width:80%" required="required" />*@
+                        </div>
+                    </div>
+
+                </div>
+                <br />
+                <div class="row" style="padding:10px;">
+                    <div class="col-sm-12 col-md-8 col-lg-8">
+                        <div id="listView" class="k-listview" style="width:300px;height:300px;overflow-y:scroll;"></div>
+                    </div>
+                </div>
+                    <hr />
+                    <br />
+
+
+                    <div class="cms-slidebar-footer">
+                    <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">@Resource["Close"]</button>
+                    <input type="submit" class="btn btn-primary" value="@Resource["Save"]" id="submitBtn" onclick="return showSelected();" />
+                        @*<input type="submit" class="btn btn-primary" style="margin-right:20px" value="Save" id="submitBtn" />*@
+                       
+                    </div>
+
+                    @Html.HiddenFor(x => x.Id)
+                    @Html.HiddenFor(x => x.TimeSlots)
+                    @Html.HiddenFor(x => x.DataAction)
+            </form>
+
+
+        </div>
+    </div>
+</div>
+<script type="text/x-kendo-tmpl" id="myTemplate">
+    <div class="item click" data="1" style="cursor: default;">
+        #if(data.Checked)
+        {#
+            <input type="checkbox" class="click" checked/>
+        #}
+        else
+        {#
+            <input type="checkbox" class="click"/>
+        #}#
+        <span class="checkbox"> #: Slot# </span>
+    </div>
+</script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+            closeNavMemberGroup();
+        }
+            var dataSource = new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/bls/blsapplication/GetTimeSlotList?duration=@Model.SlotDuration&Id=@Model.Id",
+                        dataType: "json"
+                    }
+                }
+            });
+
+            listView = $("#listView").kendoListView({
+                dataSource: dataSource,
+                template: kendo.template($("#myTemplate").html())
+            }).data("kendoListView");
+
+
+       
+
+       
+
+        //$("#submitBtn").bind("click", showSelected);
+
+       
+
+        $("#LocationId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.LocationId',
+            filter: "contains",
+            change: onchange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/bls/BLSApplication/GetLocationList",
+                    }
+                }
+            }
+        });
+
+        $("#SlotCategoryId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.SlotCategoryId',
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/bls/BLSApplication/GetAppointmentCategoryList",
+                    }
+                }
+            }
+        });
+
+        $("#Day").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.Day',
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/query/GetEnumIdNameList?enumType=WeekDay",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function showSelected() {
+        debugger;
+        var data = $("#listView").data("kendoListView").dataSource.view();
+        var checkboxes = $("#listView").find("input:checkbox:checked");
+        var selectedTags = $.map(checkboxes, function (item) { return data[$(item).parent().index()].Slot });
+        
+        if (selectedTags == '') {
+            return false;
+        }
+        else {
+            $("#TimeSlots").val(selectedTags);
+            return true;
+        }
+        return false;
+        //console.log(checkboxes);
+        //console.log(selectedTags);
+    }
+
+    function onkeypressv() {        
+        var du = $("#SlotDuration").val();
+        var dataSource1 = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/bls/blsapplication/GetTimeSlotList?duration=" + du,
+                    dataType: "json"
+                }
+            }
+        });
+
+        var listView1 = $("#listView").data("kendoListView");
+        listView1.setDataSource(dataSource1);        
+    }
+
+</script>

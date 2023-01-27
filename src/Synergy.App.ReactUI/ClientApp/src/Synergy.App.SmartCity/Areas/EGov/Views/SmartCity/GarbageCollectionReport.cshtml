@@ -1,0 +1,212 @@
+﻿@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@model JSCGarbageCollection*@
+
+@{
+    ViewData["Title"] = "Garbage Collection Report";
+    Layout = null;
+}
+
+<style>
+    .divDim {
+        width: 100%;
+        height: 100%;
+        min-height: calc(100vh - 6.5rem);
+        margin: auto;
+    }
+</style>
+
+<script>
+    $(function () {
+        var url = "/EGov/SmartCity/GetAllGarbageCollectionData";
+        getGarbageCollectionDetails(url);
+
+        $("#WardId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: 'Select Ward No',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetWardList",
+                    }
+                }
+            }
+        });
+
+        $("#autoNo").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: 'Select Auto No',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetJSCAutoList",
+                    }
+                }
+            }
+        });
+
+        //$("#CollectorName").kendoDropDownList({
+        //    dataTextField: "Name",
+        //    dataValueField: "Id",
+        //    filter: "contains",
+        //    optionLabel: 'Select Collector',
+        //    dataSource: {
+        //        transport: {
+        //            read: {
+        //                url: "/EGov/SmartCity/GetJSCCollectorList",
+        //            }
+        //        }
+        //    }
+        //});
+
+        $("#autoNo").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: 'Select Auto No',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetJSCAutoList",
+                    }
+                }
+            }
+        });
+
+        $("#CollectionDate").kendoDatePicker({
+            format: "dd-MM-yyyy",
+            value: "dd-MM-yyyy",
+        });
+
+    });
+
+    var columnDefs = [
+        {
+            field: "ParcelId",
+            headerName: "Parcel Id",
+            minWidth: 150,
+        },
+        {
+            field: "WardNo",
+            headerName: "Ward No",
+            minWidth: 150,
+        },
+        {
+            field: "CollectedByUserName",
+            headerName: "Collected By User",
+            minWidth: 150,
+        },
+        {
+            field: "AutoNumber",
+            headerName: "Auto No",
+            minWidth: 150,
+        },
+        {
+            field: "ParcelId",
+            headerName: "DDN",
+            minWidth: 150,
+        },
+        {
+            field: "CollectionDateTime",
+            headerName: "Collection Date",
+            minWidth: 150,
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear() + " " +  date.getHours() + ":" + date.getMinutes();
+            }
+        }
+    ];
+
+    function getGarbageCollectionDetails(url) {
+        document.getElementById("garbageGrid").innerHTML = "";
+        gridConfig(
+            "garbageGrid",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function FilterResults(flag) {
+        var newUrl = "";
+        if (flag) {
+            debugger;
+            var autoNo = $("#autoNo").val();
+            var wardNo = $("#WardId").val();
+            //var collectorName = $("#CollectorName").val();
+            var dateVal2 = kendo.toString($("#CollectionDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+            /*var dateVal = $("#CollectionDate").data("kendoDatePicker").value();*/
+            newUrl = "/EGov/SmartCity/GetAllGarbageCollectionData?autoNo=" + autoNo + "&wardNo=" + wardNo + "&collectionDate=" + dateVal2;
+        }
+        else {
+            var autoNo = $("#autoNo").val("");
+            var dropdownBox = $("#WardId").data("kendoDropDownList");
+            dropdownBox.text("");
+            dropdownBox.value("");
+            //var collectorName = $("#CollectorName").val("");
+            newUrl = "/EGov/SmartCity/GetAllGarbageCollectionData";
+        }
+        getGarbageCollectionDetails(newUrl);
+    }
+
+</script>
+
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="row no-gutters p-2">
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <h5>Garbage Collection Report</h5>
+                </div>
+            </div>
+            <div class="row pad-20">
+                <div class="col-lg-3 col-md-3 col-sm-12 p-1">
+                    @*<input id="CollectionDate" style="width:100%" required />*@
+                    <label for="AppointmentDate" class="form-label">
+                        Collection Date
+                    </label>
+                    <div>
+                        <input id="CollectionDate" style="width:100%" required />
+                    </div>
+                </div>
+                 <div class="col-lg-3 col-md-3 col-sm-12 p-1">
+                    <label for="WardId" class="form-label">
+                        Ward Number
+                    </label>
+                    <div id="WardId" style="width:100%;"></div>
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-12 p-1">
+                    <label for="autoNo" class="form-label">
+                        Auto Number
+                    </label>
+                    <div id="autoNo" style="width:100%;"></div>
+                 </div>
+              @*  <div class="col-lg-3 col-md-3 col-sm-12 p-1">
+                    <label for="CollectorName" class="form-label">
+                        Collector
+                    </label>
+                    <div id="CollectorName" style="width:100%;"></div>
+                </div>*@
+               
+              
+                <div class="col-lg-3 col-md-3 col-sm-12 " style="    padding: 3%;">
+                    <button class="btn btn-primary mx-1" onclick="FilterResults(true)"><i class="fa fa-search" aria-hidden="true"></i></button>
+                    <button class="btn btn-secondary" onclick="FilterResults(false)"><i class="fa-solid fa-filter-circle-xmark"></i></button>
+                </div>
+            </div>
+
+            <div id="garbageGrid" style="width: 100%;height:350px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>

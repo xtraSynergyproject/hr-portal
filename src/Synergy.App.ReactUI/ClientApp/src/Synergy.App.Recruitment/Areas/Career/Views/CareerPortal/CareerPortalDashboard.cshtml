@@ -1,0 +1,443 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration configuration
+@inject Synergy.App.Common.IUserContext _userContext
+@model Synergy.App.ViewModel.CareerPortalDashboardViewModel
+@using Microsoft.Extensions.Configuration
+@{
+
+    ViewBag.Title = "Home";
+    Layout = null;
+}
+
+<link href="~/css/CareerPortal/layout-style.css" rel="stylesheet" />
+
+<style>
+    .col-half-offset {
+        margin-left: 3.326666667%
+    }
+
+    .card-block {
+        font-size: 1em;
+        position: relative;
+        margin: 0;
+        padding: 1em;
+        border: none;
+        border-top: 1px solid rgba(34, 36, 38, .1);
+        box-shadow: none;
+    }
+
+    .card {
+        font-size: 1em;
+        overflow: hidden;
+        padding: 5;
+        border: none;
+        border-radius: .28571429rem;
+        box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
+        margin-top: 20px;
+    }
+
+    .carousel-indicators li {
+        border-radius: 12px;
+        width: 12px;
+        height: 12px;
+        background-color: #404040;
+    }
+
+    .carousel-indicators li {
+        border-radius: 12px;
+        width: 12px;
+        height: 12px;
+        background-color: #404040;
+    }
+
+    .carousel-indicators .active {
+        background-color: white;
+        max-width: 12px;
+        margin: 0 3px;
+        height: 12px;
+    }
+
+    .carousel-control-prev-icon {
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 8 8'%3E%3Cpath d='M5.25 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z'/%3E%3C/svg%3E") !important;
+    }
+
+    .carousel-control-next-icon {
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 8 8'%3E%3Cpath d='M2.75 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z'/%3E%3C/svg%3E") !important;
+    }
+
+    tr:nth-child(even) {
+        background-color: #fdfdfd;
+    }
+
+    .table {
+        background: #ffffff;
+        font-size: 16px;
+    }
+
+    .table-responsive {
+        box-shadow: -1px 1px 11px 3px #bbb;
+    }
+</style>
+<section class="text-center">
+    @*<div class="parallax-container" data-parallax-img="~/images/crpfTest2.jpg">*@
+    <div class="material-parallax parallax"><img src="~/images/crpfTest2.jpg" alt="" style="display: block; transform: translate3d(-50%, 441px, 0px);"></div>
+    <div class="parallax-content">
+        <div class="bg-overlay-gray-darkest">
+            <div class="shell section-98 section-sm-320">
+                <div class="range range-xs-center">
+                    <div class="cell-xs-12">
+                        <div class="text-extra-big text-white text-bold" style="padding-bottom:30px;">Build Your Future</div>
+                        <form class="offset-top-10">
+                            <div id="searchJob" class="group-sm group-top">
+                                <div class="group-item element-fullwidth" style="max-width: 330px;">
+                                    <div class="form-group">
+                                        <input class="form-control" id="txtSearch" type="text" name="s" placeholder="Job title" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="group-item element-fullwidth" style="max-width: 330px;">
+                                    <input type="text" id="drpCategory" class="form-control" style="width:300px;" />
+                                </div>
+                                <div class="reveal-block reveal-lg-inline-block">
+                                    <button class="btn btn-primary" type="button" onclick="SearchJob();">Find Job</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</section>
+
+<!-- Job Category By Parent -->
+<div id="jobCategory" class="section-top-50 section-bottom-34 section-lg-top-0 section-lg-bottom-0 context-dark bg-primary row no-gutters">
+    @foreach (var division in Model.JobCategoryList.Where(x => x.ParentId != null && x.SequenceOrder != null).GroupBy(x => x.ParentId).Select(x => new Synergy.App.ViewModel.ListOfValueViewModel { ParentId = x.First().ParentId, ParentName = x.First().ParentName, SequenceOrder = x.First().SequenceOrder }).OrderBy(x => x.SequenceOrder))
+    {
+        <div class="col-md-6 row no-gutters" style="border-right:1px solid gray;">
+            <div class="col-md-12 text-center pb-0 pt-2 bg-info" style="height:50px;font-size:24px;font-weight:600">
+                @division.ParentName
+            </div>
+            <div class="col-md-12 row no-gutters">
+                @foreach (var item in Model.JobCategoryList.Where(x => x.ParentId == division.ParentId))
+                {
+                    <div class="col-md-4 bg-primary job-category" onclick="FilterByCategory('', '@item.Id', '@item.Code', '@item.Name', true)">
+                        <div class="text-center pad-t-15"><i class="fa fa-2x @item.IconCss"></i></div>
+                        <h5 class="text-center font-weight-bold pad-t-15">@item.Name</h5>
+                        <div class="text-center font-weight-bold">@item.JobCount</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+<br />
+<br />
+
+<!-- Manpower Type -->
+<div class="text-center pb-0 pt-2 bg-info" style="height:50px;font-size:24px;text-align:center;font-weight:600;color:white">ManpowerType</div>
+<div id="manpowertype" class="section-top-50 section-bottom-34 section-lg-top-0 section-lg-bottom-0 context-dark bg-primary row no-gutters">
+
+
+
+    @foreach (var division in Model.ManpowerTypeList.OrderBy(x => x.SequenceOrder))
+    {
+
+
+        <div class="col-sm-2 col-half-offset" style="padding-top:8px;border-right:1px solid gray;font-size:20px;font-weight:600;cursor:pointer;" onclick="FilterByCategory('', null, null, null, true,'@division.Id','@division.Name')">
+            <div class="text-center">
+                @division.Name
+            </div>
+
+            @*<div class="col-md-12 text-center pb-0 pt-2 bg-info" style="height:50px;font-size:24px;font-weight:600" onclick="FilterByCategory('', null, null, null, true,'@division.Id')">
+                    @division.Name
+                </div>*@
+        </div>
+
+    }
+
+</div>
+
+<!-- Jobs List -->
+<section class="section-98 section-sm-110" id="job-section">
+    <div class="shell text-center">
+        <h1 class="text-center">Latest Jobs</h1>
+        <hr class="divider divider-sm bg-darkers">
+        <h4 id="cat-section" style="display:none;" class="text-center">Job Category:&nbsp;<span id="category" class="font-weight-bold"></span></h4>
+        <h4 id="manpower-section" style="display:none;" class="text-center">ManpowerType:&nbsp;<span id="manpowersection" class="font-weight-bold"></span></h4>
+        <div id="tableData" class="table-responsive clearfix job-div" style="width:80%;margin:auto;">
+            <div id="JobGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+        </div>
+        @*<div class="range range-xs-center offset-top-66">
+                <div class="cell-xs-5 cell-sm-3 cell-md-3 cell-lg-2"><a class="btn btn-primary reveal-xs-block" href="https://livedemo00.template-help.com/wt_prod-12861/find-job.html">view all</a></div>
+            </div>*@
+    </div>
+</section>
+
+<!-- Why People Choose Us-->
+<!-- Start Building Your Own Job Board Now-->
+<section class="context-dark">
+    <div class="parallax-container" data-parallax-img="~/images/112.jpg">
+        <div class="material-parallax parallax"><img src="~/images/112.jpg" alt="" style="display: block; transform: translate3d(-50%, 13px, 0px);"></div>
+        <div class="parallax-content">
+            <div class="bg-overlay-gray-darkest">
+                <div class="shell section-124">
+                    <div class="range range-xs-middle range-condensed">
+                        <div class="cell-md-8 cell-lg-10 text-center text-md-left">
+                            <h1 class="text-center">WORK WITH US</h1>
+                        </div>
+                        @*<h5 class="cell-md-4 cell-lg-2 offset-top-66 offset-md-top-0 text-center">At Galfar Al Misnad, we recognize that people are the key resource behind all other resources, which enable an organization to succeed.  </h5>*@
+                        <h5 class="cell-md-4 cell-lg-2 offset-top-66 offset-md-top-0 text-center">We recognize that people are the key resource behind all other resources, which enable an organization to succeed.  </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Latest Blog Posts-->
+<section class="section-98 section-sm-110 pt-0">
+    <div class="row pad-15">
+        <div class="col-4">
+            <div class="card" style="height:225px;">
+                @*<img class="card-img-top" src="~/images/blog1.jpg" alt="Image">*@
+                <div class="card-body">
+                    <p class="card-text" style="text-align:justify">During recruitment, we look beyond skills and experience, and seek out individuals with dynamic attitudes, values, and leadership potential.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="height:225px;">
+                @*<img class="card-img-top" src="~/images/blog2.jpg" alt="Image">*@
+                <div class="card-body">
+                    <p class="card-text" style="text-align:justify">Once the best candidates join our fold, we invest in nurturing their talent, building competencies, and developing leaders by providing challenging assignments under the mentorship of senior team members.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="height:225px;">
+                @*<img class="card-img-top" src="~/images/blog3.jpg" alt="Image">*@
+                <div class="card-body">
+                    <p class="card-text" style="text-align:justify">To ensure that every employee can engage in continuous professional development, we conduct regular performance evaluations, as well as capacity building training sessions. This doctrine of talent management is grounded in the foundation of a robust reward and recognition mechanism for high performers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        FilterByCategory(null, null, null, null, false,null,null);
+
+    });
+
+    function SearchJob() {
+        var text = $('#txtSearch').val();
+        var categoryId = $("#drpCategory").data("kendoDropDownList");
+        FilterByCategory(text, categoryId.value(), null, categoryId.text(),true);
+    }
+
+    Array.prototype.contains = function (v) {
+        for (var i = 0; i < this.length; i++) {
+            if (this[i] === v) return true;
+        }
+        return false;
+    };
+
+    Array.prototype.unique = function () {
+        var arr = [];
+        for (var i = 0; i < this.length; i++) {
+            if (!arr.contains(this[i])) {
+                arr.push(this[i]);
+            }
+        }
+        return arr;
+    }
+
+    function FilterByCategory(text, categoryId, categoryCode, categoryName, move, manpowertype, manpowertypename) {
+        debugger;
+        if (categoryName != null && categoryName != '' && categoryName!='Any Category') {
+            $('#cat-section').show();
+           $('#category').html(categoryName);
+
+        }
+        else {
+            $('#cat-section').hide();
+        }
+        if (move) {
+            var pos = $("#job-section").position().top;
+            $("html, body").animate({ scrollTop: pos }, 1000);
+        }
+        if ( text === undefined || text===null ||text==='null') {
+            text = '';
+        }
+        if (categoryId === undefined || categoryId === null) {
+            categoryId = '';
+        }
+        if (manpowertype === undefined || manpowertype === null) {
+            manpowertype = '';
+        }
+        //if (manpowertype != null && manpowertype != '') {
+        //    $('#manpower-section').show();
+        //    $('#manpowersection').html(manpowertypename);
+
+        //}
+        //else {
+        //    $('#manpower-section').hide();
+        //}
+        //var api = '@configuration.GetValue(typeof(string),"WebApiUrl")';
+        //var url = api +'Career/CareerPortal/GetJobAdvertisementList?keyWord=' + text + '&categoryId=' + categoryId + '&manpowerType='+ manpowertype+"&agencyId=@_userContext.UserId";
+        ShowLoader($('#job-section'));
+        //console.log(url);
+        $.ajax({
+            url: "/Career/CareerPortal/GetJobAdvertisementList?keyWord=" + text + "&categoryId=" + categoryId + "&manpowerType="+ manpowertype+"&agencyId=@_userContext.UserId",
+            type: 'GET',
+            async: true,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            dataType: "json",
+            success: function (data) {
+
+                var datalist = data.map(x => x.ManpowerTypeName).unique();
+               // console.log(manpowertype);
+                var html = "";
+                //var datalist = '@Model.ManpowerTypeList';
+               // var datalist = @Html.Raw(Json.Serialize(Model.ManpowerTypeList));
+                @*var src = '@Url.Action("getimagemongo","document",new { @area="Cms",id=ViewBag.Page.Portal.LogoId})';*@
+                for (var j = 0; j <= datalist.length-1; j++) {
+                    console.log(j);
+                    //var item = data.filter(x => x.ManpowerType == datalist[j].Id);
+                    var item = data.filter(x => x.ManpowerTypeName == datalist[j]);
+                    console.log(item);
+
+                    html += '<span  style="font-size:24px">' + datalist[j] +'</span> <table class="table table-striped">\
+                    <tbody>\
+                    <tr>\
+                        <th class="text-regular text-dark big" style="font-size:18px;font-weight:bold;">Job Category</th>\
+                        <th class="text-regular text-dark big" style="font-size:18px;font-weight:bold;">Job Name</th>\
+                        <th class="text-regular text-dark big" style="font-size:18px;font-weight:bold;">Location</th>\
+                        <th class="text-regular text-dark big" style="font-size:18px;font-weight:bold;"></th>\
+                    </tr>';
+
+                    for (var i = 0; i < item.length; i++) {
+                        html += '<tr>\
+                        <th class="text-regular text-dark big">'+ (item[i].JobCategoryName === null ? '' : item[i].JobCategoryName) + '</th>\
+                        <th class="text-regular text-dark big">'+ (item[i].JobName === null ? '' : item[i].JobName) + '</th>\
+                        <th class="text-regular text-dark big">'+ (item[i].LocationName === null ? '' : item[i].LocationName) + '</th>\
+                        <th  class="text-regular text-dark big"><input id="discover" type="button" onclick="DiscoverMore(\''+ item[i].Id + '\')" class="btn btn-sm btn-primary" value="Discover more"/></th>\
+                    </tr>';
+                    }
+                    html += '</tbody>\
+            </table > <br/>';
+
+                }
+                if (datalist.length == 0) {
+                    html += '<div class="text-regular text-dark big" style="font-size:18px;font-weight:bold;text-align:center;background-color:#faebd7;">No jobs available</div>\
+            ';
+                }
+
+                $('.job-div').html(html);
+                HideLoader($('#job-section'));
+
+            },
+            error: function (errData) {
+                console.log(errData);
+                container.html(errData);
+                HideLoader($('#job-section'));
+            }
+        });
+    }
+
+    function DiscoverMore(jobAdvId) {
+        debugger;
+        console.log(jobAdvId);
+        var url = '@Html.Raw(string.Concat("/Portal/", ViewBag.Page.Portal.Name, "/JobDetails?&customurl="))' + encodeURIComponent("jobAdvId=" + jobAdvId) ;
+        window.location.href = url;
+    }
+
+    $("#drpCategory").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel:"--Select Any--",
+            value: 'Id',
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Career/CareerPortal/GetJobList?type=REC_JOB_CATEGORY",
+                    }
+                }
+            }
+        });
+
+    var columnDefs = [
+
+        {
+            headerName: "Job Category",
+            field: "JobCategoryName"
+        },
+        {
+            field: "JobName",
+            headerName: "Job Name",
+
+        },
+        {
+            headerName: "Location",
+            field: "LocationName"
+        },
+        {
+            field: "Id",
+            headerName: "Action",
+            cellRenderer: params => {
+                debugger;
+                return '<input id="discover" type="button" onclick="DiscoverMore(\'' + params.data.Id + '\')" class="btn btn-sm btn-primary" value="Discover more"/>';
+            }
+        },
+
+
+    ];
+
+    function getJobListData(text, categoryId, categoryCode, categoryName, move, manpowertype, manpowertypename) {
+
+        if (categoryName != null && categoryName != '' && categoryName != 'Any Category') {
+            $('#cat-section').show();
+            $('#category').html(categoryName);
+
+        }
+        else {
+            $('#cat-section').hide();
+        }
+        if (move) {
+            var pos = $("#job-section").position().top;
+            $("html, body").animate({ scrollTop: pos }, 1000);
+        }
+        if (text === undefined || text === null || text === 'null') {
+            text = '';
+        }
+        if (categoryId === undefined || categoryId === null) {
+            categoryId = '';
+        }
+        if (manpowertype === undefined || manpowertype === null) {
+            manpowertype = '';
+        }
+
+        document.getElementById("JobGridView").innerHTML = "";
+
+        gridConfig(
+            "JobGridView",
+            "/Career/CareerPortal/GetJobAdvertisementList?keyWord=" + text + "&categoryId=" + categoryId + "&manpowerType="+ manpowertype+"&agencyId=@_userContext.UserId",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+</script> 

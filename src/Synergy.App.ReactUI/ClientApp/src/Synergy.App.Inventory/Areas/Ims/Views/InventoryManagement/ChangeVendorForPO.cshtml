@@ -1,0 +1,205 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Direct Sales";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model PurchaseOrderViewModel
+
+@*<script src="~/js/IMS/InventoryManagement/ManageRequisition.js"></script>*@
+
+<style>
+    .label-div{
+        font-weight:bold;
+        color: black;
+    }
+    .required{
+        color:red;
+    }
+</style>
+
+<script>
+
+
+    $(document).ready(function () {
+
+        $("#VendorId").kendoDropDownList({
+          dataTextField: "VendorName",
+          dataValueField: "Id",
+          optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+          filter: "contains",
+          change: function (e) {
+              var dataItem = this.dataItem();
+              $("#ContactPersonId").data("kendoDropDownList").dataSource.read({ vendorId: this.value() });
+          },
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetVendorsList",
+                    }
+                }
+            }
+        });
+
+        $("#ContactPersonId").kendoDropDownList({
+        dataTextField: "ContactPersonName",
+        dataValueField: "Id",
+        optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+        filter: "contains",
+        autoBind: false,
+        change: function (e) {
+            var dataItem = this.dataItem();
+            $("#ContactNo").val(dataItem.ContactNo1);
+        },
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetVendorContactList",
+                    }
+                }
+            }
+        });
+
+    });
+
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            OnClose();
+            window.parent.ShowNotification("Vendor Changed Successfully", "success");        
+                                    
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+            HideLoader($('#changevendor'));
+        }
+    };
+
+    function OnSave(evt) {
+        if ($("#VendorId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html('Select New Vendor');
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#ContactPersonId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Select Contact Person");
+            evt.preventDefault();
+            return false;
+        }        
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+            $(".text-danger").html("");
+        }
+    }
+
+    function OnClose() {
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "OnAfterUpdate" });
+    }
+
+
+
+</script>
+<div class="row-12" id="changevendor" style="margin:10px;margin-bottom:60px;">
+
+    <form asp-controller="InventoryManagement" asp-action="ChangeVendorForPO" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+
+        <div style="width: 100%;" class="p-3">
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Current Vendor</legend>
+
+                <div class="row col-12" style="padding:10px;">
+
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label class="label-div">Vendor Name</label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        :&nbsp;@Html.DisplayFor(x => x.VendorName)
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label class="label-div">Contact Person</label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        :&nbsp;@Html.DisplayFor(x => x.ContactPersonName)
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label class="label-div">Vendor Address</label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        :&nbsp;@Html.DisplayFor(x => x.VendorAddress)
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label class="label-div">Contact No</label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        :&nbsp;@Html.DisplayFor(x => x.ContactNo)
+                    </div>
+
+                </div>
+            </fieldset>
+
+
+
+
+
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Choose New Vendor</legend>
+
+                <div class="row col-12" style="padding:10px;">
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label class="label-div">New Vendor Name<span class="required">*</span></label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        <input asp-for="VendorId" id="VendorId" class="form-control" required="required" />
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label class="label-div">Address</label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        <input type="text" asp-for="VendorAddress" id="VendorAddress" class="form-control" />
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label class="label-div">Contact Person<span class="required">*</span></label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        <input asp-for="ContactPersonId" id="ContactPersonId" class="form-control" required="required" />
+
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label class="label-div">Contact No</label>
+                    </div>
+                    <div class="col-4" style="padding-bottom:10px;">
+                        <input type="text" asp-for="ContactNo" class="form-control" />
+                    </div>
+
+                </div>
+            </fieldset>
+
+
+                <div class="row pad-10" style="float:right;">
+                    <input type="submit" class="btn btn-primary" value="Save" style="margin:5px;" onclick="OnSave(event);" />
+                    <input type="button" class="btn btn-secondary" value="Close" style="margin:5px;" onclick="OnClose();" />
+                </div>
+           
+        </div>
+
+            @Html.HiddenFor(x => x.ServiceId)
+            @Html.HiddenFor(x => x.POID)
+    </form>
+</div>
+
+
+

@@ -1,0 +1,804 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@using MongoDB.Bson;
+@using Syncfusion.EJ2.Diagrams
+@model List<CMS.UI.ViewModel.BusinessRuleTreeViewModel>
+@{
+
+    List<object> MenuItems = new List<object>();
+    MenuItems.Add(new
+    {
+        text = "Add Input Data",
+        id = "0",
+        iconCss = "fa fas fa-plus"
+    });
+    MenuItems.Add(new
+    {
+        text = "Edit Input Data",
+        id = "1",
+        iconCss = "fa fas fa-pencil-alt"
+    });
+    MenuItems.Add(new
+    {
+        text = "Remove Input Data",
+        id = "2",
+        iconCss = "fa fas fa-trash"
+    });
+    var NewId = @ObjectId.GenerateNewId().ToString();
+}
+<style>
+    .e-contextmenu-wrapper ul .e-menu-item .e-menu-icon {
+        color: rgba(0, 0, 0, 0.87);
+    }
+
+    .e-contextmenu-wrapper ul .e-menu-item.e-focused .e-menu-icon {
+        color: rgba(0, 0, 0, 0.87);
+    }
+
+    .e-custom {
+        margin-top: 10px;
+        float: right;
+    }
+
+    .e-treeview .e-list-img {
+        width: 25px;
+        height: 25px;
+    }
+    /* Loading sprite image for TreeView */
+    .e-treeview .e-list-icon {
+        background-repeat: no-repeat;
+        background-image: url("css/treeview/images/file_Icons.png");
+        height: 20px;
+    }
+        /* Specify the Icon positions based upon class name */
+        .e-treeview .e-list-icon.folder {
+            background-position: -197px -552px
+        }
+
+        .e-treeview .e-list-icon.docx {
+            background-position: -197px -20px
+        }
+
+        .e-treeview .e-list-icon.ppt {
+            background-position: -197px -48px
+        }
+
+        .e-treeview .e-list-icon.pdf {
+            background-position: -197px -104px
+        }
+
+        .e-treeview .e-list-icon.images {
+            background-position: -197px -132px
+        }
+
+        .e-treeview .e-list-icon.zip {
+            background-position: -197px -188px
+        }
+
+        .e-treeview .e-list-icon.audio {
+            background-position: -197px -244px
+        }
+
+        .e-treeview .e-list-icon.video {
+            background-position: -197px -272px
+        }
+
+        .e-treeview .e-list-icon.exe {
+            background-position: -197px -412px
+        }
+
+    .brebadge {
+        margin-right: 28px;
+        float: right;
+    }
+</style>
+<style>
+    .control_wrapper {
+        max-width: 320px;
+        margin: auto;
+        border: 1px solid #dddddd;
+        border-radius: 3px;
+    }
+
+    .e-treeview .e-list-text {
+        width: 100%;
+    }
+
+    .treeCount.e-badge {
+        padding: 0.4em;
+        vertical-align: text-bottom;
+    }
+
+    .material .treeCount.e-badge {
+        vertical-align: middle;
+    }
+
+    .nodetext {
+        float: left;
+    }
+
+    .e-rtl .nodetext {
+        float: right;
+    }
+
+    .nodebadge {
+        float: right;
+        margin-right: 5px
+    }
+
+    .e-rtl .nodebadge {
+        float: left;
+        margin-left: 5px
+    }
+
+    .e-treeview.e-fullrow-wrap .e-text-content {
+        pointer-events: auto;
+    }
+
+    #treeview .e-list-text {
+        width: 95%;
+    }
+</style>
+
+<div style="width:100%" id="target">
+    <ejs-splitter id="splitter1" height="700px" width="100%" separatorSize="5">
+        <e-splitter-panes>
+            <e-splitter-pane size="35%">
+                <e-content-template>
+                    <div class="control-section">
+                        <ejs-treeview id="listdata" nodeClicked="nodeClicked" nodeTemplate="@Html.Raw("<div><div class=\"treeviewdiv\"><div class=\"nodetext\"><span class=\"treeName\">${Name}</span></div><div class=\"nodebadge\"><span id=\"btnOpen\" onclick=\"OnNodeSelect(this);\"  class=\"fa fas fa-ellipsis-v\"></span></div> </div></div>")">
+                            <e-treeview-fields dataSource="@Model" id="Id" parentId="ParentId" text="Name" hasChildren="HasSubFolders" expanded="Expanded">
+
+                            </e-treeview-fields>
+                        </ejs-treeview>
+                        <ejs-contextmenu id="menu" target="#listdata" items="ViewBag.menuItems" select="menuClick" beforeOpen="beforeOpen"></ejs-contextmenu>
+                    </div>
+                </e-content-template>
+            </e-splitter-pane>
+            <e-splitter-pane>
+                <e-content-template>
+                    <ejs-tab id="ej2Tab">
+                        <e-tab-tabitems>
+                            <e-tab-tabitem>
+                                <e-content-template>
+                                    <div id="tabArea">
+                                        <div class="e-tab-header">
+                                            <div>Business Rule Input Data</div>
+                                            <div>Business Rule Master Data</div>
+                                            <div>Business Rule Flow</div>
+                                        </div>
+                                        <div class="e-content">
+                                            <div>
+                                                <ejs-treeview id="inputData" nodeClicked="nodeClicked" nodeTemplate="@Html.Raw("<div><div class=\"treeviewdiv\"><div class=\"nodetext\"><span class=\"treeName\">${name}</span></div><div class=\"nodebadge\"><span id=\"btnOpen\" onclick=\"OnInputDataSelect(this);\"  class=\"fa fas fa-ellipsis-v\"></span></div> </div></div>")">
+                                                    <e-treeview-fields id="id" parentId="parentId" text="name" hasChildren="hasSubFolders" expanded="expanded" iconCss="icon">
+                                                    </e-treeview-fields>
+                                                </ejs-treeview>
+                                                <ejs-contextmenu id="inputitems" items="MenuItems" target="#inputData" select="itemClick" beforeOpen="beforeInputItemsOpen">
+                                                </ejs-contextmenu>
+                                            </div>
+                                            <div>
+                                                <ejs-treeview id="metaData" nodeClicked="nodeClicked" nodeTemplate="@Html.Raw("<div><div class=\"treeviewdiv\"><div class=\"nodetext\"><span class=\"treeName\">${name}</span></div><div class=\"nodebadge\"><span id=\"btnOpen\" onclick=\"OnNodeSelect(this);\"  class=\"fa fas fa-ellipsis-v\"></span></div> </div></div>")">
+                                                    <e-treeview-fields id="id" parentId="parentId" text="name" hasChildren="hasSubFolders" expanded="expanded" iconCss="icon">
+                                                    </e-treeview-fields>
+                                                </ejs-treeview>
+                                            </div>
+                                            <div>
+                                                @*<div id="diagram" style="width:100%;height:100%"></div>*@
+                                                @*<ejs-diagram id="diagram" width="100%" height="550px" getConnectorDefaults="@ViewBag.ConnectorDefaults" getNodeDefaults="@ViewBag.NodeDefaults" constraints="@DiagramConstraints.Default">
+        </ejs-diagram>*@
+                                                <div id="diagram-space" class="sb-mobile-diagram">
+                                                    <ejs-diagram id="container" width="100%" height="700px" created="diagramCreated" getNodeDefaults="@ViewBag.getNodeDefaults" getConnectorDefaults="@ViewBag.getConnectorDefaults"  contextMenuClick="contextMenuClick" contextMenuOpen="contextMenuOpen">
+                                                        @*<e-diagram-snapsettings horizontalGridlines="ViewBag.gridLines" verticalGridlines="ViewBag.gridLines"></e-diagram-snapsettings>*@
+                                                        <e-diagram-contextmenusettings show="true"  showCustomMenuOnly="true" items="@ViewBag.contextMenuItems"></e-diagram-contextmenusettings>
+                                                    </ejs-diagram>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </e-content-template>
+                            </e-tab-tabitem>
+                        </e-tab-tabitems>
+                    </ejs-tab>
+                </e-content-template>
+            </e-splitter-pane>
+        </e-splitter-panes>
+    </ejs-splitter>
+
+</div>
+<div class="modal" tabindex="-1" role="dialog" style="display: none;margin-top:250px;" id="CreateNodeDialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Node</h5>
+            </div>
+            <div class="modal-body">
+                <div class="form-label-group">
+                    <input type="text" id="txtNodeLable" class="form-control" placeholder="Node label" required="required" autofocus="">
+                    <label for="inputName">Node Label</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="OnCreateNode()">Ok</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="OnClose()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Modal Header</h4>
+            </div>
+            <div class="modal-body">
+                <p>Some text in the modal.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    var selectedNodeId, selectedNode, selectedDiagramNode
+    document.getElementById('tabArea').style.display = "none";
+
+    function OnNodeSelect(args) {
+        var menuObj = document.getElementById('menu').ej2_instances[0];
+        menuObj.open(200, 100);
+    }
+    function OnInputDataSelect(args) {
+        var menuObj = document.getElementById('inputitems').ej2_instances[0];
+        menuObj.open(200, 100);
+    }
+    function nodeClicked(args) {
+        var treeObj = document.getElementById('listdata').ej2_instances[0];
+        treeObj.selectedNodes = [args.node.getAttribute('data-uid')];
+        selectedNodeId = treeObj.selectedNodes[0];
+    }
+    function menuClick(args) {
+        var treeObj = document.getElementById('listdata').ej2_instances[0];
+        var menuObj = document.getElementById('menu').ej2_instances[0];
+        var targetNodeId = treeObj.selectedNodes[0];
+        var selectedNode = treeObj.getNodeObject(targetNodeId);
+        if (args.item.id == "0") {
+            OpenIframeModal('/BusinessRule/CreateBusinessArea?parentId=' + targetNodeId, 'Create Business Area', 350, 700);
+        }
+        else if (args.item.id == "1") {
+            OpenIframeModal('/BusinessRule/CreateBusinessArea?parentId=' + selectedNode.ParentId + "&id=" + targetNodeId, 'Edit Business Area', 350, 700);
+        }
+        else if (args.item.id == "2") {
+            OpenIframeModal('/BusinessRule/CreateBusinessSection?parentId=' + targetNodeId, 'Create Business Section', 350, 700);
+        }
+        else if (args.item.id == "3") {
+            OpenIframeModal('/BusinessRule/CreateBusinessSection?parentId=' + selectedNode.ParentId + "&id=" + targetNodeId, 'Edit Business Section', 350, 700);
+        }
+        else if (args.item.id == "4") {
+            OpenIframeModal('/BusinessRule/CreateBusinessRuleGroup?parentId=' + targetNodeId, 'Create Business Rule Group', 350, 700);
+        }
+        else if (args.item.id == "5") {
+            OpenIframeModal('/BusinessRule/CreateBusinessRuleGroup?parentId=' + selectedNode.ParentId + "&id=" + targetNodeId, 'Edit Business Rule Group', 350, 700);
+        }
+        else if (args.item.id == "6") {
+            OpenIframeModal('/BusinessRule/CreateBusinessRule?parentId=' + targetNodeId, 'Create Business Rule', 350, 700);
+        }
+        else if (args.item.id == "7") {
+            OpenIframeModal('/BusinessRule/CreateBusinessRule?parentId=' + selectedNode.ParentId + "&id=" + targetNodeId, 'Edit Business Rule', 350, 700);
+        }
+        else if (args.item.id == "8") {
+
+            document.getElementById('tabArea').style.display = "block";
+            var grid = document.querySelector('#inputData').ej2_instances[0];
+            $.ajax({
+                url: "/bre/BreInputData?ruleId=" + targetNodeId,
+                type: "GET",
+                contentType: "application/json",
+                dataType: "JSON",
+                success: function (response) {
+                    grid.fields.dataSource = response;
+                    grid.dataBind();
+                }
+            });
+            var masterTree = document.querySelector('#metaData').ej2_instances[0];
+            $.ajax({
+                url: "/bre/BreMasterTreeData?ruleId=" + targetNodeId,
+                type: "GET",
+                contentType: "application/json",
+                dataType: "JSON",
+                success: function (response) {
+                    masterTree.fields.dataSource = response;
+                    masterTree.dataBind();
+                }
+            });
+            $.ajax({
+                url: "/BusinessRuleDiagram/GetNodes?ruleId=" + targetNodeId,
+                type: "GET",
+                contentType: "application/json",
+                dataType: "JSON",
+                success: function (response) {
+                    var nodes = [];
+                    if (response == null || response == "" || response.length == 0) {
+
+                        nodes.push({
+                            id: makeid(20),
+                            offsetY: 50,
+                            offsetX:400,
+                            annotations: [{
+                                content: 'Start',
+                                Style: { textOverflow: 'Wrap', textWrapping: 'WrapWithOverflow', color: "white" }
+                            }],
+                            shape: { type: 'Flow', shape: 'Terminator', data: "0" },
+                            Style: { fill: "green", strokeColor: "white" },
+                        });
+                      //  CreateNode(nodeId, 0, 'Terminator', "Start", 100,"","","");
+                        var diagram = document.getElementById("container").ej2_instances[0];
+                        diagram.nodes = nodes;                      
+                    }
+                    else {
+                        nodes.push(response);
+                    }
+                }
+            });
+        }
+    }
+
+    function beforeOpen(args) {
+        var treeObj = document.getElementById('listdata').ej2_instances[0];
+        var menuObj = document.getElementById('menu').ej2_instances[0];
+        var targetNodeId = treeObj.selectedNodes[0];
+        var selectedNode = treeObj.getNodeObject(targetNodeId);
+        // var targetNode = document.getElementById('listdata').querySelector('[data-uid="' + targetNodeId + '"]');
+        // for (var i = 0; i < treeObj.treeData.length; i++) {
+        //if (treeObj.treeData[i].Id == targetNodeId) {
+        if (selectedNode.BusinessRuleTreeNodeType == 1) {
+            menuObj.enableItems(['Add Business Area'], true);
+            menuObj.enableItems(['Edit Business Area'], false);
+            menuObj.enableItems(['Add Business Section'], false);
+            menuObj.enableItems(['Edit Business Section'], false);
+            menuObj.enableItems(['Add Business Rule Group'], false);
+            menuObj.enableItems(['Edit Business Rule Group'], false);
+            menuObj.enableItems(['Add Business Rule'], false);
+            menuObj.enableItems(['Edit Business Rule'], false);
+            menuObj.enableItems(['Open Business Rule'], false);
+        }
+        if (selectedNode.BusinessRuleTreeNodeType == 2) {
+            menuObj.enableItems(['Add Business Area'], false);
+            menuObj.enableItems(['Edit Business Area'], true);
+            menuObj.enableItems(['Add Business Section'], true);
+            menuObj.enableItems(['Edit Business Section'], false);
+            menuObj.enableItems(['Add Business Rule Group'], false);
+            menuObj.enableItems(['Edit Business Rule Group'], false);
+            menuObj.enableItems(['Add Business Rule'], false);
+            menuObj.enableItems(['Edit Business Rule'], false);
+            menuObj.enableItems(['Open Business Rule'], false);
+
+        }
+        if (selectedNode.BusinessRuleTreeNodeType == 3) {
+            menuObj.enableItems(['Add Business Area'], false);
+            menuObj.enableItems(['Edit Business Area'], false);
+            menuObj.enableItems(['Add Business Section'], false);
+            menuObj.enableItems(['Edit Business Section'], true);
+            menuObj.enableItems(['Add Business Rule Group'], true);
+            menuObj.enableItems(['Edit Business Rule Group'], false);
+            menuObj.enableItems(['Add Business Rule'], false);
+            menuObj.enableItems(['Edit Business Rule'], false);
+            menuObj.enableItems(['Open Business Rule'], false);
+
+        }
+        if (selectedNode.BusinessRuleTreeNodeType == 4) {
+            menuObj.enableItems(['Add Business Area'], false);
+            menuObj.enableItems(['Edit Business Area'], false);
+            menuObj.enableItems(['Add Business Section'], false);
+            menuObj.enableItems(['Edit Business Section'], false);
+            menuObj.enableItems(['Add Business Rule Group'], false);
+            menuObj.enableItems(['Edit Business Rule Group'], true);
+            menuObj.enableItems(['Add Business Rule'], true);
+            menuObj.enableItems(['Edit Business Rule'], false);
+            menuObj.enableItems(['Open Business Rule'], false);
+
+        }
+        if (selectedNode.BusinessRuleTreeNodeType == 5) {
+            menuObj.enableItems(['Add Business Area'], false);
+            menuObj.enableItems(['Edit Business Area'], false);
+            menuObj.enableItems(['Add Business Section'], false);
+            menuObj.enableItems(['Edit Business Section'], false);
+            menuObj.enableItems(['Add Business Rule Group'], false);
+            menuObj.enableItems(['Edit Business Rule Group'], false);
+            menuObj.enableItems(['Add Business Rule'], false);
+            menuObj.enableItems(['Edit Business Rule'], true);
+            menuObj.enableItems(['Open Business Rule'], true);
+
+        }
+        // }
+        //}
+    }
+    function itemClick(args) {
+        var ruletreeObj = document.getElementById('listdata').ej2_instances[0];
+        var treeObj = document.getElementById('inputData').ej2_instances[0];
+        var menuObj = document.getElementById('inputitems').ej2_instances[0];
+        var targetNodeId = treeObj.selectedNodes[0];
+        var ruleNodeId = ruletreeObj.selectedNodes[0];
+        var selectedNode = treeObj.getNodeObject(targetNodeId);
+        if (args.item.id == "0") {
+            OpenIframeModal('/bre/ManageBusinessRuleInputData?parentId=' + targetNodeId + "&ruleId=" + ruleNodeId, 'Create Input Data', 350, 700);
+        }
+        else if (args.item.id == "1") {
+            OpenIframeModal('/bre/ManageBusinessRuleInputData?parentId=' + selectedNode.parentId + "&id=" + targetNodeId, 'Edit Input Data', 350, 700);
+        }
+        else if (args.item.id == "2") {
+            document.getElementById('confirmdialog').style.display = "block";
+        }
+    }
+
+    function beforeInputItemsOpen(args) {
+        var treeObj = document.getElementById('inputData').ej2_instances[0];
+        var menuObj = document.getElementById('inputitems').ej2_instances[0];
+        var targetNodeId = treeObj.selectedNodes[0];
+        var selectedNode = treeObj.getNodeObject(targetNodeId);
+
+        if (selectedNode.breInputDataType == 1) {
+            menuObj.enableItems(['Add Input Data'], true);
+            menuObj.enableItems(['Edit Input Data'], false);
+            menuObj.enableItems(['Remove Input Data'], false);
+        }
+        if (selectedNode.breInputDataType == 2) {
+            menuObj.enableItems(['Add Input Data'], false);
+            menuObj.enableItems(['Edit Input Data'], true);
+            menuObj.enableItems(['Remove Input Data'], true);
+        }
+        if (selectedNode.breInputDataType == 3) {
+            menuObj.enableItems(['Add Input Data'], true);
+            menuObj.enableItems(['Edit Input Data'], true);
+            menuObj.enableItems(['Remove Input Data'], true);
+
+        }
+
+    }
+
+    function onDelete() {
+        var treeObj = document.getElementById('inputData').ej2_instances[0];
+        var targetNodeId = treeObj.selectedNodes[0];
+        $.ajax({
+            url: "/bre/DeleteInputData?id=" + targetNodeId,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                if (response.success == true) {
+                    document.getElementById('confirmdialog').style.display = "none";
+                    treeObj.dataBind();
+                    treeObj.refresh();
+                }
+            }
+        });
+    }
+    function OnCancel() {
+        document.getElementById('confirmdialog').style.display = "none";
+
+    }
+    function OnClose()
+    {
+        document.getElementById('CreateNodeDialog').style.display = "none";
+    }
+    function makeid(length) {
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for (var i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+    }
+    function OnCreateNode()
+    {
+        var YOffeset = 0;
+        var XOffeset = 0;
+        var diagram = document.getElementById("container").ej2_instances[0];
+        var nodeId = makeid(20);
+        var parent = diagram.selectedItems.nodes[0];    
+        alert(selectedDiagramNode);
+        var NodeLabel = $("#txtNodeLable").val();
+        if (parent != null) {
+            YOffeset = diagram.selectedItems.nodes[0].offsetY;
+            XOffeset = diagram.selectedItems.nodes[0].offsetX;
+        }
+
+        if (selectedDiagramNode == "Decision1") {
+            CreateNode(nodeId, YOffeset, 'Decision', NodeLabel, XOffeset, false, parent.Id,"");
+            CreateConnector(parent.id, nodeId);
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        else if (selectedDiagramNode == "Decision2") {
+            CreateNode(nodeId, YOffeset, 'Decision', NodeLabel, XOffeset, false, parent.Id, true);
+            CreateConnector(parent.id, nodeId, "Yes");
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        else if (selectedDiagramNode == "Decision3") {
+            CreateNode(nodeId, YOffeset, 'Decision', NodeLabel, XOffeset, false, parent.id, false);
+            CreateConnector(parent.id, nodeId, "No");
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        else if (selectedDiagramNode == "Process1") {
+            CreateNode(nodeId, YOffeset, 'Process', NodeLabel, XOffeset, false, parent.id,"");
+            CreateConnector(parent.id, nodeId);
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        else if (selectedDiagramNode == "Process2") {
+            CreateNode(nodeId, YOffeset, 'Process', NodeLabel, XOffeset, false, parent.id, true);
+            CreateConnector(parent.id, nodeId, "Yes");
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        else if (selectedDiagramNode == "Process3") {
+            CreateNode(nodeId, YOffeset, 'Process', NodeLabel, XOffeset, false, parent.id, false);
+            CreateConnector(parent.id, nodeId, "No");
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        else if (selectedDiagramNode == "Terminator1") {
+            CreateNode(nodeId, YOffeset, 'Terminator', NodeLabel, XOffeset, false, parent.Id,"");
+            CreateConnector(parent.id, nodeId);
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        else if (selectedDiagramNode == "Terminator2") {
+            CreateNode(nodeId, YOffeset, 'Terminator', NodeLabel, XOffeset, false, parent.id, true);
+            CreateConnector(parent.id, nodeId, "Yes");
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        else if (selectedDiagramNode == "Terminator3") {
+            CreateNode(nodeId, YOffeset, 'Terminator', NodeLabel, XOffeset, false, parent.id, false);
+            CreateConnector(parent.id, nodeId, "No");
+            document.getElementById('CreateNodeDialog').style.display = "none";
+        }
+        $("#txtNodeLable").val('');
+    }
+    function CreateConnector( sourceId,  targetId,  label )
+    {      
+        var diagram = document.getElementById("container").ej2_instances[0];
+        var id = makeid(20);
+        var diagramConnector =
+        {
+               id : id,
+                sourceID :sourceId,
+                targetID : targetId,
+        };
+        if (label != "" && label != undefined && label!=null)
+        {
+            var annotation =
+            {
+                content : label,
+                style: { fill: "white" },
+                margin :  { bottom : 20 }
+            };
+            diagramConnector.annotations =[annotation ];
+        }
+        diagram.add(diagramConnector);
+    }
+     function CreateNode(id, y, shape, label, x, positionLabel, parentId, isDecisionChildNode)
+     {        
+         var diagram = document.getElementById("container").ej2_instances[0];
+        var annotation = { content :label, Style :{ textOverflow :'Wrap', textWrapping : 'WrapWithOverflow', color:"white" } };
+        if (label == "Start") {
+            var diagramNode =
+            {
+                id : id,
+                    offsetY : 50,
+                shape: { type: 'Flow', shape : shape, data : "0" },
+                style :  { fill : "green", strokeColor : "white" },
+                annotations :[annotation]  ,
+            };
+            diagram.nodes.push(diagramNode);
+        }
+        else {
+            if (x !=null) {
+
+               if (isDecisionChildNode != "") {
+                    if (isDecisionChildNode == true) {
+                        x = x + 200;
+                    }
+                    else if (isDecisionChildNode == false) {
+                        x = x - 200;
+                    }
+               }
+
+                else {
+                    y = y + 125;
+                }
+            }
+            if (positionLabel) {
+                annotation.margin =  { Left : 25, Right : 25 };
+            };
+            if ('Process' == shape) {
+                var diagramNode =
+                {
+                    id : id,
+                        offsetY : y,
+                        offsetX : x,
+                    shape: { type: 'Flow', shape : shape, data : "0" },
+                    style :  { fill : "orange", strokeColor : "white" },
+                    annotations :[  annotation ],
+                };
+
+                diagram.add(diagramNode);               
+            }
+            else if ('Terminator' == shape) {
+                var diagramNode =
+                {
+                    id: id,
+                    offsetY: y,
+                    offsetX: x,
+                    shape: { type: 'Flow', shape: shape, data: "0" },
+                    style: { fill: "#f13a3a", strokeColor: "white" },
+                    annotations: [annotation],
+                };
+                diagram.add(diagramNode);
+            }
+            else {
+                var diagramNode =
+                {
+                    id: id,
+                    offsetY: y,
+                    offsetX: x,
+                    shape: { type: 'Flow', shape: shape, data: "0,0" },
+                    style: { fill: "#357BD2", strokeColor: "white" },
+                    annotations: [annotation],
+                };
+                diagram.add(diagramNode);
+            }
+        }
+         if (parentId != null) {
+             var parent;
+             for (var i = 0; i < diagram.nodes.length; i++) {
+                 if (diagram.nodes[i].id == parentId) {
+                     parent = diagram.nodes[i];
+                 }
+             }          
+             if (parent.shape.shape == 'Decision') {
+                 console.log(parent.shape.data);              
+                 if (isDecisionChildNode == true) {                    
+                    var ifthen = parent.shape.data.split(',')[1];
+                     var elsethen = parent.shape.data.split(',')[0];
+                    if (elsethen == "0") {
+                        parent.shape.data = "0,1";
+                    }
+                    else {
+                        parent.shape.data = "1,1";
+                    }
+                }
+                else if (isDecisionChildNode == false) {
+                     var ifthen = parent.shape.data.split(',')[1];
+                     var elsethen = parent.shape.data.split(',')[0];
+                    if (ifthen == "0") {
+                        parent.shape.data = "1,0";
+                    }
+                    else {
+                        parent.shape.data = "1,1";
+                    }
+                }
+            }
+            else {
+                parent.shape.data = "1";
+            }
+         }        
+    }
+
+
+
+
+
+
+    function getNodeDefaults(obj, diagram) {
+        if (obj.width === undefined) {
+            obj.width = 145;
+        } else {
+            //var ratio = 100 / obj.width;
+            obj.width = 100;
+        }
+        obj.style = { fill: '#357BD2', strokeColor: 'white' };
+
+        //Set ports
+        obj.ports = getPorts(obj);
+        return obj;
+    }
+    function getPorts(obj) {
+        var ports = [
+            { id: 'port1', shape: 'Circle', offset: { x: 0, y: 0.5 } },
+            { id: 'port2', shape: 'Circle', offset: { x: 0.5, y: 1 } },
+            { id: 'port3', shape: 'Circle', offset: { x: 1, y: .5 } },
+            { id: 'port4', shape: 'Circle', offset: { x: .5, y: 0 } }
+        ];
+        return ports;
+
+    }
+    function getConnectorDefaults(obj, diagram) {
+
+        if (obj.id === 'connector9') {
+            obj.segments = [{ direction: 'Top', length: 120, type: 'Orthogonal' }];
+        }
+        if (obj.id === 'connector10') {
+            obj.segments = [{ direction: 'Right', length: 100, type: 'Orthogonal' }];
+        }
+        if (obj.id.indexOf('connector') !== -1) {
+            obj.type = 'Orthogonal';
+            obj.targetDecorator = { shape: 'Arrow', width: 10, height: 10 };
+        }
+    }
+    function diagramCreated() {
+        addEvents();
+    }
+    function addEvents() {
+        var isMobile = window.matchMedia('(max-width:550px)').matches;
+        if (isMobile) {
+            var paletteIcon = document.getElementById('palette-icon');
+            if (paletteIcon) {
+                paletteIcon.addEventListener('click', openPalette, false);
+            }
+        }
+    }
+    function contextMenuOpen(args) {
+        var diagram = document.getElementById("container").ej2_instances[0];
+        if (diagram.selectedItems.nodes.length > 0) {
+            var parent = diagram.selectedItems.nodes[0];
+            debugger
+            if (parent.shape.shape == "Decision") {
+                args.hiddenItems.push("Node");
+                if (parent.shape.data == "0,1") {
+                    args.hiddenItems.push("IfNode");
+                }
+                else if (parent.shape.data == "1,1") {
+                    args.hiddenItems.push("ElseNode");
+                    args.hiddenItems.push("IfNode");
+                }
+                else if (parent.shape.data == "1,0") {
+                    args.hiddenItems.push("ElseNode");
+                }
+            }
+            else if (parent.shape.shape == 'Process') {
+                if (parent.shape.data == "1") {
+                    args.hiddenItems.push("Node");
+                }
+                args.hiddenItems.push("IfNode");
+                args.hiddenItems.push("ElseNode");
+
+            }
+            else if (parent.shape.shape == 'Terminator' && diagram.selectedItems.nodes[0].annotations[0].content != "Start") {
+                args.hiddenItems.push("Node");
+                args.hiddenItems.push("IfNode");
+                args.hiddenItems.push("ElseNode");
+                args.hiddenItems.push("View");
+                args.hiddenItems.push("RemoveNode");
+            }
+            else {
+                if (parent.shape.data == "1") {
+                    args.hiddenItems.push("Node");
+                }
+                args.hiddenItems.push("IfNode");
+                args.hiddenItems.push("ElseNode");
+                args.hiddenItems.push("View");
+                args.hiddenItems.push("RemoveNode");
+
+            }
+        }
+        else {
+
+            args.hiddenItems.push("Node");
+            args.hiddenItems.push("IfNode");
+            args.hiddenItems.push("ElseNode");
+            args.hiddenItems.push("View");
+        }
+    }
+
+    function contextMenuClick(args) {       
+        if (args.item.id == "View") {
+            //this.Visibility = true;
+        }
+        else {
+            selectedDiagramNode = args.item.id;
+            document.getElementById('CreateNodeDialog').style.display = "block";
+        }
+    }
+</script>

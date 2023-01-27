@@ -1,0 +1,178 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@{
+    ViewData["Title"] = "Add Meter Reading";
+    Layout = null;
+}
+
+@model MeterReadingViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .lbl-txt {
+        font-weight: bold;
+    }
+
+    h5 {
+        color: #000;
+        padding-top: 20px;
+        font-weight: bold;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $("#MeterStatusId").kendoDropDownList({
+            optionLabel: "Select",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetLOVIdNameList?lovType=METER_STATUS",
+                    }
+                },
+                sort: {
+                    field: "Name",
+                    dir: "asc"
+                }
+            }
+        });
+
+        $("#CurrentReadingDate").kendoDatePicker({
+            change: onChange,
+            value:'@Model.CurrentReadingDate',
+            format: '@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat',
+            min: new Date()
+
+        });
+
+        $("#CurrentReadingKL").kendoNumericTextBox({
+            change: onChangeReading
+        });
+
+    });
+    
+    function onChange(e) {
+        
+        var d = e.sender.value();
+
+        var date = new Date(d);
+
+        var month = date.getMonth() + 1;
+        var day = date.getDate();
+        var year = date.getFullYear();
+        if (month < 10)
+            month = '0' + month.toString();
+        if (day < 10)
+            day = '0' + day.toString();
+        
+        document.getElementById('curReadingDate').innerHTML = [day, month, year].join('.');;
+    }
+
+    //input.addEventListener('change', updateValue);
+
+    function onChangeReading(e) {
+        
+        var log = document.getElementById('ConsumptionKL');        
+        const lr = document.getElementById('lastreading').innerHTML;
+        log.value = textContent = e.sender.value() - lr;
+    }
+
+    var onAjaxSuccess = function (res) {
+
+    };
+
+</script>
+
+<div class="row" style="margin-left:15px;">
+
+    <form asp-controller="EGovernment" asp-action="AddMeterReading" method="post" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" style="width:300px;" asp-validation-summary="All" id="validation-summary"></div>
+        <div><h5>Consumption Details</h5></div>
+        <div class="row" style="padding:10px;">
+
+
+            <div class="col-8 pad-10">
+                <div class="row">
+                    <div class="col-3 lbl-txt">Consumer No</div>
+                    <div class="col-8">@Html.DisplayFor(x => x.ConsumerNo)</div>
+                </div>
+            </div>
+            <div class="col-8 pad-10">
+                <div class="row" style="padding-top:10px;">
+                    <div class="col-3 lbl-txt">Billing Period</div>
+                    <div class="col-8"><span id="lastReadingDate">@Html.DisplayFor(x => x.LastReadingDate)</span> - <span id="curReadingDate">@Html.DisplayFor(x => x.CurrentReadingDate)</span></div>
+                </div>
+            </div>
+            <div class="col-8 pad-10">
+                <div class="row" style="padding-top:10px;">
+                    <div class="col-3 lbl-txt" style="padding-top:5px;">Meter Status<span style="color:red;">&nbsp;*</span></div>
+                    <div class="col-8"><input id="MeterStatusId" class="hr-xx-large" style="width:60%"></div>
+                </div>
+            </div>
+            <div class="col-8 pad-10">
+                <div class="row">
+                    <div class="col-3 lbl-txt">Last Reading(KL)</div>
+                    <div class="col-8" id="lastreading">@Model.LastReadingKL</div>
+                </div>
+            </div>
+            <div class="col-8 pad-10">
+                <div class="row" style="padding-top:10px;">
+                    <div class="col-3 lbl-txt">Last Reading Date</div>
+                    <div class="col-8">@Html.DisplayFor(x => x.LastReadingDate)</div>
+
+                </div>
+            </div>
+            <div class="col-8 pad-10">
+                <div class="row" style="padding-top:10px;">
+                    <div class="col-3 lbl-txt" style="padding-top:5px;">Current Reading<span style="color:red;">&nbsp;*</span></div>
+                    <div class="col-8">
+                        <input id="CurrentReadingKL" autocomplete="off" style="width:60%" required="required" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-8 pad-10">
+                <div class="row">
+                    <div class="col-3 lbl-txt" style="padding-top:5px;">Current Reading Date</div>
+                    <div class="col-8">
+                        <input id="CurrentReadingDate" style="width: 60%" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-8 pad-10">
+                <div class="row">
+                    <div class="col-3 lbl-txt" style="padding-top:5px;">Consumption (KL)</div>
+                    <div class="col-8" style="padding-top:5px;">
+                        <input asp-for="ConsumptionKL" id="ConsumptionKL" type="number" class="form-control" autocomplete="off" readonly="readonly" style="width:60%" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-8 pad-10">
+                <div class="row">
+                    <div class="col-3"></div>
+                    <div class="col-5" style="text-align:center;">
+                        <input type="submit" class="btn btn-primary" value="Save" id="submitBtn" @*onclick="OnSave(event);"*@ />
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+</div>
+

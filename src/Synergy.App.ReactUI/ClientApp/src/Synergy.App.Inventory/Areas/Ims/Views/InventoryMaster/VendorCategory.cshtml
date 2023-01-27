@@ -1,0 +1,146 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@model VendorCategoryViewModel
+@{
+    //ViewData["Title"] = ViewBag.PageName;
+    Layout = null;
+}
+
+<script>
+    $(document).ready(function () {
+
+
+        getContactPersonGridListData();
+        $.contextMenu({
+            selector: '#tree-menuItems',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var status = $trigger.data('status');
+
+                switch (0) {
+                    case 0:
+
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+
+
+                                    case 'del':
+                                        EditContact(id);
+                                        break;
+
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "del": { name: "Delete", icon: "fas fa-edit" },
+                            }
+                        };
+
+
+                }
+            }
+        });
+    });
+
+    function OnSearch(e) {
+        getItemsListData();
+    }
+
+    function AddCategory(e) {
+        @*var portalId = $('#GlobalPortalId').val();
+        var win = GetMainWindow();
+          var udfs = encodeURIComponent('VendorId=@Model.VendorId');
+        win.iframeOpenUrl = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=Create&dataAction=Create&templateCodes=IMS_VENDOR_CATEGORY_MAPPING&portalId=' + portalId + '&udfs=' + udfs;
+        win.OpenWindow({ Title: 'Add Category', Width: 1000, Height: 700 });*@
+        var win = GetMainWindow();
+        win.iframeOpenUrl ="/Ims/InventoryManagement/VendorCategoryMapping?VendorId=@Model.VendorId"
+        win.OpenWindow({ Title: 'Add Category', Width: 1000, Height: 700 });
+        return false;
+    }
+
+
+    function OnAfterNoteCreate(note) {
+        getContactPersonGridListData();
+    }
+    var columnDefs1 = [
+        {
+            field: "Id",
+            headerName: "Select",
+            cellRenderer: params => {
+                return "<input type='checkbox' class='checkcontact' data-id='" + params.value + "'/>"
+
+
+            }
+        },
+        {
+            field: "ItemCategoryName",
+            headerName: "Category Name"
+        },
+        {
+            field: "VendorName",
+            headerName: "Vendor Name"
+        },
+
+        //{
+        //    headerName: "Actions",
+        //    field: "NoteId",
+        //    cellRenderer: params => {
+        //            return "<div class='btn-group grid-menu' id='tree-menuItems' data-idvalue='" + params.data.Id + "' data-status=\"" + params.data.NoteStatusCode + "\" ><i class='fas fa-ellipsis-v'></i></div>"
+        //       }
+        //}
+    ];
+
+    function getContactPersonGridListData() {
+        document.getElementById("VendorCategoryGrid").innerHTML = "";
+        /*?Customer = " + $("#Customer").data("kendoDropDownList").value() + " & ProposalSource=" + $("#ProposalSource").data("kendoDropDownList").value() + " & WorkFlowStatus=$('input[WorkFlowStatus]:checked').val()" + " & FromDate=" + $("#FromDate").val() + " & ToDate=" + $("#ToDate").val(),*/
+        gridConfig(
+            "VendorCategoryGrid",
+            "/IMS/InventoryMaster/ReadVendorCategoryData?VendorId=@Model.VendorId",
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function onDelete()
+    {
+        var allVals = [];
+        $("input[class='checkcontact']:checked").each(function () {
+            allVals.push($(this).attr("data-id"));
+        });
+        //alert(allVals.join(", "));
+        //return;
+        $.ajax({
+            url: "/Ims/InventoryMaster/DeleteCategories?ids=" + allVals.join(", "),
+            cache: false,
+            success: function (html) {
+                ShowNotification("Deleted Successfully")
+                getContactPersonGridListData();
+            }
+        });
+    }
+    function onBack() {
+        onBackVendor()
+    }
+</script>
+<div style="width: 100%;" class="p-3">
+    <fieldset class="fieldset">
+        <legend class="fs-legend"><label>Vendor Name:&nbsp;</label><strong> @Model.VendorName</strong></legend>
+        <input type="button" class="btn btn-warning" value="Add Category" style="color: white" onclick="AddCategory()" />
+        <input type="button" class="btn btn-primary" value="Back" style="color:white" onclick="onBack()" />
+        <input type="button" class="btn btn-danger" value="Delete" style="color:white" onclick="onDelete()" />
+    </fieldset>
+    <fieldset class="fieldset">
+        <legend class="fs-legend">Vendor Category List</legend>
+        <div id="VendorCategoryGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </fieldset>
+</div>

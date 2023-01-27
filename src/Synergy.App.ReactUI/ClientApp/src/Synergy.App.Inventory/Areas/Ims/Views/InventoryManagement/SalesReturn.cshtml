@@ -1,0 +1,287 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Sales Return";
+
+}
+
+
+<script>
+    $(document).ready(function () {  
+
+        var d = new Date();
+        d.setDate(d.getDate() - 7);
+        $("#FromDate").kendoDatePicker({
+            value: d,
+            format: "dd.MM.yyyy"
+        });
+
+        $("#ToDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd.MM.yyyy"
+        });
+
+        $("#CustomerId").kendoDropDownList({
+            dataTextField: "CustomerName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCustomerList",
+                    }
+                }
+            }
+        });
+
+    });
+
+    var columnDefs = [
+        {
+            headerName: "Sales Return No",
+            field: "ServiceNo",
+        },
+        {
+            field: "ReturnDate",
+            headerName: "Return Date",
+            cellRenderer: (data) => {
+                debugger;
+                if (data.value != null && data.value != "") {
+                    var d = new Date(data.value);
+                    return d.getDate() + "." + d.getMonth() + "." + d.getFullYear();
+                }
+            }
+        },  
+        { field: "CustomerName", },
+        { field: "ContactPersonName", },
+        { field: "ServiceStatusName", headerName:"WorkFlow Status" },          
+        {
+            headerName: "Actions",
+            field: "ServiceId",
+            cellRenderer: params => {
+                
+                return "<div class='btn-group grid-menu' id='tree-menusalesreturn' data-serid='" + params.value + "' data-status='" + params.data.ServiceStatusCode + "' data-grrefid='" + params.data.GoodsReceiptReferenceId + "' data-grstatus='" + params.data.GoodsReceiptStatus + "' data-grserid='" + params.data.GoodsReceiptServiceId + "' data-grid='" + params.data.GoodsReceiptId +"' data-whid='"+params.data.WarehouseId+"'><i class='fas fa-ellipsis-v'></i></div>"
+                              
+            }
+        }
+    ];
+
+    function GetSalesReturnList() {
+        document.getElementById("SalesReturnGrid").innerHTML = "";
+        var sd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var ed = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        gridConfig(
+            "SalesReturnGrid",
+            "/Ims/InventoryManagement/ReadSalesReturnList?From=" + sd + "&To=" + ed + "&cusId=" + $("#CustomerId").data("kendoDropDownList").value() + "&serNo=" + $("#SalesReturnNo").val(),
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    $(function () {
+
+        GetSalesReturnList();
+        $.contextMenu({
+            selector: '#tree-menusalesreturn',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                var serId = $trigger.data('serid');
+                var serStatus = $trigger.data('status');  
+                var grRefId = $trigger.data('grrefid'); 
+                var grStatus = $trigger.data('grstatus');
+                var grSerId = $trigger.data('grserid'); 
+                var grId = $trigger.data('grid');
+                var whId = $trigger.data('whid');
+
+                switch (0) {
+                    case 0:
+                        var Items;
+                        debugger;
+                        if (serStatus == "SERVICE_STATUS_DRAFT") {
+                            Items = {
+                                "items": { name: "Items", icon: "fa-regular fa-arrow-right-to-bracket" },
+                                "submit": { name: "Submit Sales Return", icon: "fa-regular fa-arrow-right-to-bracket" },
+                            };
+                        }
+                        else if (serStatus == "SERVICE_STATUS_COMPLETE" && grStatus == "SERVICE_STATUS_DRAFT" && (whId == "" || whId == null)) {
+                            Items = {
+                                "items": { name: "Items", icon: "fa-regular fa-arrow-right-to-bracket" },
+                                "receipt": { name: "Manage Receipt", icon: "fa-regular fa-arrow-right-to-bracket" },
+                                "submitreceipt": { name: "Submit Receipt", icon: "fa-regular fa-arrow-right-to-bracket" },
+                            };
+                        }
+                        else if (serStatus == "SERVICE_STATUS_COMPLETE" && grStatus == "SERVICE_STATUS_COMPLETE" && (whId != "" || whId != null) ) {
+                            Items = {
+                                "items": { name: "Items", icon: "fa-regular fa-arrow-right-to-bracket" },
+                                "receipt": { name: "Manage Receipt", icon: "fa-regular fa-arrow-right-to-bracket" },                                
+                            };
+                        }                        
+                        else {
+                            Items = {
+                                "items": { name: "Items", icon: "fa-regular fa-arrow-right-to-bracket" },                                
+                            };
+                        }
+
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {    
+                                    case 'items':
+                                        OnViewItems(serId, serStatus);
+                                        break;
+                                    case 'submit':
+                                        OnSubmit(serId);
+                                        break;  
+                                    case 'receipt':
+                                        ReceiveItem(grRefId,grId, grStatus, grSerId);
+                                        break;
+                                    case 'submitreceipt':
+                                        OnSubmitReceipt(grSerId);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: Items
+                        };
+                }
+            }
+        });
+
+    });
+
+    function OnSubmit(serId) {
+        ShowLoader($('#salesreturn'));
+        $.ajax({
+            url: '/IMS/InventoryManagement/SubmitSalesReturn?serId=' + serId,
+            type: 'POST',
+            data: {},
+            dataType: 'json',
+            success: function (result) {
+
+                if (result.success) {                   
+                    ShowNotification("Sales Return submitted successfully", "success");
+                    GetSalesReturnList();
+                    HideLoader($('#salesreturn'));
+                } else {
+                    ShowNotification(result.error, "error");
+                    HideLoader($('#salesreturn'));
+                }
+            },
+            error: function (ert) {
+                GetSalesReturnList();
+            }
+        });
+    } 
+    
+    function OnNewSalesReturn() {
+        var url = '/Ims/InventoryManagement/NewSalesReturn';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "Sales Return", Width: 1200, Height: 650 });
+    } 
+
+    function OnViewItems(serid, status) {
+        var url = '/Ims/InventoryManagement/NewSalesReturn?serId=' + serid +'&status='+status;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "Sales Return", Width: 1200, Height: 650 });
+    }
+
+    function ReceiveItem(refid,grecId,status,grserid) {        
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/IMS/InventoryManagement/ManageSalesReturnReceiveItem?goodsReceiptReferenceId=' + refid +'&goodsReceiptId='+grecId + '&grSerId=' + grserid+'&receiptType=SalesReturn' + '&receiptStatus=' + status;
+        win.OpenWindow({ Title: 'Receive Item via Delivery Challan/Invoice', Width: 1200, Height: 750 });
+        return false;
+    }
+
+    function OnSubmitReceipt(serId) {
+        ShowLoader($('#salesreturn'));
+        $.ajax({
+            url: '/IMS/InventoryManagement/SubmitSalesReturnReceiveItem?serId=' + serId,
+            type: 'POST',
+            data: {},
+            dataType: 'json',
+            success: function (result) {
+
+                if (result.success) {
+                    ShowNotification("Sales Return Receipt submitted successfully", "success");
+                    GetSalesReturnList();
+                    HideLoader($('#salesreturn'));
+                } else {
+                    ShowNotification(result.error, "error");
+                    HideLoader($('#salesreturn'));
+                }
+            },
+            error: function (ert) {
+                GetSalesReturnList();
+            }
+        });
+    }
+
+    function OnAfterUpdate() {
+        GetSalesReturnList();
+    }
+
+    function OnSearch() {
+        GetSalesReturnList();
+    }  
+
+</script>
+
+        <div class="tab-content" style="border: 1px solid silver;border-top:none;" id="salesreturn">
+            <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+                <div style="width: 100%;" class="p-3">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Search Criteria</legend>
+                        <div class="text-danger" asp-validation-summary="All"></div>
+                        <div class="row">
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>From Date</label>
+                                </div>
+                                <input type="text" id="FromDate" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>To Date</label>
+                                </div>
+                                <input type="text" id="ToDate" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Customer</label>
+                                </div>
+                                <input type="text" id="CustomerId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Sales Return No</label>
+                                </div>
+                                <input type="text" id="SalesReturnNo" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    &nbsp;
+                                </div>
+                                <input type="button" class="btn btn-primary btn-control" value="Get" onclick="OnSearch()" />
+                                <input type="button" class="btn btn-warning btn-control" value="New Sales Return" onclick="OnNewSalesReturn();" />
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Sales Return List</legend>
+                        <div id="SalesReturnGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                    </fieldset>
+                </div>
+            </div>            
+
+        </div>
+

@@ -1,0 +1,225 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration configuration
+@inject IStringLocalizer<Synergy.App.BLS.Areas.Controllers.BLSApplicationController> Resource
+@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Microsoft.Extensions.Configuration;
+@model BLSVisaAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Appointment Details";
+    Layout = ViewBag.Layout;
+}
+
+<style>
+    .blsmain {
+        margin: 25px;
+        background-color: #F8F8F8;
+        border-radius: 1rem;
+        padding: 20px;
+    }
+
+    .avatar-myProfile {
+        border-radius: 10%;
+        height: 120px;
+        width: 120px;
+    }
+</style>
+<script>
+    function onRequestVerificationCode() {
+        var mail = 'devendranet.synergy@gmail.com';
+        var code = '9955446600';
+        $.ajax({
+            type: "GET",
+            url: "/BLS/BLSApplication/BLSRequestVerificationCode?email=" + mail + "&verificationCode=" + code,
+            dataType: "json",
+            success: function (data) {
+                if (data.success) {
+                    alert("Virification Code send on email.");
+                }
+            }
+        });
+    }
+    function OnCreate() {
+
+        var portalId = $("#GlobalPortalId").val();
+        var udf = encodeURIComponent('AppointmentId=@Model.Id' + '&FirstName=@Model.GivenName&Surname=@Model.SurName&DateOfBirth=@Model.DateOfBirth&TelephoneNo=@Model.CurrentContactNumber');
+
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=BLS_VISA_SCHENGEN&portalId=' + portalId + '&udfs=' + udf;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Application', Width: 1200, Height: 700 });
+        return false;
+    }
+    function OnOpen() {
+
+        var portalId = $("#GlobalPortalId").val();
+        //e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterServiceCreate&source=Edit&dataAction=Edit&templateCodes=BLS_VISA_SCHENGEN&portalId=' + portalId + '&recordId=@Model.ApplicationServiceId';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Submit Application', Width: 1200, Height: 700 });
+        return false;
+    }
+     function OnOpenTask() {
+
+        var portalId = $("#GlobalPortalId").val();
+        //e.preventDefault();
+         //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+          var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterServiceCreate&source=Edit&dataAction=Edit&templateCodes=BLS_VISA_SCHENGEN&portalId=' + portalId + '&recordId=@Model.ApplicationServiceId';
+
+         if ('@Model.CurrentTaskId' != '') {
+             var url = '/Cms/Page?lo=Popup&pageType=Task&popup=true&cbm=OnAfterServiceCreate&source=Edit&dataAction=Edit&templateCodes=@Model.CurrentTaskTemplate&portalId=' + portalId + '&recordId=@Model.CurrentTaskId';
+         }
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Process Application', Width: 1200, Height: 700 });
+        return false;
+    }
+    function OnAfterServiceCreate() {
+        window.location.href = window.location.href;
+    }
+</script>
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="jumbotron" style="max-width:700px;margin:auto;">
+                <h5 class="text-center">@ViewData["Title"]</h5>
+                <hr />
+                <div class="row pb-3">
+                    <div class="col-4 text-center">
+                        <img class="avatar-myProfile" src="/cms/Document/GetImageMongo?id=@Model.PhotoId" onerror='OnPhotoError(this);' />
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="col-12">
+                            <i class="fas fa-check-circle fa-4x text-success"></i>
+                        </div>
+                        <div class="col-12 pt-4">
+                            <h4 class="text-primary">@Model.ServiceNo</h4>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <img class="avatar-myProfile" src="/cms/Document/GetImageMongo?id=@Model.QRCodeId" onerror='OnPhotoError(this);' />
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["PassportNumber"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.PassportNumber</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["Location"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.LocationName</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["ServiceType"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.ServiceTypeName</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["VisaType"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.VisaTypeName</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["AppointmentDate"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.AppointmentDateText</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["AppointmentSlot"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.AppointmentSlot</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["Name"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.GivenName</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["Surname"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.SurName</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["ContactNumber"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.CurrentContactNumber</label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="col-form-label">@Resource["AppointmentStatus"]</label>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label">@Model.AppointmentStatusName</label>
+                    </div>
+                </div>
+
+            </div>
+            @if (Model.AppointmentStatusCode == "BLS_APPOINTMENT_CONFIRMED")
+            {
+                <div class="row" style="max-width:700px;margin:auto;">
+                    <div class="col-12">
+                        @if (Model.CurrentTaskId.IsNotNullAndNotEmpty())
+                        {
+                            <button type="submit" class="btn btn-primary btn-block" onclick="OnOpenTask()">@Resource["ProcessApplication"]</button>
+                        }
+                        else if (Model.ApplicationId.IsNotNullAndNotEmpty())
+                        {
+                            <button type="submit" class="btn btn-primary btn-block" onclick="OnOpen()">@Resource["SubmitApplication"]</button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-primary btn-block" onclick="OnCreate()">@Resource["CreateApplication"]</button>
+                        }
+                    </div>
+                </div>
+            }
+            else if (Model.AppointmentStatusCode == "BLS_APPOINTMENT_DRAFTED")
+            {
+                <div class="row" style="max-width:700px;margin:auto;">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary btn-block" onclick="OnOpen()">@Resource["SubmitApplication"]</button>
+                    </div>
+                </div>
+            }
+            @*else if (Model.AppointmentStatusCode == "APPLICATION_SUBMITTED")
+            {
+                <div class="row" style="max-width:700px;margin:auto;">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary btn-block" onclick="registerUser(event)">Process Application</button>
+                    </div>
+                </div>
+            }*@
+            else 
+            {
+                <div class="row" style="max-width:700px;margin:auto;">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary btn-block" onclick="OnOpenTask()">@Resource["ProcessApplication"]</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

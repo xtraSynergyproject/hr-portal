@@ -1,0 +1,2109 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<script src="~/lib/recordRTC/RecordRTC.js"></script>
+<link href="~/css/hover.css" rel="stylesheet" />
+<script src="~/lib/recordRTC/RecordRTC.min.js"></script>
+<script src="https://www.webrtc-experiment.com/common.js"></script>
+
+@inject CMS.Common.IUserContext _userContext
+@model FileViewModel
+<style>
+    .att-card {
+        border: 3px dashed #eee;
+        width: 94%;
+        min-height: 180px;
+        left: 3%;
+        text-align: center;
+        margin-top: 1%;
+        cursor: pointer;
+    }
+
+    .preview-card {
+        align-items: center;
+        min-height: 0px;
+        cursor: pointer;
+    }
+
+    .rec-icon {
+        font-size: 30px;
+        right: 5%;
+        color: blueviolet;
+    }
+
+    .screen-icon {
+        font-size: 30px;
+        color: #c671d1;
+    }
+
+    .video-icon {
+        font-size: 30px;
+        color: #bdaf2e;
+    }
+
+    .upload-icon {
+        font-size: 50px;
+        top: 2%;
+    }
+
+    .drag-text {
+        font-size: 25px;
+        text-align: center;
+        color: gray;
+    }
+
+    .sub-head {
+        color: lightgray;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .image-icon1 {
+        background-color: #d2e3f9;
+        min-height: 94px;
+        width: 110px;
+        align-items: center;
+        margin-right: 30px;
+    }
+
+    .image-icon2 {
+        background-color: #e6dffa;
+        min-height: 94px;
+        width: 110px;
+        align-items: center;
+        margin-right: 30px;
+    }
+
+    .image-icon3 {
+        background-color: #f9dcfd;
+        min-height: 94px;
+        width: 110px;
+        align-items: center;
+        margin-right: 30px;
+    }
+
+    .image-icon4 {
+        background-color: #feddcc;
+        min-height: 94px;
+        width: 110px;
+        align-items: center;
+        margin-right: 30px;
+    }
+
+    .image-icon5 {
+        background-color: #f7e6be;
+        min-height: 94px;
+        width: 110px;
+        align-items: center;
+        margin-right: 30px;
+    }
+
+    .image-icon6 {
+        background-color: #d9e92d66;
+        min-height: 94px;
+        width: 110px;
+        align-items: center;
+        margin-right: 30px;
+    }
+
+    .image-icon7 {
+        background-color: #cbffb0;
+        min-height: 94px;
+        width: 110px;
+        align-items: center;
+        margin-right: 30px;
+    }
+
+    .file-icon {
+        font-size: 30px;
+        color: white;
+        margin: auto;
+    }
+
+    #imageDrag1:hover {
+        height: 500px;
+    }
+
+    #imageDrag1 {
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        #imageDrag1:hover {
+            opacity: 0.7;
+        }
+
+    #imageDrag:hover {
+        height: 500px;
+    }
+
+    #imageDrag {
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        #imageDrag:hover {
+            opacity: 0.7;
+        }
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (image) */
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 500px;
+    }
+
+    /* Caption of Modal Image */
+    #caption {
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 700px;
+        text-align: center;
+        color: #ccc;
+        padding: 10px 0;
+        height: 150px;
+    }
+
+    /* Add Animation */
+    .modal-content, #caption {
+        -webkit-animation-name: zoom;
+        -webkit-animation-duration: 0.6s;
+        animation-name: zoom;
+        animation-duration: 0.6s;
+    }
+
+    @@-webkit-keyframes zoom {
+        from {
+            -webkit-transform: scale(0)
+        }
+
+        to {
+            -webkit-transform: scale(1)
+        }
+    }
+
+    @@keyframes zoom {
+        from {
+            transform: scale(0)
+        }
+
+        to {
+            transform: scale(1)
+        }
+    }
+
+    /* The Close Button */
+    .close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+    /* 100% Image Width on Smaller Screens */
+    @@media only screen and (max-width: 700px) {
+        .modal-content {
+            width: 57%;
+        }
+    }
+
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted black;
+    }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
+    .span-text {
+        text-align: center;
+        margin: auto;
+        font-size: 11px;
+    }
+
+    .align-center {
+        text-align: center;
+    }
+
+    #AttachmentlistView {
+        /*  background: transparent;
+        border: none;
+        width: 79%;
+        left: 10%;*/
+    }
+
+    audio {
+        width: 250px
+    }
+
+        audio::-webkit-media-controls-mute-button {
+            display: none !important;
+        }
+
+    .group .input {
+        margin-bottom: 25px;
+        width: 100%;
+        color: black;
+        display: block;
+        border: 1px;
+        padding: 15px 20px;
+        border-radius: 50px;
+        background: rgba(142, 139, 139, 0.1);
+    }
+
+    .doc {
+        background-color: #f1e4f09e;
+        border: 2px solid white;
+        color: #373e4c;
+        margin: 3%;
+    }
+
+    .no-data {
+        color: #c8aa4d;
+        font-size: 30px;
+        text-align: center;
+    }
+
+    .k-upload {
+        width: 100%;
+    }
+
+    .SYN-Main-wrapper {
+        width: 700px;
+        height: auto;
+        padding: 0;
+        margin: 20px auto;
+        box-shadow: 4px 4px 10px #CBD0CE;
+        border-radius: 6px;
+    }
+
+    .SYN-upload-row {
+        /* width: 96%;
+        padding: 0;
+        margin: 4px auto;
+        background-color: #10B0ED;
+        border-radius: 6px;*/
+    }
+
+    .SYN-ico-pdf {
+        width: 96%;
+        padding: 20px;
+        margin: 0 auto;
+    }
+
+    .SYN-ico-action {
+        padding: 26px 4px;
+        margin: 4px;
+        float: left;
+    }
+
+    .SYN-ico-action-eye {
+        padding: 26px 4px;
+        margin: 4px;
+        float: left;
+        color: blue;
+        cursor: pointer;
+    }
+
+    .SYN-ico-action-down {
+        padding: 26px 4px;
+        margin: 4px;
+        float: left;
+        color: greenyellow;
+        cursor: pointer;
+    }
+
+    .SYN-ico-action-del {
+        padding: 26px 4px;
+        margin: 4px;
+        float: left;
+        color: red;
+        cursor: pointer;
+    }
+
+    .SYN-tag-field {
+        padding: 0;
+        margin: 0;
+        font-size: 14px;
+        color: #939598;
+    }
+
+    .SYN-txt-field {
+        padding: 0;
+        margin: 0;
+    }
+
+    .SYN-row-gap {
+        padding: 0;
+        margin: 12px 0;
+    }
+
+    .SYN-dummy-row {
+        width: 96%;
+        padding: 4px;
+        margin: 4px auto;
+    }
+
+    .SYN-list-box {
+        width: 96%;
+        padding: 0;
+        margin: 4px auto;
+        background-color: #ffffff;
+        border-radius: 6px;
+        border: 1px solid #C4C4C4;
+    }
+
+    .SYN-sub-docName {
+        padding: 2px 0 2px 0;
+        font-size: 14px;
+    }
+
+    .SYN-sub-white-txt {
+        padding: 2px 0 2px 12px;
+        font-size: 14px;
+    }
+
+    .SYN-inn-title-row {
+        width: 96%;
+        padding: 0;
+        margin: 4px auto;
+        background-color: #353535;
+        border-radius: 6px;
+        color: #fff;
+    }
+
+    .SYN-ico-close {
+        width: 96%;
+        padding: 6px;
+        margin: 6px auto;
+        height: auto;
+    }
+
+    .SYN-ico-expand {
+        width: 96%;
+        padding: 6px;
+        margin: 6px auto;
+        height: auto;
+    }
+
+    .SYN-inn-row {
+        width: 96%;
+        padding: 0;
+        margin: 4px auto;
+    }
+
+    .SYN-sub-title {
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .SYN-white-text {
+        font-weight: 500;
+        font-size: 16px;
+        color: #fff;
+    }
+
+    .SYN-main-title {
+        font-weight: 500;
+        font-size: 16px;
+        padding: 16px 0;
+    }
+
+    .k-button {
+        border-color: #353535;
+        color: #fff;
+        background-color: #353535;
+    }
+
+    .k-upload .k-dropzone {
+        border-color: #dee2e6;
+        color: #bababa;
+        background-color: #10B0ED;
+    }
+
+        .k-upload .k-dropzone .k-dropzone-hint, .k-upload .k-dropzone .k-upload-status {
+            color: #ffff;
+        }
+</style>
+
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+    <div class="SYN-Main-wrapper">
+        <div class="SYN-inn-row">
+
+        </div>
+        <div class="SYN-upload-row">
+            @if (ViewBag.IsAddAttachmentEnabled)
+            {
+                <!--<div class="row">-->
+                @*@(Html.Kendo().Upload().Multiple(false)
+                .Name("files")
+                .Async(a => a
+                .Save("SaveTaskAttachment", "Cms", new { @Area="", @referenceTypeId=Model.ReferenceTypeId, @referenceTypeCode=Model.ReferenceTypeCode})
+                .AutoUpload(true)
+                )
+                    .Events(e => e.Success("onFileUploadSuccess")
+                    )
+
+                    .HtmlAttributes(new { @class = "hr-large" })
+            )*@
+
+                <!--</div>-->
+
+                <div class="row" style="padding-top:2%">
+                    <div class="col-2"></div>
+
+                    <div class="col-2 hvr-float-shadow" onclick="onClickUpload();">
+                        <div class="">
+                            <div id="imagediv" class="card image-icon4">
+                                <i id="att-icon" class="fad fa-file-upload file-icon" style="color:#e2a086;"></i>
+                                <span class="span-text" style="color:#e2a086;">Click to Upload Files</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-2 hvr-float-shadow" onclick="onClickAudio();">
+                        <div class="">
+                            <div id="imagediv" class="card image-icon2">
+                                <i id="att-icon" class="fad fa-microphone-stand file-icon" style="color:#aa9ede;"></i>
+                                <span class="span-text" style="color:#aa9ede">Click for Audio Recording</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-2 hvr-float-shadow" onclick="onClickScreenRecord();">
+                        <div class="">
+                            <div id="imagediv" class="card image-icon3">
+                                <i id="att-icon" class="fad fa-tablet-alt file-icon" style="color:#c38cca;"></i>
+                                <span class="span-text" style="color:#c38cca;">Click for Screen Recording</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-2 hvr-float-shadow" onclick="onClickVideoRecord();">
+                        <div class="">
+                            <div id="imagediv" class="card image-icon6">
+                                <i id="att-icon" class="fad fa-video file-icon" style="color:#bdaf2e;"></i>
+                                <span class="span-text" style="color:#bdaf2e;">Click for Video Recording</span>
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="col-xs-2 hvr-float-shadow">
+                    <div class="" onclick="onClickAttachWorklist();">
+                        <div id="imagediv" class="card image-icon7">
+                            <i id="att-icon" class="fad fa-list-alt file-icon" style="color:#58bd2e;"></i>
+                            <span class="span-text" style="color:#45bb30;">Attach Worklists</span>
+                        </div>
+                    </div>
+                </div>*@
+                    <div class="col-2"></div>
+
+                </div>
+                @*<div class="card att-card" id="drop_zone" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);" style="display:none;">
+                <div class="upload-icon">
+                    <i class="fad fa-upload"></i>
+                </div>
+
+                <div class="align-center">
+                    <span class="drag-text">Drag & Drop</span>
+                    <p class="sub-head">Drag Your files here to Attach Image</p>
+                </div>
+
+                <div class="align-center" style="width: 20%;height: 20%;margin-left:41%">
+                    <img id="imageDrag1" style="display:none;height:94px;width: 100%;" />
+                </div>
+            </div>*@
+
+                @*@{
+                    await Html.RenderPartialAsync("~/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = "imageDrag1", CallbackMethod =  });
+                }*@
+
+                @*@{*@
+            await Html.RenderPartialAsync("~/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = "imageDrag1", PostUrl = string.Concat("/Cms/Task/SaveTaskAttachment?referenceTypeId=", Model.ReferenceTypeId, "&referenceTypeCode=", Model.ReferenceTypeCode) });
+            //}
+
+
+                <div class="card att-card" id="upload_zone" style="display:none;">
+                    @*<div class="upload-icon">
+                    <i class="fad fa-file-upload"></i>
+                </div>*@
+
+                    <div class="align-center">
+                        @*<span class="drag-text">Upload File</span>*@
+                        <p class="sub-head">Attach file here using below option </p>
+                    </div>
+
+                    <div class="align-center" style="margin:2%;width: 95%;">
+                        @*@(Html.Kendo().Upload().Multiple(false)
+                     .Name("files")
+                     .Async(a => a
+                    .Save("SaveTaskAttachment", "Cms", new { @Area = "", @referenceTypeId = Model.ReferenceTypeId, @referenceTypeCode = Model.ReferenceTypeCode })
+                     .AutoUpload(true)
+                     )
+                     .Files(files =>
+                     {
+                         if (Model != null && Model.FileName != null)
+                         {
+                             files.Add().Name(Model.FileName).Extension(Model.FileExtension).Size(Model.ContentLength);
+                         }
+                     })
+                     .Messages(mess => mess.Select("Upload"))
+                     .DropZone("#dropZone_Attach")
+                     .Events(e => e.Success("onFileUploadSuccess"))
+                     .Validation(validation => validation.MaxFileSize(100000000000000)))*@
+
+                        <div class="row">
+                            <div class="col">
+                                <div id="iconFile" class="dm-uploader">
+                                    <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                                    <div class="btn btn-primary btn-block ">
+                                        <span>Open the file Browser</span>
+                                        <input type="file" title='Click to add Files' />
+                                    </div>
+                                </div>
+
+                            </div>
+                            @*if multiple use this*@
+
+                            @*<div class="col">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    File List
+                                </div>
+                                <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                                    <li id="nofiles" class="text-muted text-center empty">No files uploaded.</li>
+                                </ul>
+                            </div>
+                        </div>*@
+                            @*if multiple use this*@
+                        </div>
+                        <div id="dropZone_Attach" class="file-drop-zone" style="height: 150px;font-size: medium;padding: 5px;">
+                            Drop document here to upload
+                        </div>
+
+                        @Html.HiddenFor(x => x.Id)
+                        @Html.HiddenFor(x => x.ReferenceTypeCode)
+                        @Html.HiddenFor(x => x.VersionNo)
+                    </div>
+                </div>
+
+                <div class="card att-card" id="audio_zone" style="display:none;">
+                    <div class="upload-icon">
+                        <i id="recordButtonStart" class="fad fa-microphone"></i>
+                    </div>
+
+                    <div class="align-center">
+                        <span class="drag-text">Start Audio Recording</span>
+                        <p class="sub-head">Use Start Button to Initiate Recording</p>
+                    </div>
+
+                    <div class="align-center">
+                        <div id="controls">
+                            <i id="recordButton" onclick="startAudioRecording()" class="fad fa-play-circle rec-icon"></i>
+                            <i id="stopButton" onclick="stopAudioRecording()" class="fad fa-stop-circle rec-icon" disabled></i>
+                            <i id="" onclick="onSaveAudio()" title="save" class="fad fa-save rec-icon"></i>
+                            <i id="" onclick="onCancelAudio()" title="cancel" style="color:red" class="fad fa-window-close rec-icon"></i>
+                            @*<i id="btn-release-microphone" class="fad fa-microphone rec-icon" disabled></i>
+                        <i id="btn-download-recording" class="fad fa-dow rec-icon" disabled></i>*@
+                        </div>
+                    </div>
+                    <div class="align-center">
+                        <div style="margin:2%;"><audio id="audioRec" controls autoplay playsinline></audio></div>
+                    </div>
+                </div>
+
+
+                <div @*class="card att-card"*@ id="screenshot_zone" @*onclick="screenshotZone()"*@ style="display:none;">
+                    @*<div class="upload-icon">
+                    <i class="fad fa-desktop"></i>
+                </div>
+
+                <div class="align-center">
+                    <span class="drag-text">Paste Screenshot</span>
+                    <p class="sub-head">CTRL + V - Image will be paste here</p>
+                </div>
+
+                <div class="align-center" style="width: 20%;height: 20%;margin-left:41%">
+                    <img id="imageDrag" style="display:none;height:94px;width: 100%;" />
+                </div>*@
+
+                </div>
+
+                <div class="card att-card" id="video_zone" style="display:none;">
+                    <div class="upload-icon">
+                        <i id="recordVideoButtonStart" class="fad fa-video-plus"></i>
+                    </div>
+
+                    <div class="align-center">
+                        <span class="drag-text">Start Video Recording</span>
+                        <p class="sub-head">Use Start Button to Initiate Recording</p>
+                    </div>
+
+                    <div class="align-center">
+                        <div id="controls">
+                            <i id="recordVideoButton" onclick="recordVideo()" class="fad fa-play-circle video-icon"></i>
+                            <i id="stopVideoButton" onclick="stopVideo()" class="fad fa-stop-circle video-icon" disabled></i>
+                            <i id="" onclick="onSaveVideo()" title="save" class="fad fa-save video-icon"></i>
+                            <i id="" onclick="onCancelVideo()" title="cancel" style="color:red" class="fad fa-window-close video-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="align-center">
+                        <video id="videoRec" autoplay style="width: 20%;margin:2%;" controls playsinline></video>
+                    </div>
+
+                </div>
+                @*<div class="card att-card" id="worklist_zone" style="display:none;">
+                     <div style="padding:20px;">
+                         <div class="col-xs-4">
+
+                             @(Html.Kendo().RadioButton().Value("Note").Name("Note").Checked(true).HtmlAttributes(new { @name = "NtsType", @OnClick = "OnChangeType()" }).Label("Note"))
+                         </div>
+                         <div class="col-xs-4">
+                             @(Html.Kendo().RadioButton().Value("Task").Name("Task").Checked(Model.AttachmentType == "Task" ? true : false).HtmlAttributes(new { @name = "NtsType", @OnClick = "OnChangeType()" }).Label("Task"))
+                         </div>
+                         <div class="col-xs-4">
+                             @(Html.Kendo().RadioButton().Value("Service").Name("Service").Checked(Model.AttachmentType == "Service" ? true : false).HtmlAttributes(new { @name = "NtsType", @OnClick = "OnChangeType()" }).Label("Service"))
+
+                         </div>
+                     </div>
+
+                     <div class="align-center">
+                         <span class="drag-text">Select Worklist Item</span>
+                     </div>
+                     <div class="align-center" style="padding-top: 5px;">
+                         @(Html.Kendo().DropDownList()
+            .Name("LinkId")
+             // .OptionLabel(@Constant.PlaceHolder_SelectOption)
+             .Filter(FilterType.Contains)
+             .DataTextField("Name")
+             .DataValueField("Id")
+             .Height(300)
+             //.Events(e => e.Change("OnEmployeeChange"))
+             .TemplateId("drp-item-template")
+             //.ValueTemplateId("drp-item-template")
+             .HtmlAttributes(new { @class = "hr-xx-large" })
+             .AutoBind(true)
+             .DataSource(source =>
+             {
+                 source.Custom()
+                 .ServerFiltering(true)
+                 .ServerPaging(true)
+                 .PageSize(100)
+                 .Type("aspnetmvc-ajax")
+                  .Transport(transport => transport.Read(r => r.Action("GetNtsReferenceByReferenceType", "Note", new { area = "nts" }).Data("FilterReference")))
+                 //.Transport(transport =>
+                 //{
+                 //    transport.Read("GetNtsReferenceByReferenceType", "Note", new { area = "Nts" });
+                 //})
+                 .Schema(schema =>
+                 {
+                     schema.Data("Data")
+                 .Total("Total");
+                 });
+             })
+             .Virtual(v => v.ItemHeight(100))
+             )
+                     </div>
+                     <div class="align-center" style="padding-top: 10px;">
+                         @Html.Kendo().Button().Name("btnSubmit").Content("Save").Icon("check-outline").Events(x => x.Click("OnOk")).HtmlAttributes(new { @class = "k-primary" })
+                     </div>
+                 </div>*@
+                <script type="text/x-kendo-tmpl" id="drp-item-template">
+                    <div class="row">
+                        <div class="col-xs-1" style="padding-top: 5%;">
+                            <span class="i-circle" style="background-color:rebeccapurple"><i class="k-icon k-i-file" style="width: 20px;margin-bottom:7px;"></i></span>
+                        </div>
+                        <div class="col-xs-9">
+                            <div class="row">
+                                <div class="col-xs-4">
+                                    <span style="font-weight:600">
+                                        #if(Name!=null){
+                                        Name
+                                        }#
+                                    </span>
+                                </div>
+                                <div class="col-xs-5" style="text-align:right">
+                                    <span style="">
+                                        #if(Description!=null){
+                                        Description
+
+                                        }#
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <span style="color:grey;font-size:10px;">#=OwnerUserName#</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <span style="color:dodgerblue;font-size:10px;">#=TemplateMasterName#</span>
+                                </div>
+                                <div class="col-xs-3" style="text-align:right">
+                                    <span style="color:grey;font-size:10px;">#=Status#</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <hr />
+                </script>
+                <div class="card att-card" id="screenRecord_zone" style="display:none;">
+                    <div class="upload-icon">
+                        <i id="recordScreenButtonStart" class="fad fa-tablet"></i>
+                    </div>
+
+                    <div class="align-center">
+                        <span class="drag-text">Start Screen Recording</span>
+                        <p class="sub-head">Use Start Button to Initiate Recording</p>
+                    </div>
+
+                    <div class="align-center">
+                        <div id="controls">
+                            <i id="recordScreenButton" onclick="startScreenRecording()" class="fad fa-play-circle screen-icon"></i>
+                            <i id="stopScreenButton" onclick="stopScreenRecording()" class="fad fa-stop-circle screen-icon" disabled></i>
+                            <i id="" onclick="onSaveScreen()" title="save" class="fad fa-save screen-icon"></i>
+                            <i id="" onclick="onCancelScreen()" title="cancel" style="color:red" class="fad fa-window-close screen-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="align-center">
+                        <video id="screenRec" style="width: 20%;margin:2%;" autoplay controls playsinline></video>
+                    </div>
+
+                </div>
+            }
+
+        </div>
+        <div class="SYN-inn-row">
+            <div class="row">
+                <div class="col-auto col-xl-12"><label class="col-form-label SYN-sub-title">Attachments List</label></div>
+            </div>
+        </div>
+        <div class="SYN-inn-title-row">
+            <div class="row">
+                <div class="col-2 col-sm-2 col-md-3 col-lg-3 col-xl-3"><label class="col-form-label SYN-sub-white-txt">Doc Type</label></div>
+                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6"><label class="col-form-label SYN-sub-docName">Document Name</label></div>
+                <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3"><label class="col-form-label SYN-sub-white-txt">Actions</label></div>
+            </div>
+        </div>
+        @*@(Html.Kendo().ListView<FileViewModel>()
+        .Name("AttachmentlistView")
+        .TagName("div")
+        .ClientTemplateId("template")
+        .DataSource(dataSource => dataSource
+                .Ajax()
+                 .Read(read => read.Action("GetAttachmentList", "Cms", new { @Area = "", @Id = Model.ReferenceTypeId ,@Code=Model.ReferenceTypeCode}))
+                //.Read(read => read.Action("GetTaskAttachmentList", "Cms",new { @Area = "", @taskId = Model.ReferenceTypeId}))
+                .PageSize(21)
+            )
+
+        )*@
+        <div id="AttachmentlistView"></div>
+        <script type="text/x-kendo-tmpl" id="template">
+            <div class="SYN-list-box">
+                 <div class="row">
+                     <div class="col-2 col-sm-2 col-md-3 col-lg-3 col-xl-3">
+              #if(data.FileExtension==".pdf")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-pdf.png"></div> #}
+            else if(data.FileExtension==".jpg" || data.FileExtension==".jpeg" || data.FileExtension==".gif" || data.FileExtension==".png" || data.FileExtension==".PNG")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-image32.png"></div> #}
+            else if(data.FileExtension==".doc" || data.FileExtension==".docx")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-word-doc.png"></div>#}
+            else if(data.FileExtension==".txt")
+            {#  <div class="SYN-ico-pdf"><img src="/images/ico-document.png"></div>#}
+            else
+            {#   <div class="SYN-ico-pdf"><img src="/images/ico-document.png"></div>#}#
+
+                     </div>
+                     <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+                         <div class="row">
+                             <div class="col"><label class="col-form-label SYN-txt-field SYN-row-gap">#:FileName#<br></label></div>
+                         </div>
+                         <div class="row">
+                             <div class="col-6"><label class="col-form-label SYN-tag-field">#:CreatedDateDisplay#<br></label></div>
+                             <div class="col-6"><label class="col-form-label SYN-tag-field">#:Size#<br></label></div>
+                         </div>
+                     </div>
+                     <div class="col-3 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                            <div class="SYN-ico-action-eye"><i class='fal fa-eye li-fal fa-2x' title="View" onclick="ViewAttachment('#=Id#')" ></i></div>
+                            <div class="SYN-ico-action-down"><i class='fal fa-download li-fal fa-2x' title="Download" onclick="onDownload('#=Id#')" ></i></div>
+                            <div class="SYN-ico-action-del"><i class='fal fa-trash-alt li-fal fa-2x' title="Delete" onclick="onDeleteClick('#=Id#')"></i></div>
+                    </div>
+                 </div>
+             </div>
+        </script>
+
+
+        <div class="SYN-dummy-row"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    // Video Recording script
+
+    $(document).ready(function () {
+        uploadFileAttachment();
+
+            var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/GetNtsAttachmentList?Id=@Model.ReferenceTypeId&Code=@Model.ReferenceTypeCode",
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#AttachmentlistView").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#template").html())
+        });
+       });
+
+    function uploadFileAttachment() {
+        $("#iconFile").dmUploader({ //
+             url: '/Cms/SaveTaskAttachment?referenceTypeId=@Model.ReferenceTypeId&referenceTypeCode=@Model.ReferenceTypeCode',
+            multiple: false,
+            //extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#AttachmentlistView").data("kendoListView").dataSource.read();
+                FillAttachmentCount();
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }
+
+     @*function uploadFile() {
+         $("#iconFile").dmUploader({ //
+             url: '/Cms/SaveTaskAttachment?referenceTypeId=@Model.ReferenceTypeId&referenceTypeCode=@Model.ReferenceTypeCode',
+            multiple: false,
+          //  extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#AttachmentlistView").data("kendoListView").dataSource.read();
+                FillAttachmentCount();
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }*@
+
+
+
+
+    var recorderVideo; // globally accessible
+
+    var videoRec = document.getElementById('videoRec');
+
+    function stopVideo() {
+        document.getElementById('stopVideoButton').disabled = true;
+        recorderVideo.stopRecording(stopRecordingVideoCallback);
+        $("#recordVideoButtonStart").css({ "color": "black" });
+        $("#stopVideoButton").css("pointer-events", "none");
+        document.getElementById('stopScreenButton').disabled = true;
+        $("#stopVideonButton").css({ "color": "lightgray" });
+        document.getElementById('videoRec').disabled = false;
+    }
+
+
+    function recordVideo() {
+        this.disabled = true;
+        captureCamera(function (camera) {
+            videoRec.muted = true;
+            videoRec.volume = 0;
+            videoRec.srcObject = camera;
+
+            recorderVideo = RecordRTC(camera, {
+                type: 'video'
+            });
+
+            recorderVideo.startRecording();
+
+            // release camera on stopRecording
+            recorderVideo.camera = camera;
+
+            document.getElementById('stopVideoButton').disabled = false;
+            $("#recordVideoButtonStart").css({ "color": "red" });
+            $("#stopVideoButton").css("pointer-events", "auto");
+            $("#stopVideoButton").css({ "color": "#bdaf2e" });
+        });
+    }
+
+    var audio = document.getElementById('audioRec');
+    var btnStartRecording = document.getElementById('recordButton');
+    var btnStopRecording = document.getElementById('stopButton');
+
+
+    function startAudioRecording() {
+        document.getElementById('stopButton').disabled = true;
+        //this.disabled = true;
+        document.getElementById('stopButton').style.border = '';
+        document.getElementById('stopButton').style.fontSize = '';
+        btnStartRecording.style.color = 'lightgrey';
+        btnStopRecording.style.color = 'blueviolet';
+        if (!microphone) {
+            captureMicrophone(function (mic) {
+                microphone = mic;
+
+                if (isSafari) {
+                    replaceAudio();
+
+                    audio.muted = true;
+                    audio.srcObject = microphone;
+
+                    btnStartRecording.disabled = false;
+                    btnStartRecording.style.border = '1px solid red';
+                    btnStartRecording.style.fontSize = '150%';
+
+                    alert('Please click startRecording button again. First time we tried to access your microphone. Now we will record it.');
+                    return;
+                }
+
+                click(btnStartRecording);
+            });
+            return;
+        }
+
+        replaceAudio();
+
+        audio.muted = true;
+        audio.srcObject = microphone;
+
+        var options = {
+            type: 'audio',
+            numberOfAudioChannels: isEdge ? 1 : 2,
+            checkForInactiveTracks: true,
+            bufferSize: 16384
+        };
+
+        if (isSafari || isEdge) {
+            options.recorderType = StereoAudioRecorder;
+        }
+
+        if (navigator.platform && navigator.platform.toString().toLowerCase().indexOf('win') === -1) {
+            options.sampleRate = 48000; // or 44100 or remove this line for default
+        }
+
+        if (isSafari) {
+            options.sampleRate = 44100;
+            options.bufferSize = 4096;
+            options.numberOfAudioChannels = 2;
+        }
+
+        if (recorder) {
+            recorder.destroy();
+            recorder = null;
+        }
+
+        recorder = RecordRTC(microphone, options);
+
+        recorder.startRecording();
+
+        btnStopRecording.disabled = false;
+        //btnDownloadRecording.disabled = true;
+    }
+
+
+    function stopAudioRecording() {
+        document.getElementById('stopButton').disabled = true;
+        btnStartRecording.style.color = 'blueviolet';
+        btnStopRecording.style.color = 'lightgrey';
+        recorder.stopRecording(stopRecordingAudioCallback);
+    }
+
+    function onSaveAudio() {
+        if (audiofile != undefined && audiofile != null) {
+            uploadFile(audiofile);
+            audio.setAttribute('src', '');
+            onCancelAudio();
+        } else {
+            alert("Audio not recorded");
+        }
+    }
+
+    function onCancelAudio() {
+        audiofile = null;
+        audio.setAttribute('src', '');
+    }
+
+    function onSaveVideo() {
+        if (videoFile != undefined && videoFile != null) {
+            uploadFile(videoFile);
+            onCancelVideo();
+        } else {
+            alert("Video not recorded");
+        }
+    }
+
+    function onCancelVideo() {
+        videoFile = null;
+        videoRec.setAttribute('src', '');
+
+    }
+
+    function onSaveScreen() {
+        if (screenFile != undefined && screenFile != null) {
+            uploadFile(screenFile);
+            onCancelScreen();
+        } else {
+            alert("Video not recorded");
+        }
+    }
+
+    function onCancelScreen() {
+        screenFile = null;
+        screenRec.setAttribute('src', '');
+    }
+
+    var screenRec = document.getElementById('screenRec');
+
+
+    function startScreenRecording() {
+        document.getElementById('recordScreenButton').disabled = true;
+        captureScreen(function (screen) {
+            screenRec.srcObject = screen;
+            screenRec.muted = false;
+
+            recorderScrceen = RecordRTC(screen, {
+                type: 'video'
+            });
+            //nextWindow = window.open('/nts/note/ManagePost');
+
+
+            recorderScrceen.startRecording();
+
+            // release screen on stopRecording
+            recorderScrceen.screen = screen;
+
+            document.getElementById('stopScreenButton').disabled = false;
+            $("#recordScreenButtonStart").css({ "color": "red" });
+        });
+    }
+
+    function stopScreenRecording() {
+        document.getElementById('stopScreenButton').disabled = true;
+        recorderScrceen.stopRecording(stopRecordingCallback);
+        $("#recordScreenButtonStart").css({ "color": "black" });
+        $("#stopScreenButton").css("pointer-events", "none");
+        document.getElementById('stopScreenButton').disabled = true;
+        $("#stopScreenButton").css({ "color": "lightgray" });
+        document.getElementById('screenRec').disabled = false;
+
+    }
+
+
+    function onFileUploadSuccess(e)
+    {
+        if (e.response.success) {
+            $("#AttachmentlistView").data("kendoListView").dataSource.read();
+           FillAttachmentCount();
+        }
+        else {
+            var msg = ExtractError(e.response.errors, true);
+        }
+        return true;
+
+    }
+
+     var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+
+            ShowNotification("Saved Successfully", "success");
+        }
+        else {
+            showError(res.error);
+        }
+    };
+    var showError = function (error) {
+
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    function onDownload(id) {
+        url = '/cms/Document/GetFileMongo?fileId=' + id;
+        window.open(url, '_blank');
+        return false;
+    }
+
+      function ViewAttachment(id)
+    {
+           var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ViewAttachment", "Cms", new { @area=""})?fileId=' + id;
+        win.OpenWindow({ Title: 'View Attachment', Width: 1000, Height: 700 });
+        return false;
+    }
+    function onDeleteClick(fileId) {
+        if (confirm('Are you sure you want to delete the selected file?')) {
+            $.ajax({
+                type: "POST",
+                url: '/cms/DeleteAttachment',
+                data: { id: fileId },
+                success: function (data) {
+                    $("#AttachmentlistView").data("kendoListView").dataSource.read();
+                 FillAttachmentCount();
+                },
+                dataType: "json",
+            });
+        }
+
+        return false;
+        }
+        function FillAttachmentCount() {
+            var win = GetMainWindow().GetParentWindow();
+            win.FillAttachmentCount();
+    }
+
+
+    //------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+    // End Drag&Drop and Paste Image ****************************************************************************************
+
+    // Get the modal
+    var modal = document.getElementById("myModal");
+
+    // Get the image and insert it inside the modal - use its "alt" text as a caption
+    var img = document.getElementById("imageDrag1");
+    var modalImg = document.getElementById("img01");
+    var captionText = document.getElementById("caption");
+    img.onclick = function () {
+        modal.style.display = "block";
+        modalImg.src = this.src;
+        captionText.innerHTML = this.alt;
+    }
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    function dropHandler(ev) {
+        console.log('File(s) dropped');
+
+        // Prevent default behavior (Prevent file from being opened)
+        ev.preventDefault();
+
+        if (ev.dataTransfer.items) {
+            // Use DataTransferItemList interface to access the file(s)
+            for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+                // If dropped items aren't files, reject them
+                if (ev.dataTransfer.items[i].kind === 'file') {
+                    var file = ev.dataTransfer.items[i].getAsFile();
+                    var reader = new FileReader();
+                    var preview = $("#imageDrag1");
+
+                    console.log('... file[' + i + '].name = ' + file.name);
+                    reader.onloadend = function () {
+                        $('#imageDrag1').show();
+                        $('#imageDrag1').attr('src', reader.result);
+                        uploadFile(file);
+                    }
+                    if (file) {
+                        reader.readAsDataURL(file);
+                    }
+
+                }
+            }
+        } else {
+            // Use DataTransfer interface to access the file(s)
+            for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+                console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+            }
+        }
+    }
+
+    function dragOverHandler(ev) {
+        console.log('File(s) in drop zone');
+
+        // Prevent default behavior (Prevent file from being opened)
+        ev.preventDefault();
+    }
+
+
+    var pasteTarget = document.getElementById("screenshot_zone");
+
+    pasteTarget.addEventListener("paste", handlePaste);
+
+
+    $('#screenshot_zone').on('paste', function (event) {
+
+        handlePaste(event.originalEvent);
+    });
+
+    function handlePaste(e) {
+        for (var i = 0; i < e.clipboardData.items.length; i++) {
+            var item = e.clipboardData.items[i];
+            console.log("Item type: " + item.type);
+            if (item.type.indexOf("image") != -1) {
+                var file = item.getAsFile();
+                var reader = new FileReader();
+                var preview = $("#imageDrag");
+
+                console.log('... file[' + i + '].name = ' + file.name);
+                reader.onloadend = function () {
+                    $('#imageDrag').show();
+                    $('#imageDrag').attr('src', reader.result);
+                    uploadFile(file);
+                }
+                if (file) {
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                alert("Discarding non-image paste data");
+            }
+        }
+    }
+
+    function uploadFile(file) {
+        var url = '/Cms/SaveTaskAttachment';
+        var data = new FormData();
+        data.append("files", file);
+        data.append("referenceTypeId", '@Model.ReferenceTypeId');
+        data.append("referenceTypeCode", '@Model.ReferenceTypeCode');
+        $.ajax({
+            type: "POST",
+            url: url,    // CALL WEB API TO SAVE THE FILES.
+            enctype: 'multipart/form-data',
+            contentType: false,
+            processData: false,         // PREVENT AUTOMATIC DATA PROCESSING.
+            cache: false,
+            data: data, 		        // DATA OR FILES IN THIS CONTEXT.
+            success: function (data, textStatus, xhr) {
+                //setLocalFileIds(data.fileId);
+                //var ids=GetIds();
+                ShowNotification("File Saved Successfully", "success");
+                $("#AttachmentlistView").data("kendoListView").dataSource.read();
+                FillAttachmentCount();
+
+                @*if ('@ViewBag.IsServiceWorkFlow' == true) {
+
+                } else {
+                    window.parent.setFileIds(data.fileId);
+                    window.parent.FillAttachmentCount();
+                }*@
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(textStatus + ': ' + errorThrown);
+            }
+        });
+    }
+
+
+    // End Drag&Drop and Paste Image ****************************************************************
+
+
+    //////////////////////////Audio Start
+
+
+    function captureMicrophone(callback) {
+        //btnReleaseMicrophone.disabled = false;
+
+        if(microphone) {
+            callback(microphone);
+            return;
+        }
+
+        if(typeof navigator.mediaDevices === 'undefined' || !navigator.mediaDevices.getUserMedia) {
+            alert('This browser does not supports WebRTC getUserMedia API.');
+
+            if(!!navigator.getUserMedia) {
+                alert('This browser seems supporting deprecated getUserMedia API.');
+            }
+        }
+
+        navigator.mediaDevices.getUserMedia({
+            audio: isEdge ? true : {
+                echoCancellation: false
+            }
+        }).then(function(mic) {
+            callback(mic);
+        }).catch(function(error) {
+            alert('Unable to capture your microphone. Please check console logs.');
+            console.error(error);
+        });
+    }
+
+    function replaceAudio(src) {
+        var newAudio = document.createElement('audio');
+        newAudio.controls = true;
+        newAudio.Id = "newAudio";
+        newAudio.autoplay = true;
+        if(src) {
+            newAudio.src = src;
+        }
+        var parentNode = audio.parentNode;
+        parentNode.innerHTML = '';
+        parentNode.appendChild(newAudio);
+
+        audio = newAudio;
+    }
+
+    var audiofile;
+    function stopRecordingAudioCallback() {
+        replaceAudio(URL.createObjectURL(recorder.getBlob()));
+         var blob = recorder.getBlob();
+        var file = new File([blob], getFileName('mp3'), {
+            type: 'audio/mp3'
+        });
+        audiofile = file;
+       // uploadFile(file);
+
+        btnStartRecording.disabled = false;
+
+        setTimeout(function() {
+            if(!audio.paused) return;
+
+            setTimeout(function() {
+                if(!audio.paused) return;
+                audio.play();
+            }, 1000);
+
+            audio.play();
+        }, 300);
+
+        audio.play();
+    }
+
+
+
+    var isEdge = navigator.userAgent.indexOf('Edge') !== -1 && (!!navigator.msSaveOrOpenBlob || !!navigator.msSaveBlob);
+    var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    var recorder; // globally accessible
+    var microphone;
+
+
+    //var btnReleaseMicrophone = document.querySelector('#btn-release-microphone');
+    //var btnDownloadRecording = document.getElementById('btn-download-recording');
+
+
+    //btnReleaseMicrophone.onclick = function() {
+    //    this.disabled = true;
+    //    btnStartRecording.disabled = false;
+
+    //    if(microphone) {
+    //        microphone.stop();
+    //        microphone = null;
+    //    }
+
+    //    if(recorder) {
+    //    }
+    //};
+
+    //btnDownloadRecording.onclick = function() {
+    //    this.disabled = true;
+    //    if(!recorder || !recorder.getBlob()) return;
+
+    //    if(isSafari) {
+    //        recorder.getDataURL(function(dataURL) {
+    //            SaveToDisk(dataURL, getFileName('mp3'));
+    //        });
+    //        return;
+    //    }
+
+    //    var blob = recorder.getBlob();
+    //    var file = new File([blob], getFileName('mp3'), {
+    //        type: 'audio/mp3'
+    //    });
+    //    invokeSaveAsDialog(file);
+    //};
+
+    function click(el) {
+        el.disabled = false; // make sure that element is not disabled
+        var evt = document.createEvent('Event');
+        evt.initEvent('click', true, true);
+        el.dispatchEvent(evt);
+    }
+
+    function getRandomString() {
+        if (window.crypto && window.crypto.getRandomValues && navigator.userAgent.indexOf('Safari') === -1) {
+            var a = window.crypto.getRandomValues(new Uint32Array(3)),
+                token = '';
+            for (var i = 0, l = a.length; i < l; i++) {
+                token += a[i].toString(36);
+            }
+            return token;
+        } else {
+            return (Math.random() * new Date().getTime()).toString(36).replace(/\./g, '');
+        }
+    }
+
+    function getFileName(fileExtension) {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = d.getMonth();
+        var date = d.getDate();
+        return 'Record-' + year + month + date + '-' + getRandomString() + '.' + fileExtension;
+    }
+
+    function SaveToDisk(fileURL, fileName) {
+        // for non-IE
+        if (!window.ActiveXObject) {
+            var save = document.createElement('a');
+            save.href = fileURL;
+            save.download = fileName || 'unknown';
+            save.style = 'display:none;opacity:0;color:transparent;';
+            (document.body || document.documentElement).appendChild(save);
+
+            if (typeof save.click === 'function') {
+                save.click();
+            } else {
+                save.target = '_blank';
+                var event = document.createEvent('Event');
+                event.initEvent('click', true, true);
+                save.dispatchEvent(event);
+            }
+
+            (window.URL || window.webkitURL).revokeObjectURL(save.href);
+        }
+
+        // for IE
+        else if (!!window.ActiveXObject && document.execCommand) {
+            var _window = window.open(fileURL, '_blank');
+            _window.document.close();
+            _window.document.execCommand('SaveAs', true, fileName || fileURL)
+            _window.close();
+        }
+    }
+
+
+    ////////////////////////////Audio End
+
+     function onFileSuccess(e) {
+         if (e.response.success) {
+             OnSuccess(e.response.fileId);
+
+             var upload = $("#files").data("kendoUpload");
+             upload.clearAllFiles();
+         }
+         else {
+             var msg = ExtractError(e.response.errors, true);
+         }
+         return true;
+    }
+        function OnSuccess(fileId) {
+
+        $("#FileId").val(fileId);
+          var mode = $("#LayoutMode").val();
+
+          if ($("#Operation").val() == 'Create') {
+              setLocalFileIds(fileId);
+
+            if (mode == "@LayoutModeEnum.Popup") {
+                var pop1 = window.parent.GetIframePopup();
+                pop1.setFileIds(fileId);
+                pop1.FillAttachmentCount();
+            }
+            else {
+                window.parent.setFileIds(fileId);
+                window.parent.FillAttachmentCount();
+            }
+            var id = $("#CSVFileIds").val();
+            var data = {
+                ReferenceTypeCode: $("#ReferenceTypeCode").val(),
+                ReferenceId: $("#ReferenceId").val(),
+                ReferenceNode: $("#ReferenceNode").val(),
+                VersionNo: $("#VersionNo").val(),
+                FileId: fileId,
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "/General/Attachment/Manage",
+                data: data,
+                success: function (data) {
+
+                },
+                dataType: "json",
+            });
+            $("#AttachmentlistView").data("kendoListView").dataSource.read({ Ids: id });
+        }
+    }
+    function setLocalFileIds(fileId) {
+
+        if ($("#Operation").val() == 'Create' && fileId != null) {
+            var fileIds = $("#CSVFileIds").val() == null || $("#CSVFileIds").val() == 'undefined' ? '' : $("#CSVFileIds").val();
+
+            fileIds = fileId + ',' + fileIds;
+            $("#CSVFileIds").val(fileIds);
+        }
+
+    }
+    function GetIds() {
+        var id = $("#CSVFileIds").val();
+        return {
+            Ids: id
+        };
+        }
+
+
+
+    function onClickAudio() {
+        document.querySelector("audio").src = '';
+        $('#recordingsList').hide();
+        $("#video_zone").hide();
+        $("#drop_zone").hide();
+        $("#imageDrag").hide();
+        $("#div_imageDrag1").hide();
+        $("#audio_zone").show();
+        $("#upload_zone").hide();
+        $("#screenshot_zone").hide();
+        //$("#worklist_zone").hide();
+        $("#recordButton").show();
+        $("#recordButton").css({ "color": "blueviolet" });
+        $("#recordButton").css("pointer-events", "auto");
+        $("#screenRecord_zone").hide();
+        $("#AttachmentlistView").data("kendoListView").dataSource.read();
+        $('#videoRec').src = null;
+        $('#audioRec').src = null;
+        $('#screenRec').src = null;
+        $('#newAudio').src = null;
+    }
+
+    function onClickScreenRecord() {
+        $("#screenRec").attr("src", '');
+       document.querySelector("video").src = '';
+        $('#recordingsList').hide();
+        $("#imageDrag").hide();
+        $("#div_imageDrag1").hide();
+        $("#audio_zone").hide();
+        $("#upload_zone").hide();
+        $("#screenshot_zone").hide();
+        $("#recordButton").hide();
+        $("#AttachmentlistView").data("kendoListView").dataSource.read();
+        $("#video_zone").hide();
+        //$("#worklist_zone").hide();
+        $("#screenRecord_zone").show();
+        $("#drop_zone").hide();
+        $('#videoRec').src = null;
+        $('#audioRec').src = null;
+        $('#newAudio').src = null;
+        $('#screenRec').src = null;
+    }
+
+    function onClickVideoRecord() {
+        document.querySelector("video").src = '';
+        $('#recordingsList').hide();
+        $("#imageDrag").hide();
+        $("#div_imageDrag1").hide();
+        $("#audio_zone").hide();
+        $("#upload_zone").hide();
+        $("#screenshot_zone").hide();
+        $("#recordButton").hide();
+        //$("#worklist_zone").hide();
+        $("#AttachmentlistView").data("kendoListView").dataSource.read();
+        $("#video_zone").show();
+        $("#screenRecord_zone").hide();
+        $("#drop_zone").hide();
+        $('#videoRec').src = null;
+        $('#audioRec').src = null;
+        $('#newAudio').src = null;
+        $('#screenRec').src = null;
+
+    }
+
+    function onClickImage() {
+        document.querySelector("video").src = '';
+        $("#video_zone").hide();
+        $("#imageDrag").hide();
+        $("#div_imageDrag1").hide();
+        $('#recordingsList').hide();
+        $("#drop_zone").show();
+        $("#audio_zone").hide();
+        $("#upload_zone").hide();
+        $("#screenshot_zone").hide();
+        //$("#worklist_zone").hide();
+        $("#AttachmentlistView").data("kendoListView").dataSource.read();
+        $("#screenRecord_zone").hide();
+        $('#videoRec').src = null;
+        $('#audioRec').src = null;
+        $('#newAudio').src = null;
+        $('#screenRec').src = null;
+
+    }
+
+    function onClickUpload() {
+        document.querySelector("video").src = '';
+        $("#video_zone").hide();
+        $("#imageDrag").hide();
+        $("#div_imageDrag1").hide();
+        $('#recordingsList').hide();
+        $("#drop_zone").hide();
+        $("#audio_zone").hide();
+        //$("#worklist_zone").hide();
+        $("#upload_zone").show();
+        $("#screenshot_zone").hide();
+        $("#AttachmentlistView").data("kendoListView").dataSource.read();
+        $("#screenRecord_zone").hide();
+        $('#videoRec').src = null;
+        $('#audioRec').src = null;
+        $('#newAudio').src = null;
+        $('#screenRec').src = null;
+
+    }
+
+    function onClickScreenshot() {
+        document.querySelector("video").src = '';
+        $("#video_zone").hide();
+        $("#imageDrag").hide();
+        $("#div_imageDrag1").hide();
+        $('#recordingsList').hide();
+        $("#drop_zone").hide();
+        $("#audio_zone").hide();
+        $("#upload_zone").hide();
+        //$("#worklist_zone").hide();
+        $("#screenshot_zone").show();
+        $("#AttachmentlistView").data("kendoListView").dataSource.read();
+        $("#screenRecord_zone").hide();
+        $('#videoRec').src = null;
+        $('#audioRec').src = null;
+        $('#newAudio').src = null;
+        $('#screenRec').src = null;
+
+    }
+
+    function onClickAttachWorklist() {
+       // document.querySelector("video").src = '';
+        $('#recordingsList').hide();
+        $("#imageDrag").hide();
+        $("#div_imageDrag1").hide();
+        $("#audio_zone").hide();
+        $("#upload_zone").hide();
+        $("#screenshot_zone").hide();
+        $("#recordButton").hide();
+        $("#video_zone").hide();
+        //$("#worklist_zone").show();
+        $("#screenRecord_zone").hide();
+        $("#drop_zone").hide();
+        $('#videoRec').src = null;
+        $('#audioRec').src = null;
+        $('#newAudio').src = null;
+        $('#screenRec').src = null;
+      //  $("#AttachmentlistView").data("kendoListView").dataSource.read();
+    }
+        function OnChangeType()
+        {
+            var dropdownlist = $("#LinkId").data("kendoDropDownList");
+             var type = $("input[name='NtsType']:checked").val();
+            if (type != '' && type == "@AttachmentTypeEnum.Note")
+            {
+                dropdownlist.dataSource.read({ntsType: '@AttachmentTypeEnum.Note'});
+            }
+            if (type != '' && type == "@AttachmentTypeEnum.Task")
+            {
+                dropdownlist.dataSource.read({ntsType: '@AttachmentTypeEnum.Task'});
+            }
+            if (type != '' && type == "@AttachmentTypeEnum.Service")
+            {
+                dropdownlist.dataSource.read({ ntsType: '@AttachmentTypeEnum.Service'});
+            }
+        }
+        function FilterReference()
+        {
+            var type = $("input[name='NtsType']:checked").val();
+             var a = {
+                 ntsType: type,
+        };
+        return a;
+
+        }
+
+
+     function onDownloadClick(fileId) {
+        window.location.href = '/general/file/GetFile?fileId=' + fileId;
+        return false;
+    }
+
+        function onViewClick(fileId) {
+
+            var url = '/nts/service/ViewAttachment?ntsType=Service&fileId=' + fileId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: 'View Attachment', Width: 1000, Height: 550 });
+            return false;
+    }
+
+    if(!navigator.getDisplayMedia && !navigator.mediaDevices.getDisplayMedia) {
+    var error = 'Your browser does NOT support the getDisplayMedia API.';
+    document.querySelector('h1').innerHTML = error;
+
+    document.getElementById('screenRec').style.display = 'none';
+    document.getElementById('recordScreenButton').style.display = 'none';
+    document.getElementById('stopScreenButton').style.display = 'none';
+    throw new Error(error);
+    }
+
+    function invokeGetDisplayMedia(success, error) {
+        var displaymediastreamconstraints = {
+            video: {
+                displaySurface: 'monitor', // monitor, window, application, browser
+                logicalSurface: true,
+                cursor: 'always' // never, always, motion
+            }
+        };
+
+        // above constraints are NOT supported YET
+        // that's why overridnig them
+        displaymediastreamconstraints = {
+            video: true
+        };
+
+        if(navigator.mediaDevices.getDisplayMedia) {
+            navigator.mediaDevices.getDisplayMedia(displaymediastreamconstraints).then(success).catch(error);
+        }
+        else {
+            navigator.getDisplayMedia(displaymediastreamconstraints).then(success).catch(error);
+        }
+    }
+
+    function captureScreen(callback) {
+        invokeGetDisplayMedia(function(screen) {
+            addStreamStopListener(screen, function() {
+                document.getElementById('stopScreenButton').click();
+            });
+            callback(screen);
+        }, function(error) {
+            console.error(error);
+            alert('Unable to capture your screen. Please check console logs.\n' + error);
+        });
+    }
+
+    var screenFile;
+    function stopRecordingCallback() {
+        screenRec.src = screenRec.srcObject = null;
+        screenRec.src = URL.createObjectURL(recorderScrceen.getBlob());
+        var blob = recorderScrceen.getBlob();
+        var file = new File([blob], getFileName('mp4'), {
+            type: 'video/mp4'
+        });
+        screenFile = file;
+        //uploadFile(file);
+        recorderScrceen.screen.stop();
+        recorderScrceen.destroy();
+        recorderScrceen = null;
+        nextWindow.close();
+        document.getElementById('recordScreenButton').disabled = false;
+    }
+
+    var recorderScrceen; // globally accessible
+    var nextWindow;
+
+    //document.getElementById('recordScreenButton').onclick = function () {
+
+    //};
+
+    //document.getElementById('stopScreenButton').onclick = function() {
+
+    //};
+
+    function addStreamStopListener(stream, callback) {
+        stream.addEventListener('ended', function() {
+            callback();
+            callback = function() {};
+        }, false);
+        stream.addEventListener('inactive', function() {
+            callback();
+            callback = function() {};
+        }, false);
+        stream.getTracks().forEach(function(track) {
+            track.addEventListener('ended', function() {
+                callback();
+                callback = function() {};
+            }, false);
+            track.addEventListener('inactive', function() {
+                callback();
+                callback = function() {};
+            }, false);
+        });
+    }
+
+
+
+    function captureCamera(callback) {
+        navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then(function(camera) {
+            callback(camera);
+        }).catch(function(error) {
+            alert('Unable to capture your camera. Please check console logs.');
+            console.error(error);
+        });
+    }
+    var videoFile;
+    function stopRecordingVideoCallback() {
+        videoRec.src = videoRec.srcObject = null;
+        videoRec.muted = false;
+        videoRec.volume = 1;
+        videoRec.src = URL.createObjectURL(recorderVideo.getBlob());
+          var blob = recorderVideo.getBlob();
+          var file = new File([blob], getFileName('mp4'), {
+            type: 'video/mp4'
+          });
+        videoFile = file;
+       // uploadFile(file);
+        recorderVideo.camera.stop();
+        recorderVideo.destroy();
+        recorderVideo = null;
+
+        $("#stopVideoButton").css("pointer-events", "none");
+        document.getElementById('stopVideoButton').disabled = true;
+        $("#stopVideoButton").css({ "color": "lightgray" });
+    }
+
+
+    //document.getElementById('recordVideoButton').onclick = function () {
+    //    alert("ddd");
+    //    this.disabled = true;
+    //    captureCamera(function(camera) {
+    //        videoRec.muted = true;
+    //        videoRec.volume = 0;
+    //        videoRec.srcObject = camera;
+
+    //        recorderVideo = RecordRTC(camera, {
+    //            type: 'video'
+    //        });
+
+    //        recorderVideo.startRecording();
+
+    //        // release camera on stopRecording
+    //        recorderVideo.camera = camera;
+
+    //        document.getElementById('stopVideoButton').disabled = false;
+    //        $("#recordVideoButtonStart").css({ "color": "red" });
+    //        $("#stopVideoButton").css("pointer-events", "auto");
+    //        $("#stopVideoButton").css({ "color": "#bdaf2e" });
+    //    });
+    //};
+
+    //document.getElementById('stopVideoButton').onclick = function() {
+    //    this.disabled = true;
+    //    recorderVideo.stopRecording(stopRecordingVideoCallback);
+    //    $("#recordVideoButtonStart").css({ "color": "black" });
+    //    $("#stopVideoButton").css("pointer-events", "none");
+    //    document.getElementById('stopScreenButton').disabled = true;
+    //    $("#stopVideonButton").css({ "color": "lightgray" });
+    //     document.getElementById('videoRec').disabled = false;
+    //};
+
+    function OnOk(e) {
+        //var type = $("#AttachmentType").data("kendoDropDownList").value();
+        var type = $("input[name='NtsType']:checked").val();
+
+        if (type != '@AttachmentTypeEnum.File') {
+            var lnkId = $("#LinkId").data("kendoDropDownList").value();
+            if (lnkId == null || lnkId == '') {
+                var msg = "<li>" + type + ' field is required' + "</li>";
+                $(".hr-v-summary").removeClass("validation-summary-valid");
+                $(".hr-v-summary").addClass("validation-summary-errors");
+                $(".hr-v-summary ul").html(msg);
+                return false;
+            }
+            else {
+                return AttachNts();
+            }
+        }
+
+        return false;
+    }
+    function AttachNts() {
+        ShowAjaxLoader($("#appWrapper"));
+        var lnk = $("#LinkId").data("kendoDropDownList");
+        var type = $("input[name='NtsType']:checked").val();
+        var url = "/general/file/createlink";
+        var d = {
+            LinkId: lnk.value(),
+            FileName: lnk.text(),
+            AttachmentType: type
+        };
+        $.ajax({
+            url: url,
+            type: 'GET',
+            cache: false,
+            data: d,
+            success: function (response) {
+                RemoveAjaxLoader($("#appWrapper"))
+                if (response.success) {
+                    var fileId = response.fileId;
+                    setLocalFileIds(fileId);
+                    var mode = $("#LayoutMode").val();
+                        if (mode == "@LayoutModeEnum.Popup") {
+                            var pop1 = window.parent.GetIframePopup();
+                            pop1.setFileIds(fileId);
+                            pop1.FillAttachmentCount();
+                        }
+                        else {
+                            window.parent.setFileIds(fileId);
+                            window.parent.FillAttachmentCount();
+                        }
+                        var id = $("#CSVFileIds").val();
+                        var data = {
+                            ReferenceTypeCode: $("#ReferenceTypeCode").val(),
+                            ReferenceId: $("#ReferenceId").val(),
+                            ReferenceNode: $("#ReferenceNode").val(),
+                            VersionNo: $("#VersionNo").val(),
+                            FileId: fileId,
+                        };
+
+                        $.ajax({
+                            type: "POST",
+                            url: "/General/Attachment/Manage",
+                            data: data,
+                            success: function (data) {
+
+                            },
+                            dataType: "json",
+                        });
+                        $("#AttachmentlistView").data("kendoListView").dataSource.read({ Ids: id });
+
+                }
+                else {
+                    OnError(response.errors);
+                }
+
+            },
+            error: function (errData) {
+                RemoveAjaxLoader($("#appWrapper"))
+                OnError(errData);
+            }
+        });
+    }
+    function OnFileClick(fileId) {
+        //var ru = window.location.href.replace(window.location.origin, "")
+       // ru = encodeURIComponent(ru);
+
+        window.open('/general/file/GetFile?fileId=' + fileId, '_blank');
+
+        return false;
+        }
+        function onDataBound(e) {
+
+            var lvData = $("#AttachmentlistView").data("kendoListView").dataSource.data();
+        if (lvData.length == 0) {
+            $("#AttachmentlistView").append("<div class='no-data'><i class='fad fa-paperclip'></i><br/><span>No Attachment</span></div>");
+        }
+    }
+</script>

@@ -1,0 +1,318 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    //Layout = null;
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@inject CMS.Common.IUserContext _userContext
+@model TemplateViewModel
+
+    <link rel="stylesheet" href="~/lib/duration-picker/dist/jquery-duration-picker.min.css">
+    <script src="~/lib/duration-picker/dist/jquery-duration-picker.min.js"></script>
+    <style>
+            .modal-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 99;
+                width: 100vw;
+                height: 100vh;
+                background-color: #000;
+            }
+            /* .modal-backdrop.show {
+            opacity: 0;
+        }*/
+            .form-label-group {
+                position: relative;
+                margin-bottom: 0px;
+            }
+
+            .cms-manageportal-footer {
+                /*        position: absolute;*/
+                left: 0;
+                bottom: 0;
+                padding: 10px;
+                padding-right: 20px;
+                width: 100%;
+                background-color: #F8F8F8 !important;
+                color: white;
+                text-align: right;
+            }
+
+            .slidenav-flow {
+                overflow-x: hidden;
+                overflow-y: auto !important;
+                height: 75%;
+            }
+
+            .style-myiconimage {
+                /*border-radius: 50%;*/
+                height: 100px;
+                width: 100px;
+            }
+
+            .style-mybgimage {
+                /*border-radius: 50%;*/
+                height: 100px;
+                width: 100px;
+            }
+
+            .style-mybannerimage {
+                /*border-radius: 50%;*/
+                height: 100px;
+                width: 100px;
+            }
+
+            .style-image {
+                width: 30%;
+                float: left;
+            }
+
+            .style-upload {
+                width: 70%;
+                float: left;
+            }
+
+            .style-pickerleft {
+                width: 50%;
+                float: left;
+                padding-bottom: 15px;
+            }
+            /*    k-colorpicker {
+            width: 100px;
+        }
+
+        .k-colorpicker .k-selected-color {
+                width: 100px;
+        }*/
+
+    </style>
+    <script type="text/javascript">
+
+        $(function () {
+            $('#Name').on('input', function (e) {
+                var txt = $('#Name').val();
+                txt = txt.replace(/[^A-Z0-9]/ig, "");
+                $('#Name').val(txt);
+            });
+        });
+
+
+        function closeNav() {
+          
+            var win = GetMainWindow();
+            win.CloseWindow();
+            return false;
+
+    }
+
+        var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+            HideLoader($('#steptasktemplate'));
+            var win = GetMainWindow();
+            win.CloseWindow({MethodName: "getTaskTemplateId",Prms:  res.tasktemplateId  });
+            
+            //window.parent.$("#TaskTemplateId").data("kendoDropDownList").dataSource.read();
+            //window.parent.$("#TaskTemplateId").data("kendoDropDownList").value(res.tasktemplateId);
+            //var Id = res.Id;
+            //var tasktemId = res.tasktemplateId;
+            //console.log(Id, tasktemId);
+
+        }
+        else {
+           // alert(res)
+            HideLoader($('#steptasktemplate'));
+            showError(res.error);
+        }
+    };
+
+        function OnSave(evt) {
+
+            var name = $('#Name').val();
+            var dname = $('#DisplayName').val();
+            var code = $('#Code').val();
+            if (name !="" && dname !="" && code != "") {
+                ShowLoader($('#steptasktemplate'));
+            }
+
+        }
+
+        var showError = function (error) {
+            $("#validation-summary").html(error);
+            $("#validation-summary").css("display", "block");
+        }
+    </script>
+
+
+
+
+    <div class="pad-15" id="steptasktemplate">
+        <form asp-controller="ProcessDesign" asp-action="ManageStepTaskTemplate" class="form-horizontal" id="steptaskform" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+              data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+              data-ajax="true" data-ajax-method="POST">
+            @*onsubmit='return onSubmit(this)'>*@
+            <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+
+            <div class="row" style="padding:10px;">
+
+                @*<div class="row col-12 pad-10">
+            <div class="col-3">
+                <label>Template Category</label>
+            </div>
+            <div class="col-9">
+                @Model.TemplateCategoryName
+            </div>
+        </div>*@
+
+                @*<div class="row col-12 pad-10">
+            <div class="col-3">
+                <label for="Name">Name<span class="required" style="color:red;">*</span></label>
+            </div>
+            <div class="col-9">
+                @if (Model.DataAction == DataActionEnum.Create)
+                {
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Name" autocomplete="off" required="required" />
+                }
+                else
+                {
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Name" autocomplete="off" readonly />
+                }
+            </div>
+        </div>*@
+
+                <div class="col-12 pad-10">
+                    <div class="form-label-group">
+                        @if (Model.DataAction == DataActionEnum.Create)
+                        {
+                            <input asp-for="Name" type="text" class="form-control" placeholder="Name" autocomplete="off" required="required" />
+                        }
+                        else
+                        {
+                            <input asp-for="Name" type="text" class="form-control" placeholder="Name" autocomplete="off" readonly />
+                        }<label for="Name"> Name <span class="required" style="color:red;">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-12 pad-10">
+                    <div class="form-label-group">
+                        <input asp-for="DisplayName" type="text" class="form-control" placeholder="DisplayName" autocomplete="off" required="required" />
+                        <label for="DisplayName">Display Name <span class="required" style="color:red;">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-12 pad-10">
+                    <div class="form-label-group">
+                        <input asp-for="Code" type="text" class="form-control" placeholder="Code" autocomplete="off" required="required" />
+                        <label for="Code">Code <span class="required" style="color:red;">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-12 pad-10">
+                    <div class="form-label-group">
+                        <textarea asp-for="Description" placeholder="Description" rows="5" class="form-control" style="height:120px;"></textarea>
+                        <label for="Description">Description</label>
+                    </div>
+                </div>
+
+                <div class="col-12">Template Stage</div>
+                <div class="col-12 pad-15">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.TemplateStageId)
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .OptionLabel("--Select--")
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetTemplateStageList", "TemplateStage", new { @area = "Cms" });
+            });
+        })
+        .HtmlAttributes(new { @class = "form-control"/*, @style = "width:80%"*/ })
+        )*@
+
+                    <input asp-for="TemplateStageId" id="TemplateStageId" class="form-control" />
+                </div>
+                <div class="col-12">Template Step</div>
+                <div class="col-12 pad-15">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.TemplateStepId)
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .OptionLabel("--Select--")
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetTemplateStepList", "TemplateStage", new { @area = "Cms" });
+            });
+        })
+        .HtmlAttributes(new { @class = "form-control"/*, @style = "width:80%"*/ })
+        )*@
+
+                    <input asp-for="TemplateStepId" id="TemplateStepId" class="form-control" />
+                </div>
+
+
+            </div>
+
+            @Html.HiddenFor(x => x.Id)
+            @Html.HiddenFor(x => x.DataAction)
+            @Html.HiddenFor(x => x.TemplateCategoryId)
+            @Html.HiddenFor(x => x.TemplateType)
+            @Html.HiddenFor(x => x.ModuleId)
+            @*@Html.HiddenFor(x => x.UdfTableMetadataId)*@
+
+            <div class="cms-slidebar-footer">
+                <input type="button" class="btn btn-light" value="Close" onclick="closeNav()"  />
+                <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave(event)"/>
+            </div>
+        </form>
+        
+        
+    </div>
+
+    <script>
+
+    $(document).ready(function () {
+        $("#TemplateStageId").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.TemplateStageId',
+            dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/TemplateStage/GetTemplateStageList",
+                    }
+                }
+            }
+        });
+
+        $("#TemplateStepId").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.TemplateStepId',
+            dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/TemplateStage/GetTemplateStepList",
+                    }
+                }
+            }
+        });
+    });
+    </script>

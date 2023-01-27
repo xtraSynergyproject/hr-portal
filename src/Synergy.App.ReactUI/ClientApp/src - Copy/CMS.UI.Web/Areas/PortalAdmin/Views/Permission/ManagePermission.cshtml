@@ -1,0 +1,201 @@
+﻿@using CMS.Business;
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Newtonsoft.Json;
+@{
+    ViewData["Title"] = "Manage Permission";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model PermissionViewModel
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+
+<div class="row" style="margin-left:15px;">
+    <form asp-controller="Permission" asp-action="ManagePermission" method="post" class="form-horizontal" id="myForm">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Enter Name" required="required" autocomplete="off" style="width:80%" />
+                    <label for="Name">Name <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="GroupName" type="text" class="form-control" placeholder="Enter Group Name" required="required" autocomplete="off" style="width:80%" />
+                    <label for="GroupName">Group Name <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Code" type="text" class="form-control" placeholder="Enter Code" required="required" autocomplete="off" style="width:80%" />
+                    <label for="Code">Code <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+
+                    <input asp-for="SequenceOrder" type="number" class="form-control" placeholder="Enter Sequence Order" autocomplete="off" style="width:80%" />
+                    <label for="SequenceOrder">Enter Sequence Order</label>
+                </div>
+            </div>
+
+            <div class="col-12">Page Types <span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().MultiSelectFor(model=>model.PageTypes)
+                    .AutoClose(true)
+                    .Placeholder("Select page types...")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "PageTypeEnum" });
+                        });
+                    })
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .AutoBind(true)
+                    .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%"})
+                    .Height(300)
+                    )*@
+
+                <select asp-for="PageTypes" id="PageTypes" style="width:80%"></select>
+            </div>
+
+            <div class="col-12">User Permission Types <span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().MultiSelectFor(model => model.UserPermissionTypes)
+                    .AutoClose(true)
+                    .Placeholder("Select user permission types...")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "UserPermissionTypeEnum" });
+                        });
+                    })
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .AutoBind(true)
+                    .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%"})
+                    .Height(300)
+                    )*@
+
+                <select asp-for="UserPermissionTypes" id="UserPermissionTypes" style="width:80%"></select>
+
+            </div>
+
+            <div class="col-12">Status</div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().DropDownListFor(x=>x.Status)
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .DataSource(source =>
+        {
+        source.Read(read =>
+        {
+            read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "StatusEnum" });
+        });
+        })
+        .Value(Model.Status.ToString())
+        .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+        )*@
+
+                <input asp-for="Status" id="Status" class="form-control" style="width:80%" />
+            </div>
+
+
+            <div class="cms-slidebar-footer">
+                <button type="button" class="btn btn-light" onclick="closeNavPermission();">Close</button>
+                <input type="submit" class="btn btn-primary" value="Save" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+    </form>
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+            closeNavPermission();
+            window.parent.getDataPermission();
+        }
+
+        $("#PageTypes").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=PageTypeEnum",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select page types...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.PageTypes)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });
+
+        $("#UserPermissionTypes").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=UserPermissionTypeEnum",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select user permission type...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.UserPermissionTypes)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });
+
+        $("#Status").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.Status.ToString()',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StatusEnum",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function closeNavPermission() {
+      
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+</script>
+

@@ -1,0 +1,156 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@using Kendo.Mvc.UI
+@using CMS.UI.ViewModel
+@model NoteTemplateViewModel
+@{
+
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+<style>
+    /*.k-upload .k-upload-action {
+        display: none;
+    }*/
+
+    .group .input {
+        margin-bottom: 25px;
+        width: 100%;
+        color: black;
+        display: block;
+        border: 1px;
+        padding: 15px 20px;
+        border-radius: 50px;
+        background: rgba(142, 139, 139, 0.1);
+    }
+</style>
+
+
+
+
+<form asp-controller="document" asp-action="ManageUploadedFile" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+      data-ajax="true" data-ajax-method="POST">
+    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+    <div class="row" style="padding:10px;">
+        <div id="message">
+            <div style="padding: 5px;">
+                <div id="inner-message" class="alert alert-info">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    @Resource["Alldocumentswillbeuploadedundergeneraldocumentcategoryasdraft"]
+                </div>
+            </div>
+        </div>
+        <div id="message">
+            <div style="padding: 5px;">
+                <div id="inner-message" class="alert alert-info">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    @Resource["SavewillbeenabledafteruploadingallfilesLargefoldermaytakemoretimetocomplete"]
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-7">
+
+                    <div class="row" style="margin-top:10px;">
+                        <div class="col-xs-11 col-md-11">
+                            <div style="margin-top:10px;padding-left:10px;color:dimgray">
+
+                                @(Html.Kendo().Upload()
+        .Name("files")
+        .Async(a => a
+            .Save("UploadFolderAndFiles", "Document")
+        //.Remove("Directory_Upload_Remove", "Upload")
+        .ChunkSize(1073741824)
+        )
+        .Directory(true)
+        .DirectoryDrop(true)
+          .Validation(validation => validation.MaxFileSize(1073741824))
+         .Events(e => e.Success("OnUploadSuccess"))
+    )
+
+                            </div><br />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 pull-right" style="padding-top:20px;padding:10px;text-align:right;">
+                            @*@Html.Kendo().Button().Name("btnSubmit").Content(@SharedResource["Save"]).HtmlAttributes(new { @class = "k-primary" }).Enable(false)*@
+                            <button type="submit" class="btn btn-primary" id="btnSubmit">@SharedResource["Save"]</button>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </div>
+
+        </div>
+
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.ParentNoteId)
+        @Html.HiddenFor(x => x.UploadedContent)
+    </div>
+    <div class="chart-loading" style="min-height:100%"></div>
+</form>
+<script type="text/javascript">
+    var uploadedfile = [];
+    $(document).ready(function () {
+        $("#btnSubmit").click(function (e) {
+            kendo.ui.progress($(".chart-loading"), true);
+            if (uploadedfile.length == 0) {
+                $("#validation-summary").removeClass("validation-summary-valid");
+                $("#validation-summary").addClass("validation-summary-errors");
+                var msg = "@Resource["Pleaseuploadfolderbeforesave"]";
+                $("#validation-summary ul").html(msg);
+                e.preventDefault();
+                kendo.ui.progress($(".chart-loading"), false);
+            }
+            else {
+                $("#UploadedContent").val(JSON.stringify(uploadedfile));
+            }
+        });
+    });
+
+    function onAjaxSuccess(response) {
+        if (response.success) {
+            kendo.ui.progress($(".chart-loading"), false);
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName: "refreshFileManager" });
+        }
+        else {
+            kendo.ui.progress($(".chart-loading"), false);
+            ShowErrors(response.errors);
+        }
+    }
+    function OnCancel(e) {
+        win.CloseWindow({ MethodName: "refreshFileManager" });
+    }
+    function OnCreate() {
+        window.parent.OpenDetail();
+    }
+    function ShowErrors(err) {
+        kendo.ui.progress($(".chart-loading"), false);
+        $("#validation-summary").removeClass("validation-summary-valid");
+        $("#validation-summary").addClass("validation-summary-errors");
+        var msg = err;
+        $("#validation-summary ul").html(msg);
+    }
+    function OnUploadSuccess(e) {
+        if (e.response) {
+            uploadedfile.push(e.response);
+            var items = e.sender.wrapper.find('.k-file').length;
+            if (items === uploadedfile.length) {
+                var button = $("#btnSubmit");
+                // enable button
+                button.attr("disabled", false);
+            }
+        }
+        else {
+            var msg = e.response.errors;
+            alert(msg);
+        }
+        return true;
+    }
+</script>
+
+

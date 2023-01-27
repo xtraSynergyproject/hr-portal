@@ -1,0 +1,182 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@{
+    Layout = null;
+}
+@model FormIndexPageTemplateViewModel;
+<script>
+     function OnCreate() {
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.Create.ToString()';
+            var action = '@DataActionEnum.Create.ToString()';
+            LoadPageById(id, type, source, action);
+            return false;
+        }
+        function OnEdit(Id) {
+           // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.Edit.ToString()';
+            var action = '@RequestSourceEnum.Edit.ToString()';
+            LoadPageById(id, type, source, action, Id);
+            return false;
+        }
+    function OnDelete(Id) {
+        
+            //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.Delete.ToString()';
+            var action = '@RequestSourceEnum.Delete.ToString()';
+            LoadPageById(id, type, source, action, Id);
+            return false;
+        }
+</script>
+<div class="row pad-15">
+    <div>
+        <h4>@Model.Page.Title</h4>
+    </div>
+    <div style="width:100%">
+        <script>
+                        var columnDefs = [
+                            {
+                                headerName: "Actions",
+                                field: "Id",
+                                cellRenderer: params => {
+                                    if ("@Model.EnableEditButton"=="True" || "@Model.EnableDeleteButton"=="True")
+                                    {
+                                        return "<div class='btn-group grid-menu' id='tree-menuBinTableData' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\"><i class='fas fa-ellipsis-v'></i></div>"
+                                    }
+                                    return "";
+                                }
+                            },
+                            @foreach (var item in Model.SelectedTableRows)
+                            {
+                                @:{ field: '@item.ColumnName', headerName: '@item.HeaderName' },
+                            }
+                        ];
+                        $(function () {
+                            GetData_kgrid();
+                            $.contextMenu({
+                                selector: '#tree-menuBinTableData',
+                                trigger: 'left',
+                                build: function ($trigger, e) {
+
+
+                                    var id = $trigger.data('idvalue');
+                                    switch (0) {
+                                        case 0:
+                                            return {
+                                                callback: function (key, options) {
+                                                    switch (key) {
+
+                                                        case 'edit':
+                                                            OnEdit(id);
+                                                            break;
+
+                                                        case 'delete':
+                                                            OnDelete(id);
+                                                            break;
+
+                                                        default:
+                                                    }
+                                                },
+                                                items: {
+                                                    @if (Model.EnableEditButton)
+                                                    {
+                                                        @:"edit": { name: "Edit", icon: "fas fa-edit" },
+                                                    }
+                                                    @if (Model.EnableEditButton)
+                                                    {
+                                                        @:"delete": { name: "Delete", icon: "fas fa-trash" },
+                                                    }
+                                                }
+                                            };
+
+
+                                    }
+                                }
+                            });
+                        });
+
+                        function GetData_kgrid() {
+                            document.getElementById("kgridIndex").innerHTML = "";
+                            var p = 'indexPageTemplateId=@Model.Id' ;
+                            gridConfig(
+                                "kgridIndex",
+                                "/Home/LoadFormIndexPageGrid?"+p,
+                                columnDefs,
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+        </script>
+        @if (Model.EnableCreateButton)
+        {
+            <button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;@Model.CreateButtonText.ToDefaultCreateButtonText()</button>
+        }
+        <div id="kgridIndex" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<dynamic>
+        ()
+        .Name("kgridIndex")
+        .Columns(columns =>
+        {
+            columns.Bound("Id").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.EnableEditButton)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon" });
+                }
+                if (Model.EnableDeleteButton)
+                {
+                    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                }
+            }).Width(120);
+            foreach (var column in Model.SelectedTableRows)
+            {
+
+                columns.Bound(column.ColumnName);
+
+            }
+
+        })
+
+        .ToolBar(toolbar =>
+        {
+            if (Model.EnableCreateButton)
+            {
+                toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.CreateButtonText.ToDefaultCreateButtonText()}</button>");
+            }
+        })
+        //.Events(e => e.DataBound(string.Concat("OnDataBound_", Model.FieldName)))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        //.AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadFormIndexPageGrid", "Home", new { indexPageTemplateId = Model.Id }))
+        //.Model(model => model.Id(p => p.Id))
+
+        )
+
+        )*@
+    </div>
+</div>
+

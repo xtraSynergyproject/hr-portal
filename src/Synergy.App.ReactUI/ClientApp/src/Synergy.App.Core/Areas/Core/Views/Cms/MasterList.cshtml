@@ -1,0 +1,228 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@{
+    Layout = null;
+}
+@model EGovDashboardViewModel
+@inject IUserContext _userContext;
+
+<style>
+    .master-container {
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        color: var(--dark);
+        border-radius: 20px;
+        background-color: #f2f2f2;
+        cursor: pointer;
+    }
+
+        .master-container:hover {
+            background-color: var(--secondary);
+            color: var(--light);
+        }
+
+    .title-bg1 {
+        background-color: #070f74;
+        padding: 6px 0 2px 20px;
+        margin: 0;
+        font-size: 20px;
+        color: #fff;
+        border-radius: 12px 12px 0 0;
+        height: auto;
+        font-weight: 500;
+    }
+
+    .indiv-block-bg1 {
+        /* background-color: #F5EBBC; */
+        height: 100px;
+        width: 230px;
+        border-radius: 20px;
+        margin-left: 20px;
+        overflow: hidden !important;
+        /* border: 1px solid #e66c80; */
+        background-color: #cdcdcd;
+    }
+
+    .label1 {
+        font-size: 20px;
+    }
+
+    .cancel-button {
+        background: #eb7c63;
+        order: 2;
+    }
+
+    .k-listview-content {
+        height: unset !important;
+        overflow-y: hidden !important;
+    }
+
+    .k-listview {
+        border-style: none !important;
+        height: unset !important;
+    }
+
+    #listView, #listViewPO, #listViewPU {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        display: flex;
+    }
+
+    .card {
+        float: left;
+        position: relative;
+        width: 300px;
+        height: 270px;
+        margin: 10px;
+        padding: 0;
+    }
+
+    .k-listview:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .footer-item {
+        cursor: pointer;
+        border: 1px solid;
+        border-radius: 30px;
+        padding: 4px;
+        padding-left: 13px;
+        margin-left: 10px;
+    }
+
+    .card-body {
+        overflow-y: auto;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+
+        //Master list
+        var dataSourcePM = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/ReadMasterList?groupCode=@ViewBag.GroupCode",
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#masterlistView").kendoListView({
+            dataSource: dataSourcePM,
+            height: 350,
+            scrollable: "endless",
+            template: kendo.template($("#template").html())
+        });
+
+    });
+
+    function onService() {
+
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var isproposed = true;
+
+        $.ajax({
+            type: 'GET',
+            url: '/cms/lov/GetLOVDetailsByCode?code=EGOV_PRO_STATUS_PROPOSED',
+            success: function (res) {
+
+                var udfs = encodeURIComponent('IsProposedByCitizen=' + isproposed + '&ProjectStatus=' +res.Id);
+
+                var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=EGOV_PROJECT_PROPOSAL&portalId=' + portalId + '&udfs=' + udfs;
+                var win = GetMainWindow();
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Title: 'Create Project Proposal', Width: 1200, Height: 600 });
+            }
+        });
+
+    }
+
+    function OnAfterServiceCreate() {
+        $("#masterlistView").data("kendoListView").dataSource.read();
+    }
+
+    function OnClick(id, type) {
+        debugger;
+
+        type = (type == "Like") ? '@ProjectPropsalResponseEnum.Like' : '@ProjectPropsalResponseEnum.Dislike';
+
+        var url = "/EGOV/EGovernment/UpdateProjectProposalLikes?proposalId="+id+"&type="+type+"&userId=@_userContext.UserId";
+        $.ajax({
+            type: 'POST',
+            url: url,
+            success: function (res) {
+                if (res.success) {
+                    debugger;
+                    $("#masterlistView").data("kendoListView").dataSource.read();
+                }
+                else {
+
+                }
+            }
+        });
+    }
+
+    function OpenMasterPage(tcode,tname) {
+        debugger;
+        var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=popup&popup=true&templateCodes='+tcode+'&portalId=' + portalId;
+
+        //var url = '/portal/NewPosition';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Manage '+tname, Width: 1200, Height: 600 });
+    }
+
+    function OpenService(serId,tcode) {
+         var portalId = $('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterServiceCreate&pageType=Service&source=View&dataAction=View&templateCodes='+tcode+'&portalId=' + portalId + '&recordId=' + serId;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: 'View Project', Width: 1000, Height: 600, Position: 'Right1' });
+            return false;
+    }
+
+    function onCommentClick(serId)
+    {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ServiceComments", "Cms", new { @area= "" })?serviceId=' + serId+'&IsAddCommentEnabled=true';
+        win.OpenWindow({ Title: 'Project Comments', Width: 1000, Height: 600 });
+        return false;
+    }
+
+</script>
+
+<script id="template" type="text/kendo-ui-template">
+
+    <div class="card">
+        <div class="card-header bg-info" style="color:white;">#:TemplateCategoryName#<i style='float:right;font-size:1.6em;' class='fa fa-database'></i></div>
+        <div class="card-body">
+            # for (var i = 0; i < TemplatesList.length; i++) { #
+            <div class="master-container" onclick="OpenMasterPage('#:TemplatesList[i].Code#','#=TemplatesList[i].DisplayName#');">
+                 #=TemplatesList[i].DisplayName#
+           </div>
+        # } #
+        </div>
+    </div>
+
+</script>
+
+
+<div class="row p-2 pt-3">
+    <div class="col-5" style="color:var(--secondary);font-weight:500;font-size:22px">
+        Master Data
+    </div>
+    @*<div class="col-6">
+            <input type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1">
+        </div>*@
+</div>
+<div id="masterlistView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+
+
+

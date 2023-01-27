@@ -1,0 +1,1648 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+
+@*@model ApplicationDataViewModel;*@
+@model ApplicationSearchViewModel;
+
+@{
+    ViewBag.Title = "";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms1.cshtml";
+    Layout =  ViewBag.Layout;
+}
+
+<style>
+    .k-grid {
+        border-color: #2d9fca;
+    }
+
+    .k-grid-header .k-header {
+        color: #2d9fca;
+        font-weight: 700;
+    }
+
+    .k-pager-wrap .k-link.k-state-disabled {
+        border-radius: 40px;
+        margin-left: 5px;
+    }
+
+    .k-pager-numbers .k-state-selected {
+        border-radius: 40px;
+        margin-left: 5px;
+    }
+
+    .k-pager-wrap .k-pager-refresh {
+        border-color: transparent;
+        background-color: #f8f9fa;
+        color: black;
+    }
+
+    .k-grid td {
+        /*border-color: #2d9fca;*/
+        border-color: transparent;
+    }
+
+    .k-grid-pager {
+        border-color: #2d9fca;
+    }
+
+    .k-grid thead {
+        background-color: transparent;
+    }
+
+    /*.k-grid td:first-child {
+        text-align: center;
+    }*/
+    span {
+        padding: 0px !important;
+    }
+</style>
+
+<script type="text/javascript">
+    function Update(type) {
+        //alert($("#ManpowerTypeCode").val());
+       // if ($("#ManpowerTypeCode").val() == "Worker" || $("#ManpowerTypeCode").val() == "DriverOperator") {
+           // type = "FinalOfferSent";
+          //  alert(type);
+       // }
+        //
+        var users = '';
+        var grid = $("#kgrdCandInterview").data("kendoGrid");
+
+        var rows = grid.select();
+        var length = rows.length / 2;
+        var i = 1;
+        rows.each(function (index, row) {
+            if (i <= length) {
+                var selectedItem = grid.dataItem(row);
+                users = users + selectedItem.Id + ',';
+            }
+            i++;
+            // selectedItem has EntityVersionId and the rest of your model
+        });
+        if (users == '' || users == ',') {
+            alert("Please Select atleast one candidate from the list");
+        }
+        else {
+            ShowLoader($('#section-shortlist'));
+            var assignTo = "";
+            $.ajax({
+                type: "POST",
+                url: "/Recruitment/CandidateShortlist/UpdateApplicationStatus",
+                data: { 'applicants': users, 'type': type },
+                success: function (data) {
+                    //alert(data.success);
+                    if (data.success) {
+                        //
+                        var search = FilterGrid();
+                        //var jobgrid = $("#kgrdCandJobOffer").data("kendoGrid");
+                        //jobgrid.dataSource.read(search);
+                        //jobgrid.refresh();
+                        var intergrid = $("#kgrdCandInterview").data("kendoGrid");
+                        intergrid.dataSource.read(search);
+                        //intergrid.refresh();
+                        //$("#kgrdCandJobOffer").data("kendoGrid").dataSource.read(search);
+                        //$("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+                        var search1 = FilterBatch();
+                        $("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+                        window.parent.refreshInbox();
+
+                    }
+                },
+                dataType: "json",
+            });
+
+            // Now Schedule Interview rasied by Hm manually
+            //$.ajax({
+            //    type: "GET",
+            //    url: "/Cms/Task/AssignTaskForScheduleInterview",
+            //    data: { 'applicantIds': users, 'assignTo': assignTo },
+            //    success: function (data) {
+            //        if (data.success) {
+            //            var search = FilterGrid();
+            //            var jobgrid = $("#kgrdCandJobOffer").data("kendoGrid");
+            //            jobgrid.dataSource.read(search);
+            //            //jobgrid.refresh();
+            //            var intergrid = $("#kgrdCandInterview").data("kendoGrid");
+            //            intergrid.dataSource.read(search);
+            //            //intergrid.refresh();
+            //        }
+            //        HideLoader($('#section-shortlist'));
+            //    },
+            //    dataType: "json",
+            //});
+
+            $.ajax({
+                type: "GET",
+                url: "/Recruitment/CandidateShortlist/CreateApplicationTrackforHm",
+                data: { 'applicantIds': users },
+                success: function (data) {
+                    if (data.success) {
+                        var search = FilterGrid();
+            //            var jobgrid = $("#kgrdCandJobOffer").data("kendoGrid");
+            //            jobgrid.dataSource.read(search);
+            //ViewModelaBatchIdBatchIdBatchIdBatchIdgiewBag           //jobgrid.refresh();
+                        var intergrid = $("#kgrdCandInterview").data("kendoGrid");
+                        intergrid.dataSource.read(search);
+                        //intergrid.refresh();
+                        HideLoader($('#section-shortlist'));
+                        window.parent.refreshInbox();
+                    }
+                },
+                dataType: "json",
+            });
+        }
+
+    }
+
+    function Update1(type) {
+        var users = '';
+        var tasks = '';
+        var grid = $("#kgrdCandJobOffer").data("kendoGrid");
+
+        var rows = grid.select();
+        var length = rows.length / 2;
+        var i = 1;
+        rows.each(function (index, row) {
+            if (i <= length) {
+                var selectedItem = grid.dataItem(row);
+                users = users + selectedItem.Id + ',';
+                tasks = tasks + selectedItem.TaskId + ',';
+            }
+            i++;
+            // selectedItem has EntityVersionId and the rest of your model
+        });
+        if (users == '' || users == ',') {
+            alert("Please Select atleast one candidate from the list");
+        }
+        else {
+            var assignTo = "";
+            $.ajax({
+                type: "POST",
+                url: "/Recruitment/CandidateShortlist/UpdateApplicationState",
+                data: { 'applicants': users, 'type': type },
+                success: function (data) {
+                    if (data.success) {
+                        //
+                        var search = FilterGrid();
+                        var jobgrid = $("#kgrdCandJobOffer").data("kendoGrid");
+                        jobgrid.dataSource.read(search);
+                        jobgrid.refresh();
+                        var intergrid = $("#kgrdCandInterview").data("kendoGrid");
+                        intergrid.dataSource.read(search);
+                        intergrid.refresh();
+                        window.parent.refreshInbox();
+                        //$("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+                        //$("#kgrdCandJobOffer").data("kendoGrid").dataSource.read(search);
+                    }
+                },
+                dataType: "json",
+            });
+            $.ajax({
+                type: "GET",
+                url: "/Cms/Task/CancelTaskForScheduleInterview",
+                data: { 'taskIds': tasks, 'assignTo': assignTo },
+                success: function (data) {
+                    if (data.success) {
+                        var search = FilterGrid();
+                        var jobgrid = $("#kgrdCandJobOffer").data("kendoGrid");
+                        jobgrid.dataSource.read(search);
+                        jobgrid.refresh();
+                        var intergrid = $("#kgrdCandInterview").data("kendoGrid");
+                        intergrid.dataSource.read(search);
+                        intergrid.refresh();
+                        window.parent.refreshInbox();
+                    }
+                },
+                dataType: "json",
+            });
+            //alert(users);
+            //alert(tasks);
+        }
+    }
+
+    function RaiseBulkService() {
+
+        var users = '';
+        var tasks = '';
+        var grid = $("#kgrdCandJobOffer").data("kendoGrid");
+        grid.tbody.find("input:checked").closest("tr").each(function (index) {
+            users = users + grid.dataItem(this).Id + ',';
+        });
+        //var rows = grid.select();
+        //var length = rows.length / 2;
+        //var i = 1;
+        //rows.each(function (index, row) {
+        //    if (i <= length) {
+        //        var selectedItem = grid.dataItem(row);
+        //        users = users + selectedItem.Id + ',';
+        //        tasks = tasks + selectedItem.TaskId + ',';
+        //    }
+        //    i++;
+        //    // selectedItem has EntityVersionId and the rest of your model
+        //});
+        if (users == '' || users == ',') {
+            alert("Please Select atleast one candidate from the list");
+        }
+        else {
+            //alert(users);
+            @*iframeOpenUrl = '@Url.Action("ManageBulkScheduleInterview", "Task", new { @area= "Cms" })?applicationIds=' + users;
+            OpenIframePopup(500, 500, 'Bulk Schedule Interview');*@
+               var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("ManageBulkScheduleInterview", "Task", new { @area = "Cms" })?applicationIds=' + users;
+            win.OpenWindow({ Title: 'Bulk Schedule Interview', Width: 500, Height: 500 });
+        return false;
+        }
+    }
+    function OnChangeOrg(e) {
+        var dataItem = e.sender.dataItem();
+        //alert(dataItem.Id);
+        //alert(dataItem.Name);
+        //var search = FilterAdv();
+        //$("#JobTitleForHiring").data("kendoDropDownList").dataSource.read(search);
+        var search2 = Filterddl();
+        $("#BatchId").data("kendoDropDownList").dataSource.read(search2);
+    }
+    function OnDataBoundOrg(e) {
+        var dataItem = e.sender.dataItem();
+        //alert(dataItem.Id);
+        //alert(dataItem.Name);
+        //var search = FilterAdv();
+        //$("#JobTitleForHiring").data("kendoDropDownList").dataSource.read(search);
+        var search2 = Filterddl();
+        $("#BatchId").data("kendoDropDownList").dataSource.read(search2);
+    }
+    function FilterAdv() {
+        var dropdownlist = $("#OrganizationId").data("kendoDropDownList");
+        return {
+            orgId: dropdownlist.value(),
+        };
+    }
+    function Filterddl() {
+        var dropdownlist = $("#JobTitleForHiring").data("kendoDropDownList");
+        var orgdropdownlist = $("#OrganizationId").data("kendoDropDownList");
+        return {
+            jobAdvId: dropdownlist.value(),
+            orgId: orgdropdownlist.value(),
+            hmId: '@Model.BatchHiringManagerId'
+        };
+    }
+    function FilterBatch()
+    {
+        return {
+            //jobAdvertismentId: $("#JobTitleForHiring").data("kendoDropDownList").value(),
+            //orgId: $("#OrganizationId").data("kendoDropDownList").value(),
+            batchtype: '@BatchTypeEnum.ShortlistByHr',
+            hmId: '@Model.BatchHiringManagerId',
+            batchId: '@Model.BatchId'
+        }
+    }
+    function OnBatchDataBound() {
+        //var totalApplicant = 0;
+        //var batchData = $("#Batchgrid").data("kendoGrid").dataSource.data();
+        ////console.log(batchData);
+        //for (var i = 0; i < batchData.length;i++)
+        //{
+        //    totalApplicant += batchData[i].NoOfApplication;
+        //}
+        //$("#batchCount").html("Total Applicant: " + totalApplicant);
+
+
+    }
+    function OnApplyfilter() {
+        //alert("filter");
+        var search1 = FilterBatch();
+        $("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+        $("#kgrdCandJobOffer").data("kendoGrid").dataSource.read(search);
+
+    }
+    function OnDataBound(e) {
+        var dataItem = e.sender.dataItem();
+        //console.log(dataItem);
+        if (dataItem != undefined) {
+        //alert(dataItem.ManpowerTypeCode);
+        $("#ManpowerTypeCode").val(dataItem.ManpowerTypeCode);
+        }
+        //alert($("#ManpowerTypeCode").val());
+        var search2 = Filterddl();
+        $("#BatchId").data("kendoDropDownList").dataSource.read(search2);
+        //var search1 = FilterBatch();
+        //$("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+    }
+    function OnJobTitleChange(e) {
+        var dataItem = e.sender.dataItem();
+        //console.log(dataItem);
+        if (dataItem != undefined) {
+            $("#ManpowerTypeCode").val(dataItem.ManpowerTypeCode);
+        }
+        //alert($("#ManpowerTypeCode").val());
+        var search2 = Filterddl();
+        $("#BatchId").data("kendoDropDownList").dataSource.read(search2);
+        //var search1 = FilterBatch();
+        //$("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+    }
+    var delBatchId = null;
+    function UpdateBatchClose(Id) {
+
+        delBatchId = Id;
+        $('#confirmBatchClose').data("kendoDialog").open();
+           @*$.ajax({
+                type: "Post",
+               url: '@Url.Action("UpdateBatchClose", "Batch", new { @area="Recruitment"})?batchId=' + Id +'&code=Close',
+                success: function (data) {
+                    var search1 = FilterBatch();
+                    $("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+                },
+                //dataType: "json",
+            });*@
+    }
+    function ConfirmCloseBatch() {
+        $('#confirmBatchClose').data("kendoDialog").close();
+        CloseBatchItem(delBatchId);
+    }
+    function CloseBatchItem(id) {
+        ShowLoader($('#divBatchGrid'));
+           $.ajax({
+                type: "Post",
+               url: '@Url.Action("UpdateBatchClose", "Batch", new { @area="Recruitment"})?batchId=' + id +'&code=Close',
+                success: function (data) {
+                    var search1 = FilterBatch();
+                    //$("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+                    $("#BatchgridClosed").data("kendoGrid").dataSource.read(search1);
+                    HideLoader($('#divBatchGrid'));
+                    window.parent.refreshInbox();
+                },
+                //dataType: "json",
+            });
+        return false;
+    }
+
+    function FilterGrid() {
+        //var orgddl = $("#OrganizationId").data("kendoDropDownList");
+        //var jobddl = $("#JobTitleForHiring").data("kendoDropDownList");
+        //var batchddl = $("#BatchId").data("kendoDropDownList");
+        //var orgId = orgddl != null ? orgddl.value() : "";
+        //var jobId = jobddl != null ? jobddl.value() : "";
+        //var batchId = batchddl != null ? batchddl.value() : "";
+
+        var orgddl = $('#OrganizationId').val();
+        var jobddl = $('#JobTitleForHiring').val();
+        var batchddl = $('#BatchId').val();
+        var orgId = orgddl != null ? orgddl : "";
+        var jobId = jobddl != null ? jobddl : "";
+        var batchId = batchddl != null ? batchddl : "";
+
+        return {
+            OrganizationId: orgId,
+            JobAdvertisementId: jobId,
+            BatchId: '@Model.BatchId',
+            Mode:'@ViewBag.Mode'
+        }
+    }
+    function onEvaluation(id){
+        //alert(id);
+        @*iframeOpenUrl = '@Url.Action("CandidateEvaluationScaleReview", "CandidateShortlist", new { @area= "Recruitment" })?applicationId=' + id;
+        OpenIframePopup(1200, 1200,'Evaluation Scale Review');*@
+        @*window.location.href='@Url.Action("CandidateEvaluationScaleReview", "CandidateShortlist", new { @area= "Recruitment" })?applicationId=' + id;*@
+         var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("CandidateEvaluationScaleReview", "CandidateShortlist", new { @area = "Recruitment" })?applicationId=' + id;
+        win.OpenWindow({ Title: 'Evaluation Scale Review', Width: 1200, Height: 1200 });
+        return false;
+    }
+    function onEvaluationView(id){
+        //alert(id);
+        @*iframeOpenUrl = '@Url.Action("CandidateEvaluationView", "CandidateShortlist", new { @area= "Recruitment" })?applicationId=' + id;
+        OpenIframePopup(1200, 1200,'View Evaluation');*@
+        @*window.location.href='@Url.Action("CandidateEvaluationScaleReview", "CandidateShortlist", new { @area= "Recruitment" })?applicationId=' + id;*@
+          var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("CandidateEvaluationView", "CandidateShortlist", new { @area = "Recruitment" })?applicationId=' + id;
+        win.OpenWindow({ Title: 'View Evaluation', Width: 1200, Height: 1200 });
+        return false;
+    }
+
+    function onCreateEvaluation() {
+        @*iframeOpenUrl = '@Url.Action("CreateCandidateEvaluation", "CandidateShortlist", new { @area= "Recruitment" })';
+        OpenIframePopup(1200, 1200, 'Create Evaluation');*@
+          var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("CreateCandidateEvaluation", "CandidateShortlist", new { @area = "Recruitment" })';
+        win.OpenWindow({ Title: 'Create Evaluation', Width: 1200, Height: 1200 });
+        return false;
+    }
+
+        function onRaiseTask(appId,code){
+        @*iframeOpenUrl = '@Url.Action("Index", "Task", new { @area= "Cms" })?templateCode=' + code + '&referenceId=' + appId + '&referenceTypeCode=' + '@ReferenceTypeEnum.REC_Application'+'&isPopUp=true';
+            OpenIframePopup(1200, 1200, 'Raise Task');*@
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Index", "Task", new { @area = "Cms" })?templateCode=' + code + '&referenceId=' + appId + '&referenceTypeCode=' + '@ReferenceTypeEnum.REC_Application'+'&isPopUp=true';
+            win.OpenWindow({ Title: 'Raise Task', Width: 1200, Height: 1200 });
+        return false;
+        @*var flag = confirm('Do you want to Raise the Task ?');
+        if (flag) {
+                    $.ajax({
+                        url: '@Url.Action("AssignTaskForAppointment", "Task", new { @area= "Cms" })?applicantId=' + appId,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                       kendo.alert("Task Raised Successfully.");
+                    }
+                },
+                error: function (ert) {
+
+                }
+            });
+        }*@
+
+    }
+    function onViewTask(taskId, code) {
+        //alert(taskId);
+        @*iframeOpenUrl = '@Url.Action("Index", "Task", new { @area= "Cms" })?taskId=' + taskId + '&templateCode1=' + code +'&isPopUp=true' ;
+        OpenIframePopup(1200, 1200, 'View Task');*@
+         var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Index", "Task", new { @area = "Cms" })?taskId=' + taskId + '&templateCode1=' + code +'&isPopUp=true' ;
+        win.OpenWindow({ Title: 'View Task', Width: 1200, Height: 1200 });
+        return false;
+    }
+
+    function onRaiseService(appId, code) {
+        @*iframeOpenUrl = '@Url.Action("Service", "Task", new { @area= "Cms" })?templateCode1=' + code + '&referenceId=' + appId + '&referenceTypeCode=' + '@ReferenceTypeEnum.REC_Application'+'&isPopUp=true';
+        OpenIframePopup(1200, 1200, 'Schedule Interview');*@
+          var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Service", "Task", new { @area = "Cms" })?templateCode1=' + code + '&referenceId=' + appId + '&referenceTypeCode=' + '@ReferenceTypeEnum.REC_Application'+'&isPopUp=true';
+        win.OpenWindow({ Title: 'Schedule Interview', Width: 1200, Height: 1200 });
+        return false;
+    }
+    function onViewService(taskId,code){
+        @*iframeOpenUrl = '@Url.Action("Service", "Task", new { @area= "Cms" })?taskId=' + taskId + '&templateCode1=' + code +'&isPopUp=true' ;
+        OpenIframePopup(1200, 1200, 'Schedule Interview');*@
+          var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Service", "Task", new { @area = "Cms" })?taskId=' + taskId + '&templateCode1=' + code +'&isPopUp=true' ;
+        win.OpenWindow({ Title: 'Schedule Interview', Width: 1200, Height: 1200 });
+        return false;
+    }
+    function OnApplication(Id) {
+        @*iframeOpenUrl = '@Url.Action("PrintableView", "CandidateProfile", new { @area="Recruitment"})?applicationId=' + Id;
+        OpenIframePopup(1200, 1200, 'Candidate Profile');*@
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("PrintableView", "CandidateProfile", new { @area = "Recruitment" })?applicationId=' + Id;
+        win.OpenWindow({ Title: 'Candidate Profile', Width: 1200, Height: 1200 });
+        return false;
+    }
+
+    function OnAddComment(Id) {        
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("AddComments", "CandidateShortlist", new { @area = "Recruitment" })?applicationId=' + Id;
+        win.OpenWindow({ Title: 'Add Comments', Width: 450, Height: 450 });
+        return false;
+    }
+
+    function Refresh() {
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read();
+    }
+
+
+    function IframePostbackScript() {
+        if ($("#kgrdCandInterview").length>0) {
+            $("#kgrdCandInterview").data("kendoGrid").dataSource.read();
+        }
+        if ($("#kgrdCandJobOffer").length>0) {
+            $("#kgrdCandJobOffer").data("kendoGrid").dataSource.read();
+        }
+        var win = GetMainWindow();
+        //var parent = win.GetParentWindow();
+        win.parent.refreshInbox();
+
+    }
+    function ShowLoader(target) {
+        // target.loadingOverlay();
+        kendo.ui.progress(target, true);
+    }
+    function HideLoader(target) {
+        //target.loadingOverlay('remove');
+        kendo.ui.progress(target, false);
+    }
+    function OnCloseIframePopupPage() {
+        var search = FilterGrid();
+        var kgrdCandInterview = $("#kgrdCandInterview").data("kendoGrid");
+        if (kgrdCandInterview != null && kgrdCandInterview != undefined) {
+            kgrdCandInterview.dataSource.read(search);
+        }
+        var kgrdCandJobOffer = $("#kgrdCandJobOffer").data("kendoGrid");
+        if (kgrdCandJobOffer != null && kgrdCandJobOffer != undefined) {
+            kgrdCandJobOffer.dataSource.read(search);
+        }
+        $('.checkboxAll').removeAttr('checked');
+        $('.checkboxAll').prop('checked', false);
+        window.parent.refreshInbox();
+
+        //var search1 = FilterBatch();
+        //$("#Batchgrid").data("kendoGrid").dataSource.read(search1);
+
+    }
+    $(".checkboxAll").bind("change", function (e) {
+
+        if ($(this).attr('checked')) {
+            $('.checkboxAll').removeAttr('checked');
+            $('.checkbox').prop('checked', false);
+            $(".checkbox").closest("td").removeClass("k-state-selected");
+        } else {
+            $('input.checkbox[type=checkbox]').each(function (e) {
+                if (!this.disabled) {
+                    $('.checkboxAll').attr('checked', 'checked');
+                    $(this).prop('checked', true);
+                    $(this).closest("td").addClass("k-state-selected");
+                }
+            });
+            //$('.checkboxAll').attr('checked', 'checked');
+            //$('.checkbox').prop('checked', true);
+            //$(".checkbox").closest("td").addClass("k-state-selected");
+        }
+    });
+    function onBatchGridChange(e) {
+        //alert("gridchange");
+        var selectedRow = this.select();
+        var dataItem = this.dataItem(selectedRow);
+        console.log(dataItem);
+        $('#nameOrganization').html(dataItem.Organization);
+        $('#namePosition').html(dataItem.JobName);
+        $('#nameBatch').html(dataItem.Name);
+        $('#OrganizationId').val(dataItem.OrganizationId);
+        $('#JobTitleForHiring').val(dataItem.JobId);
+        $('#BatchId').val(dataItem.Id);
+
+        var search = FilterGrid();
+        $("#kgrdCandInterview").data("kendoGrid").dataSource.read(search);
+        $("#kgrdCandJobOffer").data("kendoGrid").dataSource.read(search);
+        window.parent.refreshInbox();
+
+    }
+    function onView(id, count) {
+        if (count == 0) {
+            alert("There is no Candidates for this Batch");
+        }
+        else {
+            @*iframeOpenUrl = '@Url.Action("ViewHmBatchCandidate", "CandidateShortlist", new { @area="Recruitment"})?batchid=' + id+"&type=ShortlistByHr" ;
+
+            OpenIframePopup(1500, 1200, 'Candidate Details By Batch');*@
+              var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ViewHmBatchCandidate", "CandidateShortlist", new { @area = "Recruitment" })?batchid=' + id+"&type=ShortlistByHr";
+        win.OpenWindow({ Title: 'Candidate Details By Batch', Width: 1500, Height: 1200 });
+        return false;
+        }
+    }
+    function showfiter(flag) {
+        if (flag) {
+            //alert("show");
+            $("#divfilters").show();
+        } else {
+            //alert("hide");
+            $("#divfilters").hide();
+        }
+    }
+
+    //$(document).ready(function () {
+    //    introJs().setOptions({
+    //        steps: [{
+    //            title: 'Shortlist by HM',
+    //            intro: 'Welcome to Shortlist by Hiring Manager'
+    //        },
+    //        {
+    //            title: 'Open Batch',
+    //            element: "#openbatch",
+    //            intro: 'This is a list of candidates from the batch that are in open status'
+    //        },
+    //        {
+    //            title: 'Closed Batch',
+    //            element: "#closebatch",
+    //            intro: 'These are the batches that have been closed once the action on the candidates is completed'
+    //        },
+    //        {
+    //            title: 'Batch grid!',
+    //            element: "#Batchgrid",
+    //            intro: 'You can find the details of the candidate on this grid'
+    //        },
+    //        {
+    //            title: 'Number of Applicants',
+    //            element: "#noofapp",
+    //            intro: 'It will keep a count of the number of candidates for each position'
+    //        },
+    //        {
+    //            title: 'Close Batch',
+    //            element: "#closebatchbtn",
+    //            intro: 'You can close the batch after the candidate has been reviewed'
+    //        },
+    //        {
+    //            title: 'Select Candidate for Interview',
+    //            element: "#interviewbutton",
+    //            intro: 'The Hiring Manager can select the candidates from the ones selected by HR for the interview'
+    //        },
+    //        {
+    //            title: 'Select all',
+    //            element: "#selectcand",
+    //            intro: 'Clicking on this will select all the candidates'
+    //        },
+    //        {
+    //            title: 'Resume',
+    //            element: "#viewprofile",
+    //            intro: 'Clicking on this link will give you an overview of the profile'
+    //        },
+    //        {
+    //            title: 'Bulk Schedule Interview',
+    //            element: "#raiseservicebtn",
+    //            intro: 'Once the candidates are selected from the grid, Using this tab, the Hiring Manager can schedule the interview for all at once'
+    //        },
+    //        {
+    //            title: 'Select all',
+    //            element: "#selectcandservice",
+    //            intro: 'Clicking on this will select all the candidates'
+    //        },
+    //        {
+    //            title: 'Resume',
+    //            element: "#viewcandprofile",
+    //            intro: 'Clicking on this link will give you an overview of the profile'
+    //        },
+    //        {
+    //            title: 'Raise Service',
+    //            element: "#raisebulkservice",
+    //            intro: 'Using this, the Recruiter can schedule the interview for selected candidate'
+    //        }
+
+    //        ]
+    //    }).start();
+    //});
+
+
+        function OnEditBatch(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        @*iframeOpenUrl = '@Url.Action("Edit", "Batch", new { @area="Recruitment"})?Id=' + dataItem.Id;
+        OpenIframePopup(450, 1200, 'Manage Batch');*@
+          var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("Edit", "Batch", new { @area = "Recruitment" })?status=PendingwithHM&Id=' + dataItem.Id;
+        win.OpenWindow({ Title: 'Manage Batch', Width: 450, Height: 800 });
+        return false;
+    }
+</script>
+
+
+<div class="container pt-2">
+    
+    <!--<div class="text-body mt-4 mb-4">
+        <div role="tablist" id="accordion-2">
+            <div class="card" style="border: none;">
+                <div class="card-header accordion-item-heading" role="tab">-->
+                    @*<h5 class="mb-0" style="font-size: 14px;">
+                            <span class="custom-margin-left-10px" style="color:black;display:initial;">Batch Details </span>
+                            <span class="custom-margin-left-10px" style="color:black;float:right;margin-right:12px;display:initial;" id="batchCount"></span>
+                            <a data-toggle="collapse" aria-expanded="false" aria-controls="accordion-2 .item-1" href="#accordion-2 .item-1" style="font-size: 14px;"><i class="fas fa-caret-down custom-margin-left-10px"></i></a>
+                        </h5>*@
+                    <!--<div class="row" style="margin-left:15px;">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" id="openbatch"><a data-toggle="tab" href="#divBatchGrid" class="nav-link active" role="tab" aria-controls="divbatchgrid" aria-selected="true" onclick="showfiter(true);">Open Batches</a></li>
+                            <li class="nav-item" id="closebatch"><a data-toggle="tab" href="#divBatchGridClosed" class="nav-link" aria-controls="divbatchgridclosed" aria-selected="false" onclick="showfiter(false);">Closed Batches</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="tab-content col-12">
+                    <div id="divBatchGrid" class="tab-pane  in active" role="tabpanel" aria-labelledby="divbatchgrid-tab" style="border: 1px solid #d7d6d6;border-radius: 6px;">
+                        <div style="margin-top: 15px;margin-left: 10px;">
+                            <span class="custom-margin-left-10px" style="color:black;display:initial;font-size: 18px;">From the below table, please click on the no of application to view details of candidates in that batch. </span>
+                        </div>
+                        <div class="card-body" id="openbatchgrid">
+
+                            @(Html.Kendo().Grid<BatchViewModel>()
+                            .Name("Batchgrid")
+                            //.ToolBar(toolbar =>
+                            //            toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateBatch();'><i class='fa fas fa-plus'></i>&nbsp;Create Batch</button>"))
+                            .Columns(columns =>
+                            {
+                                //columns.Command(command =>
+                                //{
+                                //    //command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditBatch").HtmlAttributes(new { @class = "action-icon" });
+                                //    //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteBatch").HtmlAttributes(new { @class = "action-icon" });
+                                //}).Title("Action").Width(100);
+                                //columns.Bound(c => c.JobId);
+                                columns.Bound(c => c.JobName).Title("Position").HeaderHtmlAttributes(new { title = "Position" }).Width(180);
+                                columns.Bound(c => c.Organization).HeaderHtmlAttributes(new { title = "Organization" }).Width(180);
+                                columns.Bound(c => c.Name).Title("Batch No").HeaderHtmlAttributes(new { title = "Batch No" }).Width(180);
+                                columns.Bound(c => c.NoOfApplication).Title("No Of Applicants").HeaderHtmlAttributes(new { title = "No Of Applicants", id = "noofapp" }).ClientTemplate("<a style='cursor:pointer;color:blue' onclick='onView(\"#:Id#\",\"#:NoOfApplication#\")'>#:NoOfApplication#</a>").Width(150);
+                                columns.Bound(c => c.NotShortlistByHM).Title("Not Selected").HeaderHtmlAttributes(new { title = "Not Selected by HM" }).Width(150);
+                                columns.Bound(c => c.ShortlistByHM).Title("Selected for Interview").HeaderHtmlAttributes(new { title = "Selected for Interview" }).Width(150);
+                                columns.Bound(c => c.ConfirmInterview).Title("Interview Confirmed").HeaderHtmlAttributes(new { title = "Interview Confirmed" }).Width(150);
+                                columns.Bound(c => c.Evaluated).Title("Evaluated").HeaderHtmlAttributes(new { title = "Evaluated" }).Width(150);
+                                columns.Bound(c => c.BatchStatusName).HeaderHtmlAttributes(new { title = "Batch Status Name" }).Width(180);
+                                columns.Bound(c => c.TargetHiringDate).HeaderHtmlAttributes(new { title = "Target Hiring Date" }).Format("{0:dd MMM yyyy}").Width(180);
+                                //columns.Bound(c => c.TargetBatchCount).Width(120).Width(150);
+                                columns.Bound(c => c.Id).Title("Close Batch").HeaderHtmlAttributes(new { title = "Close Batch", id = "closebatchbtn" }).ClientTemplate("#if(BatchStatusCode=='PendingwithHM'){#<button class='btn btn-info' onclick='UpdateBatchClose(\"#:Id#\")'>Close Batch</button>#}#").Width(280);
+                            })
+                            .Scrollable(x => x.Enabled(true))
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(true))
+                            .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                            .Pageable(pageable => pageable
+                                            .Refresh(true)
+                                            .PageSizes(true)
+                                            .ButtonCount(5))
+                            .AutoBind(true)
+                            .Resizable(resize => resize.Columns(true))
+                            .Events(e => e.DataBound("OnBatchDataBound").Change("onBatchGridChange"))
+                            .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                        .PageSize(10)
+                                        .Read(read => read.Action("ReadBatchHmData", "Batch").Data("FilterBatch"))
+                                        .Model(model => model.Id(p => p.Id))
+                            )
+                        )
+                        </div>
+                    </div>
+                    <div id="divBatchGridClosed" class="tab-pane" role="tabpanel" aria-labelledby="divbatchgridclosed-tab" style="border: 1px solid #d7d6d6;border-radius: 6px;">
+                        <div style="margin-top: 15px;margin-left: 10px;">
+                            <span class="custom-margin-left-10px" style="color:black;display:initial;font-size: 18px;">From the below table, please click on the No of Applicants to view details of candidates in that batch. </span>
+                        </div>
+                        <div class="card-body">
+                            @(Html.Kendo().Grid<BatchViewModel>()
+                            .Name("BatchgridClosed")
+                            //.ToolBar(toolbar =>
+                            //            toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateBatch();'><i class='fa fas fa-plus'></i>&nbsp;Create Batch</button>"))
+                            .Columns(columns =>
+                            {
+                                //columns.Command(command =>
+                                //{
+                                //    //command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditBatch").HtmlAttributes(new { @class = "action-icon" });
+                                //    //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteBatch").HtmlAttributes(new { @class = "action-icon" });
+                                //}).Title("Action").Width(100);
+                                //columns.Bound(c => c.JobId);
+                                columns.Bound(c => c.JobName).Title("Position").HeaderHtmlAttributes(new { title = "Position" }).Width(180);
+                                columns.Bound(c => c.Organization).HeaderHtmlAttributes(new { title = "Organization" }).Width(180);
+                                columns.Bound(c => c.Name).Title("Batch No").HeaderHtmlAttributes(new { title = "Batch No" }).Width(180);
+                                columns.Bound(c => c.NoOfApplication).Title("No Of Applicants").HeaderHtmlAttributes(new { title = "No Of Applicants" }).ClientTemplate("<a style='cursor:pointer;color:blue' onclick='onView(\"#:Id#\",\"#:NoOfApplication#\")'>#:NoOfApplication#</a>").Width(150);
+                                columns.Bound(c => c.NotShortlistByHM).Title("Not Selected").HeaderHtmlAttributes(new { title = "Not Selected by HM" }).Width(150);
+                                columns.Bound(c => c.ShortlistByHM).Title("Selected for Interview").HeaderHtmlAttributes(new { title = "Selected for Interview" }).Width(150);
+                                columns.Bound(c => c.ConfirmInterview).Title("Interview Confirmed").HeaderHtmlAttributes(new { title = "Interview Confirmed" }).Width(150);
+                                columns.Bound(c => c.Evaluated).Title("Evaluated").HeaderHtmlAttributes(new { title = "Evaluated" }).Width(150);
+                                columns.Bound(c => c.BatchStatusName).HeaderHtmlAttributes(new { title = "Batch Status Name" }).Width(150);
+                                columns.Bound(c => c.TargetHiringDate).HeaderHtmlAttributes(new { title = "Target Hiring Date" }).Format("{0:dd MMM yyyy}").Width(150);
+                                //columns.Bound(c => c.TargetBatchCount).Width(120);
+                                //columns.Bound(c => c.Id).Title("Close Batch").HeaderHtmlAttributes(new { title = "Close Batch" }).Width(130).ClientTemplate("#if(BatchStatusCode=='PendingwithHM'){#<button class='btn btn-info' onclick='UpdateBatchClose(\"#:Id#\")'>Close Batch</button>#}#").Width(280);
+                            })
+                            .Scrollable(x => x.Enabled(true))
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(true))
+                            .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                            .Pageable(pageable => pageable
+                                            .Refresh(true)
+                                            .PageSizes(true)
+                                            .ButtonCount(5))
+                            .AutoBind(true)
+                            .Resizable(resize => resize.Columns(true))
+                            .Events(e => e.DataBound("OnBatchDataBound"))
+                            .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                        .PageSize(10)
+                                        .Read(read => read.Action("ReadCloseBatchHmData", "Batch").Data("FilterBatch"))
+                                        .Model(model => model.Id(p => p.Id))
+                            )
+                        )
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div style="border: 1px solid #d7d6d6;border-radius: 6px;">
+                        <br />
+                        <span class="custom-margin-left-10px" style="color:black;display:initial;font-size: 18px;">1. Please close the batch, once you have completed action on candidates. </span>
+                        <br />
+                        <span class="custom-margin-left-10px" style="color:black;display:initial;font-size: 18px;">2. Please note that once you close the batch, you will not be able to do any further action on any of the candidate in the batch. Hence, close the batch only after processing all the desired candidates. </span>
+                        <br />
+                        <span class="custom-margin-left-10px" style="color:black;display:initial;font-size: 18px;">3. The candidates not selected for interview or candidate rejected after interview or candidate who didn't agree for interview will be returned to candidate application database after closing the batch. </span>
+                        <br /><br />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-white shadow p-2 header-bar pb-2 round-6" id="divfilters" >
+        <div class="row">
+            <div class="col-12 col-md-12 col-lg-6">
+                <div class="row mt-1">
+                    <div class="col-12 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Organization :</label></div>
+                    <div class="dropdown">
+                        <span id="nameOrganization" class="d-block font-weight-bold" style="font-size: 20px;"></span>-->
+                        @*@(Html.Kendo().DropDownListFor(model => model.OrganizationId)
+                            .DataSource(source =>
+                            {
+                                source.Read(read =>
+                                {
+                                    read.Action("GetIdNameHmOrgList", "CandidateShortlist", new { @area = "Recruitment", @userId = Model.BatchHiringManagerId });
+                                });
+                            })
+                            .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+                            .DataTextField("Name")
+                            .DataValueField("Id")
+                            .Filter(FilterType.Contains)
+                            .Events(x => x.Change("OnChangeOrg")
+                            .DataBound("OnDataBoundOrg")
+                            )
+                            .HtmlAttributes(new { @class = "text-box-property ",@style="width:350px;" }))*@
+                        @*<button class="btn dropdown-toggle text-white border rounded d-flex d-lg-flex align-items-center align-items-lg-center" data-toggle="dropdown" aria-expanded="false" type="button" style="text-align: left;height: 32px;max-width: 100%;">Marketer&nbsp; &nbsp;</button>
+                            <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">System Engineer</a>
+                            <a class="dropdown-item" href="#">Manager</a>
+                            <a class="dropdown-item" href="#">Design Engineer</a></div>*@
+                    <!--</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="row mt-1">-->
+                    @*<div class="col-12 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Required HC :</label></div>*@
+                    <!--<div class="col d-flex align-items-center align-items-xl-center">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-12 col-lg-6 ">
+                <div class="row mt-1">
+                    <div class="col-12 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Position for Hiring :</label></div>
+                    <div class="dropdown">
+                        <span id="namePosition" class="d-block font-weight-bold" style="font-size: 20px;"></span>-->
+                        @*@(Html.Kendo().DropDownListFor(x=>x.JobTitleForHiring)
+                                        .DataTextField("JobName")
+                                        .DataValueField("Id")
+                                        .Filter(FilterType.Contains)
+                                          .Events(x => x.Change("OnJobTitleChange")
+                                          .DataBound("OnDataBound")
+                                          )
+                                          .DataSource(source =>
+                                          {
+                                              source.Read(read =>
+                                              {
+                                                  read.Action("GetJobAdvertisment", "CandidateShortlist", new { @area = "Recruitment"});
+                                              });
+                                          })
+                                .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                .HtmlAttributes(new { @class = "text-box-property", @style = "width:350px;" })
+                            )*@
+                        @*<button class="btn dropdown-toggle text-white border rounded d-flex d-lg-flex align-items-center align-items-lg-center" data-toggle="dropdown" aria-expanded="false" type="button" style="text-align: left;height: 32px;max-width: 100%;">Marketer&nbsp; &nbsp;</button>
+                            <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">System Engineer</a>
+                            <a class="dropdown-item" href="#">Manager</a>
+                            <a class="dropdown-item" href="#">Design Engineer</a></div>*@
+                    <!--</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="row mt-1">-->
+                    @*<div class="col-12 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Required HC :</label></div>*@
+                    <!--<div class="col d-flex align-items-center align-items-xl-center">
+                        <p class="ml-1" id="headCount">-->@*@Model.RequiredCount*@<!--</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-12 col-lg-6 ">
+                <div class="row mt-1">
+                    <div class="col-12 col-md-5 col-lg-4"><label class="col-form-label d-inline-block paragraph-bold">Batch :</label></div>
+                    <div class="dropdown">
+                        <span id="nameBatch" class="d-block font-weight-bold" style="font-size: 20px;"></span>-->
+                        @*@(Html.Kendo().DropDownListFor(x=>x.BatchId)
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        .Filter(FilterType.Contains)
+                                          //.Events(x=>x.Change("OnJobTitleChange"))
+                                          .DataSource(source =>
+                                          {
+                                              source.Read(read =>
+                                              {
+                                                  read.Action("GetActiveBatchHm", "CandidateShortlist").Data("Filterddl");
+                                              });
+                                          })
+                               .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                .HtmlAttributes(new { @class = "text-box-property", @style = "width:280px;" })
+                            )*@
+                        @*<button class="btn btn-primary d-inline-flex align-items-center m-1" type="button" style="height: 32px;background-color: #007bff;" onclick="OnApplyfilter();">Apply</button>*@
+
+                    <!--</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <br />
+    <p class="text-white header-bar mt-2 p-2" style="font-size: 18px;">Schedule or Conduct Interview</p>-->
+    <div style="border:1px solid silver;" class="p-2 mb-2">
+        @if (ViewBag.Mode == "NotShortlisted")
+        {
+            <div style="margin-left:-10px;margin-top:-10px"><img style="width:1110px; height:100px" src="~/images/Shortlist by HM NotShortlisted.png" /></div>
+            <div class="row-md-12" style="margin-top: 20px;">
+
+                <p class="pl-1 pb-2" style="border-bottom: 1px solid #d7d6d6;font-weight: bold;font-size: 16px; margin-top:15px;"><i class="fas fa-calendar-alt"></i>&nbsp;Shortlist By Hiring Manager - Not Shortlisted<br></p>
+                <div class="row" style="padding:10px;">
+                    <div class="col-12">
+                        <button class="btn btn-primary d-flex float-right d-lg-flex align-items-lg-center" id="rejectbutton" type="button" style="height: 32px;" onclick="Update('RejectedHM');">Reject Candidate</button>
+                        &nbsp;&nbsp;&nbsp;
+                        <button class="btn btn-primary d-flex float-right d-lg-flex align-items-lg-center" id="interviewbutton" type="button" style="height: 32px;" onclick="Update('ShortlistedHM');">Select Candidate for Interview</button>
+                        &nbsp;&nbsp;&nbsp;
+                        <button class="btn btn-warning d-flex float-right d-lg-flex align-items-lg-center" id="fututebutton" type="button" style="height: 32px;" onclick="Update('ShortlistForFuture');">Shortlist For Future</button>
+
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    @(Html.Kendo().Grid<ApplicationDataViewModel>
+                ().Name("kgrdCandInterview").Height("450")
+                .Columns(columns =>
+                {
+                    //columns.Template("<input class='selectcheckbox' type='checkbox' id=selectcheckbox_#:Id#/>").Title("Select").Width(50).Locked(true);
+                    columns.Select().HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align", id = "selectcand" }).Width(50).Locked(true).Lockable(false);
+                    //columns.Bound(c => c.ApplicationId).ClientTemplate("<a ><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("Resume").Width(120).Locked(true).Lockable(false);
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("<button class='btn btn-primary' onclick='OnAddComment(\"#=ApplicationId#\");'>Add Comment</button>").Title("Action").Width(180).Locked(true).Lockable(false).HeaderHtmlAttributes(new { id = "addcomments" });
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("<a href='javascript:OnApplication(\"#=ApplicationId#\");'><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("Resume").Width(120).Locked(true).Lockable(false).HeaderHtmlAttributes(new { id = "viewprofile" });
+                    //columns.Command(command =>
+                    //{
+                    //    //command.Custom("View").Text("<i class='far fa-address-card'></i>&nbsp;View").Click("").HtmlAttributes(new { /*@class = "btn btn-link",*/ @style = "color:#2d9fca" });
+
+                    //}).Title("Resume").Width(60);
+
+                    //columns.Bound(p => p.ApplicationNo).ClientTemplate(@"<div class='product-photo'
+                    //    style='background-image: url(" + @Url.Content("~/shared/web/foods/#:data.ProductID#.jpg"));
+                    //columns.Bound(p => p.ApplicationNo).Title("").Width(180).Locked(true).Lockable(false);
+                    //columns.Bound(p => p.PhotoId).Title("").Width(180).Locked(true).Lockable(false);
+                    //columns.Bound(p => p.ApplicationNo).Title("Application No").Width(220).Locked(true).Lockable(false);
+                    columns.Bound(p => p.FirstName).Title("First Name").HeaderHtmlAttributes(new { title = "First Name" }).Width(180).Locked(true).Lockable(false);
+                    columns.Bound(p => p.MiddleName).Title("Middle Name").HeaderHtmlAttributes(new { title = "Middle Name" }).Width(180).Lockable(false);
+                    columns.Bound(p => p.LastName).Title("Last Name").HeaderHtmlAttributes(new { title = "Last Name" }).Width(150);
+                    columns.Bound(p => p.ApplicationStateName).HeaderHtmlAttributes(new { title = "Application State" }).Title("Application State").Width(200);
+                    columns.Bound(p => p.ApplicationStatusName).HeaderHtmlAttributes(new { title = "Application Status" }).Title("Application Status").Width(200);
+                    columns.Bound(p => p.BatchStatusName).HeaderHtmlAttributes(new { title = "Batch Status" }).Title("Batch Status").Width(200);
+                    columns.Bound(p => p.ShortlistByHMComment).Title("HM Comments").Width(200);
+                    //columns.Bound(p => p.AppliedDate).Format("{0:MM/dd/yyyy}");
+                    //columns.Bound(p => p.JobId);
+                    columns.Bound(p => p.Email).HeaderHtmlAttributes(new { title = "Email" }).Width(150);
+                    columns.Bound(p => p.ContactPhoneHome).HeaderHtmlAttributes(new { title = "Contact Phone Home" }).Title("Contact Phone Home").Width(150);
+                    columns.Bound(p => p.ContactPhoneLocal).HeaderHtmlAttributes(new { title = "Contact Phone Local" }).Title("Contact Phone Local").Width(150);
+                    columns.Bound(p => p.Score).HeaderHtmlAttributes(new { title = "Score" }).Width(150);
+                    //columns.Bound(p => p.Gender).Width(150);
+                    columns.Bound(p => p.GenderName).HeaderHtmlAttributes(new { title = "Gender" }).Width(150);
+                    columns.Bound(p => p.BloodGroup).HeaderHtmlAttributes(new { title = "Blood Group" }).Width(150);
+                    columns.Bound(p => p.BirthDate).HeaderHtmlAttributes(new { title = "Birth Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+                    columns.Bound(p => p.Age).HeaderHtmlAttributes(new { title = "Age" }).Width(150);
+                    columns.Bound(p => p.BirthPlace).HeaderHtmlAttributes(new { title = "Birth Place" }).Width(150);
+                    columns.Bound(p => p.Nationality).HeaderHtmlAttributes(new { title = "Nationality" }).Width(200);
+                    //columns.Bound(p => p.MaritalStatus).Width(200);
+                    columns.Bound(p => p.MaritalStatusName).HeaderHtmlAttributes(new { title = "Marital Status" }).Width(200);
+                    columns.Bound(p => p.NoOfChildren).HeaderHtmlAttributes(new { title = "No Of Children" }).Width(200);
+
+                    columns.Bound(p => p.TotalWorkExperience).HeaderHtmlAttributes(new { title = "Total Work Experience" }).Width(200);
+                    columns.Bound(p => p.PassportNumber).HeaderHtmlAttributes(new { title = "Passport Number" }).Width(200);
+                    columns.Bound(p => p.PassportIssueCountry).HeaderHtmlAttributes(new { title = "Passport Issue Country" }).Width(200);
+                    columns.Bound(p => p.PassportExpiryDate).HeaderHtmlAttributes(new { title = "Passport Expiry Date" }).Width(200).Format("{0:MM/dd/yyyy}");
+                    //columns.Bound(p => p.QatarId).Width(200);
+                    //columns.Bound(p => p.PassportAttachmentId).Width(200);
+                    //columns.Bound(p => p.AcademicCertificateId).Width(200);
+                    //columns.Bound(p => p.OtherCertificateId).Width(200);
+                    //columns.Bound(p => p.CoverLetterId).Width(200);
+                    columns.Bound(p => p.CurrentAddressHouse).HeaderHtmlAttributes(new { title = "Current Address House" }).Width(200);
+                    columns.Bound(p => p.CurrentAddressStreet).HeaderHtmlAttributes(new { title = "Current Address Street" }).Width(200);
+                    columns.Bound(p => p.CurrentAddressCity).HeaderHtmlAttributes(new { title = "Current Address City" }).Width(200);
+                    columns.Bound(p => p.CurrentAddressState).HeaderHtmlAttributes(new { title = "Current Address State" }).Width(200);
+                    columns.Bound(p => p.CurrentAddressCountryName).HeaderHtmlAttributes(new { title = "Current Address CountryName" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressHouse).HeaderHtmlAttributes(new { title = "Permanent Address House" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressStreet).HeaderHtmlAttributes(new { title = "Permanent Address Street" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressCity).HeaderHtmlAttributes(new { title = "Permanent Address City" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressState).HeaderHtmlAttributes(new { title = "Permanent Address State" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressCountryName).HeaderHtmlAttributes(new { title = "Permanent Address Country Name" }).Width(200);
+                    //columns.Bound(p => p.OptionForAnotherPosition).Width(200);
+                    //columns.Bound(p => p.AdditionalInformation).Width(200);
+                    columns.Bound(p => p.TimeRequiredToJoin).HeaderHtmlAttributes(new { title = "Time Required To Join" }).Width(200);
+                    //columns.Bound(p => p.ManagerJobTitleAndNoOfSubordinate).Width(200);
+
+                    columns.Bound(p => p.NetSalaryCurrency).HeaderHtmlAttributes(new { title = "Net Salary Currency" }).Width(200);
+                    columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary" }).Width(200);
+                    columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(200);
+
+                })
+                //.ToolBar(toolbar =>
+                //{
+                //    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateMenuGroup();'><i class='fa fas fa-plus'></i>&nbsp;Create Menu Group</button>");
+                //})
+                //.Events(e => e.DataBound("OnDataBoundNot"))
+                .Resizable(resize => resize.Columns(true))
+                //.HtmlAttributes(new { style = "min-height:300px;max-height:350px;" })
+                .Scrollable()
+                .Sortable()
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                  .Operators(o => o.ForString(s => s.Clear()
+                                  .Contains("Contains")
+                                  .IsEqualTo("Is equal to")
+                                  )))
+                //.Pageable(pageable => pageable
+                //.Refresh(true)
+                //.PageSizes(true)
+                //.ButtonCount(5))
+                //.AutoBind(false)
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(10)
+                .Read(read => read.Action("ReadInterviewCandidates", "CandidateShortlist").Data("FilterGrid"))
+                .Model(model => model.Id(p => p.Id))
+                )
+        )
+
+                </div>
+
+            </div>
+        }
+        @if (ViewBag.Mode == "ShortlistForFuture")
+        {
+            <div style="margin-left:-10px;margin-top:-10px"><img style="width:1110px; height:100px" src="~/images/Shortlist by HM NotShortlisted.png" /></div>
+            <div class="row-md-12" style="margin-top: 20px;">
+
+                <p class="pl-1 pb-2" style="border-bottom: 1px solid #d7d6d6;font-weight: bold;font-size: 16px; margin-top:15px;"><i class="fas fa-calendar-alt"></i>&nbsp;Shortlist By Hiring Manager - Not Shortlisted<br></p>
+                <div class="row" style="padding:10px;">
+                    <div class="col-12">
+                        <button class="btn btn-primary d-flex float-right d-lg-flex align-items-lg-center" id="rejectbutton" type="button" style="height: 32px;" onclick="Update('RejectedHM');">Reject Candidate</button>
+                        &nbsp;&nbsp;&nbsp;
+                        <button class="btn btn-primary d-flex float-right d-lg-flex align-items-lg-center" id="interviewbutton" type="button" style="height: 32px;" onclick="Update('ShortlistedHM');">Select Candidate for Interview</button>
+                      
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    @(Html.Kendo().Grid<ApplicationDataViewModel>
+                ().Name("kgrdCandInterview").Height("450")
+                .Columns(columns =>
+                {
+                    //columns.Template("<input class='selectcheckbox' type='checkbox' id=selectcheckbox_#:Id#/>").Title("Select").Width(50).Locked(true);
+                    columns.Select().HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align", id = "selectcand" }).Width(50).Locked(true).Lockable(false);
+                    //columns.Bound(c => c.ApplicationId).ClientTemplate("<a ><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("Resume").Width(120).Locked(true).Lockable(false);
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("<button class='btn btn-primary' onclick='OnAddComment(\"#=ApplicationId#\");'>Add Comment</button>").Title("Action").Width(180).Locked(true).Lockable(false).HeaderHtmlAttributes(new { id = "addcomments" });
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("<a href='javascript:OnApplication(\"#=ApplicationId#\");'><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("Resume").Width(120).Locked(true).Lockable(false).HeaderHtmlAttributes(new { id = "viewprofile" });
+                   
+                    columns.Bound(p => p.FirstName).Title("First Name").HeaderHtmlAttributes(new { title = "First Name" }).Width(180).Locked(true).Lockable(false);
+                    columns.Bound(p => p.MiddleName).Title("Middle Name").HeaderHtmlAttributes(new { title = "Middle Name" }).Width(180).Lockable(false);
+                    columns.Bound(p => p.LastName).Title("Last Name").HeaderHtmlAttributes(new { title = "Last Name" }).Width(150);
+                    columns.Bound(p => p.ApplicationStateName).HeaderHtmlAttributes(new { title = "Application State" }).Title("Application State").Width(200);
+                    columns.Bound(p => p.ApplicationStatusName).HeaderHtmlAttributes(new { title = "Application Status" }).Title("Application Status").Width(200);
+                    columns.Bound(p => p.BatchStatusName).HeaderHtmlAttributes(new { title = "Batch Status" }).Title("Batch Status").Width(200);
+                    columns.Bound(p => p.ShortlistByHMComment).Title("HM Comments").Width(200);
+                    //columns.Bound(p => p.AppliedDate).Format("{0:MM/dd/yyyy}");
+                    //columns.Bound(p => p.JobId);
+                    columns.Bound(p => p.Email).HeaderHtmlAttributes(new { title = "Email" }).Width(150);
+                    columns.Bound(p => p.ContactPhoneHome).HeaderHtmlAttributes(new { title = "Contact Phone Home" }).Title("Contact Phone Home").Width(150);
+                    columns.Bound(p => p.ContactPhoneLocal).HeaderHtmlAttributes(new { title = "Contact Phone Local" }).Title("Contact Phone Local").Width(150);
+                    columns.Bound(p => p.Score).HeaderHtmlAttributes(new { title = "Score" }).Width(150);
+                    //columns.Bound(p => p.Gender).Width(150);
+                    columns.Bound(p => p.GenderName).HeaderHtmlAttributes(new { title = "Gender" }).Width(150);
+                    columns.Bound(p => p.BloodGroup).HeaderHtmlAttributes(new { title = "Blood Group" }).Width(150);
+                    columns.Bound(p => p.BirthDate).HeaderHtmlAttributes(new { title = "Birth Date" }).Width(150).Format("{0:MM/dd/yyyy}");
+                    columns.Bound(p => p.Age).HeaderHtmlAttributes(new { title = "Age" }).Width(150);
+                    columns.Bound(p => p.BirthPlace).HeaderHtmlAttributes(new { title = "Birth Place" }).Width(150);
+                    columns.Bound(p => p.Nationality).HeaderHtmlAttributes(new { title = "Nationality" }).Width(200);
+                    //columns.Bound(p => p.MaritalStatus).Width(200);
+                    columns.Bound(p => p.MaritalStatusName).HeaderHtmlAttributes(new { title = "Marital Status" }).Width(200);
+                    columns.Bound(p => p.NoOfChildren).HeaderHtmlAttributes(new { title = "No Of Children" }).Width(200);
+
+                    columns.Bound(p => p.TotalWorkExperience).HeaderHtmlAttributes(new { title = "Total Work Experience" }).Width(200);
+                    columns.Bound(p => p.PassportNumber).HeaderHtmlAttributes(new { title = "Passport Number" }).Width(200);
+                    columns.Bound(p => p.PassportIssueCountry).HeaderHtmlAttributes(new { title = "Passport Issue Country" }).Width(200);
+                    columns.Bound(p => p.PassportExpiryDate).HeaderHtmlAttributes(new { title = "Passport Expiry Date" }).Width(200).Format("{0:MM/dd/yyyy}");
+                    //columns.Bound(p => p.QatarId).Width(200);
+                    //columns.Bound(p => p.PassportAttachmentId).Width(200);
+                    //columns.Bound(p => p.AcademicCertificateId).Width(200);
+                    //columns.Bound(p => p.OtherCertificateId).Width(200);
+                    //columns.Bound(p => p.CoverLetterId).Width(200);
+                    columns.Bound(p => p.CurrentAddressHouse).HeaderHtmlAttributes(new { title = "Current Address House" }).Width(200);
+                    columns.Bound(p => p.CurrentAddressStreet).HeaderHtmlAttributes(new { title = "Current Address Street" }).Width(200);
+                    columns.Bound(p => p.CurrentAddressCity).HeaderHtmlAttributes(new { title = "Current Address City" }).Width(200);
+                    columns.Bound(p => p.CurrentAddressState).HeaderHtmlAttributes(new { title = "Current Address State" }).Width(200);
+                    columns.Bound(p => p.CurrentAddressCountryName).HeaderHtmlAttributes(new { title = "Current Address CountryName" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressHouse).HeaderHtmlAttributes(new { title = "Permanent Address House" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressStreet).HeaderHtmlAttributes(new { title = "Permanent Address Street" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressCity).HeaderHtmlAttributes(new { title = "Permanent Address City" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressState).HeaderHtmlAttributes(new { title = "Permanent Address State" }).Width(200);
+                    columns.Bound(p => p.PermanentAddressCountryName).HeaderHtmlAttributes(new { title = "Permanent Address Country Name" }).Width(200);
+                    //columns.Bound(p => p.OptionForAnotherPosition).Width(200);
+                    //columns.Bound(p => p.AdditionalInformation).Width(200);
+                    columns.Bound(p => p.TimeRequiredToJoin).HeaderHtmlAttributes(new { title = "Time Required To Join" }).Width(200);
+                    //columns.Bound(p => p.ManagerJobTitleAndNoOfSubordinate).Width(200);
+
+                    columns.Bound(p => p.NetSalaryCurrency).HeaderHtmlAttributes(new { title = "Net Salary Currency" }).Width(200);
+                    columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary" }).Width(200);
+                    columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(200);
+
+                })
+                //.ToolBar(toolbar =>
+                //{
+                //    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateMenuGroup();'><i class='fa fas fa-plus'></i>&nbsp;Create Menu Group</button>");
+                //})
+                //.Events(e => e.DataBound("OnDataBoundNot"))
+                .Resizable(resize => resize.Columns(true))
+                //.HtmlAttributes(new { style = "min-height:300px;max-height:350px;" })
+                .Scrollable()
+                .Sortable()
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                  .Operators(o => o.ForString(s => s.Clear()
+                                  .Contains("Contains")
+                                  .IsEqualTo("Is equal to")
+                                  )))
+                //.Pageable(pageable => pageable
+                //.Refresh(true)
+                //.PageSizes(true)
+                //.ButtonCount(5))
+                //.AutoBind(false)
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(10)
+                .Read(read => read.Action("ReadFutureCandidates", "CandidateShortlist").Data("FilterGrid"))
+                .Model(model => model.Id(p => p.Id))
+                )
+        )
+
+                </div>
+
+            </div>
+        }
+        @if (ViewBag.Mode == "ShortlistedByHM")
+        {
+            <div style="margin-left:-10px;margin-top:-10px"><img style="width:1110px; height:100px" src="~/images/Shortlist by HM Shortlisted.png" /></div>
+            <div class="mt-5">
+                <p class="pl-1 pb-2" style="border-bottom: 1px solid #d7d6d6;font-weight: bold;font-size: 16px;"><i class="fas fa-calendar-alt"></i>&nbsp;Shortlist By Hiring Manager - Shortlisted<br></p>
+                <div class="row" style="padding:10px;">
+                    <div class="col-12">
+                        @*<button class="btn btn-primary d-flex float-right d-lg-flex align-items-lg-center" type="button" style="height: 32px;" onclick="Update1('ShortListByHr');">Unselect Candidate from Interview</button>*@
+                        <button class="btn btn-primary d-flex float-right d-lg-flex align-items-lg-center" id="raiseservicebtn" type="button" style="height: 32px;" onclick="RaiseBulkService();">Raise Bulk Schedule Interview</button>
+                    </div>
+                </div>
+
+                <div id="section-shortlist" class="col-12">
+                    @(Html.Kendo().Grid<ApplicationDataViewModel>
+                ().Name("kgrdCandJobOffer").Height("450")
+                .Columns(columns =>
+                {
+
+                    //columns.Select().HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" }).Width(50).Locked(true).Lockable(false);
+                    //columns.Template(x => x.Id).Width(35).ClientTemplate(@"<input class='checkbox' type='checkbox' #=CheckFlag==false?disabled='disabled' : ''# />").HeaderTemplate(@"<input class='checkboxAll' type='checkbox' />");
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("<input class='checkbox' type='checkbox' #=TaskId==null?'':'disabled'# >").ClientHeaderTemplate("<input class='checkboxAll' type='checkbox' />").Width(50).Filterable(false).Sortable(false).HeaderHtmlAttributes(new { id = "selectcandservice" });
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("<a href='javascript:OnApplication(\"#=ApplicationId#\");'><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("Resume").Width(120).HeaderHtmlAttributes(new { id = "viewcandprofile" });
+                    //columns.Bound(c => c.CandidateProfileId).ClientTemplate("<a ><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("Resume").Width(120).Locked(true).Lockable(false);
+
+                    //columns.Command(command =>
+                    //{
+                    //    //command.Custom("View").Text("<i class='far fa-address-card'></i>&nbsp;View").Click("").HtmlAttributes(new { /*@class = "btn btn-link",*/ @style = "color:#2d9fca" });
+
+                    //}).Title("Resume").Width(60);
+
+                    //columns.Bound(p => p.ApplicationNo).ClientTemplate(@"<div class='product-photo'
+                    //    style='background-image: url(" + @Url.Content("~/shared/web/foods/#:data.ProductID#.jpg"));
+                    //columns.Bound(p => p.ApplicationNo).Title("").Width(180).Locked(true).Lockable(false);
+                    //columns.Bound(p => p.ApplicationNo).Title("Application No").Width(220).Locked(true).Lockable(false);
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("#if(TaskId==null){#<button class='btn btn-info' onclick='onRaiseService(\"#:ApplicationId#\",\"SCHEDULE_INTERVIEW\")'>Raise Schedule Interview</button>#}else{#<button class='btn btn-info' onclick='onViewService(\"#:TaskId#\",\"SCHEDULE_INTERVIEW\")'>View Schedule Interview</button>#}#").Title("Service").Width(150).HeaderHtmlAttributes(new { id = "raisebulkservice" });
+                    //columns.Bound(c => c.Id).ClientTemplate("#if(TaskStatusCode=='COMPLETED'){#<button class='btn btn-info' onclick='onEvaluation(\"#:Id#\")'>Evaluation</button>#}#").Title("Evaluation").Width(150).Locked(true).Lockable(false);
+                    columns.Bound(p => p.ShorlistedDate).Title("Shorlisted Date").Format(ApplicationConstant.DateAndTime.DefaultDateFormat).Width(180);
+                    columns.Bound(p => p.FirstName).Title("First Name").Width(180);
+                    //columns.Bound(p => p.ApplicationStatusName).Title("Application Status").Width(150);
+                    columns.Bound(p => p.MiddleName).Title("Middle Name").Width(180);
+                    columns.Bound(p => p.LastName).Title("Last Name").Width(150);
+                    //columns.Bound(p => p.AppliedDate).Format("{0:MM/dd/yyyy}");
+                    //columns.Bound(p => p.JobId);
+                    columns.Bound(p => p.ApplicationStateName).Title("Application State").Width(200);
+                    columns.Bound(p => p.ApplicationStatusName).Title("Application Status").Width(200);
+                    columns.Bound(p => p.BatchStatusName).Title("Batch Status").Width(200);
+                    columns.Bound(p => p.Email).Width(150);
+                    columns.Bound(p => p.ContactPhoneHome).Title("Contact Phone Home").Width(150);
+                    columns.Bound(p => p.ContactPhoneLocal).Title("Contact Phone Local").Width(150);
+                    columns.Bound(p => p.Score).Width(150);
+                    //columns.Bound(p => p.Gender).Width(150);
+                    columns.Bound(p => p.GenderName).Width(150);
+                    columns.Bound(p => p.BloodGroup).Width(150);
+                    columns.Bound(p => p.BirthDate).Width(150).Format("{0:MM/dd/yyyy}");
+                    columns.Bound(p => p.Age).Width(150);
+                    columns.Bound(p => p.BirthPlace).Width(150);
+                    columns.Bound(p => p.Nationality).Width(200);
+                    //columns.Bound(p => p.MaritalStatus).Width(200);
+                    columns.Bound(p => p.MaritalStatusName).Width(200);
+                    columns.Bound(p => p.NoOfChildren).Width(200);
+                    //columns.Bound(p => p.ApplicationStateCode).Width(200);
+                    //columns.Bound(p => p.ApplicationStatusCode).Width(200);
+                    //columns.Bound(p => p.BatchStatusName).Width(200);
+                    columns.Bound(p => p.TotalWorkExperience).Width(200);
+                    columns.Bound(p => p.PassportNumber).Width(200);
+                    columns.Bound(p => p.PassportIssueCountry).Width(200);
+                    columns.Bound(p => p.PassportExpiryDate).Width(200).Format("{0:MM/dd/yyyy}");
+                    //columns.Bound(p => p.QatarId).Width(200);
+                    //columns.Bound(p => p.PassportAttachmentId).Width(200);
+                    //columns.Bound(p => p.AcademicCertificateId).Width(200);
+                    //columns.Bound(p => p.OtherCertificateId).Width(200);
+                    //columns.Bound(p => p.CoverLetterId).Width(200);
+                    columns.Bound(p => p.CurrentAddressHouse).Width(200);
+                    columns.Bound(p => p.CurrentAddressStreet).Width(200);
+                    columns.Bound(p => p.CurrentAddressCity).Width(200);
+                    columns.Bound(p => p.CurrentAddressState).Width(200);
+                    columns.Bound(p => p.CurrentAddressCountryName).Width(200);
+                    columns.Bound(p => p.PermanentAddressHouse).Width(200);
+                    columns.Bound(p => p.PermanentAddressStreet).Width(200);
+                    columns.Bound(p => p.PermanentAddressCity).Width(200);
+                    columns.Bound(p => p.PermanentAddressState).Width(200);
+                    columns.Bound(p => p.PermanentAddressCountryName).Width(200);
+                    //columns.Bound(p => p.OptionForAnotherPosition).Width(200);
+                    //columns.Bound(p => p.AdditionalInformation).Width(200);
+                    columns.Bound(p => p.TimeRequiredToJoin).Width(200);
+                    //columns.Bound(p => p.ManagerJobTitleAndNoOfSubordinate).Width(200);
+
+
+                    //columns.Bound(p => p.Program).Width(200);
+                    //columns.Bound(p => p.ProficiencyLevel).Width(200);
+
+                    //columns.Bound(p => p.DrivingLicenseCountryId).Width(200);
+                    //columns.Bound(p => p.Type).Width(200);
+                    //columns.Bound(p => p.DrivingLicenseIssueDate).Format("{0:MM/dd/yyyy}").Width(200);
+                    //columns.Bound(p => p.DrivingLicenseValidUpTo).Format("{0:MM/dd/yyyy}").Width(200);
+
+                    //columns.Bound(p => p.QualificationType).Width(200);
+                    //columns.Bound(p => p.QualificationId).Width(200);
+                    //columns.Bound(p => p.SpecializationId).Width(200);
+                    //columns.Bound(p => p.EducationType).Width(200);
+                    //columns.Bound(p => p.Institute).Width(200);
+                    //columns.Bound(p => p.EducationCountryId).Width(200);
+                    //columns.Bound(p => p.Duration).Width(150);
+                    //columns.Bound(p => p.PassingYear).Width(200);
+                    //columns.Bound(p => p.Marks).Width(200);
+
+                    //columns.Bound(p => p.NatureOfWork).Width(200);
+                    //columns.Bound(p => p.NoOfYear).Width(200);
+
+                    //columns.Bound(p => p.Employer).Width(200);
+                    //columns.Bound(p => p.LocationId).Width(200);
+                    //columns.Bound(p => p.From).Format("{0:MM/dd/yyyy}").Width(200);
+                    //columns.Bound(p => p.To).Format("{0:MM/dd/yyyy}").Width(200);
+                    //columns.Bound(p => p.Responsibilities).Width(200);
+
+                    //columns.Bound(p => p.ExperienceCountryId).Width(200);
+                    //columns.Bound(p => p.ExperienceNoOfYear).Width(200);
+
+                    //columns.Bound(p => p.JobId).Width(200);
+                    //columns.Bound(p => p.ExperienceByJobNoOfYear).Width(200);
+
+                    //columns.Bound(p => p.Sector).Width(200);
+                    //columns.Bound(p => p.Industry).Width(200);
+                    //columns.Bound(p => p.Category).Width(200);
+                    //columns.Bound(p => p.ExperienceBySectorNoOfYear).Width(200);
+
+                    //columns.Bound(p => p.Language).Width(200);
+                    //columns.Bound(p => p.LanguageProficiencyLevel).Width(200);
+
+
+                    //columns.Bound(p => p.Value).Width(200);
+                    //columns.Bound(p => p.Client).Width(200);
+                    //columns.Bound(p => p.Consultant).Width(200);
+                    //columns.Bound(p => p.ConstructionPeriodFrom).Width(200);
+                    //columns.Bound(p => p.ConstructionPeriodTo).Width(200);
+                    //columns.Bound(p => p.Position).Width(200);
+                    //columns.Bound(p => p.Description).Width(200);
+
+                    //columns.Bound(p => p.ReferenceName).Width(200);
+                    //columns.Bound(p => p.ReferencePosition).Width(200);
+                    //columns.Bound(p => p.ReferenceCompany).Width(200);
+                    //columns.Bound(p => p.ReferencePhone).Width(200);
+                    //columns.Bound(p => p.ReferenceEmail).Width(200);
+                    columns.Bound(p => p.NetSalaryCurrency).HeaderHtmlAttributes(new { title = "Net Salary Currency" }).Width(200);
+
+                    columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary" }).Width(200);
+                    columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(200);
+
+                })
+                //.ToolBar(toolbar =>
+                //{
+                //    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateMenuGroup();'><i class='fa fas fa-plus'></i>&nbsp;Create Menu Group</button>");
+                //})
+                //.Events(e => e.DataBound("OnDataBoundNot"))
+                .Resizable(resize => resize.Columns(true))
+                .Scrollable()
+                .Sortable()
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                  .Operators(o => o.ForString(s => s.Clear()
+                                  .Contains("Contains")
+                                  .IsEqualTo("Is equal to")
+                                  )))
+                //.Pageable(pageable => pageable
+                //.Refresh(true)
+                //.PageSizes(true)
+                //.ButtonCount(5))
+                //.AutoBind(false)
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(10)
+                .Read(read => read.Action("ReadJobOfferCandidatesData", "CandidateShortlist").Data("FilterGrid"))
+                .Model(model => model.Id(p => p.Id))
+                )
+        )
+                    @*<button class="btn btn-info" onclick="onEvaluation('c93b445e-4a79-416d-9ebd-2e9956f6eb87');">Evaluation</button>
+                    <button class="btn btn-info" onclick="onEvaluationView('c93b445e-4a79-416d-9ebd-2e9956f6eb87');">Evaluation View</button>*@
+                    @*<button class="btn btn-info" onclick="onCreateEvaluation();">Create Evaluation</button>*@
+                </div>
+
+            </div>
+        }
+        @if (ViewBag.Mode == "InterviewRequested")
+        {
+            <div style="margin-left:-10px;margin-top:-10px"><img style="width:1110px; height:100px" src="~/images/Shortlist by HM Interview.png" /></div>
+
+            <div class="mt-5">
+                <p class="pl-1 pb-2" style="border-bottom: 1px solid #d7d6d6;font-weight: bold;font-size: 16px;"><i class="fas fa-calendar-alt"></i>&nbsp;Shortlist By Hiring Manager - Interview Requested<br></p>
+
+
+                <div id="section-shortlist" class="col-12">
+                    @(Html.Kendo().Grid<ApplicationDataViewModel>
+                ().Name("kgrdCandJobOffer").Height("450")
+                .Columns(columns =>
+                {
+
+                    //columns.Select().HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" }).Width(50).Locked(true).Lockable(false);
+                    //columns.Template(x => x.Id).Width(35).ClientTemplate(@"<input class='checkbox' type='checkbox' #=CheckFlag==false?disabled='disabled' : ''# />").HeaderTemplate(@"<input class='checkboxAll' type='checkbox' />");
+                   // columns.Bound(c => c.ApplicationId).ClientTemplate("<input class='checkbox' type='checkbox' #=TaskId==null?'':'disabled'# >").ClientHeaderTemplate("<input class='checkboxAll' type='checkbox' />").Width(50).Filterable(false).Sortable(false).HeaderHtmlAttributes(new { id = "selectcandservice" });
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("<a href='javascript:OnApplication(\"#=ApplicationId#\");'><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("Resume").Width(120).HeaderHtmlAttributes(new { id = "viewcandprofile" });
+                    //columns.Bound(c => c.CandidateProfileId).ClientTemplate("<a ><i class='far fa-address-card btn-link'></i>&nbsp;View</a>").Title("Resume").Width(120).Locked(true).Lockable(false);
+
+                    //columns.Command(command =>
+                    //{
+                    //    //command.Custom("View").Text("<i class='far fa-address-card'></i>&nbsp;View").Click("").HtmlAttributes(new { /*@class = "btn btn-link",*/ @style = "color:#2d9fca" });
+
+                    //}).Title("Resume").Width(60);
+
+                    //columns.Bound(p => p.ApplicationNo).ClientTemplate(@"<div class='product-photo'
+                    //    style='background-image: url(" + @Url.Content("~/shared/web/foods/#:data.ProductID#.jpg"));
+                    //columns.Bound(p => p.ApplicationNo).Title("").Width(180).Locked(true).Lockable(false);
+                    //columns.Bound(p => p.ApplicationNo).Title("Application No").Width(220).Locked(true).Lockable(false);
+                    columns.Bound(c => c.ApplicationId).ClientTemplate("#if(TaskId==null){#<button class='btn btn-info' onclick='onRaiseService(\"#:ApplicationId#\",\"SCHEDULE_INTERVIEW\")'>Raise Schedule Interview</button>#}else{#<button class='btn btn-info' onclick='onViewService(\"#:TaskId#\",\"SCHEDULE_INTERVIEW\")'>View Schedule Interview</button>#}#").Title("Service").Width(150).HeaderHtmlAttributes(new { id = "raisebulkservice" });
+                    //columns.Bound(c => c.Id).ClientTemplate("#if(TaskStatusCode=='COMPLETED'){#<button class='btn btn-info' onclick='onEvaluation(\"#:Id#\")'>Evaluation</button>#}#").Title("Evaluation").Width(150).Locked(true).Lockable(false);
+                    columns.Bound(p => p.FirstName).Title("First Name").Width(180);
+                    //columns.Bound(p => p.ApplicationStatusName).Title("Application Status").Width(150);
+                    columns.Bound(p => p.MiddleName).Title("Middle Name").Width(180);
+                    columns.Bound(p => p.LastName).Title("Last Name").Width(150);
+                    //columns.Bound(p => p.AppliedDate).Format("{0:MM/dd/yyyy}");
+                    //columns.Bound(p => p.JobId);
+                    columns.Bound(p => p.ApplicationStateName).Title("Application State").Width(200);
+                    columns.Bound(p => p.ApplicationStatusName).Title("Application Status").Width(200);
+                    columns.Bound(p => p.BatchStatusName).Title("Batch Status").Width(200);
+                    columns.Bound(p => p.Email).Width(150);
+                    columns.Bound(p => p.ContactPhoneHome).Title("Contact Phone Home").Width(150);
+                    columns.Bound(p => p.ContactPhoneLocal).Title("Contact Phone Local").Width(150);
+                    columns.Bound(p => p.Score).Width(150);
+                    //columns.Bound(p => p.Gender).Width(150);
+                    columns.Bound(p => p.GenderName).Width(150);
+                    columns.Bound(p => p.BloodGroup).Width(150);
+                    columns.Bound(p => p.BirthDate).Width(150).Format("{0:MM/dd/yyyy}");
+                    columns.Bound(p => p.Age).Width(150);
+                    columns.Bound(p => p.BirthPlace).Width(150);
+                    columns.Bound(p => p.Nationality).Width(200);
+                    //columns.Bound(p => p.MaritalStatus).Width(200);
+                    columns.Bound(p => p.MaritalStatusName).Width(200);
+                    columns.Bound(p => p.NoOfChildren).Width(200);
+                    //columns.Bound(p => p.ApplicationStateCode).Width(200);
+                    //columns.Bound(p => p.ApplicationStatusCode).Width(200);
+                    //columns.Bound(p => p.BatchStatusName).Width(200);
+                    columns.Bound(p => p.TotalWorkExperience).Width(200);
+                    columns.Bound(p => p.PassportNumber).Width(200);
+                    columns.Bound(p => p.PassportIssueCountry).Width(200);
+                    columns.Bound(p => p.PassportExpiryDate).Width(200).Format("{0:MM/dd/yyyy}");
+                    //columns.Bound(p => p.QatarId).Width(200);
+                    //columns.Bound(p => p.PassportAttachmentId).Width(200);
+                    //columns.Bound(p => p.AcademicCertificateId).Width(200);
+                    //columns.Bound(p => p.OtherCertificateId).Width(200);
+                    //columns.Bound(p => p.CoverLetterId).Width(200);
+                    columns.Bound(p => p.CurrentAddressHouse).Width(200);
+                    columns.Bound(p => p.CurrentAddressStreet).Width(200);
+                    columns.Bound(p => p.CurrentAddressCity).Width(200);
+                    columns.Bound(p => p.CurrentAddressState).Width(200);
+                    columns.Bound(p => p.CurrentAddressCountryName).Width(200);
+                    columns.Bound(p => p.PermanentAddressHouse).Width(200);
+                    columns.Bound(p => p.PermanentAddressStreet).Width(200);
+                    columns.Bound(p => p.PermanentAddressCity).Width(200);
+                    columns.Bound(p => p.PermanentAddressState).Width(200);
+                    columns.Bound(p => p.PermanentAddressCountryName).Width(200);
+                    //columns.Bound(p => p.OptionForAnotherPosition).Width(200);
+                    //columns.Bound(p => p.AdditionalInformation).Width(200);
+                    columns.Bound(p => p.TimeRequiredToJoin).Width(200);
+
+                    columns.Bound(p => p.NetSalaryCurrency).HeaderHtmlAttributes(new { title = "Net Salary Currency" }).Width(200);
+
+                    columns.Bound(p => p.NetSalary).HeaderHtmlAttributes(new { title = "Net Salary" }).Width(200);
+                    columns.Bound(p => p.OtherAllowances).HeaderHtmlAttributes(new { title = "Other Allowances" }).Width(200);
+
+                })
+                //.ToolBar(toolbar =>
+                //{
+                //    toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateMenuGroup();'><i class='fa fas fa-plus'></i>&nbsp;Create Menu Group</button>");
+                //})
+                //.Events(e => e.DataBound("OnDataBoundNot"))
+                .Resizable(resize => resize.Columns(true))
+                .Scrollable()
+                .Sortable()
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                                  .Operators(o => o.ForString(s => s.Clear()
+                                  .Contains("Contains")
+                                  .IsEqualTo("Is equal to")
+                                  )))
+                //.Pageable(pageable => pageable
+                //.Refresh(true)
+                //.PageSizes(true)
+                //.ButtonCount(5))
+                //.AutoBind(false)
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                //.PageSize(10)
+                .Read(read => read.Action("ReadJobOfferCandidatesData", "CandidateShortlist").Data("FilterGrid"))
+                .Model(model => model.Id(p => p.Id))
+                )
+        )
+                    @*<button class="btn btn-info" onclick="onEvaluation('c93b445e-4a79-416d-9ebd-2e9956f6eb87');">Evaluation</button>
+                    <button class="btn btn-info" onclick="onEvaluationView('c93b445e-4a79-416d-9ebd-2e9956f6eb87');">Evaluation View</button>*@
+                    @*<button class="btn btn-info" onclick="onCreateEvaluation();">Create Evaluation</button>*@
+                </div>
+
+            </div>
+        }
+        @if (ViewBag.Mode == "ClosedBatches")
+        {
+            <div style="margin-left:-10px;margin-top:-10px"><img style="width:1110px; height:100px" src="~/images/Shortlist by HM ClosedBatch.png" /></div>
+            //<div class="mt-5">
+            <p class="pl-1 pb-2" style="border-bottom: 1px solid #d7d6d6;font-weight: bold;font-size: 16px;"><i class="fas fa-calendar-alt"></i>&nbsp;Shortlist By HR - Closed Batches<br></p>
+
+
+            <div id="section-shortlist" class="col-12">
+
+                @(Html.Kendo().Grid<BatchViewModel>()
+                            .Name("BatchgridClosed")
+                            //.ToolBar(toolbar =>
+                            //            toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateBatch();'><i class='fa fas fa-plus'></i>&nbsp;Create Batch</button>"))
+                            .Columns(columns =>
+                            {
+                                //columns.Command(command =>
+                                //{
+                                //    //command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditBatch").HtmlAttributes(new { @class = "action-icon" });
+                                //    //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteBatch").HtmlAttributes(new { @class = "action-icon" });
+                                //}).Title("Action").Width(100);
+                                //columns.Bound(c => c.JobId);
+                                columns.Bound(c => c.JobName).Title("Position").HeaderHtmlAttributes(new { title = "Position" }).Width(180);
+                                columns.Bound(c => c.Organization).HeaderHtmlAttributes(new { title = "Organization" }).Width(180);
+                                columns.Bound(c => c.Name).Title("Batch No").HeaderHtmlAttributes(new { title = "Batch No" }).Width(180);
+                                columns.Bound(c => c.HiringManagerName).HeaderHtmlAttributes(new { title = "Hiring Manager" }).Width(100);
+                                columns.Bound(c => c.HeadOfDepartmentName).HeaderHtmlAttributes(new { title = "Head Of Department" }).Width(100);
+                                columns.Bound(c => c.NoOfApplication).Title("No Of Applicants").HeaderHtmlAttributes(new { title = "No Of Applicants" }).ClientTemplate("<a style='cursor:pointer;color:blue' onclick='onView(\"#:Id#\",\"#:NoOfApplication#\")'>#:NoOfApplication#</a>").Width(150);
+                                columns.Bound(c => c.NotShortlistByHM).Title("Not Selected").HeaderHtmlAttributes(new { title = "Not Selected by HM" }).Width(150);
+                                columns.Bound(c => c.ShortlistByHM).Title("Selected for Interview").HeaderHtmlAttributes(new { title = "Selected for Interview" }).Width(150);
+                                columns.Bound(c => c.ConfirmInterview).Title("Interview Confirmed").HeaderHtmlAttributes(new { title = "Interview Confirmed" }).Width(150);
+                                columns.Bound(c => c.Evaluated).Title("Evaluated").HeaderHtmlAttributes(new { title = "Evaluated" }).Width(150);
+                                columns.Bound(c => c.BatchStatusName).HeaderHtmlAttributes(new { title = "Batch Status Name" }).Width(150);
+                                columns.Bound(c => c.TargetHiringDate).HeaderHtmlAttributes(new { title = "Target Hiring Date" }).Format("{0:dd MMM yyyy}").Width(150);
+                                //columns.Bound(c => c.TargetBatchCount).Width(120);
+                                //columns.Bound(c => c.Id).Title("Close Batch").HeaderHtmlAttributes(new { title = "Close Batch" }).Width(130).ClientTemplate("#if(BatchStatusCode=='PendingwithHM'){#<button class='btn btn-info' onclick='UpdateBatchClose(\"#:Id#\")'>Close Batch</button>#}#").Width(280);
+                            })
+                            .Scrollable(x => x.Enabled(true))
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(true))
+                            .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                            .Pageable(pageable => pageable
+                                            .Refresh(true)
+                                            .PageSizes(true)
+                                            .ButtonCount(5))
+                            .AutoBind(true)
+                            .Resizable(resize => resize.Columns(true))
+                            .Events(e => e.DataBound("OnBatchDataBound"))
+                            .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                        .PageSize(10)
+                                        .Read(read => read.Action("ReadCloseBatchHmData", "Batch").Data("FilterBatch"))
+                                        .Model(model => model.Id(p => p.Id))
+                            )
+                        )
+            </div>
+
+            //</div>
+        }
+        @if (ViewBag.Mode == "OpenBatches")
+        {
+            <div style="margin-left:-10px;margin-top:-10px"><img style="width:1110px; height:100px" src="~/images/Shortlist by HM OpenBatch.png" /></div>
+            // <div class="mt-5">
+            <p class="pl-1 pb-2" style="border-bottom: 1px solid #d7d6d6;font-weight: bold;font-size: 16px;"><i class="fas fa-calendar-alt"></i>&nbsp;Shortlist By HR - Open Batches<br></p>
+
+
+            <div id="section-shortlist" class="col-12">
+
+                @(Html.Kendo().Grid<BatchViewModel>()
+                            .Name("BatchgridClosed")
+                            //.ToolBar(toolbar =>
+                            //            toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreateBatch();'><i class='fa fas fa-plus'></i>&nbsp;Create Batch</button>"))
+                            .Columns(columns =>
+                            {
+                                columns.Command(command =>
+                                {
+                                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEditBatch").HtmlAttributes(new { @class = "action-icon" });
+                                    //command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteBatch").HtmlAttributes(new { @class = "action-icon" });
+                                }).Title("Action").Width(100);
+                                //columns.Bound(c => c.JobId);
+                                columns.Bound(c => c.JobName).Title("Position").HeaderHtmlAttributes(new { title = "Position" }).Width(180);
+                                columns.Bound(c => c.Organization).HeaderHtmlAttributes(new { title = "Organization" }).Width(180);
+                                columns.Bound(c => c.Name).Title("Batch No").HeaderHtmlAttributes(new { title = "Batch No" }).Width(180);
+                                columns.Bound(c => c.HiringManagerName).HeaderHtmlAttributes(new { title = "Hiring Manager" }).Width(100);
+                                columns.Bound(c => c.HeadOfDepartmentName).HeaderHtmlAttributes(new { title = "Head Of Department" }).Width(100);
+                                columns.Bound(c => c.NoOfApplication).Title("No Of Applicants").HeaderHtmlAttributes(new { title = "No Of Applicants" }).ClientTemplate("<a style='cursor:pointer;color:blue' onclick='onView(\"#:Id#\",\"#:NoOfApplication#\")'>#:NoOfApplication#</a>").Width(150);
+                                columns.Bound(c => c.NotShortlistByHM).Title("Not Selected").HeaderHtmlAttributes(new { title = "Not Selected by HM" }).Width(150);
+                                columns.Bound(c => c.ShortlistByHM).Title("Selected for Interview").HeaderHtmlAttributes(new { title = "Selected for Interview" }).Width(150);
+                                columns.Bound(c => c.ConfirmInterview).Title("Interview Confirmed").HeaderHtmlAttributes(new { title = "Interview Confirmed" }).Width(150);
+                                columns.Bound(c => c.Evaluated).Title("Evaluated").HeaderHtmlAttributes(new { title = "Evaluated" }).Width(150);
+                                columns.Bound(c => c.BatchStatusName).HeaderHtmlAttributes(new { title = "Batch Status Name" }).Width(150);
+                                columns.Bound(c => c.TargetHiringDate).HeaderHtmlAttributes(new { title = "Target Hiring Date" }).Format("{0:dd MMM yyyy}").Width(150);
+                                //columns.Bound(c => c.TargetBatchCount).Width(120);
+                                columns.Bound(c => c.Id).Title("Close Batch").HeaderHtmlAttributes(new { title = "Close Batch" }).Width(130).ClientTemplate("#if(BatchStatusCode=='PendingwithHM'){#<button class='btn btn-info' onclick='UpdateBatchClose(\"#:Id#\")'>Close Batch</button>#}#").Width(280);
+                            })
+                            .Scrollable(x => x.Enabled(true))
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(true))
+                            .Filterable(f => f.Extra(false)
+                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                    .Contains("Contains")
+                                                    .IsEqualTo("Is equal to")
+                                                )))
+                            .Pageable(pageable => pageable
+                                            .Refresh(true)
+                                            .PageSizes(true)
+                                            .ButtonCount(5))
+                            .AutoBind(true)
+                            .Resizable(resize => resize.Columns(true))
+                            .Events(e => e.DataBound("OnBatchDataBound"))
+                            .DataSource(dataSource => dataSource
+                                        .Ajax()
+                                        .PageSize(10)
+                                        .Read(read => read.Action("ReadCloseBatchHmData", "Batch").Data("FilterBatch"))
+                                        .Model(model => model.Id(p => p.Id))
+                            )
+                        )
+            </div>
+
+            // </div>
+        }
+    </div>
+    @Html.Hidden("ManpowerTypeCode")
+    @*@Html.HiddenFor(x=>x.BatchHiringManagerId)*@
+    @(Html.Kendo().Dialog()
+        .Name("confirmBatchClose")
+        .Title("Close Batch")
+        .Content("Are you sure, you want to close the batch? After closing the batch, you will not be able to shortlist or evaluate any candidate from this batch.")
+        .Width(400)
+        .Modal(true)
+        .Visible(false)
+        .Actions(actions =>
+        {
+            actions.Add().Text("Yes Close Batch").Primary(true).Action("ConfirmCloseBatch");
+            actions.Add().Text("Cancel");
+        }))
+    @Html.HiddenFor(x => x.OrganizationId)
+    @Html.HiddenFor(x => x.JobTitleForHiring)
+    @Html.HiddenFor(x => x.BatchId)
+</div>
+
+<script type="text/javascript">
+    $(".checkboxAll").bind("change", function (e) {
+        
+        if ($(this).attr('checked')) {
+            $('.checkboxAll').removeAttr('checked');
+            $('.checkbox').prop('checked', false);
+            $(".checkbox").closest("td").removeClass("k-state-selected");
+        } else {
+            $('input.checkbox[type=checkbox]').each(function (e) {
+                if (!this.disabled) {
+                    $('.checkboxAll').attr('checked', 'checked');
+                    $(this).prop('checked', true);
+                    $(this).closest("td").addClass("k-state-selected");
+                }
+            });
+            //$('.checkboxAll').attr('checked', 'checked');
+            //$('.checkbox').prop('checked', true);
+            //$(".checkbox").closest("td").addClass("k-state-selected");
+        }
+    });
+</script>

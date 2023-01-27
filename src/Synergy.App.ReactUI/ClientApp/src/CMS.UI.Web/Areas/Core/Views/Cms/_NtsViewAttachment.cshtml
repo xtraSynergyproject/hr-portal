@@ -1,0 +1,130 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Syncfusion.EJ2.DocumentEditor;
+@using Syncfusion.EJ2;
+@using Syncfusion.DocIO;
+@using Syncfusion.DocIO.DLS;
+@{
+    ViewData["Title"] = "Portal";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model FileViewModel
+
+<style>
+    .cms-manageportal-footer {
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+
+    .pad-5 {
+        padding-top: 10px;
+    }
+</style>
+
+
+@if (Model.FileExtension == ".pdf")
+{
+    <div style="padding:10px;">
+        <object data='data:application/pdf;base64,@Model.ContentBase64' type='application/pdf' id='pdfview' style='width:980px;height:750px'></object>
+    </div>
+}
+
+else if (Model.FileExtension == ".png" || Model.FileExtension == ".gif" || Model.FileExtension == ".jpg" || Model.FileExtension == ".jpeg")
+{
+    <div style="padding:10px;">
+
+        <img src='data:@Model.ContentType;base64,@Model.ContentBase64' @*id='pdfview'*@ style='width:800px;height:750px' />
+    </div>
+}
+else if (Model.FileExtension == ".doc" || Model.FileExtension == ".docx")
+{ <h1>test</h1>
+    <div id="doccontainer" style="height:95vh;"></div>
+    <script>
+       // alert("teest");
+    document.addEventListener('DOMContentLoaded', function () {
+        var container = new ejs.documenteditor.DocumentEditorContainer({
+            "enableLocalPaste": false,
+            "enableToolbar": true,
+            "restrictEditing": false,
+            "showPropertiesPane": false
+        });
+
+        container.appendTo("#doccontainer");
+        loadFile();
+
+        function loadFile() {
+            $.ajax({
+                type: "GET",
+                url: "/cms/Import",
+                data: { fileId: '@Model.Id' },
+               // contentType: "text/html",
+                //dataType: "text",
+                success: function (result) {
+                  //  container.documentEditor.open(result);
+                  //  container.documentEditor.resize();
+                    //alert(result);
+                },
+                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                    alert(customErrorMessage);
+                }
+            });
+        }
+    });
+    </script>
+}
+else if (Model.FileExtension == ".mp4")
+{
+    <video id="videoRec" autoplay style="width: 95%;margin:2%;" controls playsinline>
+        <source src="/cms/Document/GetFileMongo?fileId=@Model.Id" type="video/mp4">
+    </video>
+}
+else if (Model.FileExtension == ".mp3")
+{
+<audio id="audioRec" controls autoplay playsinline style="width: 95%;margin:2%;">
+    <source src="/cms/Document/GetFileMongo?fileId=@Model.Id" type="audio/mp3">
+</audio>
+}
+
+
+

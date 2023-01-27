@@ -1,0 +1,204 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    //ViewData["Title"] = "Portal";
+    //Layout = null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@inject CMS.Common.IUserContext _userContext
+@model TemplateViewModel
+
+<style>
+    .cms-footer {
+        bottom:0px;
+    }
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+
+    .pad-5 {
+        padding-top: 10px;
+    }
+</style>
+<script>
+    function OnManage(ruleId) {
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+       
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Index", "BusinessRule", new { @area="Bre"})?breId=' + ruleId+'&templateId=@Model.Id';
+        win.OpenWindow({ Title: 'BusinessRule', Width: 1000, Height: 950, Position:'Right' });
+        return false;
+        @*$.ajax({
+            type: "GET",
+            url: "/Bre/BusinessRule/CreateBusinessRuleData?templateId=@Model.Id&actionId=" + dataItem.ActionId,
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    debugger
+                    $("#grid").data("kendoGrid").dataSource.read();
+                    
+                }
+                else
+                {
+                    ShowNotification("Please Try Again", "error");
+                }
+            },
+            error: function (err) {
+                ShowNotification("Please Try Again", "error");
+            }
+        });*@
+    }
+    function OnAddEdit(actionId)
+    {
+       
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("CreateBusinessRule", "BusinessRule", new { @area="Bre"})?actionId=' + actionId+'&templateId=@Model.Id';
+        win.OpenWindow({ Title: 'BusinessRule', Width: 550, Height: 950, Position:'Right' });
+        return false;
+    }
+</script>
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <div>
+
+    </div>
+    <form asp-controller="Template" asp-action="ManageServiceScript" method="post" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="margin-left:3px;">
+            @*@(Html.Kendo().Grid<BusinessRuleViewModel>
+    ()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        // columns.Template("<input class='selectcheckbox' type='checkbox' id=selectcheckbox_#:Id#/>").Title("Select").Width(50);
+        columns.Bound(p => p.ActionName);
+        columns.Bound(p => p.Name).Title("Business Rule Name");
+        //columns.Command(command =>
+        //{           
+        //    //command.Custom("Add").Text("").HtmlAttributes(new { @class = "action-icon" }).Template("#if(#:RuleExist#){#<i class='far fa-edit'></i> #}else{#<i class='fal fa-plus-circle'></i>#}#");
+        //    command.Custom("Edit").Text("<i class='far fa-cog'></i>").Click("OnManage").HtmlAttributes(new { @class = "action-icon" });
+
+        //}).Title("").Width(100);
+        columns.Bound(p => p.Id).Title(" ").ClientTemplate("#if(RuleExist){#<i class='far fa-edit' onclick='OnAddEdit(\"#:ActionId#\")' style='cursor:pointer;font-size:20px;'></i>  <i class='far fa-cog' onclick='OnManage(\"#:Id#\")' style='cursor:pointer;font-size:20px;'></i> #}else{#<i class='fal fa-plus-circle' onclick='OnAddEdit(\"#:ActionId#\")' style='cursor:pointer;font-size:20px;'></i>#}#");
+    })
+    //.Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Pageable()
+    .Sortable()
+    .Scrollable()
+    //.Selectable(x=>x.Mode(GridSelectionMode.Multiple).Type(GridSelectionType.Row))
+    // .Events(ev => ev
+    // //Change("ongridChange")
+    // .DataBound("DataBound")
+    //)
+    .HtmlAttributes(new { style = "height:550px;" })
+    .DataSource(dataSource => dataSource
+    .Ajax()
+     .Batch(true)
+    .Read(read => read.Action("ReadBusinessRuleForAction", "Template",new { @templateId = Model.Id,@type=Model.TemplateType}))
+     .Model(model =>
+     {
+         model.Id(p => p.Id);
+
+     })
+    .PageSize(100)
+
+    )
+
+    )*@
+        </div>
+        @*<div class="row">
+            <div class="tab-content col-12">
+                <div id="prescript" class="tab-pane  in active" role="tabpanel" aria-labelledby="prescript-tab">
+                    <textarea asp-for="PreScript" class="form-control" autocomplete="off" style="width:100%;height:300px;"></textarea>
+                </div>
+                <div id="postscript" class="tab-pane " role="tabpanel" aria-labelledby="postscript-tab">
+                    <textarea asp-for="PostScript" class="form-control" autocomplete="off" style="width:100%;height:300px;"></textarea>
+                </div>
+            </div>
+        </div>*@
+        @*<div class="cms-footer">
+            <div class="row" style="float:right">
+                <button type="submit" class="btn btn-success" onclick="SaveData()">Save</button>
+            </div>
+        </div>*@
+        @Html.HiddenFor(x => x.Id)
+       
+    </form>
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+       
+
+    });
+
+    function SaveData() {
+        $("#JsonCopy").val(JSON.stringify(builder.instance.schema, null, 4));
+        return true;
+    }
+     var onAjaxSuccess = function (res) {
+         
+        if (res.success) {
+            
+            ShowNotification("Saved Successfully", "success");
+            var TemplateId = $("#TemplateId").val();
+            LoadPartailView('@Url.Action("ManageServiceScript", "Template", new { @area = "Cms" })?templateId='+ TemplateId, $('#scriptPage'));
+
+        }
+        else {
+            showError(res.error);
+        }
+    }
+    var showError = function (error) {
+        
+        //#validation-summary-manageform
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    
+</script>

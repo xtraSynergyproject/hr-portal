@@ -1,0 +1,117 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject CMS.Common.IUserContext _userContext
+@using CMS.Common;
+@using Kendo.Mvc.UI
+@using CMS.UI.ViewModel
+@model NoteTemplateViewModel
+@{
+
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+<link href="https://releases.transloadit.com/uppy/v2.3.3/uppy.min.css" rel="stylesheet">
+<script src="https://releases.transloadit.com/uppy/v2.3.3/uppy.min.js"></script>
+<div class="col-12">@Resource["DocumentType"] <span class="required">*</span></div>
+<div class="col-12 pad-10">
+    <input id="DocumentTypeId" style="width: 100%" />
+</div>
+<div id="drag-drop-area" style="display:none"></div>
+<script>
+    @{
+        string webApiUrl = ApplicationConstant.AppSettings.WebApiUrl(Configuration);
+        string url = webApiUrl + "files/";
+     }
+    var uppy = new Uppy.Core({
+        debug: true,
+        autoProceed: false,
+        allowMultipleUploads: true,
+        restrictions: {
+            maxFileSize: 300000000,
+            maxNumberOfFiles: 100,
+            minNumberOfFiles: 1
+        }
+    })
+        //.use(Uppy.Webcam, { target: Dashboard })
+        //.use(Uppy.Audio, { target: Dashboard })
+        //.use(Uppy.ScreenCapture, { target: Dashboard })
+        //.use(Uppy.ImageEditor, { target: Dashboard })
+
+        .use(Uppy.Dashboard, {
+            proudlyDisplayPoweredByUppy: false,
+            inline: true,
+            target: '#drag-drop-area'
+        })
+        .use(Uppy.Tus, {
+            endpoint: '@url',
+            resume: true,
+            retryDelays: [20000/*, 1000, 3000, 5000*/],
+            chunkSize: 10000,
+            limit: 1,
+            removeFingerprintOnSuccess: false
+        })
+
+    uppy.on('upload-error', (file, error, response) => {
+        if (error.isNetworkError) {
+            // Let your users know that file upload could have failed
+            // due to firewall or ISP issues
+            alert(error)
+        }
+    })
+
+    //uppy.on('core:file-added', (file) => {
+    //    uppy.updateMeta({ type: file.type.mime }, file.id)
+    //})
+    uppy.on('file-added', (file) => {
+        uppy.setFileMeta(file.id, {
+            size: file.size,
+            parentid:'@Model.ParentNoteId',
+            userid:'@_userContext.UserId',
+            templateid: $("#DocumentTypeId").val(),
+            batchid: '@ViewBag.BatchId',
+        })
+        file.parentId='@Model.ParentNoteId';
+        file.userId='@_userContext.UserId';
+        file.templateId=$("#DocumentTypeId").val();
+        file.batchId='@ViewBag.BatchId';
+    })
+
+    uppy.on('complete', (result) => {
+        ShowLoader($('.control-section'));
+        $.ajax({
+            url: '@Url.Action("CreateBulkDocument", "Document", new { @area="DMS"})?batchId=@ViewBag.BatchId',
+            type: 'GET',
+            success: function (result) {
+                HideLoader($('.control-section'));
+                var win = GetMainWindow();
+                win.CloseWindow({ MethodName: "RefreshWholeFileManager" });
+            },
+            error: function (ert) {
+                HideLoader($('.control-section'));
+                var win = GetMainWindow();
+                win.CloseWindow({ MethodName: "RefreshWholeFileManager" });
+            }
+        });
+
+    })
+    $(document).ready(function () {        
+        $("#DocumentTypeId").kendoDropDownList({
+            dataTextField: "DisplayName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            change: OnDocumentTypeChange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Dms/DocumentPermission/GetPermittedTemplateList?parentId=@Model.ParentNoteId",
+                    }
+                }
+            }
+        });
+    });
+    function OnDocumentTypeChange(e) {
+        $("#drag-drop-area").show();
+    }
+    
+</script>
+
+

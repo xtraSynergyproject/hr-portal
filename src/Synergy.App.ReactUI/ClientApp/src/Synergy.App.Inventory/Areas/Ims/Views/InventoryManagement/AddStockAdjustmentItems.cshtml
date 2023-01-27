@@ -1,0 +1,263 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Direct Sales";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model StockAdjustmentItemViewModel
+
+
+<script>
+    $(function () {
+      
+        $("#ItemCategory").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            autoBind: true,
+
+            //change: function (e) {
+            //    $("#ItemSubCategory").data("kendoDropDownList").dataSource.read({ categoryId: $("#ItemCategory").data("kendoDropDownList").value() });
+            //},
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetItemCategoryList",//?ItemTypeId=" + $("#ItemHead").val(),
+                    }
+                }
+            }
+        });
+        $("#ItemSubCategory").kendoDropDownList({
+            optionLabel: "--Select--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            cascadeFrom: "ItemCategory",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/IMS/InventoryMaster/GetItemSubCategoryListByItemCategory",
+                        data: filterItemSubCategory,
+                    }
+                }
+            }
+        });
+        $("#ItemId").kendoDropDownList({
+            dataTextField: "ItemName",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            filter: "contains",
+           // change: OnItemChange,
+            cascadeFrom: "ItemSubCategory",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/IMS/InventoryManagement/GetItemList",
+                       // data: filterItem
+                    }
+                }
+            }
+        });
+        $("#ItemsGrid").jsGrid({
+            width: "100%",
+            height: "600px",
+
+            inserting: false,
+            editing: false,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            deleteConfirm: "Do you really want to delete client?",
+
+            //data: clients,
+            controller: {
+                loadData: function (filter) {
+                    return $.ajax({
+                        type: "GET",
+                        url: "/IMS/InventoryManagement/ReadStockAdjustmentItemsData?StockAdjustmentId=" + $("#StockAdjustmentId").val(),
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                updateItem: function (item) {
+                    //item.DataAction = "Edit";
+                    ////if (item.Id!=null ) { }
+                    //return $.ajax({
+                    //    type: "POST",
+                    //    url: "/IMS/InventoryManagement/ManageRequisitionItems",
+                    //    data: item,
+                      
+                    //});
+                },
+                deleteItem: function (item) {
+                    onDeleteItem(item.NoteId);
+                }
+            },
+            //onItemEditing: function (e) {
+            //    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+            //        //  
+            //        e.grid.updateItem();
+            //    }
+            //},
+            fields: [
+                {
+                    name: "ItemName",
+                    title: "Item Name",
+                    type: "text",
+                    editing: false
+                },
+               
+                {
+                    name: "AdjustmentReason",
+                    title: "Reason",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "AdjustmentQuantity",
+                    title: "Quantity",
+                    type: "text",
+                    editing: false
+                },
+                
+                //{
+                //    name: "Control",
+                //    type: "control",
+
+                //},
+                //{
+                //    headerName: "Actions",
+                //    field: "NoteId",
+                //    cellRenderer: params => {
+                //        return "<div class='btn-group grid-menu' id='tree-menuItem' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+                //    }
+                //}
+            ]
+        });
+
+        if (serviceStatus != "SERVICE_STATUS_DRAFT") {
+            $("#ItemsGrid").jsGrid("fieldOption", "Control", "visible", false);
+        }
+       
+    });
+    function filterItem() {
+        debugger
+        var itemsubcategory = $("#ItemSubCategory").val();
+        return {
+            subCategoryId: itemsubcategory,
+        }
+    }
+    function filterItemSubCategory() {
+        var itemcategory = $("#ItemCategory").val();
+        return {
+            itemCategoryId: itemcategory,
+        }
+    }
+    function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "getStockAdjustmentData" });
+        return false;
+    }
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            closeNav()
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+</script>
+
+<div class="row" style="margin:10px;margin-bottom:60px;">
+
+    <form asp-controller="InventoryManagement" asp-action="ManageStockAdjustmentItems" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+
+      
+        <div style="width: 100%;" class="p-3">
+            @if (Model.ServiceStatusCode == "SERVICE_STATUS_DRAFT")
+            {
+                <fieldset class="fieldset">
+                    <legend class="fs-legend">Add Item</legend>
+
+                    <div class="row col-12" style="padding:10px;">
+                        @*<div class="col-3" style="padding-bottom:10px;">
+                        <label>Item Head<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" asp-for="ItemHead" class="form-control" />
+                    </div>*@
+                        @*<div class="col-3" style="padding-bottom:10px;">
+                        <label>Item Category<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" asp-for="ItemCategory" class="form-control" />
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <label>Item SubCategory<span class="required">*</span></label>
+                    </div>
+                    <div class="col-3" style="padding-bottom:10px;">
+                        <input type="text" asp-for="ItemSubCategory" class="form-control" />
+                    </div>*@
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <label>Item Name<span class="required">*</span></label>
+                        </div>
+                        <div class="col-9" style="padding-bottom:10px;">
+                            <input type="text" asp-for="ItemId" class="form-control" />
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <label>Adjustment Reason</label>
+                        </div>
+                        <div class="col-9" style="padding-bottom:10px;">
+                            <textarea asp-for="AdjustmentReason" class="form-control"></textarea>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <label>Adjustment Quantity</label>
+                        </div>
+                        <div class="col-3" style="padding-bottom:10px;">
+                            <input type="text" asp-for="AdjustmentQuantity" class="form-control" />
+                        </div>
+
+                    </div>
+
+
+                </fieldset>
+
+                    <div class="row pad-10" style="float:right;">
+                        <input type="submit" class="btn btn-primary" value="Add" style="margin:5px;" @*onclick="OnSubmit()"*@ />
+                        <input type="button" class="btn btn-primary" value="Close" style="margin:5px;" onclick="closeNav()" />
+                    </div>
+              
+
+            }
+
+            @*&nbsp;
+        &nbsp;*@
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Item List</legend>
+                <div id="ItemsGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            </fieldset>
+            </div>
+
+            @Html.HiddenFor(x => x.DataAction)
+            @Html.HiddenFor(x => x.NoteId)
+            @Html.HiddenFor(x => x.StockAdjustmentId)
+
+
+</form>
+</div>
+
+

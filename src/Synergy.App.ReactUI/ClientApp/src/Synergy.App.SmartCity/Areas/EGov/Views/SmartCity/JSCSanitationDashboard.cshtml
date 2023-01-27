@@ -1,0 +1,367 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Sanitation Dashboard";
+    Layout = null;
+}
+<style>
+    .bg {
+        border-style: solid;
+        border-color: #e6e6e6;
+        background-color: #fcf8f8;
+        border-radius: 1%;
+        height: 350px;
+    }
+</style>
+<script>
+
+    var animation = {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800,
+        animateGradually: {
+            enabled: true,
+            delay: 150
+        },
+        dynamicAnimation: {
+            enabled: true,
+            speed: 350
+        }
+    };
+
+    var theme = {
+        mode: 'light',
+        palette: 'palette1',
+        monochrome: {
+            enabled: false,
+            color: '#255aee',
+            shadeTo: 'light',
+            shadeIntensity: 0.65
+        },
+    };
+
+    var noData = {
+        text: undefined,
+        align: 'center',
+        verticalAlign: 'middle',
+        offsetX: 0,
+        offsetY: 0,
+        style: {
+            color: undefined,
+            fontSize: '14px',
+            fontFamily: undefined
+        }
+    };
+
+
+    window.addEventListener('load', function () {
+        //alert("It's loaded!")
+    })
+
+    $(document).ready(function () {
+        ShowLoader($('#cms-content'));
+        var pieurl = "/Egov/SmartCity/GetGarbageCollectionInNoInPie";
+        pieChart(pieurl, "garbageCollectionInNoPie", '@ViewBag.ReportTitle', ['#00D84D', '#FF4560']);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionInNoInBar", "garbageCollectionInNoBar", "Collection in No.", ['#00D84D', '#FF4560']);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionDateByPropertyType", "garbageCollectionInResNoPie", "", ['#00D84D', '#FF4560']);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionDateByPropertyTypeAndWard", "garbageCollectionInResNoBar", "", ['#00D84D', '#FF4560']);
+
+        var pieurl = "/Egov/SmartCity/GetGarbageCollectionInNoInPieinKgs";
+        pieChart(pieurl, "garbageCollectionInNoPieInKgs", '@ViewBag.ReportTitle', ["#00FF96", "#008FFB"]);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionInNoInBarinKgs", "garbageCollectionInNoBarInKgs", "Weight in Kgs", ["#00FF96", "#008FFB"]);
+        var pieurl = "/Egov/SmartCity/GetGarbageCollectionDateByPropertyTypeinKgs";
+        pieChart(pieurl, "garbageCollectionInResNoPieInKgs", '@ViewBag.ReportTitle', ["#17a2b8", "#FED919"]);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionDateByPropertyTypeAndWardinKgs", "garbageCollectionInResNoBarInKgs", "Weight in Kgs", ["#17a2b8", "#FED919"]);
+
+        var pieurl = "/Egov/SmartCity/GetBWGCollection";
+        pieChart(pieurl, "BWGCollection", '@ViewBag.ReportTitle', ["#00FF96", "#008FFB"]);
+    });
+
+
+    function pieChart(url, chartId, chartTitle, color) {
+        ShowLoader($('#cms-content'));
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    debugger;
+                    var vals = res.ItemValueSeries;
+                    var barvals = res.BarItemValueSeries;
+                    var itcode = res.Code;
+                    //var barcolors = res.Colors;
+                    var chart = "#" + chartId;
+                    var options;
+                    options = {
+                        animations: animation,
+                        noData: noData,
+                        theme: theme,
+                        series: vals,
+                        title: {
+                            text: ""
+                        },
+                        chart: {
+                            id: chartId,
+                            width: 300,
+                            height: 300,
+                            type: 'pie',
+                            events: {
+                                dataPointSelection: function (event, chartContext, config) {
+                                    debugger;
+                                    var name = config.w.globals.labels[config.dataPointIndex];
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'bottom'
+                        },
+
+                        labels: res.ItemValueLabel,
+                        colors: color,
+                        dataLabels: {
+                            formatter: function (val, opts) {
+                                return opts.w.config.series[opts.seriesIndex] + " (" + val.toFixed(2) + "%)"
+                            },
+                        },
+                    };
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                    HideLoader($('#cms-content'));
+                }
+            }
+        });
+    }
+
+    function stackBarChart(url, chartId, chartTitle, color) {
+        ShowLoader($('#cms-content'));
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    debugger;
+                    var vals = res.StackBarItemValueSeries;
+                    var cats = res.StackBarCategories;
+                    itcode = res.Code;
+                    var chart = "#" + chartId;
+                    var options = {
+                        series: vals,
+                        chart: {
+                            type: 'bar',
+                            height: 300,
+                            stacked: true,
+                            zoom: {
+                                enabled: true
+                            },
+                            events: {
+                                click: function (event, chartContext, config) {
+                                    debugger;
+                                    var wardname = config.globals.labels[config.dataPointIndex];
+                                    var status = config.globals.initialSeries[config.seriesIndex].name;
+                                }
+                            }
+                        },
+                        animations: animation,
+                        noData: noData,
+                        theme: theme,
+                        colors: color,
+                        plotOptions: {
+                            bar: {
+                                horizontal: false,
+                                dataLabels: {
+                                    total: {
+                                        enabled: true,
+                                        offsetX: 0,
+                                        style: {
+                                            fontSize: '13px',
+                                            fontWeight: 900
+                                        }
+                                    }
+                                }
+                            },
+                        },
+                        stroke: {
+                            width: 1,
+                            colors: ['#fff']
+                        },
+                        title: {
+                            text: ""
+                        },
+                        xaxis: {
+                            show: true,
+                            title: {
+                                text: 'Ward(s)'
+                            },
+                            categories: cats,
+                            labels: {
+
+                                formatter: function (val) {
+                                    return val
+                                }
+                            }
+                        },
+                        yaxis: {
+                            show: true,
+                            title: {
+                                text: chartTitle
+                            },
+                        },
+                        tooltip: {
+                            y: {
+                                formatter: function (val) {
+                                    return val
+                                }
+                            }
+                        },
+                        fill: {
+                            opacity: 1
+                        },
+                        legend: {
+                            position: 'top',
+                            horizontalAlign: 'center',
+                            offsetX: 40
+                        }
+                    };
+
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                    HideLoader($('#cms-content'));
+                }
+            }
+        });
+    }
+
+    function barChart(url, chartId, chartTitle, color) {
+        ShowLoader($('#cms-content'));
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    debugger;
+                    var cat = res.StackBarCategories;
+                    var series = res.StackBarItemValueSeries;
+                    var chart1 = "#" + chartId;
+                    var options = {
+                        animations: animation,
+                        noData: noData,
+                        theme: theme,
+                        series: series,
+                        chart: {
+                            type: 'bar',
+                            height: 430
+                        },
+                        colors: color,
+                        plotOptions: {
+                            bar: {
+                                horizontal: true,
+                                dataLabels: {
+                                    position: 'top',
+                                },
+                            }
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            offsetX: -6,
+                            style: {
+                                fontSize: '12px',
+                                colors: ['#fff']
+                            }
+                        },
+                        stroke: {
+                            show: true,
+                            width: 1,
+                            colors: ['#fff']
+                        },
+                        tooltip: {
+                            shared: true,
+                            intersect: false
+                        },
+                        xaxis: {
+                            categories: cat,
+                        },
+                    };
+
+                    var chart = new ApexCharts(document.querySelector(chart1), options);
+                    chart.render();
+                }
+            }
+        });
+    }
+
+    $("#selectedDate").kendoDatePicker({
+        value: new Date(),
+        format: "dd-MM-yyyy",
+        dateInput: false
+    });
+
+      var todayDate = kendo.toString(kendo.parseDate(new Date()), "dd-MM-yyyy");
+    $("#selectedDate").data("kendoDatePicker").value(todayDate);
+
+
+</script>
+
+<div class="p-2">
+    <h6>Selected Date:</h6> <input id="selectedDate"></input>
+</div>
+
+<div class="card">
+    <br />
+    <h6>Garbage Collected/ Not collected In Number </h6>
+    <div class=" row p-2">
+        <div class="col-4">
+            <div id="garbageCollectionInNoPie" class="bg"></div>
+        </div>
+        <div class="col-8">
+            <div id="garbageCollectionInNoBar" class="bg"></div>
+        </div>
+    </div>
+    <div class=" row p-2">
+        <div class="col-4">
+            <div id="garbageCollectionInResNoPie" class="bg"></div>
+        </div>
+        <div class="col-8">
+            <div id="garbageCollectionInResNoBar" class="bg"></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <br />
+    <div class="row" >
+        <div class="col-8"><h6>Garbage Collection Wet/Dry Waste in Kgs</h6></div>
+    </div>
+    <div class=" row p-2">
+        <div class="col-4">
+            <div id="garbageCollectionInNoPieInKgs" class="bg"></div>
+        </div>
+        <div class="col-8">
+            <div id="garbageCollectionInNoBarInKgs" class="bg"></div>
+        </div>
+    </div>
+     <div class="row" >
+        <div class="col-8"><h6>Garbage Collection Commercial/Residential Waste in Kgs</h6></div>
+    </div>
+    <div class=" row p-2">
+        <div class="col-4">
+            <div id="garbageCollectionInResNoPieInKgs" class="bg"></div>
+        </div>
+        <div class="col-8">
+            <div id="garbageCollectionInResNoBarInKgs" class="bg"></div>
+        </div>
+    </div>
+    <div class=" row p-2">
+        <div class="col-4">
+            <h6>BWG Collection for Today</h6>
+            <div id="BWGCollection" class="bg"></div>
+        </div>
+      @*  <div class="col-8">
+            <div id="BWGCollection" class="bg"></div>
+        </div>*@
+    </div>
+</div>
+

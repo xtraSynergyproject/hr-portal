@@ -1,0 +1,566 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model DashboardMasterViewModel
+@{
+    ViewData["Title"] = "Grid Stack";
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    Layout = null;
+}
+
+<style type="text/css">
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #fafbfd;
+    }
+
+    .grid-stack {
+        background: #fafbfd;
+    }
+
+    .grid-stack-item-content {
+        background-color: #fff;
+        box-shadow: 0 2px 2px -1px rgb(152 162 179 / 30%), 0 1px 5px -2px rgb(152 162 179 / 30%);
+        border: 1px solid #d3dae6;
+        border-radius: 4px;
+    }  
+
+    .btn-outline-primary {        
+        border-color: #6fa9cf;
+        color: #1d7cbc;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;
+    }
+
+
+    .btn-outline-primary:hover{
+        border-color: #6fa9cf;
+        top: -2px;
+        background-color: #e5f0f7;
+        color: #1d7cbc;
+    }
+
+    .btn-outline-primary:hover .button-text {
+        text-decoration: underline;
+    }
+
+    .button-text {
+        margin-left: 5px;
+        font-size: medium;
+    }
+
+   
+
+    .btn-primary {
+        background-color: #006bb4;
+        border-color: #006bb4;
+        color: #fff;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0060a2;
+        top: -2px;
+    }
+
+    .btn-primary:hover .button-text {
+        text-decoration: underline;
+    }
+
+
+    ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        background-color: #F5F5F5;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        background-color: #F5F5F5;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #AAA;
+        border-radius: 10px;
+        background-image: -webkit-linear-gradient(90deg, rgba(0, 0, 0, .2) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, .2) 50%, rgba(0, 0, 0, .2) 75%, transparent 75%, transparent)
+    }
+   
+    
+</style>
+
+
+
+
+<div>
+    <div class="row" style="margin-top:10px;">
+        <div class="col-10">
+            <div >                
+                <a href="/Portal/BusinessAnalytics/GridStack" id="back-button" class="btn btn-outline-primary shadow-sm" style="width:50px"><i class="fas fa-long-arrow-alt-left"></i></a>
+                <span id="buttons">
+                    <button type='button' class='btn btn-primary shadow-sm' onclick='onCreateWidget()'>
+                        <span class="fas fa-area-chart"></span>
+                        <span class="button-text">Create visualization</span>
+                    </button>
+                    <button type='button' class='btn btn-primary shadow-sm' onclick='onCreatePage()'>
+                        <span class="fa fa-wpforms"></span>
+                        <span class="button-text">Create Form</span>
+                    </button>
+                    <button type='button' class='btn btn-primary shadow-sm' onclick='AddStream()'>
+                        <span class="fa fa-video"></span>
+                        <span class="button-text">Add Video Stream</span>
+                    </button>
+                    <input id="library" style="width:50%" />
+                    <button type='button' class='btn btn-outline-primary shadow-sm' onclick='saveGrid()'>
+                        <span class="button-body">
+                            <span class="fal fa-save"></span>
+                            <span class="button-text">Save</span>
+                        </span>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <div class="col-2">
+            <div id="edit">               
+                <button type='button' class='btn btn-outline-primary shadow-sm' onclick='onEditButton()' style="float: right; width: 150px;">
+                    <span class="button-body">
+                        <i class="far fa-pencil"></i>
+                        <span class="button-text">Edit</span>
+                    </span>
+                </button>
+            </div>
+            <div id="cancel">                
+                <button type='button' class='btn btn-primary shadow-sm' onclick='onCancelButton()' style="float: right; width: 150px;">
+                    <span class="button-body">
+                        <i class="far fa-times-circle"></i>
+                        <span class="button-text">Cancel</span>
+                    </span>
+                </button>
+            </div>  
+        </div>
+        
+        
+    </div>
+</div>
+<div class="grid-stack" style="margin-top:10px;"></div>
+<script type="text/javascript">
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-gridstack',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var id = $trigger.data('idvalue');
+                var type = $trigger.data('type');
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        if (type == "chart") {
+                                            onEditWidget(id);
+                                        }
+                                        else if (type == "stream") {
+                                            alert("not implemented yet!")
+                                        }
+                                        else {
+                                            onEditPage(id);
+                                        }
+
+                                        break;
+                                    case 'rename':
+                                        if (type == "stream") {
+                                            alert("not implemented yet!")
+                                        }
+                                        else {
+                                            onEditHeading(id);
+                                        }
+                                        break;
+                                    case 'delete':
+                                        if (type == "stream") {
+                                            alert("not implemented yet!")
+                                        }
+                                        else {
+                                            onDelete(id);
+                                        }                                        
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "rename": { name: "Edit Heading", icon: "fas fa-pencil" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+    $(document).ready(function () {
+        if ("@Model.layoutMetadata" != "{}" && "@Model.layoutMetadata" != "[]") {
+            ShowLoader($('#cms-content'));
+            loadGrid();
+        }
+        if ("@ViewBag.IsEditable" == "True") {
+            $("#buttons").show();
+            $("#cancel").show();
+            $("#edit").hide();
+            $(".fa-edit").show();
+            $(".item-edit").show();
+            $(".item-delete").show();
+        }
+        else {
+            $("#buttons").hide();
+            $("#cancel").hide();
+            $(".fa-edit").hide();
+            $(".item-edit").hide();
+            $(".item-delete").hide();
+            $("#edit").show();
+
+        }
+        if ("@ViewBag.backEnable" == "True") {
+            $("#back-button").show();
+        }
+        else {
+            $("#back-button").hide();
+        }
+        $("#library").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: {
+                serverFiltering: false,
+                transport: {
+                    read: {
+                        url: "/Cms/BusinessAnalytics/GetLibraryDashboardItemList" ,
+                        //data: { bookId: "123" },
+                        dataType: "json"
+                    }
+                },
+            },
+            change:OnLibraryChange,
+            autoBind: false,
+            optionLabel: "Select Library Item...",
+            filter: '@FilterType.Contains',
+        }).data("kendoDropDownList");
+    });
+    function onEditButton() {
+        LoadPartailView('@Url.Action("onEditGridStackItem", "BusinessAnalytics", new { @area = "Cms" })?id=@ViewBag.Id&isEditable=true', $('#cms-content'));
+
+    }
+    function onCancelButton() {
+        LoadPartailView('@Url.Action("onEditGridStackItem", "BusinessAnalytics", new { @area = "Cms" })?id=@ViewBag.Id&isEditable=false', $('#cms-content'));
+    }
+    var grid_stack = GridStack.init({ minRow: 1, cellHeight: '7rem'});
+    grid_stack.load();
+
+    function onCreateWidget() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("GridStackDashboardItem", "BusinessAnalytics", new { @area="Cms"})?parentId=@Model.ParentNoteId&dataAction=Create';
+        win.OpenWindow({ Title: 'Grid Stack Item', Width: 1000, Height: 600 });
+
+    }
+
+    function onEditWidget(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("GridStackDashboardItem", "BusinessAnalytics", new { @area="Cms"})?id='+id+'&dataAction=Edit';
+        win.OpenWindow({ Title: 'Grid Stack Item', Width: 1000, Height: 600 });
+
+    }
+    function onCreatePage() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("GridStackPage", "BusinessAnalytics", new { @area="Cms"})?parentId=@Model.ParentNoteId&dataAction=Create';
+        win.OpenWindow({ Title: 'Grid Stack Page', Width: 1000, Height: 600 });
+    }
+    function onAddStream() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("GridStackPage", "BusinessAnalytics", new { @area="Cms"})?parentId=@Model.ParentNoteId&dataAction=Create';
+        win.OpenWindow({ Title: 'Grid Stack Page', Width: 1000, Height: 600 });
+    }
+    function onEditPage(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("GridStackPage", "BusinessAnalytics", new { @area="Cms"})?id='+id+'&parentId=@Model.ParentNoteId&dataAction=Edit';
+        win.OpenWindow({ Title: 'Grid Stack Page', Width: 1000, Height: 600 });
+    }
+    function onEditHeading(id) {
+        var heading;
+        if ($("[gs-id='" + id + "']").find('h4').length>0) {
+            heading = $("[gs-id='" + id + "']").find('h4')[0].innerText;
+        }
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ManageGridStackItemTitle", "BusinessAnalytics", new { @area="Cms"})?id=' + id + '&name=' + heading;
+        win.OpenWindow({ Title: 'Manage Heading', Width: 1000, Height: 600 });
+    }
+    function editHeading(Prms) {
+        if ($("[gs-id='" + Prms.id + "']").find('h4').length > 0) {
+            heading = $("[gs-id='" + Prms.id + "']").find('h4')[0].innerText = Prms.name;
+            var items = grid_stack.getGridItems();
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].gridstackNode.id == Prms.id) {
+                    var metadata = grid_stack.save();
+                    metadata[i].heading = Prms.name;
+                    grid_stack.load(metadata, true);
+                }
+            }
+        }
+    }
+    function createdPage(Prms) {
+        var elementId = Prms.id;
+        grid_stack.addWidget({ id: elementId, w: 2, content: "<div style='padding:20px'><span class='fas fa-cog item-edit' id='tree-gridstack' data-idvalue='" + elementId + "' data-type='page' style='position:absolute; top:5px; right:30px;cursor: pointer;'></span><div id='" + elementId+"'></div></div>"});
+        $.ajax({
+            type: "GET",
+            url: "/Cms/BusinessAnalytics/GetGridStackPageDetails?id=" + elementId,
+            success: function (response) {
+                if (response != "" && response != null) {
+                    var json = response.res;
+                    var charts = response.charts;
+                    json = json.replaceAll("%27", "'");
+                    GuidillFormIo(json, elementId);
+                    eval(charts);
+                }
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });
+
+    }
+    function editPage(Prms) {
+        var elementId = Prms.id;
+        var items = grid_stack.getGridItems();
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].gridstackNode.id == elementId) {
+                var metadata = grid_stack.save();
+                metadata[i].content = "<div style='padding:20px'><span class='fas fa-cog item-edit' id='tree-gridstack' data-idvalue='" + elementId + "' data-type='page' style='position:absolute; top:5px; right:30px;cursor: pointer;'></span><div id='" + elementId + "'></div></div>";
+                grid_stack.load(metadata, true);
+            }
+        }
+        $.ajax({
+            type: "GET",
+            url: "/Cms/BusinessAnalytics/GetGridStackPageDetails?id=" + elementId,
+            success: function (response) {
+                if (response != "" && response != null) {
+                    var json = response.res;
+                    var charts = response.charts;
+                    json = json.replaceAll("%27", "'");
+                    FillFormIo(json, elementId);
+                    eval(charts);
+                }
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });
+
+    }
+    function FillFormIo(json, id) {
+        var formio = $('#' + id).html();
+        if (formio != undefined) {
+            var formio = document.getElementById(id);
+            var obj = JSON.parse(json);
+            Formio.createForm(formio, obj).then(function (form) {
+                frm = form;
+            });
+        }
+    }
+    function createdElement(Prms) {        
+        var elementId = Prms.id;
+        var lib = Prms.library;
+        var chartid = Prms.name.replaceAll(" ", "");
+        grid_stack.addWidget({ id: elementId, name: chartid, library: lib, heading: Prms.name, w: 2, content: "<div style='padding:20px'><span class='fas fa-cog item-edit' id='tree-gridstack' data-idvalue='" + elementId + "' data-type='chart' data-library='" + lib +"' style='position:absolute; top:5px; right:30px;cursor: pointer;'></span><h4 style='text-align: center'>" + Prms.name + "</h4><div id=" + chartid + "></div></div>" });
+         $.ajax({
+            type: "GET",
+             url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + elementId,
+            success: function (response) {
+                if (response != "" && response != null) {
+                    eval(response);
+                }
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });
+    }
+
+    function editElement(Prms) {
+        var elementId = Prms.id;
+        var lib = Prms.library;
+        var chartid = Prms.name.replaceAll(" ", "");
+        var items = grid_stack.getGridItems();
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].gridstackNode.id == elementId) {
+                var metadata = grid_stack.save();
+                metadata[i].name = chartid;
+                metadata[i].library = lib;
+                //metadata[i].heading = Prms.name;
+                metadata[i].content = "<div style='padding:20px'><span class='fas fa-cog item-edit' id='tree-gridstack' data-idvalue='" + elementId + "' data-type='chart' data-library='"+lib+"' style='position:absolute; top:5px; right:30px;cursor: pointer;'></span><h4 style='text-align: center'>" + Prms.name + "</h4><div id=" + chartid + "></div></div>";
+                grid_stack.load(metadata, true);
+            }
+        }
+        $.ajax({
+            type: "GET",
+            url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + elementId,
+            success: function (response) {
+                if (response != "" && response != null) {
+                    eval(response);
+                }
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });
+
+    }
+    function AddStream(Prms) {
+        //var elementId = Prms.id;
+        var elementId = '@Guid.NewGuid().ToString()';
+        var source = "http://localhost:44389/images/VideoSample.mp4";
+        grid_stack.addWidget({ id: elementId, stream:true, w: 2, content: "<div style='padding:20px'><span class='fas fa-cog item-edit' id='tree-gridstack' data-idvalue='" + elementId + "' data-type='stream' style='position:absolute; top:5px; right:30px;cursor: pointer;'></span><video controls><source src='"+source+"' type='video/mp4' /></video></div>" });        
+
+    }
+    function OnLibraryChange(e) {         
+        var elementId = $("#library").data("kendoDropDownList").value();
+        var libtext = $("#library").data("kendoDropDownList").text(); 
+        libtext = libtext.split('-')[1].trim();
+        var chartid = libtext.replaceAll(" ", "");       
+        grid_stack.addWidget({ id: elementId, name: chartid,library:true, heading: libtext, w: 2, content: "<div style='padding:20px'><span class='fas fa-cog item-edit' id='tree-gridstack' data-idvalue='" + elementId + "' data-type='chart' data-library='true' style='position:absolute; top:5px; right:30px;cursor: pointer;'></span><h4 style='text-align: center'>" + libtext + "</h4><div id=" + chartid + "></div></div>" });
+        $.ajax({
+            type: "GET",
+            url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + elementId,
+            success: function (response) {
+                if (response != "" && response != null) {
+                    eval(response);
+                }
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });
+    }
+    function onDelete(id) {
+        kendo.confirm("Are you sure that you want to delete?").then(function () {
+            confirmDelete(id);
+        }, function () {
+
+        });
+    }
+    function confirmDelete(id) {
+        var wid = $('[gs-id="'+id+'"]');
+        grid_stack.removeWidget(wid[0]);
+        $.ajax({
+            url:'@Url.Action("DeleteNote", "NtsNote", new { @area= "Cms" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                ShowNotification("Deleted Successfully", "success");
+            }
+        });
+    }
+
+    function saveGrid() {
+        ShowLoader($('#cms-content'));
+        layoutMetadata = grid_stack.save();
+        for (var i = 0; i < layoutMetadata.length; i++) {
+            if (layoutMetadata[i].name != undefined && layoutMetadata[i].name != null) {
+                layoutMetadata[i].content = "<div style='padding:20px'><span id='tree-gridstack' class='fas fa-cog item-edit' data-idvalue='" + layoutMetadata[i].id + "' data-type='chart' data-library='" + layoutMetadata[i].library +"'  style='position:absolute; top:5px; right:5px;cursor: pointer;'></span><h4 style='text-align: center'>" + layoutMetadata[i].heading + "</h4><div id=" + layoutMetadata[i].name + "></div></div>";
+            }
+            else if (layoutMetadata[i].stream) {
+                //Do nothing
+            }
+            else {
+                layoutMetadata[i].content = "<div style='padding:20px'><span id='tree-gridstack' class='fas fa-cog item-edit' data-idvalue='" + layoutMetadata[i].id + "' data-type='page'  style='position:absolute; top:5px; right:5px;cursor: pointer;'></span><div id='" + layoutMetadata[i].id +"'></div></div>";
+            }
+        }
+        metadata = JSON.stringify(layoutMetadata);
+        var pid = "@Model.ParentNoteId";
+
+        $.ajax({
+            url: '@Url.Action("GridStacklayoutMetaData","BusinessAnalytics")',
+            type: 'POST',
+            data: { data: metadata , id : pid},
+            success: function (response) {
+                ShowNotification("Saved Successfully", "success");
+                HideLoader($('#cms-content'));
+            },
+            error: function (response) {
+                HideLoader($('#cms-content'));
+            },
+        });
+
+    }
+
+    function loadGrid() {
+        var metadata = @Html.Raw(Model.layoutMetadata);
+        grid_stack.load(metadata, true);
+        for (var i = 0; i < metadata.length; i++) {            
+            var id = metadata[i].id;
+            var name = metadata[i].name;
+            var stream = metadata[i].stream;
+            if (name != undefined || name != null) {
+                $.ajax({
+                    type: "GET",
+                    url: "/Cms/BusinessAnalytics/GetChartDataByIdWithParams?id=" + id,
+                    success: function (response) {
+                        if (response != "" && response != null) {
+                            eval(response);
+                            if (i == metadata.length) {
+                                HideLoader($('#cms-content'));
+                            }
+                        }
+                    },
+                    error: function (response) {
+                        HideLoader($('#cms-content'));
+                        alert("error");
+
+                    },
+                });
+            }
+            else if (!stream) {
+                $.ajax({
+                    type: "GET",
+                    ajaxI: id,
+                    url: "/Cms/BusinessAnalytics/GetGridStackPageDetails?id=" + id,
+                    success: function (response) {
+                        if (response != "" && response != null) {
+                            var json = response.res;
+                            var charts = response.charts;
+                            json = json.replaceAll("%27", "'");
+                            FillFormIo(json, this.ajaxI);
+                            eval(charts);
+                            if (i == metadata.length) {
+                                HideLoader($('#cms-content'));
+                            }
+                        }
+                    },
+                    error: function (response) {
+                        alert("error");
+                    },
+                });
+            }
+           
+
+
+        }
+        HideLoader($('#cms-content'));
+
+    }
+
+</script>
+
+
+
+
+
+
+
+
+
+

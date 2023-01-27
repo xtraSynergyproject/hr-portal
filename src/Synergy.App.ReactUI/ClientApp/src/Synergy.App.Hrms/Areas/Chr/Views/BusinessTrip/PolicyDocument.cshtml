@@ -1,0 +1,278 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.BusinessTripController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+
+@model HRPolicyViewModel
+
+@{
+    ViewBag.Title = "Policy Document";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    //Layout = null;
+}
+
+<style>
+    .k-grid a:hover {
+        text-decoration: underline !important;
+    }
+
+    .hover:hover {
+        text-decoration: underline;
+    }
+
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .date {
+        margin-left: 1%;
+        margin-right: 1%
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+</style>
+
+
+<script>
+
+    $(document).ready(function () {
+        var empid = '@Model.Id';//parent.jQuery("#PersonId").val();
+        var userid = '@Model.UserId';
+
+        if (empid.length > 0 && userid.length == 0) {
+            var Status = {
+                Id: empid,
+                Empuserid: '0#',
+            };
+            // $("#BusinessTripGridView").data("kendoGrid").dataSource.read(Status);
+            //  $("#BusinessTripGridView").data("kendoGrid").dataSource.data([]);
+            kendo.alert("@Resource["Please Create User for this  Person"]");
+        }
+        getData();
+    })
+
+
+    function OnService() {
+        var Empid = '@Model.Id';
+        var userid = '@Model.UserId';
+        if (Empid.length > 0 && userid.length == 0) {
+
+            kendo.alert("@Resource["Please Create User for this Person"]");
+        } else {
+            var portalId = $('#GlobalPortalId').val();
+
+            //'8edc86b3-9934-46e3-95de-d76c816404b4';//;
+            // var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=&portalId=' + portalId /* +'&prms=' + prms*/;
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=HR_POLICY&portalId=' + portalId /*+ '&prms=' + prms*/;
+
+            if (userid.length > 0) {
+
+                var prms = encodeURIComponent('ownerUserId=' + '@Model.UserId');
+                url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=HR_POLICY&portalId=' + portalId + '&prms=' + prms;
+            }
+            //LoadCmsPartialView(url, 'Service', true, 1000, 600, 'Create Project');
+            //return false;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["Upload Policy Document"])', Width: 1200, Height: 600 });
+            return false;
+        }
+    }
+
+    function OnAfterServiceCreate(service) {
+        //$("#BusinessTripGridView").data("kendoGrid").dataSource.read();
+        getData();
+    }
+
+    function OnEmployeechange(e) {
+        var dataItem = e.sender.dataItem();
+        var id = dataItem.UserId;
+        var Status = {
+            Id: id,
+        };
+        //$("#BusinessTripGridView").data("kendoGrid").dataSource.read(Status);
+        getData();
+    }
+
+    function gotoService(NoteId) {
+
+        var portalId = $('#GlobalPortalId').val();
+
+        // var url = '/Cms/Page?source=Edit&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + id ;
+        // var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Versioning&dataAction=Edit&pageName=BusinessTrip&portalId=' + portalId + '&recordId=' + NoteId;
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=HR_POLICY&portalId=' + portalId + '&recordId=' + NoteId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["Service"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function ViewDocument(DocId) {
+        var url = "/cms/PreviewAttachment?Id=" + DocId+"&canEdit=false";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Policy Document', Width: 1200, Height: 600 });
+        return false;
+    }
+
+
+    var columnDefs = [
+
+        {
+            headerName: "@SharedResource["Action"]", field: "PolicyDocument",
+            maxWidth: 150,
+            cellRenderer: params => {
+                return "<a href='javascript:ViewDocument(\"" + params.data.PolicyDocument + "\");' style='cursor:pointer;color:dodgerblue;'> <i class='fa fa-eye' aria-hidden='true'></i> </a>";
+            }
+        },
+        {
+            field: "PolicyName", headerName: "@SharedResource["Policy Name"]",
+            
+        },
+        { headerName: "Description", field: "PolicyDescription" },
+        {
+            field: "StartDate", headerName: "@SharedResource["Released Date"]",
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                var d = new Date(date),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                return [day, month, year].join('.');
+            }
+        },
+        
+
+    ];
+
+    function getData() {
+        var id = '@Model.Id';
+        var empid = '@Model.UserId';
+        document.getElementById("PolicyDocumentGridView").innerHTML = "";
+        gridConfig(
+            "PolicyDocumentGridView",
+            "/CHR/BusinessTrip/GetPolicyDocuments?Id=" + id + "&Empuserid=" + empid,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+
+
+
+<div class="row">
+    <div class="col-12">
+        @*<button class="btn btn-filter-reset" onclick="OnService()" title="Reset Filter">Upload</button>*@
+
+        <div style="padding-top:20px;">
+            <div id="PolicyDocumentGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>

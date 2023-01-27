@@ -1,0 +1,189 @@
+﻿@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    var bannerHeight = 65;
+    var returnUrl = "";
+    string viewBagPortalId = Convert.ToString(ViewBag.PortalId);
+    string footerText = Convert.ToString(ViewBag.Footer);
+    if (ViewBag.Portal != null)
+    {
+        bannerHeight = ViewBag.Portal.BannerHeight;
+        if (ViewBag.HideHeader != null && ViewBag.HideHeader == true)
+        {
+            bannerHeight = 10;
+        }
+        returnUrl = string.Concat("/portal/", Convert.ToString(ViewBag.Portal.Name));
+
+    }
+    Layout = "/Views/Shared/_Reference.cshtml";
+}
+<link type="text/css" rel="stylesheet" href="~/Themes/Website/css/icofont.min.css" asp-append-version="true" />
+<link type="text/css" rel="stylesheet" href="~/Themes/Website/css/boxicons.min.css" asp-append-version="true" />
+<link type="text/css" rel="stylesheet" href="~/Themes/Website/css/remixicon.css" asp-append-version="true" />
+<link type="text/css" rel="stylesheet" href="~/Themes/Website/css/venobox.min.css" asp-append-version="true" />
+<link type="text/css" rel="stylesheet" href="~/Themes/Website/css/owl.carousel.min.css" asp-append-version="true" />
+<link type="text/css" rel="stylesheet" href="~/Themes/Website/css/aos.css" asp-append-version="true" />
+<link type="text/css" rel="stylesheet" href="~/Themes/Website/css/theme.css" asp-append-version="true" />
+<link type="text/css" rel="stylesheet" href="~/Themes/Website/css/layout.css" asp-append-version="true" />
+@if (ViewBag.HideHeader == null || ViewBag.HideHeader == false)
+{
+    <header id="header" class="hide-in-popup  fixed-top header-scrolled" style="height:@(bannerHeight)px;">
+        <div class="container d-flex align-items-center" style="display:inline-block;margin-left: 20px; margin-right: 20px;height:@(bannerHeight)px;">
+            @if (ViewBag.Portal != null)
+            {
+                if (ViewBag.Portal.LogoId != "null" && ViewBag.Portal.LogoId != null)
+                {
+                    <a href="@ViewBag.Portal?.LandingPage" class="logo"><img alt="" title="" style="margin-top:-30px;max-height:@(bannerHeight)px;" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = ViewBag.Portal.LogoId })" onerror='LogoError(this);' /></a> }
+                else
+                {
+                    <h5 class="logo" style="white-space:nowrap;margin-top:-22px;"><a href="@ViewBag.Portal?.LandingPage">@ViewBag.Portal.DisplayName</a></h5>
+                }
+            }
+
+            <nav class="nav-menu d-none d-lg-block" style="height:@(bannerHeight)px;">
+                <ul>
+                    @{
+                        var menus = (List<Synergy.App.ViewModel.MenuViewModel>)ViewBag.Menus;
+                        var menuGroups = menus.Where(x => x.PageType == TemplateTypeEnum.MenuGroup
+                        || (x.PageType != TemplateTypeEnum.MenuGroup && x.ShowOutsideMenuGroup)).OrderBy(x => x.SequenceOrder);
+                        foreach (var item in menuGroups)
+                        {
+                            if (item.PageType == TemplateTypeEnum.MenuGroup)
+                            {
+                                var childs = menus.Where(x => x.ParentId == item.Id && x.ShowOutsideMenuGroup == false)
+                                    .OrderBy(x => x.SequenceOrder);
+                                if (childs.Any())
+                                {
+                                    @: <li class="drop-down">
+                                        @:  <a class="menu-text" href="">@item.DisplayName</a>
+                                        @:   <ul>
+                                            foreach (var child in childs)
+                                            {
+                                                if (child.ShowMenuWhenAuthorized)
+                                                {
+                                                    if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+                                                    {
+                                                        @:<li><a class="menu-text menu-link" href="javascript:LoadPageById('@child.Id','@child.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()')">@child.DisplayName</a></li>
+                                                    }
+
+                                                }
+                                                else if (child.ShowMenuWhenNotAuthorized)
+                                                {
+                                                    if (_userContext.UserId.IsNullOrEmpty() || _userContext.IsGuestUser == true)
+                                                    {
+                                                        @:<li><a class="menu-text menu-link" href="javascript:LoadPageById('@child.Id','@child.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()')">@child.DisplayName</a></li>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    @:<li><a class="menu-text menu-link" href="javascript:LoadPageById('@child.Id','@child.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()')">@child.DisplayName</a></li>
+                                                }
+                                            }
+                                        @:   </ul>
+                                    @: </li>
+                                }
+                            }
+                            else
+                            {
+                                if (item.ShowMenuWhenAuthorized)
+                                {
+                                    if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+                                    {
+                                        @:<li><a class="menu-text menu-link" href="javascript:LoadPageById('@item.Id','@item.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()')">@item.DisplayName</a></li>
+                                    }
+
+                                }
+                                else if (item.ShowMenuWhenNotAuthorized)
+                                {
+                                    if (_userContext.UserId.IsNullOrEmpty() || _userContext.IsGuestUser == true)
+                                    {
+                                        @:<li><a class="menu-text menu-link" href="javascript:LoadPageById('@item.Id','@item.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()')">@item.DisplayName</a></li>
+                                    }
+                                }
+                                else
+                                {
+                                    @:<li><a class="menu-text menu-link" href="javascript:LoadPageById('@item.Id','@item.PageType.ToString()','@Synergy.App.Common.RequestSourceEnum.Main.ToString()','@Synergy.App.Common.DataActionEnum.None.ToString()')">@item.DisplayName</a></li>
+                                }
+
+                            }
+                        }
+                    }
+
+                    @if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+                    {
+                        <li class="d-lg-none">
+                            <a class="user-context-menu  menu-text" href=""> <img class="user-img rounded-circle" style="display:inline-block;" id="profileImg" src="@Url.Action("getimagemongo", "document", new { @area = "Cms", id = _userContext.PhotoId })" onerror='OnPhotoError(this);' />@_userContext.Name</a>
+                        </li>
+                    }
+
+
+                </ul>
+            </nav><!-- .nav-menu -->
+        </div>
+        @if (_userContext.UserId.IsNotNullAndNotEmpty() && _userContext.IsGuestUser == false)
+        {
+            <span class="user-profile get-started-btn scrollto d-none d-lg-block" style="margin-top: -65px; float: right; clear: both; padding-left: 0px; padding-bottom: 0px; padding-top: 0px; margin-right: 20px;">
+                <span style="padding:10px;top:-2px;position:relative;">
+                    @if (_userContext.UserPortals != null && _userContext.UserPortals.IndexOf(",") > 0)
+                    {
+                        @(Html.Kendo().DropDownList().Name("drpPortal")
+                    .DataTextField("Name").Value(viewBagPortalId)
+                    .DataValueField("Id")
+                    .OptionLabel("Portal")
+                    .Events(e => e.Change("OnPortalChange"))
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetPortalList", "User", new { @area = "Cms",userId=_userContext.UserId });
+                        });
+                    })
+
+                    .HtmlAttributes(new { @class = "userlegal" })
+                    )
+                    }
+
+                </span>
+                <a href="" class="user-context-menu">
+                    <img class="user-img rounded-circle" style="display:inline-block;float:right;margin-right:-25px;" id="profileImg" src="@Url.Action("getimagemongo","document",new { @area="Cms",id=_userContext.PhotoId})" onerror='OnPhotoError(this);' />
+                    <span style="padding:10px;top:1px;position:relative;color:#fff;">@_userContext.Name</span>
+
+
+                </a>
+            </span>
+        }
+
+
+    </header>
+}
+
+<div id="container">
+    <section id="main-content" class="clear-padding col-sm-12 col-md-12 mx-auto" style="padding-bottom:30px;padding-top:@(bannerHeight)px;">
+        @RenderSection("rb", required: false)
+
+        @RenderBody()
+        <div id="global-overlay" class="global-overlay">
+            <div class="global-overlay-loader">
+
+            </div>
+        </div>
+
+    </section>
+
+</div>
+@if (footerText.IsNotNullAndNotEmpty())
+{
+    <div class="hide-in-popup div-footer text-center" style="padding-top: 8px; padding-bottom: 10px; background-color: #37517e;">
+        <div class="credits">
+            <span>@Html.Raw(footerText)</span>
+        </div>
+    </div>
+}
+
+<script src="~/Themes/Website/js/jquery.waypoints.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Website/js/isotope.pkgd.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Website/js/venobox.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Website/js/owl.carousel.min.js" asp-append-version="true"></script>
+<script src="~/Themes/Website/js/aos.js" asp-append-version="true"></script>
+<script src="~/Themes/Website/js/theme.js" asp-append-version="true"></script>

@@ -1,0 +1,110 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRDirectController> Resource
+@using Kendo.Mvc.UI;
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@model LeaveCanceViewModel
+@{
+
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+
+}
+
+
+<style>
+    .k-textarea {
+        height: 98px;
+        width: 80%;
+    }
+</style>
+
+<script>
+
+
+    function OnSaveLeave() {
+
+        var LeaveReason = $("#CancelReason").val();
+        var user = '@Model.UserId';
+        var ParentServiceId = '@Model.ParentServiceId';
+        $.ajax({
+            url: "/chr/leave/LeaveCancelSave?leaveReason=" + LeaveReason + "&userId=" + user + "&ParentSeriveId=" + ParentServiceId,
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                window.parent.parent.$("#kgrdNote").data("kendoGrid").dataSource.read({ userId: user });
+                var win = GetMainWindow();
+                win.CloseWindow();
+
+            },
+            error: function (ert) {
+                alert('error');
+            }
+        });
+        return false;
+
+    }
+
+
+</script>
+<div id="appWrapper" style="margin-left:50px;">
+
+    <div class="row no-gutter hr-pad-top-15" style="height:148px">
+        <div class="col-md-10">
+            <div class="col-lg-3 label-div">
+                @Resource["CancelReason"]
+            </div>
+            <div class="col-lg-9">
+                @Html.Kendo().TextAreaFor(model => model.CancelReason)
+
+            </div>
+        </div>
+
+    </div>
+    <hr />
+    <div class="row no-gutter">
+        <div class="col-md-8">
+            <div class="col-lg-3 label-div">
+                @*ERP.Translation.Message.Requiredfields*@ @*//Required fields*@
+            </div>
+            <div class="col-lg-9">
+                <button class="k-button k-button-icontext k-primary" style="float:right;" onclick="OnSaveLeave();">@SharedResource["Save"]</button>
+                @*<button class="k-button k-button-icontext k-primary" onclick="OnCancel();"> Cancel </button>*@
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script type="text/javascript">
+    function SelectItem(e) {
+        var ds = this.dataSource.data();
+        if (ds.length == 1) {
+            this.select(1);
+        }
+    }
+    function OnSuccess(response) {
+        if (response.success) {
+            window.parent.CloseTask(true, response.templateMasterId)
+        }
+        else {
+            ShowErrors(response.errors);
+        }
+    }
+    //function OnCancel(e) {
+    //    window.parent.CloseTask(false);
+    //}
+
+
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+    }
+
+
+
+
+</script>
+
+
+

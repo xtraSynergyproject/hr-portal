@@ -1,0 +1,229 @@
+﻿@inject CMS.Common.IUserContext _userContext
+@model CMS.UI.ViewModel.CandidateApplicationViewModel
+@{
+    ViewBag.Title = "My Applications";
+    Layout = null;
+}
+
+<section class="section-98 section-sm-110" id="job-section">
+    @if (!_userContext.UserRoleCodes.Contains("AGENCY")) {
+    <div id="myappgrid" class="shell text-center">
+        @if (Model.ApplicationList == null)
+        {
+            <h1 class="text-center">No Applications Found</h1>
+        }
+        else
+        {
+            <h1 class="text-center">@ViewBag.Title</h1>
+            <hr class="divider divider-sm bg-darkers">
+            <!-- Bootstrap Table-->
+            <div class="table-responsive clearfix job-div" style="width:80%;margin:auto;">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th class="text-regular text-dark big">Company</th>
+                            <th class="text-regular text-dark big">Job Category</th>
+                            <th class="text-regular text-dark big">Job Name</th>
+                            <th class="text-regular text-dark big">Location</th>
+                            <th class="text-regular text-dark big">Applied Date</th>
+                            <th class="text-regular text-dark big" id="applicationStatus">Application Status</th>
+                            @*<th class="text-regular text-dark big"></th>*@
+                        </tr>
+                        @{
+                            var src = Url.Action("getimagemongo", "document", new { @area = "Cms", id = ViewBag.Page.Portal.LogoId });
+
+                            foreach (var item in Model.ApplicationList)
+                            {
+                                <tr>
+                                    <th class="text-regular text-dark big"><img style="width:80px;height:40px;" alt="" title="" src="@src" onerror="LogoError(this);" /></th>
+                                    <th class="text-regular text-dark big">@item.JobCategoryName</th>
+                                    <th class="text-regular text-dark big">@item.JobTitle</th>
+                                    <th class="text-regular text-dark big">@item.LocationName </th>
+                                    <th class="text-regular text-dark big">@item.CreatedDate.ToString(CMS.Common.ApplicationConstant.DateAndTime.DefaultJqueryDateFormat) </th>
+                                    @if (item.ApplicationStateCode == "ShortListByHr" || item.ApplicationStateCode == "ShortListByHm" || item.ApplicationStateCode == "InterviewsCompleted")
+                                    {
+                                        <th class="text-regular text-dark big">@item.ApplicationStatusName</th>
+                                    }
+                                    else
+                                    {
+                                        <th class="text-regular text-dark big">@item.ApplicationStateName</th>
+                                    }
+                                    @*<th class="text-regular text-dark big"><input type="button" onclick="DiscoverMore(\''+data[i].Id+'\')" class="btn btn-sm btn-primary" value="View Details" /></th>*@
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+                            }
+
+    </div><br />
+    <div id="mybookmarkgrid" class="shell text-center">
+        <h1 class="text-center">My Bookmarks</h1>
+        <hr class="divider divider-sm bg-darkers">
+        @if (Model.BookmarkList == null)
+        {
+            <h4 class="text-center">No Bookmarks Found</h4>
+        }
+        else
+        {
+
+            <!-- Bootstrap Table-->
+            <div class="table-responsive clearfix job-div" style="width:80%;margin:auto;">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th class="text-regular text-dark big">Company</th>
+                            <th class="text-regular text-dark big">Job Category</th>
+                            <th class="text-regular text-dark big">Job Name</th>
+                            <th class="text-regular text-dark big">Location</th>
+                            <th class="text-regular text-dark big">Discover More</th>
+                            <th class="text-regular text-dark big">Apply Job</th>
+                            @*<th class="text-regular text-dark big"></th>*@
+                        </tr>
+                        @{
+                            var src = Url.Action("getimagemongo", "document", new { @area = "Cms", id = ViewBag.Page.Portal.LogoId });
+
+                            foreach (var item in Model.BookmarkList)
+                            {
+                                <tr>
+                                    <th class="text-regular text-dark big"><img style="width:80px;height:40px;" alt="" title="" src="@src" onerror="LogoError(this);" /></th>
+                                    <th class="text-regular text-dark big">@item.JobCategoryName</th>
+                                    <th class="text-regular text-dark big">@item.JobName</th>
+                                    <th class="text-regular text-dark big">@item.LocationName</th>
+                                    <th class="text-regular text-dark big"><input id="discover" type="button" onclick="DiscoverMore('@item.Id')" class="btn btn-sm btn-primary" value="Discover more" /></th>
+                                    <th class="text-regular text-dark big"><input id="discover" type="button" onclick="ApplyJob('@item.Id', '@item.ManpowerTypeCode',false)" class="btn btn-sm btn-primary" value="Apply Job" /></th>
+                                    @*@if (item.ApplicationStateCode == "ShortListByHr" || item.ApplicationStateCode == "ShortListByHm" || item.ApplicationStateCode == "InterviewsCompleted")
+                                        {
+                                                <th class="text-regular text-dark big">@item.ApplicationStatusName</th>
+                                        }
+                                        else
+                                        {
+                                                    <th class="text-regular text-dark big">@item.ApplicationStateName</th>
+                                        }*@
+                                    @*<th class="text-regular text-dark big"><input type="button" onclick="DiscoverMore(\''+data[i].Id+'\')" class="btn btn-sm btn-primary" value="View Details" /></th>*@
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+                            }
+
+    </div>
+     }
+<div id="confidencialgrid" class="shell text-center">
+
+    @if (Model.ConfidentialList != null)
+    {
+
+        <h1 class="text-center">Confidential Jobs</h1>
+        <hr class="divider divider-sm bg-darkers">
+
+        @if (Model.ConfidentialList.Count == 0)
+        {
+            <h4 class="text-center">No Jobs Found</h4>
+        }
+        else
+        {
+            <!-- Bootstrap Table-->
+            <div class="table-responsive clearfix job-div" style="width:80%;margin:auto;">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th class="text-regular text-dark big">Company</th>
+                            <th class="text-regular text-dark big">Job Category</th>
+                            <th class="text-regular text-dark big">Job Name</th>
+                            <th class="text-regular text-dark big">Location</th>
+                            <th class="text-regular text-dark big">Discover More</th>
+                            <th class="text-regular text-dark big">Apply Job</th>
+                            @*<th class="text-regular text-dark big"></th>*@
+                        </tr>
+                        @{
+                            var src = Url.Action("getimagemongo", "document", new { @area = "Cms", id = ViewBag.Page.Portal.LogoId });
+
+                            foreach (var item in Model.ConfidentialList)
+                            {
+                                <tr>
+                                    <th class="text-regular text-dark big"><img style="width:80px;height:40px;" alt="" title="" src="@src" onerror="LogoError(this);" /></th>
+                                    <th class="text-regular text-dark big">@item.JobCategoryName</th>
+                                    <th class="text-regular text-dark big">@item.JobName</th>
+                                    <th class="text-regular text-dark big">@item.LocationName</th>
+                                    <th class="text-regular text-dark big"><input id="discover" type="button" onclick="DiscoverMore('@item.Id')" class="btn btn-sm btn-primary" value="Discover more" /></th>
+                                    <th class="text-regular text-dark big"><input id="discover" type="button" onclick="ApplyJob('@item.Id', '@item.ManpowerTypeCode',false)" class="btn btn-sm btn-primary" value="Apply Job" /></th>
+                                    @*@if (item.ApplicationStateCode == "ShortListByHr" || item.ApplicationStateCode == "ShortListByHm" || item.ApplicationStateCode == "InterviewsCompleted")
+                                        {
+                                                <th class="text-regular text-dark big">@item.ApplicationStatusName</th>
+                                        }
+                                        else
+                                        {
+                                                    <th class="text-regular text-dark big">@item.ApplicationStateName</th>
+                                        }*@
+                                    @*<th class="text-regular text-dark big"><input type="button" onclick="DiscoverMore(\''+data[i].Id+'\')" class="btn btn-sm btn-primary" value="View Details" /></th>*@
+                                </tr>
+                            }
+
+
+                        }
+                    </tbody>
+                </table>
+            </div>
+                            }
+                            }
+
+    </div>
+</section>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //introJs().setOptions({
+        //    steps: [{
+        //        title: "My Application",
+        //        intro: "All the applications together can be found on this page"
+        //    },
+        //    {
+        //        title: "Application Summary Grid",
+        //        element: "#myappgrid",
+        //        intro: "You can find the synopsis of all applications"
+        //    },
+        //    {
+        //        title: "Application Status",
+        //        element: "#applicationStatus",
+        //        intro: "The status of the candidate’s application"
+        //    }]
+        //}).start();
+    });
+
+    function DiscoverMore(jobAdvId) {
+        var url = '@Html.Raw(string.Concat("/Portal/", ViewBag.Page.Portal.Name, "/JobDetails?&customurl="))' + encodeURIComponent("jobAdvId=" + jobAdvId) ;
+        window.location.href = url;
+    }
+
+    function ApplyJob(id, manpowertype, showPopup) {
+       // alert("test");
+        //
+        if ('@_userContext.UserRoleCodes.Contains("AGENCY")' === 'True' && manpowertype != 'Staff') {
+            var customUrl = "jobAdvId=" + id;
+            LoadPageById('', 'Custom', '', '', '', '_Layout', '@ViewBag.Page.Portal.Id', 'WorkerDataByAgency', customUrl);
+        }
+        else if ('@_userContext.UserRoleCodes.Contains("AGENCY")'==='True' && manpowertype == 'Staff') {
+            var customUrl = "jobAdvId=" + id;
+            LoadPageById('', 'Custom', '', '', '', '_Layout', '@ViewBag.Page.Portal.Id', 'StaffDataByAgency', customUrl);
+        }
+        else if ('@Model.CandidateId' === '' || '@Model.IsCandidateDetailsFilled' === 'False') {
+          //  alert("test4");
+            if (showPopup) {
+                $('#profileModal').modal('show');
+                return false;
+            }
+            $('#profileModal').modal('hide');
+            LoadPageById('', 'Custom','','','', '_Layout', '@ViewBag.Page.Portal.Id','MyProfile',null);
+        }
+        else {
+            var str = "jobAdvId=" + id + "&candidateProfileId="+ '@Model.CandidateId';
+            @*//var customUrl = '@Html.Raw(string.Concat("&candidateProfileId=", Model.CandidateId))';*@
+            LoadPageById('', 'Custom', '', '', '', '_Layout', '@ViewBag.Page.Portal.Id', 'ApplyJob', str);
+        }
+    }
+</script> 

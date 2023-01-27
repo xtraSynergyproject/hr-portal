@@ -1,0 +1,256 @@
+﻿@using System.Text
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model TemplateViewModel
+
+@{
+    ViewData["Title"] = "Copy Template";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 10px;
+    }
+</style>
+
+<script>
+    $(function () {
+        $("#CTemplateCategoryId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.TemplateCategoryId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/TemplateCategory/GetCategoryListByType?templateType=@Model.TemplateType",
+
+                    }
+                }
+            },
+        });
+
+        $("input.noSpace").on({
+            keydown: function (e) {
+                if (e.which === 32)
+                    return false;
+            },
+            change: function () {
+                this.value = this.value.replace(/\s/g, "");
+            }
+        });
+
+        
+    });
+
+
+    var onAjaxSuccess = function (res) {
+        debugger;
+        if (res.success) {
+            // success
+            alert("success");
+            closeCopyWindow();
+         }
+        else {
+            // error
+            showError(res.error);
+            alert("error");
+        }
+        HideLoader($("#wrapper"));
+        
+    };
+
+    function closeCopyWindow() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function onCopy(e) {
+        debugger;
+        var res = htmlData();
+        ShowLoader($("#wrapper"));
+
+        if (!res) {
+            HideLoader($("#wrapper"));
+            e.preventDefault();
+            // show err message.
+            alert("Fill all details for each step task");            
+            return false;
+        }
+        
+       
+        
+    }
+
+    var showError = function (error) {
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+
+    function htmlData() {
+        debugger;
+        var Rows = [];
+        var $headers = $("th");
+        var flag = 1;
+        var $rows = $("tbody tr").each(function (index) {
+            $cells = $(this).find("td");
+            Rows[index] = {};
+            
+            $cells.each(function (cellIndex) {
+                debugger;
+                if ($(this).find("input").length == 0) {
+                    Rows[index][$($headers[cellIndex]).html()] = $(this).html();
+                } else {
+                    debugger;
+                    var inputVal = $(this).find("input").val();
+                    if (inputVal == "") {
+                        flag = 0;
+                        return false;
+                    }
+                    Rows[index][$($headers[cellIndex]).html()] = inputVal;
+                }
+            });
+        });
+        
+        if (flag == 0) {
+            return false;
+        }
+        var str = "";
+        if (Rows.length != 0) {
+            str = JSON.stringify(Rows);
+        }
+        document.getElementById("taskJson").value = str;
+        return true;
+    }
+
+</script>
+
+
+<form asp-controller="Template" asp-action="CopyTemplateData" class="form-horizontal"
+      data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+      data-ajax="true" data-ajax-method="POST">
+
+    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+
+    <div class="row" style="padding:10px 30px;">
+
+        <div class="row col-12 pad-10">
+            <div class="col-3">
+                <label>Template Category</label>
+            </div>
+            <div class="col-9">
+                <input asp-for="TemplateCategoryId" id="CTemplateCategoryId" type="text" class="form-control" placeholder="TemplateCategory" autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="row col-12 pad-10">
+            <div class="col-3">
+                <label for="Name">Name<span class="required" style="color:red;">*</span></label>
+            </div>
+            <div class="col-9">
+                <input asp-for="Name" type="text" class="form-control" placeholder="Name" autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="row col-12 pad-10">
+            <div class="col-3">
+                <label for="Name">Display Name<span class="required" style="color:red;">*</span></label>
+            </div>
+            <div class="col-9">
+                <input asp-for="DisplayName" type="text" class="form-control" placeholder="DisplayName" autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="row col-12 pad-10">
+            <div class="col-3">
+                <label for="Code">Code<span class="required" style="color:red;">*</span></label>
+            </div>
+            <div class="col-9 ">
+
+                <input asp-for="Code" type="text" class="form-control" placeholder="Code" autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="row col-12 pad-10">
+            <div class="col-3">
+                <label for="SequenceOrder">Sequence Order</label>
+            </div>
+            <div class="col-9 ">
+                <input asp-for="SequenceOrder" type="text" class="form-control" placeholder="Sequence Order" autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="row col-12 pad-10">
+            <div class="col-3">
+                <label for="GroupCode">Group Code</label>
+            </div>
+            <div class="col-9 ">
+
+                <input asp-for="GroupCode" type="text" class="form-control" placeholder="Group Code" autocomplete="off" />
+            </div>
+        </div>
+
+        @if (Model.TemplateType == TemplateTypeEnum.Service && ViewBag.StepTaskData.Count != 0)
+        {
+            <div class="row col-12 pad-10">
+                <div style="padding-left: 15px; padding-top: 15px;">
+                    <table id="stepTaskTempTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">Step Task</th>
+                                <th style="width: 20%;">Id</th>
+                                <th>New Name</th>
+                                <th>New Display Name</th>
+                                <th>New Code</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < ViewBag.StepTaskData.Count; i++)
+                            {
+                                <tr>
+                                    <td>@ViewBag.StepTaskData[i].DisplayName</td>
+                                    <td>@ViewBag.StepTaskData[i].Id</td>
+                                    <td><input type="text" class="form-control noSpace" required /></td>
+                                    <td><input type="text" class="form-control" required /></td>
+                                    <td><input type="text" class="form-control noSpace" required /></td>
+                                </tr>
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        }
+        <input type="text" asp-for="StepTaskJson" id="taskJson" value="" hidden />
+
+        <div class="row col-12 pad-10">
+            <div class="col-6"></div>
+            <div class="col-6">
+                <button type="submit" class="btn btn-primary" style="float:right;" onclick="onCopy(event)">Copy</button>
+                @*k<button type="submit" class="btn btn-primary" style="float:right;" onclick="htmlData()" >steptask</button>*@
+
+            </div>
+        </div>
+
+
+
+    </div>
+
+    @Html.HiddenFor(x => x.Id)
+    @Html.HiddenFor(x => x.TemplateType)
+</form>
+

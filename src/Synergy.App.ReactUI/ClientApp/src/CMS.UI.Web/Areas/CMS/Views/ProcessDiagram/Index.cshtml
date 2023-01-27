@@ -1,0 +1,329 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+    Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model DocumentTypeViewModel
+<style>
+    .required {
+        color: red;
+    }
+
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+
+
+
+
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Portal End*/
+</style>
+
+<div class="splitter-container">
+    <div class="left">
+        @*<button type="button" class="btn btn-primary" onclick="CreatePortal();" id="CreatePortal" >Create New Portal</button>*@
+        @*<h5>Content</h5>*@
+        @*@(Html.Kendo().TreeView()
+        .Name("contentTreeView").HtmlAttributes( new {@class="treeview"})
+        .Events(e=>e.Select("OnSelect")
+        //.Expand("onExpand")       
+        )
+        .DataTextField("Name")
+        .TemplateId("ct-tv-template")
+        .DataSource(dataSource => dataSource       
+            .Read(read => read
+                .Action("GetContentTreeList", "ProcessDiagram",new { @area="Cms"}) 
+            )
+        )
+    )*@
+
+
+        <script id="ct-tv-template" type="text/kendo-ui-template">
+            <span style="width:100%">  #: item.Name # <i class="#:item.IconCss#" title="#:item.IconTitle#"></i></span>
+            <span data-id="#:item.id#" data-type="#:item.Type#" data-portal-name="#:item.Name#" data-parent-id="#:item.ParentId#" data-portal-id="#:item.PortalId#" @*class="tree-menu"*@ data-level="#:item.ItemLevel#">@*<i class="fa fa-ellipsis-h"></i>*@</span>
+        </script>
+
+    </div>
+
+    <div class="right pad-l-t-15" id="page-content">
+
+    </div>
+
+</div>
+
+<div id="portal-div">
+    <div id="mySidenavPortal" class="sidenav">
+        <h1 class="cms-panel-header-name">Portal</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavPortal()" title="Close">&times;</a>
+        <hr />
+        <div id="portal-content" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+<div id="page-style-div">
+    <div id="mySidenavStyle" class="sidenav">
+        <h1 class="cms-panel-header-name">Style</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavStyle()" title="Close">&times;</a>
+        <hr />
+        <div id="page-style-content" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+<div id="pagecontent-style-div">
+    <div id="mySidenavPageContentStyle" class="sidenav">
+        <h1 class="cms-panel-header-name">Page Settings</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavPageContentStyle()" title="Close">&times;</a>
+        <hr />
+        <div id="pagecontent-style-content" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+<div id="overlay" class=""></div>
+
+
+<script>
+    // $('.splitter-container').SplitterBar();
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+    function ReloadTab() {
+         
+    }
+    function SetTabControls(index, select) {
+        var tabStrip = $("#tabstrip").data("kendoTabStrip");
+        if (select) {
+            tabStrip.select(index);
+        }
+    }
+    function onTabSelect1(e) {
+        SetTabControls($(e.item).index(), false);
+    }
+    function OnSelect(e) {
+        var dataItem = this.dataItem(e.node);
+        if (dataItem.Type != "Portal") {
+            LoadPartailView('@Url.Action("ProcessDiagram", "ProcessDiagram", new { @area="Cms"})?menuGroupId=' + dataItem.id, $('#page-content'));
+        }
+        else
+        {
+            e.preventDefault();
+        }
+    }
+    function onExpand(e)
+    {
+
+        var dataid = e.node.getAttribute("data-uid");
+        var dataitem=e.sender.dataSource.getByUid(dataid);
+        //$("#contentTreeView").data("kendoTreeView").dataSource.read({ id: dataitem.id, portalId: dataitem.id, type: dataitem.Type })
+        e.preventDefault();
+    }
+    function OpenIframeModal(url, title) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: title, Width: 700, Height: 350 });
+        return false;
+    }
+    function CreatePortal() {
+        openNavPortal();
+    }
+    function OnDelete(id) {
+
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").open();
+
+        // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(id);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDelete(id) {
+         //
+        //  var grid = $("#grd_OrderStatus").data("kendoGrid");
+        // var dataItem = $(e.currentTarget).closest("tr");
+        // alert(dataItem.Id);
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        $.ajax({
+           // url: "~/UserRole/DeleteUserRole?Id=" + id,
+            url:'@Url.Action("DeletePage", "Content", new { @area= "Cms" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                // $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+                ShowNotification("Deleted Successfully", "success");
+                //window.parent.$("#contentTreeView").data("kendoTreeView").dataSource.read();
+               // $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+       
+
+    }
+
+    //Portal Script Start
+    function openNavPortal(ppid) {
+       
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("CreatePortal", "Content", new { @area="Cms"})?parentId=' + ppid;
+        win.OpenWindow({ Title: 'Manage Portal', Width: 450, Height: 950, Position: 'Right'});
+        return false;
+
+         
+
+    }
+    function editNavPortal(id) {
+        
+           var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("EditPortal", "Content", new { @area="Cms"})?id=' + id;
+        win.OpenWindow({ Title: 'Manage Portal', Width: 450, Height: 950, Position: 'Right'});
+        return false;
+         
+    }
+
+    function closeNavPortal() {
+        document.getElementById("mySidenavPortal").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+    //Portal Script End
+
+    //Style Script Start
+    function openNavStyle(sid, stype) {
+        alert(2)
+        //alert("Hello " + pcid);
+        document.getElementById("mySidenavStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("CreateStyle", "Content", new { @area="Cms"})?sourceId=' + sid +'&sourceType='+stype, $('#page-style-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    function editNavStyle(sid, stype,pid) {
+       
+         var win = GetMainWindow();
+        win.iframeOpenUrl ='@Url.Action("ManageStyle", "Content", new { @area="Cms"})?sourceId=' + sid + '&sourceType=' + stype + '&pageId=' + pid;
+        win.OpenWindow({ Title: 'Manage Style', Width: 650, Height: 950, Position: 'Right'});
+        return false;
+         
+    }
+
+    function closeNavStyle() {
+     
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        //document.getElementById("mySidenavStyle").style.width = "0";
+        //$("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-mybackgroundimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BackgroundImage").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    //Style Script End
+
+    //Pagecontent Style Start
+   function OpenManageSettings(sid,stype) {
+        document.getElementById("mySidenavPageContentStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("ManageSettings", "Content", new { @area="Cms"})?sourceId=' + sid +'&sourceType='+stype, $('#pagecontent-style-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    @*function editNavPageContentStyle(sid, stype) {
+        alert("Test Page Setting");
+        document.getElementById("mySidenavPageContentStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("EditPageStyle", "Content", new { @area="Cms"})?sourceId=' + sid + '&sourceType=' + stype, $('#pagecontent-style-content'));
+        $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }*@
+
+    function closeNavPageContentStyle() {
+        document.getElementById("mySidenavPageContentStyle").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+
+    function onFileUploadSuccessPageStyle(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".pagestyle-mybackgroundimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BackgroundImage").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    //Pagecontent Style End
+</script>
+

@@ -1,0 +1,298 @@
+﻿
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+@{
+    ViewData["Title"] = "Authorized Construction";
+    Layout = null;
+}
+
+@inject Synergy.App.Common.IUserContext _userContext
+<style>
+
+    .k-grid-header .k-header {
+        position: relative;
+        vertical-align: bottom;
+        cursor: default;
+        font-weight: 600 !important;
+    }
+
+    .k-grid .k-grid-header .k-header .k-link {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+
+    .k-header {
+        position: relative;
+        vertical-align: bottom;
+        cursor: default;
+        font-weight: 600 !important;
+    }
+
+    .k-header {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+</style>
+<script type="text/x-kendo-template" id="column">
+
+    <a onclick="OpenDetail('#:Id#')">#:AuthorizationId#</a>
+</script>
+
+<script>
+   
+    $("#Date").kendoDatePicker({
+        value: new Date(new Date().setMonth(new Date().getMonth())),
+        format: "dd-MM-yyyy",
+        dateInput: false
+    });
+
+    $("#Date").attr("disabled", "disabled");
+
+    $("#Ward").kendoDropDownList({
+        dataTextField: "Name",
+        dataValueField: "Id",
+        optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+        dataSource: {
+            severFiltering: true,
+            transport: {
+                read: {
+                    url: "/EGov/SmartCity/GetWardList",
+                }
+            }
+        }
+    });
+
+
+    var columnDefs = [
+        {
+            title: "AuthorizationId",
+            field: "AuthorizationId",
+            template: kendo.template($("#column").html()),
+            attributes: {
+                "class": "table-cell",
+                style: "color:blue;"
+            }
+        },
+        {
+            title: "Ward",
+            field: "WardNo",
+        },
+        {
+            title: "Orderno",
+            field: "OrderNo",
+
+        },
+        {
+            title: "Date Of Approval",
+            field: "ReportedDateTime",
+        },
+        {
+            title: "Name",
+            field: "Name",
+        },
+
+    ];
+
+    function OpenDetail(id){
+
+        var url = '/EGov/SmartCity/ViewJSCOBPSAuthorizationReport?id=' + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View Details', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function getReportData() {
+        debugger;
+        var startDate = kendo.toString($("#Date").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var ward = $("#Ward").val();
+        $.ajax({
+            url: '/EGov/SmartCity/GetJSCOBPSAuthorizedDetail',
+                type: "GET",
+                dataType: "json",
+                success: function (result) {
+                    var url = "/EGov/SmartCity/GetJSCOBPSAuthorizedDetail?&date=" + startDate + "&Ward=" + ward;
+                    console.info(result);
+                    var grid = $("#kGridView").kendoGrid({
+                        toolbar: ["excel", "pdf"],
+                        pdf: {
+                            fileName: "AuthorizedConstruction.pdf",
+                            allPages: true,
+                            paperSize: "A3",
+                            margin: { top: "2cm", right: "0.5cm", bottom: "1cm", left: "0.5cm" },
+                            landscape: true,
+                            scale: 0.8
+                        },
+                        excelExport: function (e) {
+                            var sheet = e.workbook.sheets[0];
+                            for (var i = 0; i < sheet.rows.length; i++) {
+                                for (var ci = 0; ci < sheet.rows[i].cells.length; ci++) {
+                                    var cell = sheet.rows[i].cells[ci];
+                                    // add borders
+                                    cell.borderTop = { color: "black", size: 1 };
+                                    cell.borderRight = { color: "black", size: 1 };
+                                    cell.borderBottom = { color: "black", size: 1 };
+                                    cell.borderLeft = { color: "black", size: 1 };
+
+                                    // change cell background
+                                    cell.background = "#ffffff";
+                                    cell.color = "black";
+                                    if (i == 0) {
+                                        cell.hAlign = "center";
+                                    }
+                                    if (i >= 0 && i < 5) {
+                                        cell.bold = true;
+                                    }
+                                }
+                            }
+                        },
+                        excel: {
+                            fileName: "AuthorizedConstruction_Report.xlsx",
+                            proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                            filterable: true,
+
+                        },
+                        dataSource: {
+                            type: "json",
+                            transport: {
+                                read: url
+                            },
+                        },
+                        height: 550,
+                        groupable: false,
+                        sortable: true,
+                        resizable: true,
+                        reorderable: true,
+                        pageable: {
+                            alwaysVisible: false,
+                            pageSizes: [5, 10, 20, 100]
+                        },                        //columnMenu: true,
+                        columns: [{
+                            title: "Jammu Municipal Corporation Authorized Construction",
+                            headerAttributes: { "class": "k-text-center !k-justify-content-center" },
+                            columns: columnDefs
+                        }]
+                    });
+                }
+            });
+
+    }
+
+    $(document).ready(function () {
+        $.ajax({
+            url: '/EGov/SmartCity/GetJSCOBPSAuthorizedDetail',
+            type: "GET",
+            dataType: "json",
+            success: function (result) {
+                var url = "/EGov/SmartCity/GetJSCOBPSAuthorizedDetail";
+                console.info(result);
+                var grid = $("#kGridView").kendoGrid({
+                    toolbar: ["excel", "pdf"],
+                    pdf: {
+                        fileName: "AuthorizedConstruction.pdf",
+                        allPages: true,
+                        paperSize: "A3",
+                        margin: { top: "2cm", right: "0.5cm", bottom: "1cm", left: "0.5cm" },
+                        landscape: true,
+                        scale: 0.8
+                    },
+                    excelExport: function (e) {
+                        var sheet = e.workbook.sheets[0];
+                        for (var i = 0; i < sheet.rows.length; i++) {
+                            for (var ci = 0; ci < sheet.rows[i].cells.length; ci++) {
+                                var cell = sheet.rows[i].cells[ci];
+                                // add borders
+                                cell.borderTop = { color: "black", size: 1 };
+                                cell.borderRight = { color: "black", size: 1 };
+                                cell.borderBottom = { color: "black", size: 1 };
+                                cell.borderLeft = { color: "black", size: 1 };
+
+                                // change cell background
+                                cell.background = "#ffffff";
+                                cell.color = "black";
+                                if (i == 0) {
+                                    cell.hAlign = "center";
+                                }
+                                if (i >= 0 && i < 5) {
+                                    cell.bold = true;
+                                }
+                            }
+                        }
+                    },
+                    excel: {
+                        fileName: "AuthorizedConstruction.xlsx",
+                        proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                        filterable: true,
+
+                    },
+                    dataSource: {
+                        type: "json",
+                        transport: {
+                            read: url
+                        },
+                    },
+                    height: 550,
+                    groupable: false,
+                    sortable: true,
+                    resizable: true,
+                    reorderable: true,
+                    pageable: {
+                        alwaysVisible: false,
+                        pageSizes: [5, 10, 20, 100]
+                    },                        //columnMenu: true,
+                    columns: [{
+                        title: "Jammu Municipal Corporation Authorized Construction",
+                        headerAttributes: { "class": "k-text-center !k-justify-content-center" },
+                        columns: columnDefs
+                    }]
+                });
+            }
+        });
+    })
+
+</script>
+<div class="p-2">
+    <h4>
+        Jammu Municipal Corporation Authorized Construction Report
+    </h4>
+</div>
+
+<div class="row" style="padding:2%">
+        `
+    <div class="col">
+        <div class="form-label-group">
+            <div>
+                <label for="auto">Select Ward</label>
+            </div>
+            <input id="Ward" class="form-control" />
+            <script>
+            </script>
+        </div>
+    </div>
+    
+    
+    <div class="col">
+        <div class="form-label-group">
+            <div>
+                <label for="TravelDate">Select Date</label>
+            </div>
+            <input id="Date" class="form-control" />
+        </div>
+    </div>
+    <div class="col" style="padding-top: 2%;">
+        <button class="btn btn-primary" onclick="getReportData()">Show Report</button>
+    </div>
+
+</div>
+
+<style>
+    #vNo, #wNo, #solidWasteCapacity {
+        font-weight: bold
+    }
+</style>
+<div class="col-12 p-2">
+    <div id="kGridView" style="width: 100%;height:500px" class="ag-theme-alpine"></div>
+</div>
