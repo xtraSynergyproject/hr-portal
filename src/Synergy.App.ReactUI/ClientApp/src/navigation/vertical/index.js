@@ -256,17 +256,17 @@ const navigation = () => {
       title: 'Leave',
       icon: 'mdi:shield-outline',
       children: [
-        {
+       {
           title: 'Leave Details',
-          path: '/apps/roles'
+          path: '/dashboards/leave-details'
         },
         {
-          title: 'Business Trip',
-          path: '/apps/permissions'
+          title: 'Bussiness Trip',
+          path: '/dashboards/bussiness-trip'
         },
         {
           title: 'Time Permission',
-          path: '/apps/'
+          path: '/dashboards/time-permison'
         }
       ]
     },
@@ -346,15 +346,15 @@ const navigation = () => {
       children: [
         {
           title: 'Helpdesk Dashboard',
-          path: '/pages/faq'
+          path: '/dashboards/help-desk-main/MydashBoard/MydashBoard'
         },
         {
           title: 'My Requests',
-          path: '/pages/help-center'
+          path: '/dashboards/help-desk-main/MyRequest/MyRequest'
         },
         {
           title: 'My Tasks',
-          path: '/pages/'
+          path: '/dashboards/help-desk-main/Mytask/Mytask'
         }
        
         
