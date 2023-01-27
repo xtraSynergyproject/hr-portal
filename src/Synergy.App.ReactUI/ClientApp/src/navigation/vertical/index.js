@@ -141,51 +141,51 @@ const navigation = () => {
         },
         {
           title: 'HR Sponsor',
-          path: '/apps/invoice/list'
+          path: '/dashboards/workStructure/sponsor'
         },
         {
           title: 'HR City',
-          path: '/apps/invoice/preview'
+          path: '/dashboards/workStructure/City'
         },
         {
           title: 'Grade',
-          path: '/apps/invoice/edit'
+          path: '/dashboards/workStructure/Grade'
         },
         {
           title: 'Job',
-          path: '/apps/invoice/add'
+          path: '/dashboards/workStructure/Job'
         },
         {
           title: 'Cost Center',
-          path: '/apps/invoice/list'
+          path: '/dashboards/workStructure/Costcenter'
         },
         {
           title: 'Department',
-          path: '/apps/invoice/preview'
+          path: '/dashboards/workStructure/Department'
         },
         {
           title: 'Department Hierarchy',
-          path: '/apps/invoice/edit'
+          path:  '/dashboards/workStructure/Department_H'
         },
         {
           title: 'Position',
-          path: '/apps/invoice/add'
+          path: '/dashboards/workStructure/position'
         },
         {
           title: 'Position Hierarchy',
-          path: '/apps/invoice/list'
+          path: '/dashboards/workStructure/position_Hirarachy'
         },
         {
           title: 'Person',
-          path: '/apps/invoice/preview'
+          path: '/dashboards/workStructure/person'
         },
         {
           title: 'Contract',
-          path: '/apps/invoice/edit'
+          path: '/dashboards/workStructure/contact'
         },
         {
           title: 'Assignment',
-          path: '/apps/invoice/add'
+          path: '/dashboards/workStructure/Assignment'
         }
       ]
     },
