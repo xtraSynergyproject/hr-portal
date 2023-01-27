@@ -10,7 +10,6 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-
 const HelpDiskSidebar = ({ direction }) => {
   const ExpandIcon = direction === 'rtl' ? 'mdi:chevron-left' : 'mdi:chevron-right'
 

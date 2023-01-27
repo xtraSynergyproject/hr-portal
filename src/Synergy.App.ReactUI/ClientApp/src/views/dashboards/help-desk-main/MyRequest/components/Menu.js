@@ -7,6 +7,7 @@ import Popper from '@mui/material/Popper';
 import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import Stack from '@mui/material/Stack';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 export default function Menu() {
   const [open, setOpen] = React.useState(false);
@@ -54,7 +55,7 @@ export default function Menu() {
           aria-haspopup="true"
           onClick={handleToggle}
         >
-          ...
+          <ArrowDropDownIcon/>
         </Button>
         <Popper
           open={open}
