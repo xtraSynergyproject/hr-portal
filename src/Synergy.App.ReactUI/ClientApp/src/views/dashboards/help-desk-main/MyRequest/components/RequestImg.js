@@ -11,7 +11,7 @@ const RequestImg = ({ folder, label }) => {
     <Box sx={{ height: 820, width: 950, background: 'white', transform: 'translateZ(0px)', flexGrow: 1 }}>
 
       <Box>
-        <Typography sx={{ fontFamily: "sans-serif", fontSize: "50px" }}>Services Home</Typography>
+        <Typography sx={{ fontFamily: "sans-serif", fontSize: "30px" }}>Services Home</Typography>
         <Card>
           <CardMedia
             component='img'
