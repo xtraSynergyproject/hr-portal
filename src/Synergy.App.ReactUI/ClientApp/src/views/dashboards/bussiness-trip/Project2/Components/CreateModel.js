@@ -3,11 +3,10 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-//import ContactIcon from './ContactIcon'
-import Person from '@mui/icons-material/Person';
 
- import InputForm from './InputForm'
+
  
+ import Form from './Form'
 
 
 
@@ -34,10 +33,10 @@ const modalBlock = {
 const modalContentStyle = {
   position: "relative",
   background: "#fff",
-  boxShadow: 20,
-  mt: 4,
+  boxShadow: 40,
+  mt: 2,
   width: "55rem",
-  mb: 5,
+  mb: 3,
   borderRadius: "5px",
   
 
@@ -50,9 +49,9 @@ export default function BasicModal() {
 
   return (
     <div>
-    
 
-      <Button sx={{ marginInlineStart: 'auto' }} onClick={handleOpen} ><Person/></Button>
+      <Button onClick={handleOpen} sx={{ mr: 4, mb: 2 ,margin:"10px" }}  variant="contained" >Create</Button>
+       
 
       <Modal
         open={open}
@@ -65,7 +64,7 @@ export default function BasicModal() {
           <Box sx={modalContentStyle}>
 
             
-            <InputForm />
+            <Form />
 
 
 

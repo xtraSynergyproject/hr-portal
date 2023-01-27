@@ -11,7 +11,8 @@ import CardMedia from '@mui/material/CardMedia'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import { Grid } from '@mui/material'
-import LoadLeave from './LoadLeave'
+
+
 
 // ** Third Party Imports
 import axios from 'axios'
@@ -24,20 +25,16 @@ function DashBoard( PersonFullName,Status,NationalityName,DateOfJoin,Title,DateO
 }
 
 
-
-
-
-
-
-
 const ProfilePicture = styled('img')(({ theme }) => ({
-  width: 120,
-  height: 120,
+  width: 160,
+  height: 180,
+  margin:15,
   borderRadius: theme.shape.borderRadius,
   border: `5px solid ${theme.palette.common.white}`,
   [theme.breakpoints.down('md')]: {
     marginBottom: theme.spacing(4)
   }
+
 }))
 
 const UserProfileHeader = () => {
@@ -65,17 +62,7 @@ const UserProfileHeader = () => {
   return  (
     <>
     <Card>
-      <CardMedia
-        component='img'
-        alt='profile-header'
-        image="https://www.influencive.com/wp-content/uploads/2021/03/it-firms-1536x1022.jpg"
-        sx={{
-          height: { xs: 150, md: 250 }
-        }}
-
-
-  
-      />
+      
       <CardContent
         sx={{
           pt: 0,
@@ -86,17 +73,7 @@ const UserProfileHeader = () => {
           justifyContent: { xs: 'center', md: 'flex-start' }
         }}
       >
-        <ProfilePicture src="https://bionordika.no/application/files/cache/thumbnails/649d1af142975fe6f429c75165136708.png" alt='profile-picture' />
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            ml: { xs: 0, md: 6 },
-            alignItems: 'flex-end',
-            flexWrap: ['wrap', 'nowrap'],
-            justifyContent: ['center', 'space-between']
-          }}
-        >
+        
           <Box sx={{ mb: [6, 0], display: 'flex', flexDirection: 'column', alignItems: ['center', 'flex-start'] }}>
             <Typography variant='h5' sx={{ mb: 4 }}>
               <b>{data.PersonFullName}</b>
@@ -109,32 +86,50 @@ const UserProfileHeader = () => {
               }}
             >
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                <Icon icon={designationIcon} />
-                <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.designation} Leave Balance</Typography>
+                {/* <Icon icon={designationIcon} /> */}
+                {/* <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.designation} </Typography> */}
               </Box>
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
                 {/* <Icon icon='mdi:map-marker-outline' /> */}
                 <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.location}</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                <Icon icon='mdi:calendar-blank' />
+                {/* <Icon icon='mdi:calendar-blank' /> */}
                 <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
                   {/* Joined {data.joiningDate} */}
-                  Annual Leave Balance Projections
+                  
                 </Typography>
               </Box>
             </Box>
           </Box>
           
-          <Button variant='contained' startIcon={<Icon icon='mdi:account-check-outline' fontSize={20} />}>
-            <LoadLeave/>
-          </Button>
+         
           
-        </Box>
+      
       </CardContent>
       <Grid container spacing={4}>
 
-         <Grid item xs={6}>
+      <Grid item xs ={3}>
+      <ProfilePicture src="https://apal.org.au/wp-content/uploads/2019/08/Andrew-Mandemaker-2.jpg" alt='profile-picture' />
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            ml: { xs: 0, md: 6 },
+            alignItems: 'flex-end',
+            flexWrap: ['wrap', 'nowrap'],
+            justifyContent: ['center', 'space-between']
+          }}
+        ></Box>
+        </Grid>
+
+
+
+
+
+
+
+         <Grid item xs={4}>
               
                 <p>Title:<b>{data.Title}</b></p>
                <p>DateOfBirth: <b>       {data.DateOfBirth}</b></p>
@@ -154,7 +149,10 @@ const UserProfileHeader = () => {
                 <p>Grade Name:<b>A</b></p>
             
               </Grid>
+             
               </Grid>
+              <b>{data.PersonFullName}</b>
+                        
 
       
 

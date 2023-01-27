@@ -3,41 +3,36 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-import CardLeave from './CardLeave'
-
-
-//import Box from '@mui/material/Box';
-
-
+import LeaveType from './LeaveType'
 
 
 
 const modalWrapper = {
-  overflow:"auto",
-  maxHeight:"100vh",
-  display:"flex",
-  
+  overflow: "auto",
+  maxHeight: "100vh",
+  display: "flex",
+
 };
 
 const modalBlock = {
-  position:"relative",
-  zIndex:0,
-  display:"flex",
-  alignItems:"center",
-  justifyContent:"center",
-  margin:"auto",
-  
+  position: "relative",
+  zIndex: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  margin: "auto",
+
 }
 
-const modalContentStyle ={
-  position:"relative",
+const modalContentStyle = {
+  position: "relative",
   // background:"#fff",
-  boxShadow:20,
-  mt:2,
+  boxShadow: 20,
+  mt: 2,
   // width:"30rem",
-  mb:3,
-  borderRadius:"10px",
-  
+  mb: 3,
+  borderRadius: "10px",
+
 };
 
 export default function BasicModal() {
@@ -47,9 +42,9 @@ export default function BasicModal() {
 
   return (
     <div>
-     
-      <Button sx={{color:'#fff'}} onClick={handleOpen}>New Leave Request</Button>
-      
+
+      <Button sx={{ color: '#fff' }} onClick={handleOpen}>New Leave Request</Button>
+
       <Modal
         open={open}
         sx={modalWrapper}
@@ -60,26 +55,26 @@ export default function BasicModal() {
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
 
-          <Box sx={{ display: 'flex' }}>
-          <CardLeave/>
+            <Box sx={{ display: 'flex' }}>
+              <LeaveType/>
 
 
-          
-         
-         
-      
-    </Box>
 
 
-          
-  
 
 
-         
-          
-          
-          
-        </Box>
+            </Box>
+
+
+
+
+
+
+
+
+
+
+          </Box>
         </Box>
       </Modal>
     </div>

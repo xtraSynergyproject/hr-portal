@@ -1,43 +1,41 @@
 import React from 'react'
-import BuniSelect from '../Project2/Components/BusnisSelect'
+import BussinessInput from './Components/BussinessInput'
 import Model from '../Project2/Components/Model'
-import TableShow from '../Project2/Components/TableShow'
-import DataTable from '../Project2/Components/DataTable'
+import BussinessTripProfile from '../Project2/Components/BussinessTripProfile'
+import BussinessTable from './Components/BussinessTable'
 import Grid from '@mui/material/Unstable_Grid2';
 
 
-function  Bussiness() {
+
+function Bussiness() {
   return (
-    
+
     <>
 
+      <Grid container spacing={8}>
+        <Grid xs={10}>
+        
+          <BussinessInput />
+
+        </Grid>
+        <Grid xs={2}>
+          <Model />
+
+        </Grid>
 
 
 
 
+      </Grid>
 
 
-<Grid container spacing={8}>
-  <Grid xs={10}>
-  <BuniSelect/>
-    
-  </Grid>
-  <Grid xs={2}>
-  <Model/>
-  
-  </Grid>
-  
-  
-  
 
-    </Grid>
+      <BussinessTripProfile/>
+      <BussinessTable />
 
-    
-    
-    <TableShow/>
-    <DataTable/>
-      </>
-    
+    </>
+
+
 
   )
 }

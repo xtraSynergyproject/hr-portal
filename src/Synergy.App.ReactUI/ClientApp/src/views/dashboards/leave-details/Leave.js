@@ -1,7 +1,7 @@
 import React from 'react'
-// import MyTables from './Components/MyTables'
-import MyTables from '../leave-details/project/Components/MyTables'
-import ProfileHeader from '../leave-details/project/Components/ProfileHeader'
+
+import LeaveTable from './project/Components/LeaveTable'
+import LeaveProfileHeader from  './project/Components/LeaveProfileHeader'
 
 
 
@@ -12,8 +12,8 @@ function index() {
   return (
     <>
       
-      <ProfileHeader />
-      <MyTables/>
+      <LeaveProfileHeader/>
+      <LeaveTable />
     </>
   )
 }

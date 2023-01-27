@@ -1,9 +1,5 @@
-
-
 // ** React Imports
 import { useEffect, useCallback, useState } from 'react'
-import Button from '@mui/material/Button';
-
 
 // ** Next Import
 import Link from 'next/link'
@@ -33,26 +29,18 @@ import { getInitials } from 'src/@core/utils/get-initials'
 import { fetchData } from 'src/store/apps/user'
 
 // ** Custom Components Imports
-import HeaderTime from './HeaderTime'
+import LeaveHeaderTable from './LeaveHeaderTable'
+
 
 //axios
 import axios from 'axios'
 
-function createData(ServiceNo,ServiceOwner ,Name, Hours) {
-  return {ServiceNo,ServiceOwner ,Name, Hours};
+
+
+
+function createData(ServiceId, LeaveType, StartDate, EndDate, ServiceNo) {
+  return { ServiceId, LeaveType, StartDate, EndDate, ServiceNo };
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // ** Vars
@@ -70,27 +58,28 @@ const userStatusObj = {
   inactive: 'secondary'
 }
 
-const renderClient = row => {
 
-}
+
+
+
 
 
 
 
 
 const columns = [
-  
+
   {
     flex: 0.2,
     minWidth: 230,
-    field: 'ServiceNo',
-    headerName: 'ServiceNo',
+    field: 'ServiceId',
+    headerName: 'ServiceId',
     renderCell: ({ row }) => {
       const { fullName, username } = row
-    
+
       return (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {renderClient(row)}
+          {/* {renderClient(row)} */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
             <Typography
               noWrap
@@ -104,10 +93,10 @@ const columns = [
                 '&:hover': { color: theme => theme.palette.primary.main }
               }}
             >
-              
+
             </Typography>
             <Typography noWrap variant='caption'>
-            {row.ServiceNo}
+              {row.ServiceId}
             </Typography>
           </Box>
         </Box>
@@ -117,15 +106,15 @@ const columns = [
 
   {
     flex: 0.15,
-    field: 'ServiceOwner',
+    field: 'LeaveType',
     minWidth: 150,
-    headerName: 'ServiceOwner',
+    headerName: 'LeaveType',
     renderCell: ({ row }) => {
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
           <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.ServiceOwner}
+            {row.LeaveType}
           </Typography>
         </Box>
       )
@@ -135,12 +124,12 @@ const columns = [
   {
     flex: 0.15,
     minWidth: 120,
-    headerName: 'Name',
-    field: 'Name',
+    headerName: 'StartDate',
+    field: 'StartDate',
     renderCell: ({ row }) => {
       return (
         <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.Name}
+          {row.StartDate}
         </Typography>
       )
     }
@@ -149,32 +138,32 @@ const columns = [
   {
     flex: 0.1,
     minWidth: 110,
-    field: ' Hours',
-    headerName: ' Hours',
+    field: 'EndDate',
+    headerName: 'EndDate',
     renderCell: ({ row }) => {
       return (
         <CustomChip
           skin='light'
           size='small'
-          label={row.  Hours}
-          color={userStatusObj[row. Hours]}
+          label={row.EndDate}
+          color={userStatusObj[row.EndDate]}
           sx={{ textTransform: 'capitalize' }}
         />
       )
     }
   },
-  
+
   {
     flex: 0.15,
-    field: 'Date',
+    field: 'ServiceNo',
     minWidth: 150,
-    headerName: 'Date',
+    headerName: 'ServiceNo',
     renderCell: ({ row }) => {
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
           <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.Date}
+            {row.ServiceNo}
           </Typography>
         </Box>
       )
@@ -184,43 +173,26 @@ const columns = [
 
 ]
 
-
-
 const UserList = () => {
   // ** State
   const [plan, setPlan] = useState('')
   const [value, setValue] = useState('')
   const [pageSize, setPageSize] = useState(10)
 
-  
-
-
   // Api Intregration by using Get method
-   const [getdata, setGetdata] = useState([]) 
+  const [getdata, setGetdata] = useState([])
   const viewData = async () => {
-    let response = await axios.get(`https://webapidev.aitalkx.com/chr/leave/GetTimePermissionData?portalName=HR&userId=45bba746-3309-49b7-9c03-b5793369d73c`)
+    let response = await axios.get(`https://webapidev.aitalkx.com/chr/leave/ReadLeaveDetailData?userId=45bba746-3309-49b7-9c03-b5793369d73c`)
     setGetdata(response.data)
     //console.log(response.data, "response data")
   }
-  
+  console.log(getdata, "response")
+
   useEffect(() => {
     viewData()
   }, [])
-  
 
-  // ** Hooks
-  // const dispatch = useDispatch()
-  // const store = useSelector(state => state.user)
-  // useEffect(() => {
-  //   dispatch(
-  //     fetchData({
-  //       role: '',
-  //       q: value,
-  //       status: '',
-  //       currentPlan: plan
-  //     })
-  //   )
-  // }, [dispatch, plan, value])
+
 
   const handleFilter = useCallback(val => {
     setValue(val)
@@ -229,43 +201,42 @@ const UserList = () => {
   const handlePlanChange = useCallback(e => {
     setPlan(e.target.value)
   }, [])
-  console.log("getdata", getdata)
-
-
 
   return (
+
+
     <Grid container spacing={6}>
       <Grid item xs={12}>
 
-      <Button variant="contained"  sx={{margin:'20px'}} onClick={() => {
-            
-                       prompt('loading roadmap React');
-              }} >+Add Time Permison</Button>
-
-              
         <Card>
-              <HeaderTime plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
-                <DataGrid
-                  autoHeight
-                  rows={getdata}
-                  columns={columns}
-                  checkboxSelection
-                  pageSize={pageSize}
-                  disableSelectionOnClick
-                  rowsPerPageOptions={[10, 25, 50]}
-                  onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-                  getRowId={(row) =>  row.Id}
 
-                  
-                  
-                />
+          <LeaveHeaderTable plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
+          <DataGrid
+            autoHeight
+            rows={getdata}
+            columns={columns}
+            checkboxSelection
+            pageSize={pageSize}
+            disableSelectionOnClick
+            rowsPerPageOptions={[10, 25, 50]}
+            onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+            getRowId={(row) => row.ServiceId}
+
+
+
+          />
         </Card>
-       
       </Grid>
+
+
+
     </Grid>
+
+
+
+
+
   )
 }
 
 export default UserList
-
-

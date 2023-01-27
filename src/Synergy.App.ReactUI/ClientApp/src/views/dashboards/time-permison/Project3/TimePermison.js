@@ -1,6 +1,6 @@
 import React from 'react'
-import Quick from '../Project3/Components/Quick'
-import PermissionsTable from '../Project3/Components/PermisonTable'
+import TimePermisonProfile from './Components/TimePermissonProfile'
+import TimePermissionsTable from './Components/TimePermisonTable'
 import TimeSelect from '../Project3/Components/TimeSelect'
 import Model from '../../bussiness-trip/Project2/Components/Model'
 import Grid from '@mui/material/Unstable_Grid2';
@@ -16,6 +16,7 @@ function  TimePermison() {
 <Grid container spacing={8}>
   <Grid xs={10}>
   <TimeSelect/>
+  
     
   </Grid>
   <Grid xs={2}>
@@ -28,8 +29,8 @@ function  TimePermison() {
 
     </Grid>
     
-    <Quick/>
-    <PermissionsTable/>
+    <TimePermisonProfile/>
+    <TimePermissionsTable/>
     
     </>
     

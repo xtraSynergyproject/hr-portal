@@ -27,7 +27,8 @@ function DashBoard( PersonFullName,Status,NationalityName,DateOfJoin,Title,DateO
 
 const ProfilePicture = styled('img')(({ theme }) => ({
   width: 160,
-  height: 160,
+  height: 150,
+  margin: 15,
   borderRadius: theme.shape.borderRadius,
   border: `5px solid ${theme.palette.common.white}`,
   [theme.breakpoints.down('md')]: {
@@ -50,7 +51,7 @@ const UserProfileHeader = () => {
   useEffect(() => {
     axios.get('https://webapidev.aitalkx.com/chr/hrdirect/EmployeeProfile?userId=76e33a87-1e40-4767-9fc4-8107de4f6b2a&portalName=HR&personId=8393d114-f109-45ea-9fcc-ad63f1233264').then(response => {
       setData(response.data)
-      console.log(response.data, 'PersonFullName');
+      console.log(response.data, );
       
     })
   
@@ -65,7 +66,7 @@ const UserProfileHeader = () => {
       <CardContent
         sx={{
           pt: 0,
-          mt: -8,
+          mt: -9,
           display: 'flex',
           alignItems: 'flex-end',
           flexWrap: { xs: 'wrap', md: 'nowrap' },
@@ -74,8 +75,8 @@ const UserProfileHeader = () => {
       >
         
           <Box sx={{ mb: [6, 0], display: 'flex', flexDirection: 'column', alignItems: ['center', 'flex-start'] }}>
-            <Typography variant='h5' sx={{ mb: 4 }}>
-              <b>{data.PersonFullName}</b>
+            <Typography variant='h5' sx={{ mb: 3, margin:'10px'}}>
+                     <b>{data.PersonFullName}</b>
             </Typography>
             <Box
               sx={{
@@ -109,7 +110,7 @@ const UserProfileHeader = () => {
       <Grid container spacing={4}>
 
       <Grid item xs ={3}>
-      <ProfilePicture src="https://apal.org.au/wp-content/uploads/2019/08/Andrew-Mandemaker-2.jpg" alt='profile-picture' />
+      <ProfilePicture src="https://kapernikov.com/wp-content/uploads/2020/02/patrick-1536x1024.jpg" alt='profile-picture' />
         <Box
           sx={{
             width: '100%',
@@ -120,6 +121,9 @@ const UserProfileHeader = () => {
             justifyContent: ['center', 'space-between']
           }}
         ></Box>
+         <Typography variant='h5' sx={{ mb: 3, margin:'10px'}}>
+                     <b>{data.PersonFullName}</b>
+            </Typography>
         </Grid>
 
 
@@ -148,10 +152,8 @@ const UserProfileHeader = () => {
                 <p>Grade Name:<b>A</b></p>
             
               </Grid>
-             
               </Grid>
-              <b>{data.PersonFullName}</b>
-                        
+            
 
       
 

@@ -1,3 +1,5 @@
+
+
 // ** React Imports
 import { useEffect, useCallback, useState } from 'react'
 
@@ -29,18 +31,27 @@ import { getInitials } from 'src/@core/utils/get-initials'
 import { fetchData } from 'src/store/apps/user'
 
 // ** Custom Components Imports
-import HeaderLeave from './HeaderLeave'
+import BuisnesHeader from './BuisnesHeader'
 
 
 //axios
 import axios from 'axios'
 
-
-
-
-function createData(ServiceId,LeaveType, StartDate, EndDate, ServiceNo) {
-  return {ServiceId, LeaveType, StartDate, EndDate, ServiceNo};
+function createData(ServiceNo,Id ,StartDate,Status,ClaimServiceNo) {
+  return { ServiceNo,Id ,StartDate,Status,ClaimServiceNo};
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // ** Vars
@@ -58,10 +69,9 @@ const userStatusObj = {
   inactive: 'secondary'
 }
 
+const renderClient = row => {
 
-
-
-
+}
 
 
 
@@ -72,14 +82,16 @@ const columns = [
   {
     flex: 0.2,
     minWidth: 230,
-    field: 'ServiceId',
-    headerName: 'ServiceId',
+    field: 'ServiceNo',
+    headerName: 'ServiceNo',
     renderCell: ({ row }) => {
       const { fullName, username } = row
 
       return (
+       
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(row)} */}
+         
+          {renderClient(row)}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
             <Typography
               noWrap
@@ -96,25 +108,25 @@ const columns = [
               
             </Typography>
             <Typography noWrap variant='caption'>
-            {row.ServiceId}
+            {row.ServiceNo}
             </Typography>
           </Box>
         </Box>
       )
     }
   },
-
+ 
   {
     flex: 0.15,
-    field: 'LeaveType',
+    field: 'Id',
     minWidth: 150,
-    headerName: 'LeaveType',
+    headerName: 'Id',
     renderCell: ({ row }) => {
       return (
-        <Box style={{ display: 'flex', alignItems: 'center' }}>
+        <Box style={{ display: 'flex', alignItems: 'center', margin:'15px'}}>
           <Icon fontSize={20} />
           <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.LeaveType}
+            {row.Id}
           </Typography>
         </Box>
       )
@@ -134,36 +146,36 @@ const columns = [
       )
     }
   },
-   
+  
   {
     flex: 0.1,
     minWidth: 110,
-    field: 'EndDate',
-    headerName: 'EndDate',
+    field: 'Status',
+    headerName: 'Status',
     renderCell: ({ row }) => {
       return (
         <CustomChip
           skin='light'
           size='small'
-          label={row.EndDate}
-          color={userStatusObj[row.EndDate]}
+          label={row. Purpose}
+          color={userStatusObj[row.Status]}
           sx={{ textTransform: 'capitalize' }}
         />
       )
     }
   },
-
+  
   {
     flex: 0.15,
-    field: 'ServiceNo',
+    field: 'ClaimServiceNo',
     minWidth: 150,
-    headerName: 'ServiceNo',
+    headerName: 'ClaimServiceNo',
     renderCell: ({ row }) => {
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
           <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.ServiceNo}
+            {row.ClaimServiceNo}
           </Typography>
         </Box>
       )
@@ -173,21 +185,25 @@ const columns = [
 
 ]
 
+
+
 const UserList = () => {
   // ** State
   const [plan, setPlan] = useState('')
   const [value, setValue] = useState('')
   const [pageSize, setPageSize] = useState(10)
 
+  
+
+
   // Api Intregration by using Get method
    const [getdata, setGetdata] = useState([]) 
   const viewData = async () => {
-    let response = await axios.get(`https://webapidev.aitalkx.com/chr/leave/ReadLeaveDetailData?userId=45bba746-3309-49b7-9c03-b5793369d73c`)
+    let response = await axios.get(`https://webapidev.aitalkx.com/chr/leave/GetBusinessTripData?portalName=HR&userId=45bba746-3309-49b7-9c03-b5793369d73c`)
     setGetdata(response.data)
     //console.log(response.data, "response data")
   }
-  console.log(getdata, "response")
-
+  
   useEffect(() => {
     viewData()
   }, [])
@@ -214,16 +230,15 @@ const UserList = () => {
   const handlePlanChange = useCallback(e => {
     setPlan(e.target.value)
   }, [])
+  console.log("getdata", getdata)
+
+
 
   return (
-
-
     <Grid container spacing={6}>
       <Grid item xs={12}>
-      
         <Card>
-       
-          <HeaderLeave plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
+          <BuisnesHeader plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
                 <DataGrid
                   autoHeight
                   rows={getdata}
@@ -233,23 +248,17 @@ const UserList = () => {
                   disableSelectionOnClick
                   rowsPerPageOptions={[10, 25, 50]}
                   onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-                  getRowId={(row) =>  row.ServiceId}
-                
+                  getRowId={(row) =>  row.Id}
+
                   
-              
+                  
                 />
         </Card>
+       
       </Grid>
-    
-      
-    
     </Grid>
-    
-    
-  
-    
-    
   )
 }
 
 export default UserList
+

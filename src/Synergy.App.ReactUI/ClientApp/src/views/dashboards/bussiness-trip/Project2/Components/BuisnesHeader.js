@@ -6,6 +6,9 @@ import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
+import CreateModel from './CreateModel'
+
+
 
 
 
@@ -19,9 +22,11 @@ const TableHeader = props => {
   return (
     <Box sx={{ p: 5, pb: 3, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
     
-              <Button variant='contained' startIcon={<Icon icon='mdi:account-check-outline' fontSize={20} />}>
+              {/* <Button variant='contained' startIcon={<Icon icon='mdi:account-check-outline' fontSize={20} />}>
            Create
-          </Button> 
+          </Button>  */}
+          <CreateModel/>
+          
           
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>

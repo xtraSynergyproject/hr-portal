@@ -2,6 +2,8 @@
 
 // ** React Imports
 import { useEffect, useCallback, useState } from 'react'
+import Button from '@mui/material/Button';
+
 
 // ** Next Import
 import Link from 'next/link'
@@ -31,14 +33,13 @@ import { getInitials } from 'src/@core/utils/get-initials'
 import { fetchData } from 'src/store/apps/user'
 
 // ** Custom Components Imports
-import BuisnesHeader from './BuisnesHeader'
-
+import TimePermissonHeader from './TimePermissonHeader'
 
 //axios
 import axios from 'axios'
 
-function createData(ServiceNo,Id ,StartDate,Status,ClaimServiceNo) {
-  return { ServiceNo,Id ,StartDate,Status,ClaimServiceNo};
+function createData(ServiceNo,ServiceOwner ,Name, Hours) {
+  return {ServiceNo,ServiceOwner ,Name, Hours};
 }
 
 
@@ -86,11 +87,9 @@ const columns = [
     headerName: 'ServiceNo',
     renderCell: ({ row }) => {
       const { fullName, username } = row
-
+    
       return (
-       
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-         
           {renderClient(row)}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
             <Typography
@@ -115,50 +114,50 @@ const columns = [
       )
     }
   },
- 
+
   {
     flex: 0.15,
-    field: 'Id',
+    field: 'ServiceOwner',
     minWidth: 150,
-    headerName: 'Id',
+    headerName: 'ServiceOwner',
     renderCell: ({ row }) => {
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
           <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.Id}
+            {row.ServiceOwner}
           </Typography>
         </Box>
       )
     }
   },
-  
+
   {
     flex: 0.15,
     minWidth: 120,
-    headerName: 'StartDate',
-    field: 'StartDate',
+    headerName: 'Name',
+    field: 'Name',
     renderCell: ({ row }) => {
       return (
         <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.StartDate}
+          {row.Name}
         </Typography>
       )
     }
   },
-  
+
   {
     flex: 0.1,
     minWidth: 110,
-    field: 'Status',
-    headerName: 'Status',
+    field: ' Hours',
+    headerName: ' Hours',
     renderCell: ({ row }) => {
       return (
         <CustomChip
           skin='light'
           size='small'
-          label={row. Purpose}
-          color={userStatusObj[row.Status]}
+          label={row.  Hours}
+          color={userStatusObj[row. Hours]}
           sx={{ textTransform: 'capitalize' }}
         />
       )
@@ -167,15 +166,15 @@ const columns = [
   
   {
     flex: 0.15,
-    field: 'ClaimServiceNo',
+    field: 'Date',
     minWidth: 150,
-    headerName: 'ClaimServiceNo',
+    headerName: 'Date',
     renderCell: ({ row }) => {
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
           <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.ClaimServiceNo}
+            {row.Date}
           </Typography>
         </Box>
       )
@@ -199,7 +198,7 @@ const UserList = () => {
   // Api Intregration by using Get method
    const [getdata, setGetdata] = useState([]) 
   const viewData = async () => {
-    let response = await axios.get(`https://webapidev.aitalkx.com/chr/leave/GetBusinessTripData?portalName=HR&userId=45bba746-3309-49b7-9c03-b5793369d73c`)
+    let response = await axios.get(`https://webapidev.aitalkx.com/chr/leave/GetTimePermissionData?portalName=HR&userId=45bba746-3309-49b7-9c03-b5793369d73c`)
     setGetdata(response.data)
     //console.log(response.data, "response data")
   }
@@ -237,8 +236,15 @@ const UserList = () => {
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
+
+      <Button variant="contained"  sx={{margin:'20px'}} onClick={() => {
+            
+                       prompt('loading roadmap React');
+              }} >+Add Time Permison</Button>
+
+              
         <Card>
-          <BuisnesHeader plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
+              <TimePermissonHeader plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
                 <DataGrid
                   autoHeight
                   rows={getdata}
@@ -261,4 +267,5 @@ const UserList = () => {
 }
 
 export default UserList
+
 

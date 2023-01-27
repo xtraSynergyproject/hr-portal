@@ -28,10 +28,6 @@ import PersonalInfoForm from './FForm.js/PersonalInfoForm'
 import AddressInfoForm from './FForm.js/AddressInfoForm'
 import ContactInfoForm from './FForm.js/ContactInfoForm'
 import EmergencyContact from './FForm.js/EmergencyContact'
-// import PersonalInfoForm from './FForm/PersonalInfoForm'
-// import AddressInfoForm from './FForm/AddressInfoForm'
-// import ContactInfoForm from './FForm/ContactInfoForm'
-// import EmergencyContact from './FForm/EmergencyContact'
 
 
 const steps = [{a:1},{a:1},{a:1},{a:1}]
@@ -77,20 +73,7 @@ function InputForm() {
                   </StepLabel>
                   <StepContent>
                     <PersonalInfoForm/>
-                    {/* <div className='button-wrapper'>
-                      <Button
-                        size='small'
-                        color='secondary'
-                        variant='outlined'
-                        onClick={handleBack}
-                        disabled={activeStep === 0}
-                      >
-                        Back
-                      </Button>
-                      <Button size='small' variant='contained' onClick={handleNext} sx={{ ml: 4 }}>
-                        {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                      </Button>
-                    </div> */}
+                  
                   </StepContent>
                 </Step>
               
@@ -109,20 +92,7 @@ function InputForm() {
                   </StepLabel>
                   <StepContent>
                     <AddressInfoForm/>
-                    {/* <div className='button-wrapper'>
-                      <Button
-                        size='small'
-                        color='secondary'
-                        variant='outlined'
-                        onClick={handleBack}
-                        disabled={activeStep === 0}
-                      >
-                        Back
-                      </Button>
-                      <Button size='small' variant='contained' onClick={handleNext} sx={{ ml: 4 }}>
-                        {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                      </Button>
-                    </div> */}
+                   
                   </StepContent>
                 </Step>
               
@@ -141,20 +111,7 @@ function InputForm() {
                   </StepLabel>
                   <StepContent>
                     <ContactInfoForm/>
-                    {/* <div className='button-wrapper'>
-                      <Button
-                        size='small'
-                        color='secondary'
-                        variant='outlined'
-                        onClick={handleBack}
-                        disabled={activeStep === 0}
-                      >
-                        Back
-                      </Button>
-                      <Button size='small' variant='contained' onClick={handleNext} sx={{ ml: 4 }}>
-                        {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                      </Button>
-                    </div> */}
+                   
                   </StepContent>
                 </Step>
               
@@ -173,20 +130,7 @@ function InputForm() {
                   </StepLabel>
                   <StepContent>
                     <EmergencyContact/>
-                    {/* <div className='button-wrapper'>
-                      <Button
-                        size='small'
-                        color='secondary'
-                        variant='outlined'
-                        onClick={handleBack}
-                        disabled={activeStep === 0}
-                      >
-                        Back
-                      </Button>
-                      <Button size='small' variant='contained' onClick={handleNext} sx={{ ml: 4 }}>
-                        {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                      </Button>
-                    </div> */}
+                   
                   </StepContent>
                 </Step>
 
