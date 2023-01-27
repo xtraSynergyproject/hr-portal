@@ -2,7 +2,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
-import SearchBar from "./SearchBar";
+import SearchBar from "./RequestSearchBar";
 const modalWrapper = {
   overflow: "auto",
   maxHeight: "100vh",
@@ -31,7 +31,7 @@ const modalContentStyle = {
 
 };
 
-export default function BasicModal() {
+export default function RequestCreate() {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -49,13 +49,11 @@ export default function BasicModal() {
       >
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
-
-            {/* <Form/> */}
             <form>
               <Box sx={{ m: 2, display: "flex", justifyContent: "space-between", width: "700px" }}></Box>
               <Box>
                 <div>
-                  <h1>Create Task</h1>
+                  <h1>Create Home</h1>
 
                 </div>
                 <Button variant='contained'>

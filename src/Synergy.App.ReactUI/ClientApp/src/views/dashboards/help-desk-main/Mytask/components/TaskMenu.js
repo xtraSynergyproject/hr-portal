@@ -9,7 +9,7 @@ import MenuList from '@mui/material/MenuList';
 import Stack from '@mui/material/Stack';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
-export default function Menu() {
+export default function TaskMenu() {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef(null);
 
@@ -55,7 +55,7 @@ export default function Menu() {
           aria-haspopup="true"
           onClick={handleToggle}
         >
-          <ArrowDropDownIcon/>
+          <ArrowDropDownIcon />
         </Button>
         <Popper
           open={open}

@@ -1,6 +1,6 @@
 
 import React from 'react'
-import Mytask from '../../../../views/dashboards/help-desk-main/Mytask/components/Mytask'
+import Mytask from '../../../../views/dashboards/help-desk-main/Mytask/components/TaskHomePage'
 
 function index() {
   return (

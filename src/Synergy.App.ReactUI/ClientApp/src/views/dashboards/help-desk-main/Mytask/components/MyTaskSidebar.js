@@ -10,7 +10,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-const HelpDiskSidebar = ({ direction }) => {
+const MyTaskSidebar = ({ direction }) => {
   const ExpandIcon = direction === 'rtl' ? 'mdi:chevron-left' : 'mdi:chevron-right'
 
   return (<Box sx={{ m: 3 }}>
@@ -76,7 +76,7 @@ const HelpDiskSidebar = ({ direction }) => {
   )
 }
 
-export default HelpDiskSidebar
+export default MyTaskSidebar
 
 
 

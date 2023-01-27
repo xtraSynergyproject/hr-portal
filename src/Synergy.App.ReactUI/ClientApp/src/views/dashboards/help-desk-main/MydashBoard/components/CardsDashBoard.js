@@ -7,10 +7,10 @@ import CardContent from '@mui/material/CardContent'
 import MuiAvatar from '@mui/material/Avatar'
 import { Fragment, useState, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
-import Transation from './Transation'
-import SalesChart from './SalesChart'
+import CardRate from './CardRate'
+import SalesChard from './SalesCard'
 import CardStatus from './CardStatus'
-import CardStatus2 from './CardStatus2'
+import CardStatsChart from './CardStatsChart'
 import CardStatusLineChart from './CardStatusLineChart'
 //** Axios */
 import axios from 'axios'
@@ -33,7 +33,7 @@ const Avatar = styled(MuiAvatar)(({ theme }) => ({
         fontSize: '1.75rem'
     }
 }))
-const MyDashBoard = props => {
+const CardsDashBoard = props => {
     // ** Props
     const { title, icon, stats, trendNumber, color = 'primary', trend = 'positive' } = props
 
@@ -231,13 +231,13 @@ const MyDashBoard = props => {
 
 
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Transation />
-                <SalesChart />
+                <CardRate />
+                <SalesChard />
             </Box>
 
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <CardStatus />
-                <CardStatus2 />
+                <CardStatsChart />
                 <CardStatusLineChart />
 
             </Box>
@@ -246,4 +246,4 @@ const MyDashBoard = props => {
     )
 }
 
-export default MyDashBoard
+export default CardsDashBoard

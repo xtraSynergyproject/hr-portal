@@ -11,7 +11,7 @@ import Icon from 'src/@core/components/icon'
 // ** Custom Components Imports
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 
-const SalesChart = () => {
+const SalesCard = () => {
   // ** Hooks
   const theme = useTheme()
 
@@ -100,4 +100,4 @@ const SalesChart = () => {
   )
 }
 
-export default SalesChart
+export default SalesCard

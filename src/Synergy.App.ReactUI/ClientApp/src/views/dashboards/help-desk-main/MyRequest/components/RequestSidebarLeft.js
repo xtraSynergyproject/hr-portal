@@ -10,7 +10,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-const MyRequestSidebarLeft = ({ direction }) => {
+const RequestSidebarLeft = ({ direction }) => {
   const ExpandIcon = direction === 'rtl' ? 'mdi:chevron-left' : 'mdi:chevron-right'
 
   return (<Box sx={{ m: 3 }}>
@@ -73,7 +73,7 @@ const MyRequestSidebarLeft = ({ direction }) => {
   )
 }
 
-export default MyRequestSidebarLeft
+export default RequestSidebarLeft
 
 
 

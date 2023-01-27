@@ -6,7 +6,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 
-export default function AddressForm() {
+export default function TaskForm() {
     const handle = () => {
         localStorage.setItem('Name', name);
         localStorage.setItem('Password', pwd);
@@ -30,7 +30,6 @@ export default function AddressForm() {
                         name="firstName"
                         label="First name"
                         fullWidth
-                        //  autoComplete="given-name"
                         variant="standard"
                     />
 
@@ -115,16 +114,16 @@ export default function AddressForm() {
                         label="Use this address for payment details"
                     />
                 </Grid>
-                
+
             </Grid>
-            <Box sx={{display: "flex", gap: '5px' }}>
-            <div>
+            <Box sx={{ display: "flex", gap: '5px' }}>
+                <div>
                     <button onClick={handle}>Done</button>
                 </div>
                 <div>
                     <button onClick={remove}>Remove</button>
                 </div>
-                </Box>
+            </Box>
         </React.Fragment>
 
 

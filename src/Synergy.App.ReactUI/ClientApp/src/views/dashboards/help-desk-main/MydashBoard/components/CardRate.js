@@ -57,7 +57,7 @@ const renderStats = () => {
   ))
 }
 
-const Transation = () => {
+const CardRate = () => {
   return (
     <Card fullWidth sx={{ my: 3, width: '600px', justifyContent: "space-evenly" }}>
       <CardHeader
@@ -77,4 +77,4 @@ const Transation = () => {
   )
 }
 
-export default Transation
+export default CardRate

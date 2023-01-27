@@ -19,7 +19,7 @@ const Search = styled('div')(({ theme }) => ({
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
   padding: theme.spacing(0, 2),
-  
+
   height: '100%',
   position: 'absolute',
   pointerEvents: 'none',
@@ -44,18 +44,18 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function SearchBar() {
+export default function SearchBarTask() {
   return (
 
-          <Search sx={{border: '1px solid black'}}>
-            <SearchIconWrapper>
-              {/* <SearchIcon /> */}
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search…"
-              inputProps={{ 'aria-label': 'search' }}
-            />
-          </Search>
-        
+    <Search sx={{ border: '1px solid black' }}>
+      <SearchIconWrapper>
+        {/* <SearchIcon /> */}
+      </SearchIconWrapper>
+      <StyledInputBase
+        placeholder="Search…"
+        inputProps={{ 'aria-label': 'search' }}
+      />
+    </Search>
+
   );
 }

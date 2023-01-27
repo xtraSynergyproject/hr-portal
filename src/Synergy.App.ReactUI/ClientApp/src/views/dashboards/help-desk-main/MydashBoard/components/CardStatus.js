@@ -7,7 +7,7 @@ import CardContent from '@mui/material/CardContent'
 // ** Custom Components Imports
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 
-const CardStatsRadialBarChart = () => {
+const CardStatus = () => {
   // ** Hook
   const theme = useTheme()
 
@@ -51,4 +51,4 @@ const CardStatsRadialBarChart = () => {
   )
 }
 
-export default CardStatsRadialBarChart
+export default CardStatus

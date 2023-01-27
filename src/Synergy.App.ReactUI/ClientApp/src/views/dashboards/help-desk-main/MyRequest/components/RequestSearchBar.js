@@ -1,6 +1,8 @@
 import React from 'react';
 import { styled, alpha } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
+
+
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
@@ -45,7 +47,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function SearchBar() {
+export default function RequestSearchBar() {
   return (
 
     <Search sx={{ border: '1px solid black' }}>

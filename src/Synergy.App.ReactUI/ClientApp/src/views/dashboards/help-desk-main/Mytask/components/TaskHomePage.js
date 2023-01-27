@@ -1,13 +1,13 @@
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardMedia from '@mui/material/CardMedia'
-import HelpDiskSidebar from './HelpDiskSidebar'
+import MyTaskSidebar from './MyTaskSidebar'
 import { Typography } from '@mui/material'
-import MyTaskMain from './MyTaskMain'
-import TotalProfit from './TotalProfit'
+import TaskCallPage from './TaskCallPage'
+import TaskTotalProfitcard from './TaskTotalProfitcard'
 
 
-const Mytask = ({ folder, label }) => {
+const TaskHomePage = ({ folder, label }) => {
 
   return (
     <Box sx={{ height: 820, width: 950, background: 'white', transform: 'translateZ(0px)', flexGrow: 1 }}>
@@ -38,14 +38,14 @@ const Mytask = ({ folder, label }) => {
 
         }}
       >
-        <HelpDiskSidebar />
+        <MyTaskSidebar />
         <div>
-          <MyTaskMain />
-          <TotalProfit />
+          <TaskCallPage />
+          <TaskTotalProfitcard />
         </div>
       </Box>
     </Box>
   )
 }
 
-export default Mytask
+export default TaskHomePage

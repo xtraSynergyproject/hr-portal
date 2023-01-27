@@ -19,7 +19,7 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
-const TotalProfit = () => {
+const TaskTotalProfitcard = () => {
   // ** Hook
   const theme = useTheme()
 
@@ -171,4 +171,4 @@ const TotalProfit = () => {
   )
 }
 
-export default TotalProfit
+export default TaskTotalProfitcard

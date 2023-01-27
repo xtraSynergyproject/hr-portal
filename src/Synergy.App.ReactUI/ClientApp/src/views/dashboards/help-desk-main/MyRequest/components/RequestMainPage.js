@@ -1,27 +1,27 @@
 import React from 'react'
 import { Box, Button } from '@mui/material'
-import SearchBar from './SearchBar'
-import Menu from './Menu'
-import CreacteRequest from './CreateRequest'
+import RequestSearchBar from './RequestSearchBar'
+import RequestMenu from './RequestMenu'
+import RequestCreate from './RequestCreate'
 
-function MyTaskMain() {
+function RequestMainPage() {
     return (
         <Box sx={{ m: 2, display: "flex", justifyContent: "space-between", width: "700px" }}>
             <Box>
                 <Button variant='contained'>
-                    <CreacteRequest />
+                    <RequestCreate />
                 </Button>
             </Box>
 
             <Box>
-                <SearchBar />
+                <RequestSearchBar />
             </Box>
             <Box>
-                <Menu />
+                <RequestMenu />
             </Box>
 
         </Box>
     )
 }
 
-export default MyTaskMain
+export default RequestMainPage

@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-import Form from './Form'
+import TaskForm from './TaskForm'
 import { bottom } from "@popperjs/core";
 
 const modalWrapper = {
@@ -20,7 +20,7 @@ const modalBlock = {
   alignItems: "center",
   justifyContent: "center",
   margin: "auto",
-  Height:'2px',
+  Height: '2px',
 
 }
 
@@ -32,11 +32,11 @@ const modalContentStyle = {
   width: "55rem",
   mb: 3,
   borderRadius: "5px",
-  
+
 
 };
 
-export default function BasicModal() {
+export default function CreateModelTask() {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -44,8 +44,8 @@ export default function BasicModal() {
   return (
     <div>
 
-      <Button onClick={handleOpen} sx={{ mr: 2, mb: 2, display: "flex", justifyContent: "space-between", height: "30px", width: "100px", gap: "8" }}  variant="contained" >Create</Button>
-       
+      <Button onClick={handleOpen} sx={{ mr: 2, mb: 2, display: "flex", justifyContent: "space-between", height: "30px", width: "100px", gap: "8" }} variant="contained" >Create</Button>
+
 
       <Modal
         open={open}
@@ -57,11 +57,11 @@ export default function BasicModal() {
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
 
-            
-            <Form />
-            </Box>
+
+            <TaskForm />
+          </Box>
         </Box>
       </Modal>
-</div>
-  );
+    </div>
+  );
 }

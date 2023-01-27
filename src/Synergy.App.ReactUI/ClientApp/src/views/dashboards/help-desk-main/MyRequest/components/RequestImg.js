@@ -1,12 +1,12 @@
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardMedia from '@mui/material/CardMedia'
-import MyRequestSidebarLeft from './MyRequestSidebarLeft'
+import RequestSidebarLeft from './RequestSidebarLeft'
 import { Typography } from '@mui/material'
-import MyRequestMain from './MyRequestMain'
+import RequestMainPage from './RequestMainPage'
 import TotalRequest from './TotalRequest'
 
-const MyRequest = ({ folder, label }) => {
+const RequestImg = ({ folder, label }) => {
   return (
     <Box sx={{ height: 820, width: 950, background: 'white', transform: 'translateZ(0px)', flexGrow: 1 }}>
 
@@ -35,9 +35,9 @@ const MyRequest = ({ folder, label }) => {
 
         }}
       >
-        <MyRequestSidebarLeft />
+        <RequestSidebarLeft />
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <MyRequestMain />
+          <RequestMainPage />
           < TotalRequest sx={{ mt: 3 }} />
         </Box>
       </Box>
@@ -45,4 +45,4 @@ const MyRequest = ({ folder, label }) => {
   )
 }
 
-export default MyRequest
+export default RequestImg
