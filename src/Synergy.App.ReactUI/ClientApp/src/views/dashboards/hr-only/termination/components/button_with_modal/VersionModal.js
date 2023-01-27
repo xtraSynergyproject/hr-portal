@@ -4,7 +4,7 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Modal from '@mui/material/Modal'
 import Icon from 'src/@core/components/icon'
-import TerminationTable from '../TerminationTable'
+import VersionDetailsTable from './tables/VersionDetailsTable'
 
 const modalWrapper = {
   overflow: 'auto',
@@ -72,7 +72,7 @@ export default function VersionModal() {
             </Box>
             <hr/>
             <Box>
-            <TerminationTable />
+            <VersionDetailsTable/>
           </Box>
         </Box></Box>
       </Modal>

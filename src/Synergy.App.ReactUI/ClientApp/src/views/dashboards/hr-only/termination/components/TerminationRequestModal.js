@@ -62,7 +62,7 @@ function TerminationRequestModal() {
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
                 <Button sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }} component='label'>
-                  <Icon icon='mdi:attachment-plus' />{' '}
+                  <Icon icon='mdi:attachment-plus' />
                   Attachment
                   <input type='file' hidden />
                 </Button>

@@ -4,8 +4,9 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Modal from '@mui/material/Modal'
 import Icon from 'src/@core/components/icon'
-import LogTable from './tables/LogTable'
-import MenuLogTable from './menu_modals/MenuLogTable'
+import AddTagModal from '../AddTagModal'
+import TagsTable from '../tables/TagsTable'
+import MenuLogTable from './MenuLogTable'
 
 const modalWrapper = {
   overflow: 'auto',
@@ -32,21 +33,20 @@ const modalContentStyle = {
   borderRadius: '10px'
 }
 
-export default function LogModal() {
+export default function MenuLogModal() {
   const [open, setOpen] = React.useState(false)
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
 
   return (
     <div>
-      <Button
+      <Typography
         onClick={handleOpen}
         sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }}
         component='label'
       >
-        <Icon icon='mdi:stove' />
-        Logs
-      </Button>
+        Log
+      </Typography>
 
       <Modal
         open={open}
@@ -62,14 +62,14 @@ export default function LogModal() {
             >
               <Typography sx={{ p: 5 }} variant='h4' component='h3'>
                 {' '}
-                Logs
+                Tags
               </Typography>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                {/* <Button sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Icon icon='mdi:pencil-plus' />
-                  Add Tag
-                </Button> */}
+               
+                <AddTagModal/>
+
+
                 <Button
                   sx={{ mr: 3, borderRadius: '50px', display: 'flex', flexDirection: 'column' }}
                   onClick={handleClose}
@@ -81,10 +81,9 @@ export default function LogModal() {
               </Box>
             </Box>
             <hr />
+            
 
-            <LogTable />
-
-            {/* <MenuLogTable/> */}
+            <MenuLogTable/>
           </Box>
         </Box>
       </Modal>
