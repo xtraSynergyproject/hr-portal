@@ -5,12 +5,12 @@ import Typography from '@mui/material/Typography'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import EditIcon from '@mui/icons-material/Edit'
-import Divider from '@mui/material/Divider'
 import ArchiveIcon from '@mui/icons-material/Archive'
 import FileCopyIcon from '@mui/icons-material/FileCopy'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import Icon from 'src/@core/components/icon'
+import MenuTagModal from './menu_modals/MenuTagModal'
+import MenuLogModal from './menu_modals/MenuLogModal'
 
 const StyledMenu = styled(props => (
   <Menu
@@ -86,21 +86,22 @@ export default function MenuBtn() {
         onClose={handleClose}
       >
         <MenuItem onClick={handleClose} disableRipple>
-          <EditIcon />
-          Edit
+        <Icon icon='mdi:lan' />
+          Workflow
         </MenuItem>
         <MenuItem onClick={handleClose} disableRipple>
-          <FileCopyIcon />
-          Duplicate
-        </MenuItem>
-        <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={handleClose} disableRipple>
-          <ArchiveIcon />
-          Archive
+        <Icon icon='mdi:email' />
+          {/* <Typography > <a href='gmail.com' target='-main' > */}
+            Email
+            {/* </a></Typography> */}
         </MenuItem>
         <MenuItem onClick={handleClose} disableRipple>
-          <MoreHorizIcon />
-          More
+        <Icon icon='mdi:attachment-plus' />
+          <MenuTagModal/>
+        </MenuItem>
+        <MenuItem onClick={handleClose} disableRipple>
+        <Icon icon='mdi:attachment-plus' />
+          <MenuLogModal/>
         </MenuItem>
       </StyledMenu>
     </div>
