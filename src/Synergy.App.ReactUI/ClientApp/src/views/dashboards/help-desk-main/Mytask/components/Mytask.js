@@ -4,6 +4,8 @@ import CardMedia from '@mui/material/CardMedia'
 import HelpDiskSidebar from './HelpDiskSidebar'
 import { Typography } from '@mui/material'
 import MyTaskMain from './MyTaskMain'
+import TotalProfit from './TotalProfit'
+
 
 const Mytask = ({ folder, label }) => {
 
@@ -23,6 +25,7 @@ const Mytask = ({ folder, label }) => {
           />
         </Card>
 
+
       </Box>
 
       <Box
@@ -36,7 +39,10 @@ const Mytask = ({ folder, label }) => {
         }}
       >
         <HelpDiskSidebar />
-        <MyTaskMain />
+        <div>
+          <MyTaskMain />
+          <TotalProfit />
+        </div>
       </Box>
     </Box>
   )
