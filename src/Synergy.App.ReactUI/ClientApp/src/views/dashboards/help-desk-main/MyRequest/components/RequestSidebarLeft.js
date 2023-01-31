@@ -15,16 +15,16 @@ const RequestSidebarLeft = ({ direction }) => {
 
   return (<Box sx={{ m: 3 }}>
     <Box >
-      <Button variant='text' color='secondary' size='medium' startIcon={<Icon icon='mdi:home' />}>
+      <Button variant='text' color='secondary' size='small' startIcon={<Icon icon='mdi:home' />}>
         Home
       </Button><br />
-      <Button variant='text' color='secondary' size='medium' startIcon={<Icon icon='mdi:filter' />}>
+      <Button variant='text' color='secondary' size='small' startIcon={<Icon icon='mdi:filter' />}>
         Pending Till Today
       </Button><br />
-      <Button variant='text' color='secondary' size='medium' startIcon={<Icon icon='mdi:edit' />}>
+      <Button variant='text' color='secondary' size='small' startIcon={<Icon icon='mdi:edit' />}>
         End in Next 7 days
       </Button><br />
-      <Button variant='text' color='secondary' size='medium' startIcon={<Icon icon='mdi:delete' />}>
+      <Button variant='text' color='secondary' size='small' startIcon={<Icon icon='mdi:delete' />}>
         Delete
       </Button>
     </Box>
@@ -35,7 +35,7 @@ const RequestSidebarLeft = ({ direction }) => {
     >
 
       <TreeItem nodeId='1' label='Modules' sx={{ my: 5 }}>
-        <Typography>Filtered By Status: All</Typography>
+        <Typography sx={{ margin: '12px' }}>Filtered By Status: All</Typography>
         <Typography><Button color='secondary'>Clear Filter</Button></Typography>
         <TreeItem nodeId='15' label=''>
           <FormControlLabel label='All' control={<Checkbox name='basic-unchecked' />} /><br />
@@ -45,7 +45,7 @@ const RequestSidebarLeft = ({ direction }) => {
 
 
       <TreeItem nodeId='5' label='Status Filers' sx={{ my: 5 }}>
-        <Typography>Filtered By Status: All</Typography>
+        <Typography sx={{ margin: '12px' }}>Filtered By Status: All</Typography>
         <Typography><Button color='secondary'>Clear Filter</Button></Typography>
         <TreeItem nodeId='7' label=''>
           <FormControlLabel label='All' control={<Checkbox name='basic-unchecked' />} /><br />
@@ -59,7 +59,7 @@ const RequestSidebarLeft = ({ direction }) => {
 
 
       <TreeItem nodeId='11' label='Person Filters' sx={{ my: 5 }}>
-        <Typography>Filtered By Status: All</Typography>
+        <Typography sx={{ margin: '12px' }}>Filtered By Status: All</Typography>
         <Typography><Button color='secondary'>Clear Filter</Button></Typography>
         <TreeItem nodeId='16' label=''>
           <FormControlLabel label='All' control={<Checkbox name='basic-unchecked' />} /><br />

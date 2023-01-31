@@ -29,6 +29,7 @@ const modalContentStyle = {
   mb: 3,
   borderRadius: "5px",
 
+
 };
 
 export default function RequestCreate() {
@@ -39,7 +40,7 @@ export default function RequestCreate() {
   return (
 
     <Box>
-      {<Box onClick={handleOpen} variant='contained'>ADD Request </Box>}
+      {<Box onClick={handleOpen} variant='contained' sx={{ height: '26px' }}>ADD Request </Box>}
       <Modal
         open={open}
         sx={modalWrapper}
@@ -54,15 +55,15 @@ export default function RequestCreate() {
               <Box>
                 <div>
                   <h1>Create Home</h1>
-
                 </div>
                 <Button variant='contained'>
                   ALL
                 </Button>
               </Box>
-              <Box>
+              <Box sx={{ width: '500px' }}>
                 <SearchBar />
               </Box>
+
             </form>
           </Box>
         </Box>

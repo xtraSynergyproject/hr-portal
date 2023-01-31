@@ -13,7 +13,8 @@ const Search = styled('div')(({ theme }) => ({
   width: '100%',
   [theme.breakpoints.up('sm')]: {
     marginLeft: theme.spacing(1),
-    width: '200px',
+    width: '450px',
+    height: '40px',
   },
 }));
 
@@ -36,9 +37,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('sm')]: {
-      width: '250px',
+      width: '400px',
       '&:focus': {
-        width: '420px',
+        width: '400px',
       },
     },
   },
@@ -49,9 +50,9 @@ export default function SearchBarTask() {
 
     <Search sx={{ border: '1px solid black' }}>
       <SearchIconWrapper>
-        {/* <SearchIcon /> */}
       </SearchIconWrapper>
       <StyledInputBase
+        alignItems="center"
         placeholder="Search…"
         inputProps={{ 'aria-label': 'search' }}
       />

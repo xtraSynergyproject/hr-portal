@@ -6,7 +6,7 @@ import RequestCreate from './RequestCreate'
 
 function RequestMainPage() {
     return (
-        <Box sx={{ m: 2, display: "flex", justifyContent: "space-between", width: "700px" }}>
+        <Box sx={{ m: 5, display: "flex", justifyContent: "space-between", width: "700px" }}>
             <Box>
                 <Button variant='contained'>
                     <RequestCreate />
