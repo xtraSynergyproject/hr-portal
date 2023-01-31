@@ -1,0 +1,253 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+@{
+    ViewData["Title"] = "Asset Map View";
+    Layout = null;
+}
+
+<style>
+    #map {
+        height: inherit;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 90vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+
+
+
+
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Portal End*/
+</style>
+
+<div class="splitter-container">
+    <div class="left">
+        @ViewData["Title"]
+        @*<button type="button" class="btn btn-primary" onclick="CreatePortal();" id="CreatePortal">Create New Portal</button>*@
+
+        <div id="AssetMapTreeView" class="demo treeview"></div>
+
+
+        @*<script id="ct-tv-template" type="text/kendo-ui-template">
+            <span style="width:100%">  #: item.Name # <i class="#:item.IconCss#" title="#:item.IconTitle#"></i></span>
+            <span data-id="#:item.id#" data-type="#:item.Type#" data-portal-name="#:item.Name#" data-parent-id="#:item.ParentId#" data-portal-id="#:item.PortalId#" class="tree-menu" data-level="#:item.ItemLevel#"><i class="fa fa-ellipsis-h"></i></span>
+        </script>*@
+
+    </div>
+
+    <div class="right pad-l-t-15" id="page-content">
+        <div id="map"></div>
+
+    </div>
+
+</div> 
+<div id="overlay" class=""></div>
+
+<script>
+    var nodeid;
+
+    $('#AssetMapTreeView')
+        .jstree({
+            'core': {
+                'data': function (node, cb) {
+                    if (node.id === "#") {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/EGov/SmartCity/GetAssetMapViewTreeList",
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                    }
+                    else {
+                        $.ajax({
+                            async: true,
+                            type: "GET",
+                            url: "/EGov/SmartCity/GetAssetMapViewTreeList?id=" + node.id,
+                            dataType: "json",
+                            success: function (json) {
+                                cb(json);
+                            },
+
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+    $(function () {
+        $.contextMenu({
+            selector: '.jstree-anchor',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                var id = $trigger.attr('data_id');
+                var itemName = $trigger.attr('data_name');
+                var type = $trigger.attr('data_type');
+                var lat = $trigger.attr('data_lat');
+                var long = $trigger.attr('data_long');
+
+                switch (type) {
+                    case 'Root':
+                        return {
+
+                            };
+                    case 'WARD':
+                        return {
+
+                        };
+
+                    case 'ASSET':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'openAsset':
+                                       // alert(id + " " + itemName + " " + type + " " + lat + " " + long);
+                                        loadMap(lat, long, itemName);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "openAsset": { name: "Open Asset", icon: "fas fa-chart-area" },
+                            }
+                        };
+                }
+            }
+        });
+
+        loadAllAssetMap();
+    });
+
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+
+    function loadAllAssetMap() {
+
+        var container = L.DomUtil.get('map');
+        if (container['_leaflet_id'] != null) {
+            container['_leaflet_id'] = null;
+            document.getElementById("map").innerHTML = "";
+        }
+        debugger;
+
+        $.ajax({
+            type: "GET",
+            url: "/EGov/SmartCity/GetAllAsset",
+            success: function (response) {
+                if (response != "" && response != null) {
+                    //
+                    var locations = response;
+                    var markers = L.markerClusterGroup({ showCoverageOnHover: false });
+                    for (var i = 0; i < locations.length; i++) {
+                        if (locations[i]["Latitude"] != null && locations[i]["Latitude"] != "" && locations[i]["Longitude"] != null && locations[i]["Longitude"] != "") {
+                            marker = new L.marker([locations[i]["Latitude"], locations[i]["Longitude"]]).bindPopup(locations[i]["Name"])
+                                .openPopup();;
+                           
+                            markers.addLayer(marker);
+                        }
+                    }
+                    var map = L.map("map", {
+                        center: [locations[0]["Latitude"], locations[0]["Longitude"]],
+                        zoom: 1,
+                        maxZoom: 20,
+                        layers: [markers]
+                    });
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                        attribution: "© OpenStreetMap contributors"
+                    }).addTo(map);
+                    markers.getBounds().isValid();
+                    map.fitBounds(markers.getBounds());
+                }
+            },
+            error: function (response) {
+
+            },
+        });
+
+    }
+
+    function loadMap(lat,long,name) {
+        var container = L.DomUtil.get('map');
+        if (container['_leaflet_id'] != null) {
+            container['_leaflet_id'] = null;
+            document.getElementById("map").innerHTML = "";
+        }
+        var map = L.map('map').setView([lat, long], 13);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        var marker = L.marker([lat, long]).addTo(map)
+            .bindPopup(name)
+            .openPopup();
+    }
+</script>

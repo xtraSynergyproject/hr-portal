@@ -1,0 +1,332 @@
+﻿@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using CMS.Common;
+@using Kendo.Mvc.UI
+@{
+    ViewData["Title"] = "Comment";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model CMS.UI.ViewModel.OrganizationDocumentsViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .row {
+        margin-right: 0px;
+    }
+</style>
+<script>
+
+     function onEditOn(e) {
+
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+         $("#Ids").val(dataItem.Id);
+         $("#Version").val(dataItem.Version);
+         $("#btnsave").val('Update');
+         $("#divGrid").css({ "visibility": "hidden" });
+
+    }
+
+    function OnDelete(e) {
+         var flag = confirm('Do you really want to delete Attachment?');
+        //alert("..Delete");
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (flag) {
+            $.ajax({
+                url: '@Url.Action("DeleteOrganizationDocument", "ManpowerRequirementSummary", new { @area= "Recruitment" })?Id=' + dataItem.Id ,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        var ids = GetIds();
+                        $("#kgrdTag").data("kendoGrid").dataSource.read(ids);
+                        kendo.alert("Tag Deleted Successfully.");
+                    } else {
+                        var ids = GetIds();
+                        $("#kgrdTag").data("kendoGrid").dataSource.read(ids);
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    var ids = GetIds();
+
+                    $("#kgrdTag").data("kendoGrid").dataSource.read(ids);
+                }
+            });
+            return false;
+        }
+
+    }
+
+    function GetIds() {
+        var id = { Id:'@Model.OrganizationId' };
+        return id;
+    }
+    function onDataBound(e) {
+        var grid1 = $("#kgrdTag").data("kendoGrid").dataItems();
+        if (grid1.length > 0) {
+            $("#divGrid").css({ "visibility": "visible" });
+        } else { $("#divGrid").css({ "visibility": "hidden" }); }
+
+    }
+
+
+
+
+    function onFileUploadSuccess(e) {
+        //alert(e.response.fileId);
+        //
+        if (e.response.success) {
+            $("#AttachmentId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+</script>
+
+<div class="row" style="margin-left:15px;display:block !important;">
+
+    <form asp-area="Recruitment" asp-controller="ManpowerRequirementSummary" asp-action="ManageOrganizationDocuments"
+          data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST"
+          class="form-horizontal" id="myForm">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;" id="validation-summary"></div>
+        <div class="col-md-12 row d-flex justify-content-lg-start">
+            <div class="col-6">
+                <div class="col-12 label-div">
+                    <label class="control-label"><span class="required">*</span> Organization</label>
+                    @*<span class="required">*</span>
+            @Html.LabelFor(m => m.OrganizationId, new { @class = "control-label" })*@
+
+                </div>
+                @(Html.Kendo().DropDownListFor(model => model.OrganizationId)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetIdNameList", "Master", new { @type = "Organization" });
+                                        });
+                                    })
+                                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .Filter(FilterType.Contains)
+
+                                    .HtmlAttributes(new { style="width:80%" })
+                                    .HtmlAttributes(new { @readonly = "readonly", @class = "hr-xx-large" }))
+            </div>
+            <div class="col-6">
+                <div class="col-12 label-div">
+                    <label class="control-label"><span class="required">*</span> Attachment</label>
+                    @*<span class="required">*</span>
+            @Html.LabelFor(m => m.OrganizationId, new { @class = "control-label" })*@
+
+                </div>
+                @(Html.Kendo().Upload().Multiple(false)
+                        .Name("files")
+                        .Async(a => a
+                        .Save("SaveFile", "Document", new { @area = "cms" })
+                        .AutoUpload(true)
+                        )
+                        .Events(e => e.Success("onFileUploadSuccess")
+                        )
+                            .Validation(validation => validation.MaxFileSize(2097152))
+                            .HtmlAttributes(new { @class = "hr-xx-large" })
+                    )
+
+            </div>
+            </div>
+            <div class="row" style="padding:10px;">
+                @Html.HiddenFor(x => x.Ids)
+
+                <div class="col-md-12">
+                    <div class="form-group col-xs-12 col-sm-8 row no-gutters">
+                       
+                        <div class="col-12">
+                        
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row" style="padding:10px;">
+
+                <div class="col-md-12">
+                    <div class="form-group col-xs-12 col-sm-8 row no-gutters" style="padding-left: 17px; ">
+                    
+                        <div class="col-12">
+                           
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row" style="padding:10px;">
+                <div class="col-md-12" style="text-align:right;padding-bottom:10px;">
+                    <button type="button" class="btn btn-dark" onclick="closeNavMemberGroup();">Close</button>
+                    @*@Html.Kendo().Button().Name("btnSubmit").Content("Save").HtmlAttributes(new { @class = "k-primary" }).Events(ev => ev.Click("onClick()"))*@
+                    <input type="submit" class="btn btn-primary" id="btnsave" value="Save" onclick="onClick(event);" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="divGrid">
+                        @(Html.Kendo().Grid<OrganizationDocumentsViewModel>
+    ().Name("kgrdTag").HtmlAttributes(new { @class = "kgrdPDM" })
+    .Columns(col =>
+    {
+        col.Command(command =>
+        {
+            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("onEditOn").HtmlAttributes(new { @class = "action-icon", @title = "Edit" });
+            command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon", @title = "Delete" });
+
+
+        }).Title("Action").Width(150);
+
+        col.Bound(p => p.AttachmentId).Title("Attachment").ClientTemplate("#if(AttachmentId!=null){#<a style='color:blue; text-decoration:underline' href='/cms/Document/GetFileMongo?fileId=#:AttachmentId#' target='_blank'><i class='fa fas fa-download'></i> #:FileName#</a>#}#").Width(250);
+        col.Bound(c => c.Version).Title("Version").Width(140);
+        //col.Bound(c => c.NoteSubject).Title("Tag Name");
+
+
+
+
+    })
+
+    //.Scrollable(x => x.Enabled(true))
+
+    .Sortable(srt => srt.Enabled(true))
+    .Selectable(select => select.Enabled(false))
+    .Filterable(f => f.Extra(false)
+    .Operators(o => o.ForString(s => s.Clear()
+    .Contains("Contains")
+    .IsEqualTo("Is equal to")
+    )))
+    .Events(e => e.DataBound("onDataBound"))
+    .Resizable(resize => resize.Columns(true))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+
+    .PageSizes(true)
+    .ButtonCount(5))
+    .AutoBind(true)
+    .DataSource(
+    dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Read(read => read.Action("GetOrganizationDocuments", "ManpowerRequirementSummary", new { Area= "Recruitment", Id = Model.OrganizationId }))
+      .Model(m =>
+      {
+          m.Id(model => model.Id);
+
+
+      }))
+    )
+                    </div>
+                </div>
+            </div>
+
+            @Html.HiddenFor(x => x.DataAction)
+            @Html.HiddenFor(x => x.Version)
+            @Html.HiddenFor(x => x.AttachmentId)
+            @Html.HiddenFor(x => x.OrganizationId)
+
+    </form>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+        if ('@ViewBag.Success' == "True") {
+            closeNavMemberGroup();
+            window.parent.$("#kgrdManpowerRequirementSummary").data("kendoGrid").dataSource.read();
+        }
+
+    });
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+
+            if (res.message == "Save") {
+                window.parent.ShowNotification("Saved Successfully", "success");
+            } else { window.parent.ShowNotification("Update Successfully", "success");}
+            @*var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("ManageForm", "FormTemplate", new { @area = "Cms" })?templateId='+ TemplateId, $('#detailPage'));*@
+           // closeNavMemberGroup();
+           // window.parent.$("#kgrdManpowerRequirementSummary").data("kendoGrid").dataSource.read();
+            $(".k-upload-files > li").remove();
+            var ids = GetIds();
+
+            $("#kgrdTag").data("kendoGrid").dataSource.read(ids);
+            $("#Ids").val('');
+            $("#btnsave").val('Save');
+            $("#divGrid").css({ "visibility": "visible" });
+        }
+        else {
+            showError(res.errors.NameExist);
+        }
+    };
+    var showError = function (error) {
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    function closeNavMemberGroup() {
+        //window.parent.CloseIframePopup();
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    //function OnChange() {
+    //    var value = $("#OrganizationId").data("kendoDropDownList").text();
+    //    $("#OrganizationName").val(value);
+    //}
+    //function OnChangeJob() {
+    //    var value = $("#JobId").data("kendoDropDownList").text();
+    //    $("#JobTitle").val(value);
+    //}
+
+    function onClick(evt) {
+        //
+
+
+
+
+        
+        if ($("#OrganizationId").val() == "") {
+            //
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Organization is required");
+            evt.preventDefault();
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+    }
+</script>

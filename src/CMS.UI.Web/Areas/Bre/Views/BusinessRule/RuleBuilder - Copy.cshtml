@@ -1,0 +1,324 @@
+﻿
+<html lang="en">
+<head>
+    <title>EJ2 Tree Grid</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Typescript Tree Grid Control">
+    <meta name="author" content="Syncfusion">
+
+    <!-- Syncfusion Essential JS 2 Styles -->
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/material.css">
+    <link href="//cdn.syncfusion.com/ej2/ej2-splitbuttons/styles/material.css" rel="stylesheet">
+
+
+    <script src="https://cdn.syncfusion.com/ej2/dist/ej2.min.js" type="text/javascript"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!--<script src="es5-datasource.js" type="text/javascript"></script>-->
+</head>
+
+<body>
+    <style>
+        .e-attr {
+            color: deeppink;
+            font-weight: bold;
+        }
+    </style>
+
+    <div id="container">
+        <div id="TreeGrid"></div>
+    </div>
+
+    <script>
+
+        var ele = document.getElementById('container');
+        if (ele) {
+            ele.style.visibility = "visible";
+        }
+    </script>
+    <script type="text/javascript">
+        var data;
+        var nodeId;
+        $(document).ready(function () {
+
+            var sPageURL = window.location.search.substring(1);
+            var sURLVariables = sPageURL.split('&');
+            var sParameterName = sURLVariables[0].split('=');
+            //nodeId = sParameterName[1];
+            nodeId = @ViewData["NodeId"];
+
+            $.ajax({
+                type: 'GET',
+                url: 'https://localhost:44348/bre/GetMasterMetaData',
+                success: function (response) { data = response; },
+                error: function (error) {
+                }
+            });
+            $('#bind').hide();
+            $('#bind').trigger("click");
+
+        });
+        ej.treegrid.TreeGrid.Inject(ej.treegrid.Page);
+
+
+        var dataOp = [
+            {
+                Id: 'Equal', Text: 'Equal'
+            },
+            {
+                Id: 'NotEqual', Text: 'NotEqual'
+            },
+            {
+                Id: 'LessThan', Text: 'LessThan'
+            },
+            {
+                Id: 'LessThanOrEqual', Text: 'LessThanOrEqual'
+            },
+            {
+                Id: 'GreaterThan', Text: 'GreaterThan'
+            },
+            {
+                Id: 'GreaterThanOrEqual', Text: 'GreaterThanOrEqual'
+            }
+        ];
+        var dataCon = [
+            {
+                Id: 'And', Text: 'And'
+            },
+            {
+                Id: 'Or', Text: 'Or'
+            }
+        ];
+
+        var autoCompleteObj;
+        var autoCompleteObj1;
+        var autoCompleteObj2;
+        ej.treegrid.TreeGrid.Inject(ej.treegrid.Edit, ej.treegrid.Toolbar);
+
+
+        var actionBegin = function (args) {
+            if (args.requestType === 'beginEdit') {
+                if (args.rowData.conditionStr != null && args.rowData.conditionStr != '' && args.rowData.conditionStr != 'undefined') {
+                    args.cancel = true;
+
+                    $.ajax({
+                        type: 'GET',
+                        url: 'https://localhost:44348/bre/ChangeCondition',
+                        contentType: 'application/json; charset=utf-8',
+                        data: { id: args.rowData.id },
+                        dataType: 'json',
+                        success: function (response) { $('#bind').trigger("click");},
+                        error: function (error) {
+                        }
+                    });
+                }
+            }
+
+        };
+        var actionComplete = function (args) {
+
+            if (args.requestType === 'save') {
+                var newdata = {};
+                if (args.data.field != undefined) {
+                    if (args.data.conditionStr == null || args.data.conditionStr == '') {
+
+                        if (args.data.field.length > 0) {
+                            newdata.field = args.data.field[0];
+                            newdata.nodeId = nodeId;
+                            newdata.id = args.data.id;
+                            newdata.value = args.data.value;
+                            newdata.operatorType = args.data.operatorStr;
+                            newdata.parentId = args.data.parentId;
+                        }
+
+                    }
+                    else {
+                        newdata.condition = args.data.conditionStr;
+                    }
+                }
+
+                $.ajax({
+                    type: 'GET',
+                    url: 'https://localhost:44348/bre/UpdateBusinessRule',
+                    contentType: 'application/json; charset=utf-8',
+                    //data: { nodeId: '1', id: args.data.id, field: f, value: args.data.value, operatorType: args.data.operatorType, parentId: args.data.parentId, condition: args.data.condition },
+                    data: newdata,
+                    dataType: 'json',
+                    success: function (response) { },
+                    error: function (error) {
+                    }
+                });
+
+                //var ajax = new ej.base.Ajax;
+                //ajax.url = "http://localhost:44370/bre/UpdateBusinessRule";
+                //ajax.type = 'POST',
+                //    ajax.contentType = "application/json; charset=utf-8";
+                //ajax.data = JSON.stringify(args.data);
+                //ajax.send();
+                ////.then(function (arg) {
+                ////    var data = new ej.data.DataUtil.parse.parseJson(arg);
+                ////    console.log(data);
+                ////});
+                //ajax.onSuccess = function (res) {
+                //    
+                //};
+            }
+
+            if (args.requestType === 'delete') {
+                $.ajax({
+                    type: 'GET',
+                    url: 'https://localhost:44348/bre/DeleteRule',
+                    contentType: 'application/json; charset=utf-8',
+                    data: { id: args.data[0].id },
+                    dataType: 'json',
+                    success: function (response) { },
+                    error: function (error) {
+                    }
+                });
+            }
+        };
+
+        var treeGridObj = new ej.treegrid.TreeGrid({
+            idMapping: 'id',
+            parentIdMapping: 'parentId',
+            //pageSettings: { pageSize: 7 },
+            //allowPaging: true,
+            treeColumnIndex: 1,
+            toolbar: ['Add', 'Delete', 'Update', 'Cancel'],
+            //toolbarClick: clickHandler,
+            actionComplete: actionComplete,
+            actionBegin: actionBegin,
+            selectedRowIndex: 0,
+            selectionSettings: { type: 'Single' },
+            editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, newRowPosition: 'Child', mode: 'Row' },
+            columns: [
+                { field: 'id', headerText: '', isPrimaryKey: true, width: 5, allowEditing: false },
+                {
+                    field: 'conditionStr',headerText: 'Condition', allowEditing: false, customAttributes: { class: "e-attr" }, width: 170
+                },
+                {
+                    field: 'field', headerText: 'Field', editType: 'dropdownedit', edit: {
+                        create: function () {
+                            elem = document.createElement('input');
+                            return elem;
+                        },
+                        read: function () {
+                            return autoCompleteObj.value;
+                        },
+                        destroy: function () {
+                            autoCompleteObj.destroy();
+                        },
+                        write: function (args) {
+                            autoCompleteObj = new ej.dropdowns.DropDownTree({
+                                fields: { dataSource: data, value: 'id', text: 'displayName', parentValue: 'parentId', hasChildren: 'hasSubFolders' }
+                            });
+
+                            autoCompleteObj.appendTo(elem);
+                        }
+                    },
+                    width: 180
+                },
+                {
+                    field: 'operatorStr', headerText: 'Operator', editType: 'dropdownedit', edit: {
+                        create: function () {
+                            elem1 = document.createElement('input');
+                            return elem1;
+                        },
+                        read: function () {
+                            return autoCompleteObj1.value;
+                        },
+                        destroy: function () {
+                            autoCompleteObj1.destroy();
+                        },
+                        write: function (args) {
+                            autoCompleteObj1 = new ej.dropdowns.DropDownList({
+                                dataSource: dataOp, fields: { value: 'Text' }
+                            }
+                            );
+                            autoCompleteObj1.appendTo(elem1);
+                        }
+                    }, width: 170
+                },
+                {
+                    field: 'value', headerText: 'Value', editType: 'stringedit', width: 170
+                },
+
+            ],
+            recordClick: "click",
+        });
+
+        treeGridObj.appendTo('#TreeGrid');
+
+        let button = document.createElement('button');
+        button.textContent = 'Add Group';
+        treeGridObj.element.parentNode.insertBefore(button, treeGridObj.element);
+
+        let button1 = document.createElement('button');
+        button1.textContent = 'bind';
+        button1.setAttribute("id", "bind");
+
+
+        treeGridObj.element.parentNode.insertBefore(button1, treeGridObj.element);
+
+        button.addEventListener("click", function (e) {
+
+            var select = treeGridObj.dataSource[treeGridObj.selectedRowIndex];
+
+            var adddata = { condition: 'And', parentId: select.id, nodeId: nodeId};
+            $.ajax({
+                type: 'GET',
+                url: 'https://localhost:44348/bre/UpdateBusinessRule',
+                contentType: 'application/json; charset=utf-8',
+                //data: { nodeId: '1', id: args.data.id, field: f, value: args.data.value, operatorType: args.data.operatorType, parentId: args.data.parentId, condition: args.data.condition },
+                data: adddata,
+                dataType: 'json',
+                success: function (response) {
+
+                    let ajax1 = new ej.base.Ajax("https://localhost:44348/bre/GetBusinessRule?nodeId=" + @ViewData["NodeId"], "GET");
+                    treeGridObj.showSpinner();
+                    ajax1.send();
+                    ajax1.onSuccess = function (data2) {
+                        treeGridObj.hideSpinner();
+                        treeGridObj.dataSource = JSON.parse(data2);
+                    };
+                },
+                error: function (error) {
+                }
+            });
+
+
+            //$.ajax({
+            //    type: 'GET',
+            //    url: 'https://localhost:44370/api/bre/UpdateBusinessRule',
+            //    contentType: 'application/json; charset=utf-8',
+            //    //data: { nodeId: '1', id: args.data.id, field: f, value: args.data.value, operatorType: args.data.operatorType, parentId: args.data.parentId, condition: args.data.condition },
+            //    data: adddata,
+            //    dataType: 'json',
+            //    success: function (response) { treeGridObj.dataSource = JSON.parse(response);},
+            //    error: function (error) {
+            //    }
+            //});
+            //treeGridObj.addRecord({ condition: 'And' }, 4);
+            //treeGridObj.addRecord({ field: '' }, 5);
+            //let ajax = new ej.base.Ajax("https://localhost:44370/api/bre/GetBusinessRule", "GET");
+            //treeGridObj.showSpinner();
+            //ajax.send();
+            //ajax.onSuccess = function (data) {
+            //    
+            //    treeGridObj.hideSpinner();
+            //    treeGridObj.dataSource = JSON.parse(data);
+            //};
+        });
+        button1.addEventListener("click", function (e) {
+            let ajax = new ej.base.Ajax("https://localhost:44348/bre/GetBusinessRule?nodeId=" + @ViewData["NodeId"], "GET");
+            treeGridObj.showSpinner();
+            ajax.send();
+            ajax.onSuccess = function (data1) {
+                treeGridObj.hideSpinner();
+                treeGridObj.dataSource = JSON.parse(data1);
+            };
+        });
+
+    </script>
+</body>
+</html>

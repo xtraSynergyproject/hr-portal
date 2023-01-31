@@ -1,0 +1,324 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pay.Controllers.PayrollReportController> Resource
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model PayrollReportViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = ViewBag.Layout ?? null;
+}
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnLoanAccrualSearch").click(function () {
+            var search = getDataLoanAccrual();
+            window.parent.getDataLoanAccrual(search);
+        });
+
+        $("#Year").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Text",
+            dataValueField: "Value",
+            value: "@Model.Year",
+            filter: "contains",
+            autoBind: true,
+           dataSource: {
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetYearList?value=@Model.Year",
+                    }
+                }
+            }
+        });
+
+        $("#Month").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "EnumId",
+            value: "@(Model.Month.IsNotNull()?(int)((MonthEnum)Enum.Parse(typeof(MonthEnum), Model.Month.ToString())): Model.Month)",
+            height: 350,
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                        transport: {
+                            read: {
+                                url: "/Home/GetEnumIdNameList?enumType=MonthEnum",
+                            }
+                        }
+                    },
+        });
+
+        $("#PersonId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.PersonId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetPersonList",
+                    }
+                }
+            }
+        });
+
+    });
+
+      function FilterLoanAccrualGrid() {
+        var search = {
+            Year: $("#Year").val(),
+            Month: $("#Month").val(),
+            PersonId: $("#PersonId").val()
+        };
+        return search;
+    }
+        function OnLoanAccrualExportToExcel()
+    {
+            var grid = $("#kgrdLoanAccrual").data("kendoGrid");
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+            .options.parameterMap({
+                page: grid.dataSource.page(),
+                sort: grid.dataSource.sort(),
+                filter: grid.dataSource.filter()
+            });
+        var href = '@Url.Action("LoanAccrualDetailsByDateDataExcel", "PayrollReport", new { area = "Pay"})';
+        href = href + "?page=" + (requestObject.page || '1');
+        href = href + "&sort=" + (requestObject.sort || '~');
+        href = href + "&pageSize=" + (grid.dataSource._pageSize || '0');
+        href = href + "&filter=" + (requestObject.filter || '~');
+            var search = FilterLoanAccrualGrid();
+        href = href + "&personId=" + search.PersonId + "&Year=" + search.Year + "&month=" + search.Month;
+            window.location.href = href;
+
+            var list = _business.GetAttendanceListByDate(personId, Year, month).ToList();
+            var ms = _excelReportBusiness.GetAttendanceDetails(list);
+            return File(ms, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "LoanAccuralReport.xlsx");
+    }
+
+</script>
+
+
+<div class="appWrapper">
+    <div class="formHeader">
+        <h4>
+            @ViewBag.Title
+        </h4>
+    </div>
+
+
+    <div class="row no-gutter hr-pad-top-15">
+        <div class="form-group col-xs-12 col-lg-3">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Year"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownList()
+                    .Name("Year")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                    .Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-small" })
+                    .BindTo(ApplicationExtension.GetYearList(Model.Year.ToString())))*@
+                <input id="Year" class="hr-small" />
+
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-lg-3">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Month"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownList()
+                    .Name("Month")
+                    .Height(350)
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                    .Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-small" })
+                    .BindTo(EnumExtension.SelectListFor(typeof(MonthEnum), (MonthEnum)Model.Month)))*@
+                <input id="Month" class="hr-small" />
+
+            </div>
+        </div>
+
+
+        <div class="form-group col-xs-12 col-lg-3">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Person"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(model => model.PersonId)
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetPersonList", "HRDirect", new { area = "CHR" });
+                        });
+                    })
+                    .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input asp-for="PersonId" id="PersonId" class="hr-xx-large" />
+            </div>
+        </div>
+
+
+
+
+
+        <div class="form-group col-xs-12 col-lg-2">
+            <div class="col-lg-12 label-div">
+                &nbsp;
+            </div>
+            <div class="col-lg-12">
+                @*@Html.Kendo().Button().Name("btnLoanAccrualSearch").Content(@SharedResource["Search"]).HtmlAttributes(new { @class = "k-primary" })*@
+                <button type="button" class="btn btn-primary" id="btnLoanAccrualSearch">@SharedResource["Search"]</button>
+            </div>
+        </div>
+
+        @Html.HiddenFor(x => x.Year)
+        @Html.HiddenFor(x => x.Month)
+        @Html.HiddenFor(x => x.PersonId)
+    </div>
+    <Script>
+  var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+    var columnDefs = [
+
+        { field: "PersonNo", headerName: "@Resource["EmployeeNo"]" },
+        { field: "PersonName", headerName: "@Resource["EmployeeName"]" },
+        { field: "ElementName", headerName: "@Resource["ElementName"]" },
+        {
+            field: "PayrollDate",  headerName: "@Resource["PayrollDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        { field: "OrganizationName", headerName: "@Resource["OrganizationName"]" },
+        { field: "JobName", headerName: "@Resource["JobName"]" },
+        { field: "OpeningBalance", headerName: "@Resource["OpeningBalance"]" },
+        { field: "EarningAmount", headerName: "@Resource["EarningAmount"]" },
+        { field: "DeductionAmount", headerName: "@Resource["DeductionAmount"]" },
+        { field: "ClosingBalance", headerName: "@Resource["ClosingBalance"]" },
+        
+
+
+            ];
+
+
+            $(function () {
+
+                getDataLoanAccrual();
+
+
+            });
+
+        function getDataLoanAccrual() {
+            document.getElementById("kgrdLoanAccrual").innerHTML = "";
+        //     var search = {
+        //    Year: $("#Year").val(),
+        //    Month: $("#Month").val(),
+        //    PersonId: $("#PersonId").val()
+        //};
+        //return search;
+        //var templateId = $("#TemplateId").val();
+        //var projectNo = $("#ProjectNo").val();
+        //var noteNo = $("#NoteNo").val();
+        //var docDescription = $("#DocumentName").val();
+        gridConfig(
+            "kgrdLoanAccrual",
+            "@Url.Action("LoanAccrualReportData", "PayrollReport", new { @area = "Pay"})",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+            }
+    </Script>
+    <div class="col-12">
+
+        <div id="kgrdLoanAccrual" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+    </div>
+    @*<div class="hr-pad-top-10">
+            @(Html.Kendo().Grid<PayrollReportViewModel>().Name("kgrdLoanAccrual")
+        .Columns(col =>
+        {
+            col.Bound(c => c.PersonNo).Title(@Resource["EmployeeNo"]).Width(150);
+            col.Bound(c => c.PersonName).Title(@Resource["EmployeeName"]).Width(200);
+
+            //col.Bound(c => c.SponsorshipNo).Title("Iqamah No").Width(150);
+            col.Bound(c => c.OrganizationName).Title(@Resource["OrganizationName"]);
+            col.Bound(c => c.JobName).Title(@Resource["JobName"]);
+            col.Bound(c => c.ElementName).Title(@Resource["ElementName"]);
+            col.Bound(c => c.PayrollDate).Title(@Resource["PayrollDate"]);
+            col.Bound(c => c.OpeningBalance).Title(@Resource["OpeningBalance"]);
+            col.Bound(c => c.EarningAmount).Title(@Resource["Debit"]);
+            col.Bound(c => c.DeductionAmount).Title(@Resource["Credit"]);
+            col.Bound(c => c.ClosingBalance).Title(@Resource["ClosingBalance"]);
+
+        })
+            .ToolBar(toolbar =>
+            {
+                toolbar.Custom().Text(@Resource["GenerateExcelReport"]).Name("btnLaonAccrualAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnLoanAccrualExportToExcel();" });
+            })
+        //.Events(e => e.DataBound("OnDataBound"))
+        .Excel(e => e.FileName("LoanAccrualReport.xlsx").AllPages(true))
+        .Scrollable(x => x.Enabled(false))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(100)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoanAccrualReportData", "PayrollReport",new { @area="Pay"}).Data("FilterLoanAccrualGrid"))
+        .Update(update => update.Action("Update", "PayrollReport"))
+        .Destroy(destroy => destroy.Action("Delete", "PayrollReport"))
+        .Model(model => model.Id(p => p.Id))
+        )
+        .Editable(
+        editable => editable.Mode(GridEditMode.PopUp)
+        .DisplayDeleteConfirmation(@SharedResource["Areyousurethatyouwanttoproceed?"])
+        )
+
+        )
+
+
+
+
+        </div>*@
+
+
+</div>
+
+

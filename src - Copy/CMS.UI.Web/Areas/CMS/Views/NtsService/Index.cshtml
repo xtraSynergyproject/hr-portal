@@ -1,0 +1,1332 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@{
+    Layout = ViewBag.Layout;// string.Concat("~/Areas/CMS/Views/Shared/_LayoutCMS.cshtml");
+}
+@model NtsServiceIndexPageViewModel;
+<style>
+
+
+    .tab-pane {
+        background-color: #fff !important;
+    }
+
+
+    .number-text {
+        font-size: 11px;
+        /*overflow-wrap: break-word;*/
+    }
+
+    .nav-link {
+        padding: .5rem .5rem !important;
+    }
+
+    .nav-item {
+        background-color: rgb(239, 239, 239) !important;
+    }
+
+    .container {
+        position: relative;
+    }
+
+    .wrapper {
+        position: relative;
+        margin: 0 auto;
+        overflow: hidden;
+        padding: 5px;
+        height: 120px;
+    }
+
+    .list {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        /*min-width: 1560px;*/
+        margin-left: 0px;
+        margin-top: 0px;
+    }
+
+        .list li {
+            display: table-cell;
+            position: relative;
+            text-align: center;
+            cursor: grab;
+            cursor: -webkit-grab;
+            color: #efefef;
+            vertical-align: middle;
+        }
+
+    .scroller {
+        text-align: center;
+        cursor: pointer;
+        display: inline-flex;
+        padding: 7px;
+        padding-top: 11px;
+        white-space: no-wrap;
+        vertical-align: middle;
+        /*    background-color: #fff;*/
+        position: absolute;
+        font-size: 25px;
+    }
+
+    .scroller-right {
+        float: right;
+        right: -25px;
+        top: 36px;
+    }
+
+    .scroller-left {
+        float: left;
+        left: -25px;
+        top: 36px;
+    }
+
+    h6 {
+        font-size: 18px;
+    }
+
+    .div-count-active, .div-count:hover {
+        background-color: #17a2b8;
+        color: #fff !important;
+        border-radius: 5px;
+    }
+</style>
+<script>
+    var hidWidth;
+    var scrollBarWidths = 40;
+    function OnDatabound_OwnerOrRequester(e) {
+        $("#kgrid_OwnerOrRequester tbody tr").each(function () {
+            var currentDataItem = $("#kgrid_OwnerOrRequester").data("kendoGrid").dataItem($(this));
+            if (currentDataItem.ServiceStatusCode !== 'SERVICE_STATUS_DRAFT') {
+                var del = $(this).find(".action-delete");
+                del.hide();
+            }
+        });
+    }
+    var widthOfList = function () {
+        var itemsWidth = 0;
+        $('.list li').each(function () {
+            var itemWidth = $(this).outerWidth();
+            itemsWidth += itemWidth;
+        });
+        return itemsWidth;
+    };
+
+    var widthOfHidden = function () {
+        return (($('.wrapper').outerWidth()) - widthOfList() - getLeftPosi()) - scrollBarWidths;
+    };
+
+    var getLeftPosi = function () {
+        return $('.list').position().left;
+    };
+
+    var reAdjust = function () {
+        if (($('.wrapper').outerWidth()) < widthOfList()) {
+            $('.scroller-right').show();
+        }
+        else {
+            $('.scroller-right').hide();
+        }
+
+        if (getLeftPosi() < 0) {
+            $('.scroller-left').show();
+        }
+        else {
+            $('.item').animate({ left: "-=" + getLeftPosi() + "px" }, 'slow');
+            $('.scroller-left').hide();
+        }
+    }
+
+    reAdjust();
+
+    $(window).on('resize', function (e) {
+        reAdjust();
+    });
+
+    $('.scroller-right').click(function () {
+
+        $('.scroller-left').fadeIn('slow');
+        $('.scroller-right').fadeOut('slow');
+
+        $('.list').animate({ left: "+=" + widthOfHidden() + "px" }, 'slow', function () {
+
+        });
+    });
+
+    $('.scroller-left').click(function () {
+
+        $('.scroller-right').fadeIn('slow');
+        $('.scroller-left').fadeOut('slow');
+
+        $('.list').animate({ left: "-=" + getLeftPosi() + "px" }, 'slow', function () {
+
+        });
+    });
+        function OnCreate() {
+             
+              var win = GetMainWindow();
+        win.iframeOpenUrl ='@Url.Action("SelectServiceTemplate", "NtsService")?templateCode=' + '@Model.TemplateCode' + '&categoryCode=' + '@Model.CategoryCode';
+            win.OpenWindow({ Title: 'Service Template', Width: 1200, Height: 600 });
+        return false;
+
+    }
+        function backtoNtsServiceIndex(tempid) {
+            var win = GetMainWindow();
+            win.CloseWindow();
+            //return false;
+            LoadPartailView('@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?templateid=' + tempid + '&pageId=@Model.Page.Id', $('#cms-content'));
+    }
+    function OnView(Id, ServiceStatusCode) {
+
+           // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.View.ToString()';
+            var action = '@DataActionEnum.View.ToString()';
+            if (ServiceStatusCode === 'SERVICE_STATUS_DRAFT') {
+                source = "Edit";
+                action = "Edit";
+            }
+            //loadpagebyid(id, type, source, action, dataitem.serviceid);
+            LoadPartailView('@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?&pageId=@Model.Page.Id&serviceId=' + Id +'&dataAction='+action, $('#cms-content'));
+            return false;
+    }
+    function OnEdit(Id, ServiceStatusCode) {
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.Versioning.ToString()';
+            var action = '@DataActionEnum.Edit.ToString()';
+            if (ServiceStatusCode === 'SERVICE_STATUS_DRAFT') {
+                source = "Edit";
+                action = "Edit";
+            }
+            //LoadPageById(id, type, source, action, dataItem.ServiceId);
+        LoadPartailView('@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?&pageId=@Model.Page.Id&serviceId=' + Id + '&dataAction=' + action + '&requestSource=' + source, $('#cms-content'));
+            return false;
+    }
+     function OnReply(e) {
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            var id = '@Model.Page.Id';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.Edit.ToString()';
+            var action = '@RequestSourceEnum.Edit.ToString()';
+//         LoadPageById(id, type, source, action, dataItem.ServiceId);
+                     LoadPartailView('@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?&pageId=@Model.Page.Id&serviceId=' + dataItem.Id +'&dataAction='+action, $('#cms-content'));
+            return false;
+    }
+    var deleteEvent = null;
+    function OnDelete(e) {
+        if ('@Model.EnableDeleteConfirmation'==='True')
+        {
+            deleteEvent = e;
+            $('#confirmDelete').data("kendoDialog").open();
+
+        }
+        else
+        {
+            DeleteItem(e);
+        }
+
+    }
+    function DeleteItem(e) {
+        @*var dataItem = $("#kgrid_OwnerOrRequester").data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+        var id = '@Model.Page.Id';
+        var type = '@Model.Page.PageType.ToString()';
+        var source = '@RequestSourceEnum.Post.ToString()';
+        var action = '@RequestSourceEnum.Delete.ToString()';
+        LoadPageById(id, type, source, action, dataItem.ServiceId);
+        return false;*@
+    }
+    function ConfirmDelete() {
+        $('#confirmDelete').data("kendoDialog").close();
+        DeleteItem(deleteEvent);
+        }
+
+    @*function FilterAssignedToMeGrid() {
+        return {
+            indexPageTemplateId: "@Model.Id",
+            ownerType: '@NtsActiveUserTypeEnum.Assignee',
+            taskStatusCode: $("#status").val()
+        };
+    }*@
+    function FilterCreatedByGrid() {
+        return {
+            categoryCode: "@Model.CategoryCode",
+            templateCode: "@Model.TemplateCode",
+            ownerType: '@NtsActiveUserTypeEnum.OwnerOrRequester',
+            serviceStatusCode: $("#status").val()
+        };
+    }
+    function FilterRequestedByGrid() {
+        return {
+           categoryCode: "@Model.CategoryCode",
+            templateCode: "@Model.TemplateCode",
+            ownerType: '@NtsActiveUserTypeEnum.Requester',
+            serviceStatusCode: $("#status").val()
+        };
+    }
+    function FilterSharedWithGrid() {
+        return {
+            categoryCode: "@Model.CategoryCode",
+            templateCode: "@Model.TemplateCode",
+            ownerType: '@NtsActiveUserTypeEnum.SharedWith',
+            serviceStatusCode: $("#status").val()
+        };
+    }
+    function FilterSharedByGrid() {
+        return {
+            categoryCode: "@Model.CategoryCode",
+            templateCode: "@Model.TemplateCode",
+            ownerType: '@NtsActiveUserTypeEnum.SharedBy',
+            serviceStatusCode: $("#status").val()
+        };
+    }
+    function OnNumberClick(div, ownerType, status) {
+        SetFilterByStatus(ownerType, status);
+        $('.div-count').removeClass('div-count-active');
+        $(div).addClass('div-count-active');
+        if ($("#ownertype").val() === ownerType) {
+            $("#numberclicked").val(false);
+        }
+        else {
+            $("#numberclicked").val(true);
+        }
+        $("#status").val(status);
+        $("#ownertype").val(ownerType);
+        var grid = "#kgrid_" + ownerType;
+        $(grid).data("kendoGrid").dataSource.read();
+
+    }
+    function OnTabHeaderClick(div, ownerType) {
+        SetFilterByStatus(ownerType, null);
+        $('.div-count').removeClass('div-count-active');
+        $("#status").val(null);
+        $("#ownertype").val(ownerType);
+        var grid = "#kgrid_" + ownerType;
+        $(grid).data("kendoGrid").dataSource.read();
+        $("#numberclicked").val(false);
+    }
+    $('.nav-tabs a').on('shown.bs.tab', function (event) {
+        var id = event.target.id;
+       // $("#ownertype").val(id);
+        //var y = event.relatedTarget.id;
+        SetFilterByStatus(id, null);
+        var numberclicked = $("#numberclicked").val();
+        if (numberclicked === 'false') {
+            $("#status").val(null);
+            var grid = "#kgrid_" + id;
+            $(grid).data("kendoGrid").dataSource.read();
+        }
+        $("#numberclicked").val(false);
+    });
+    function SetFilterByStatus(ownerType, status) {
+        var title = "";
+        switch (ownerType) {
+            case "@NtsActiveUserTypeEnum.OwnerOrRequester":
+                title = "Created/Requested By Me";
+                break;
+            case "@NtsActiveUserTypeEnum.SharedBy":
+                title = "Shared By Me";
+                break;
+              case "@NtsActiveUserTypeEnum.SharedWith":
+                title = "Shared With Me";
+                break;
+            default:
+        }
+        $('.filter-by').find('b').html(title);
+        if (status === null) {
+            $('.filter-status').hide();
+        }
+        else {
+            var s = "";
+            var c = "";
+            if (status ==="SERVICE_STATUS_DRAFT") {
+                s = "Draft";
+                c = "text-draft";
+            }
+            else if (status === "SERVICE_STATUS_INPROGRESS,SERVICE_STATUS_OVERDUE") {
+                s = "In Progress/ Overdue";
+                c = "text-inprogress";
+            }
+            else if (status === "SERVICE_STATUS_COMPLETE") {
+                s = "Completed";
+                c = "text-completed";
+            }
+            else if (status === "SERVICE_STATUS_REJECT,SERVICE_STATUS_CANCEL") {
+                s = "Rejected/ Canceled";
+                c = "text-rejected";
+            }
+            $('.filter-status').show();
+            $('.filter-status').find('b').html(s);
+            $('.filter-status').find('b').removeClass();
+            $('.filter-status').find('b').addClass('pl-1 pr-1 ' + c);
+        }
+    }
+</script>
+<div class="row no-gutters pad-20">
+    <div class="col-12 pb-3 pt-1">
+        <h3>@*@Model.Page.Title*@</h3>
+    </div>
+    <div class="container col-12">
+        <span class="scroller scroller-left"><i class="fa fal fa-chevron-left"></i></span>
+        <div class="scroller scroller-right"><i class="fa fal fa-chevron-right"></i></div>
+        <div class="col-12 pt-3 wrapper">
+            <input type="hidden" id="status" />
+            <input type="hidden" id="numberclicked" value="false" />
+            <input type="hidden" id="ownertype" />
+            <ul class="nav nav-tabs list nav-justified" role="tablist" id="myTab">
+
+                <li class="nav-item">
+                    <a data-toggle="tab" id="@NtsActiveUserTypeEnum.OwnerOrRequester" href="#createdByMe" class="nav-link active" role="tab" aria-controls="user2" aria-selected="true" style="text-align:center;">
+
+                        <h6 onclick="OnTabHeaderClick(this, '@NtsActiveUserTypeEnum.OwnerOrRequester')"><i class="fas fa-user"></i>&nbsp;Created/Requested By Me</h6>
+                        <div class="row no-gutters" style="text-align:center;padding-top:5px;">
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-draft" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.OwnerOrRequester','SERVICE_STATUS_DRAFT')">
+                                <div class="font-weight-bold">@Model.CreatedOrRequestedByMeDraftCount</div>
+                                <div class="number-text">Draft</div>
+                            </div>
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-inprogress" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.OwnerOrRequester', 'SERVICE_STATUS_INPROGRESS,SERVICE_STATUS_OVERDUE')">
+                                <div class="font-weight-bold">@Model.CreatedOrRequestedByMeInProgreessOverDueCount</div>
+                                <div class="number-text">In Progress/ Overdue</div>
+                            </div>
+                            @*<div class="col pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.Owner', 'TASK_STATUS_INPROGRESS')">
+                                    <div class="text-warning font-weight-bold">@Model.CreatedByMeOverdueCount</div>
+                                    <div class="text-warning number-text">Overdue</div>
+                                </div>*@
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-completed" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.OwnerOrRequester','SERVICE_STATUS_COMPLETE')">
+                                <div class="font-weight-bold">@Model.CreatedOrRequestedByMeCompleteCount</div>
+                                <div class="number-text">Completed</div>
+                            </div>
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-rejected" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.OwnerOrRequester','SERVICE_STATUS_REJECT,SERVICE_STATUS_CANCEL')">
+                                <div class="font-weight-bold">@Model.CreatedOrRequestedByMeRejectCancelCloseCount</div>
+                                <div class="number-text">Rejected/ Canceled/ Closed</div>
+                            </div>
+                            @*<div class="col pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.Owner','TASK_STATUS_CANCEL')">
+                                    <div class="text-dark font-weight-bold">@Model.CreatedByMeCancelCount</div>
+                                    <div class="text-dark number-text">Canceled</div>
+                                </div>*@
+                        </div>
+                    </a>
+                </li>
+
+
+
+                <!--<li class="nav-item">
+                    <a data-toggle="tab" id="@NtsActiveUserTypeEnum.Requester" href="#requestedByMe" class="nav-link" role="tab" aria-controls="user" aria-selected="true" style="text-align:center;width:320px;">
+
+                        <h6 onclick="OnTabHeaderClick(this, '@NtsActiveUserTypeEnum.Requester')"><i class="fas fa-user"></i>&nbsp;Requested By Me</h6>
+                        <div class="row no-gutters" style="text-align:center;padding-top:5px;">
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-draft" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.Requester','TASK_STATUS_DRAFT')">
+                                <div class="font-weight-bold">@Model.RequestedByMeDraftCount</div>
+                                <div class="number-text">Draft</div>
+                            </div>
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-inprogress" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.Requester', 'TASK_STATUS_INPROGRESS,TASK_STATUS_OVERDUE')">
+                                <div class="font-weight-bold">@Model.RequestedByMeInProgreessOverDueCount</div>
+                                <div class="number-text">In Progress/ Overdue</div>
+                            </div>-->
+                @*<div class="col pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.Requester', 'TASK_STATUS_INPROGRESS')">
+                        <div class="text-warning font-weight-bold">@Model.RequestedByMeOverdueCount</div>
+                        <div class="text-warning number-text">Overdue</div>
+                    </div>*@
+                <!--<div class="col pl-1 pr-1 pt-2 pb-2 div-count text-completed" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.Requester','TASK_STATUS_COMPLETE')">
+                    <div class="font-weight-bold">@Model.RequestedByMeCompleteCount</div>
+                    <div class="number-text">Completed</div>
+                </div>
+                <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-rejected" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.Requester','TASK_STATUS_REJECT,TASK_STATUS_CANCEL')">
+                    <div class="font-weight-bold">@Model.RequestedByMeRejectCancelCount</div>
+                    <div class="number-text">Rejected/ Canceled</div>
+                </div>-->
+                @*<div class="col pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.Requester','TASK_STATUS_CANCEL')">
+                        <div class="text-dark font-weight-bold">@Model.RequestedByMeCancelCount</div>
+                        <div class="text-dark number-text">Canceled</div>
+                    </div>*@
+                <!--</div>
+                    </a>
+                </li>-->
+
+                <li class="nav-item">
+                    <a data-toggle="tab" id="@NtsActiveUserTypeEnum.SharedWith" href="#sharedWithMe" class="nav-link" role="tab" aria-controls="user" aria-selected="true" style="text-align:center;">
+                        <h6 onclick="OnTabHeaderClick(this, '@NtsActiveUserTypeEnum.SharedWith')"><i class="fas fa-user"></i>&nbsp;Shared With Me</h6>
+                        <div class="row no-gutters" style="text-align:center;padding-top:5px;">
+                            @*<div class="col-2 pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsTaskOwnerTypeEnum.SharedWith','TASK_STATUS_DRAFT')">
+                                    <div class="font-weight-bold">@Model.SharedWithMeDraftCount</div>
+                                    <div class="number-text">Draft</div>
+                                </div>*@
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-inprogress" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith', 'SERVICE_STATUS_INPROGRESS,SERVICE_STATUS_OVERDUE')">
+                                <div class="font-weight-bold">@Model.SharedWithMeInProgressOverDueCount</div>
+                                <div class="number-text">In Progress/ Overdue</div>
+                            </div>
+                            @*<div class="col pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith', 'TASK_STATUS_INPROGRESS')">
+                                    <div class="text-warning font-weight-bold">@Model.SharedWithMeOverdueCount</div>
+                                    <div class="text-warning number-text">Overdue</div>
+                                </div>*@
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-completed" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith','SERVICE_STATUS_COMPLETE')">
+                                <div class="font-weight-bold">@Model.SharedWithMeCompleteCount</div>
+                                <div class="number-text">Completed</div>
+                            </div>
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-rejected" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith','SERVICE_STATUS_REJECT,SERVICE_STATUS_CANCEL')">
+                                <div class="font-weight-bold">@Model.SharedWithMeRejectCancelCloseCount</div>
+                                <div class="number-text">Rejected/ Canceled/ Closed</div>
+                            </div>
+                            @*<div class="col pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith','TASK_STATUS_CANCEL')">
+                                    <div class="text-dark font-weight-bold">@Model.SharedWithMeCancelCount</div>
+                                    <div class="text-dark number-text">Canceled</div>
+                                </div>*@
+                        </div>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a data-toggle="tab" id="@NtsActiveUserTypeEnum.SharedBy" href="#sharedByMe" class="nav-link" role="tab" aria-controls="user" aria-selected="true" style="text-align:center;">
+                        <h6 onclick="OnTabHeaderClick(this, '@NtsActiveUserTypeEnum.SharedBy')"><i class="fas fa-user"></i>&nbsp;Shared By Me</h6>
+                        <div class="row no-gutters" style="text-align:center;padding-top:5px;">
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-draft" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedBy','SERVICE_STATUS_DRAFT')">
+                                <div class="font-weight-bold">@Model.SharedByMeDraftCount</div>
+                                <div class="number-text">Draft</div>
+                            </div>
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-inprogress" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedBy', 'SERVICE_STATUS_INPROGRESS,SERVICE_STATUS_OVERDUE')">
+                                <div class="font-weight-bold">@Model.SharedByMeInProgreessOverDueCount</div>
+                                <div class="number-text">In Progress/ Overdue</div>
+                            </div>
+                            @*<div class="col pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith', 'TASK_STATUS_INPROGRESS')">
+                                    <div class="text-warning font-weight-bold">@Model.SharedByMeOverdueCount</div>
+                                    <div class="text-warning number-text">Overdue</div>
+                                </div>*@
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-completed" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedBy','SERVICE_STATUS_COMPLETE')">
+                                <div class="font-weight-bold">@Model.SharedByMeCompleteCount</div>
+                                <div class="number-text">Completed</div>
+                            </div>
+                            <div class="col pl-1 pr-1 pt-2 pb-2 div-count text-rejected" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedBy','SERVICE_STATUS_REJECT,SERVICE_STATUS_CANCEL')">
+                                <div class="font-weight-bold">@Model.SharedByMeRejectCancelCloseCount</div>
+                                <div class="number-text">Rejected/ Canceled/ Closed</div>
+                            </div>
+                            @*<div class="col pl-1 pr-1 pt-2 pb-2 div-count" onclick="OnNumberClick(this, '@NtsActiveUserTypeEnum.SharedWith','TASK_STATUS_CANCEL')">
+                                    <div class="text-dark font-weight-bold">@Model.SharedByMeCancelCount</div>
+                                    <div class="text-dark number-text">Canceled</div>
+                                </div>*@
+                        </div>
+                    </a>
+                </li>
+            </ul>
+
+
+        </div>
+        <div class="tab-content" style="border-left: 1px solid rgb(222, 226, 230);border-right: 1px solid rgb(222, 226, 230);border-bottom: 1px solid rgb(222, 226, 230);">
+            @*<div id="assignedToMe" class="tab-pane  in active" role="tabpanel" aria-labelledby="assignedToMe-tab">
+                    <div class="pt-2 pl-2">
+                        <span class="filter-by">Filter By:<b class="pl-1 pr-1 text-primary">Assigned To Me</b> </span>
+                        <span style="display:none;" class="filter-status">Status:<b></b></span>
+                    </div>
+                    <div class="p-2">
+                        @(Html.Kendo().Grid<dynamic>
+        ()
+        .Name($"kgrid_{NtsActiveUserTypeEnum.Assignee}")
+        .Columns(columns =>
+        {
+            columns.Bound("TaskId").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.EnableEditButton)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-eye'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+                }
+                //if (Model.EnableDeleteButton)
+                //{
+                //    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                //}
+            }).Width(120);
+            foreach (var column in Model.SelectedTableRows)
+            {
+
+                columns.Bound(column.ColumnName).Title(column.HeaderName);
+
+            }
+
+        })
+
+        //.ToolBar(toolbar =>
+        //{
+        //    if (Model.EnableCreateButton)
+        //    {
+        //        toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.CreateButtonText.ToDefaultCreateButtonText()}</button>");
+        //    }
+        //})
+        //.Events(e => e.DataBound(string.Concat("OnDataBound_", Model.FieldName)))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        //.AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadTaskIndexPageGrid", "Cms").Data("FilterAssignedToMeGrid"))
+        //.Model(model => model.Id(p => p.Id))
+
+        )
+
+        )
+
+                    </div>
+                </div>*@
+            <div id="createdByMe" class="tab-pane  in active" role="tabpanel" aria-labelledby="createdByMe-tab">
+                <div class="pt-2">
+                    <button type="submit" class="btn btn-primary" onclick="return OnCreate();"><i class="fa fa-plus pr-1"></i>@Model.CreateButtonText.ToDefaultCreateButtonText()</button>
+                    <span class="filter-by">Filter By:<b class="pl-1 pr-1 text-primary">Created/Requested By Me</b> </span>
+                    <span style="display:none;" class="filter-status">Status:<b></b></span>
+                </div>
+                <div class="p-2">
+                    @*@(Html.Kendo().Grid<dynamic>
+        ()
+        .Name($"kgrid_{NtsActiveUserTypeEnum.OwnerOrRequester}")
+        .Columns(columns =>
+        {
+            columns.Bound("ServiceId").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.EnableEditButton)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+                }
+                if (Model.EnableDeleteButton)
+                {
+                    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon action-delete" });
+                }
+            }).Width(120);
+            //foreach (var column in Model.SelectedTableRows)
+            //{
+
+            //    columns.Bound(column.ColumnName).Title(column.HeaderName);
+
+            //}
+
+        })
+
+        //.ToolBar(toolbar =>
+        //{
+        //    if (Model.EnableCreateButton)
+        //    {
+        //        toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.CreateButtonText.ToDefaultCreateButtonText()}</button>");
+        //    }
+        //})
+        .Events(e => e.DataBound("OnDatabound_OwnerOrRequester"))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        //.AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadNtsServiceIndexPageGrid", "NtsService", new { area = "Cms" }).Data("FilterCreatedByGrid"))
+        //.Model(model => model.Id(p => p.Id))
+
+        )
+
+        )
+                    </div>
+                </div>*@
+                    <script>
+                        var columnDefs_@NtsActiveUserTypeEnum.OwnerOrRequester.ToString() = [
+                            {
+                                headerName: "Actions",
+                                field: "Id",
+                                cellRenderer: params => {
+                                    return "<div class='btn-group grid-menu' id='tree-OwnerOrRequester' data-idvalue='" + params.value + "' data-status=\"0\" data-status='" + params.data.ServiceStatusCode + "'><i class='fas fa-ellipsis-v'></i></div>"
+                                }
+                            },
+                            {
+                                field: "ServiceNo"
+                            },
+                            {
+                                field: "ServiceSubject"
+                            },
+                            {
+                                field: "TemplateCode", headerName: "TemplateName"
+                            },
+                            {
+                                field: "CreatedByUserName"
+                            },
+                            {
+                                field: "LastUpdatedByUserName"
+                            },
+                            {
+                                field: "Module"
+                            }
+                        ];
+                        $(function () {
+                            GetData_kgrid_@(NtsActiveUserTypeEnum.OwnerOrRequester.ToString())();
+                             $.contextMenu({
+                                 selector: '#tree-OwnerOrRequester',
+                                trigger: 'left',
+                                build: function ($trigger, e) {
+
+
+                                    var id = $trigger.data('idvalue');
+                                    var status = $trigger.data('status');
+                                    switch (0) {
+                                        case 0:
+                                            return {
+                                                callback: function (key, options) {
+                                                    switch (key) {
+                                                        case 'edit':
+                                                            OnEdit(id, status);
+                                                            break;
+                                                        case 'view':
+                                                            OnView(id, status);
+                                                            break;
+
+                                                        case 'delete':
+                                                            OnDelete(id);
+                                                            break;
+
+                                                        default:
+                                                    }
+                                                },
+                                                items: {
+                                                    @if (Model.IsVersioningButtonVisible)
+                                                    {
+                                                        @:"edit": { name: "Edit", icon: "fas fa-edit" },
+                                                    }
+                                                     @if (Model.IsViewButtonVisible)
+                                                    {
+                                                        @:"view": { name: "View", icon: "fas fa-eye" },
+                                                    }
+                                                    @if (Model.IsDeleteButtonVisible)
+                                                    {
+                                                        @*@:if(status!= "SERVICE_STATUS_DRAFT"){*@
+                                                        @:"delete": { name: "Delete", icon: "fas fa-trash" },
+                                                        @*@:}*@
+
+                                                    }
+                                                }
+                                            };
+
+
+                                    }
+                                }
+                            });
+                        });
+
+                        function GetData_kgrid_@(NtsActiveUserTypeEnum.OwnerOrRequester.ToString())() {
+                            document.getElementById("kgrid_@NtsActiveUserTypeEnum.OwnerOrRequester.ToString()").innerHTML = "";
+                            var prms = FilterCreatedByGrid();
+                            var p = 'categoryCode=' + prms.categoryCode + '&templateCode=' + prms.templateCode+'&ownerType=' + prms.ownerType + '&serviceStatusCode' + prms.serviceStatusCode;
+                            gridConfig(
+                                "kgrid_@NtsActiveUserTypeEnum.OwnerOrRequester.ToString()",
+                                "/cms/NtsService/LoadNtsServiceIndexPageGrid?"+p,
+                                columnDefs_@NtsActiveUserTypeEnum.OwnerOrRequester.ToString(),
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+                    </script>
+                    <div id="kgrid_@NtsActiveUserTypeEnum.OwnerOrRequester.ToString()" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                    @*@(Html.Kendo().Grid<ServiceViewModel>
+        ()
+        .Name($"kgrid_{NtsActiveUserTypeEnum.OwnerOrRequester}")
+        .Columns(columns =>
+        {
+            //columns.Bound("TaskId").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.IsViewButtonVisible)
+                {
+                    command.Custom("View").Text("<i class='fa fas fa-eye'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon", title = "View" });
+                }
+                if (Model.IsVersioningButtonVisible)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon", title = "Edit" });
+                }
+                if (Model.IsDeleteButtonVisible)
+                {
+                    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon action-delete", title = "Delete" });
+                }
+            }).Width(120);
+            //foreach (var column in Model.SelectedTableRows)
+            //{
+
+            //    columns.Bound(column.ColumnName).Title(column.HeaderName);
+
+            //}
+            columns.Bound(x => x.Id).Visible(false);
+            columns.Bound(x => x.ServiceNo);
+            columns.Bound(x => x.ServiceSubject);
+            //columns.Bound(x=>x.TaskDescription);
+            columns.Bound(x => x.TemplateCode).Title("Template Name");
+            //columns.Bound(x=>x.TemplateCategoryCode);
+            columns.Bound(x => x.CreatedByUserName);
+            columns.Bound(x => x.LastUpdatedByUserName);
+            columns.Bound(x => x.Module);
+        })
+
+        //.ToolBar(toolbar =>
+        //{
+        //    if (Model.EnableCreateButton)
+        //    {
+        //        toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.CreateButtonText.ToDefaultCreateButtonText()}</button>");
+        //    }
+        //})
+        .Events(e => e.DataBound("OnDatabound_OwnerOrRequester"))
+        .Scrollable(x => x.Enabled(true))
+        //.Groupable(g => g.ShowFooter(false))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        //.AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadNtsServiceIndexPageGrid", "NtsService", new { @area = "Cms" }).Data("FilterCreatedByGrid"))
+        //.Model(model => model.Id(p => p.Id))
+        //.Group(g => g.Add(s => s.Module))
+        )
+
+        )*@
+                </div>
+            </div>
+            @*<div id="requestedByMe" class="tab-pane" role="tabpanel" aria-labelledby="requestedByMe-tab">
+                    <div class="pt-2">
+                        <button type="submit" class="btn btn-primary" onclick="return OnRequest();"><i class="fa fa-plus pr-1"></i>@Model.RequestButtonText.ToDefaultRequestButtonText()</button>
+                    </div>
+                    <div class="p-2">
+                        @(Html.Kendo().Grid<dynamic> ()
+        .Name($"kgrid_{NtsActiveUserTypeEnum.Requester}")
+        .Columns(columns =>
+        {
+            columns.Bound("Id").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.EnableEditButton)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+                }
+                if (Model.EnableDeleteButton)
+                {
+                    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                }
+            }).Width(120);
+            foreach (var column in Model.SelectedTableRows)
+            {
+
+                columns.Bound(column.ColumnName);
+
+            }
+
+        })
+
+        //.ToolBar(toolbar =>
+        //{
+        //    if (Model.EnableCreateButton)
+        //    {
+        //        toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.RequestButtonText.ToDefaultRequestButtonText()}</button>");
+        //    }
+        //})
+        //.Events(e => e.DataBound(string.Concat("OnDataBound_", Model.FieldName)))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(false)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadTaskIndexPageGrid", "Cms").Data("FilterRequestedByGrid"))
+        //.Model(model => model.Id(p => p.Id))
+
+        )
+
+        )
+
+                    </div>
+                </div>*@
+            <div id="sharedWithMe" class="tab-pane" role="tabpanel" aria-labelledby="sharedWithMe-tab">
+                <div class="pt-2 pl-2">
+                    <span class="filter-by">Filter By:<b class="pl-1 pr-1 text-primary"></b> </span>
+                    <span style="display:none;" class="filter-status">Status:<b></b></span>
+                </div>
+                <div class="p-2">
+                    <script>
+                        var columnDefs_@NtsActiveUserTypeEnum.SharedWith.ToString() = [
+                            {
+                                headerName: "Actions",
+                                field: "Id",
+                                cellRenderer: params => {
+                                    return "<div class='btn-group grid-menu' id='tree-menusharedData' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\"><i class='fas fa-ellipsis-v'></i></div>"
+                                }
+                            },
+                           {
+                                field:"ServiceNo"
+                            }
+                            ,
+                            {
+                                field: "ServiceSubject"
+                            },
+                            {
+                                field: "TemplateCode",headerName:"TemplateName"
+                            },
+                            {
+                                field: "CreatedByUserName"
+                            },
+                            {
+                                field: "LastUpdatedByUserName"
+                            },
+                            {
+                                field: "Module"
+                            }
+                        ];
+                        $(function () {
+                            GetData_kgrid_@(NtsActiveUserTypeEnum.SharedWith.ToString())();
+                              $.contextMenu({
+                                  selector: '#tree-menusharedData',
+                                trigger: 'left',
+                                build: function ($trigger, e) {
+
+
+                                    var id = $trigger.data('idvalue');
+                                    switch (0) {
+                                        case 0:
+                                            return {
+                                                callback: function (key, options) {
+                                                    switch (key) {
+
+                                                        case 'view':
+                                                            OnView(id);
+                                                            break;
+
+                                                        case 'delete':
+                                                            OnDelete(id);
+                                                            break;
+
+                                                        default:
+                                                    }
+                                                },
+                                                items: {
+                                                    @if (Model.EnableEditButton)
+                                                    {
+                                                        @:"view": { name: "Edit", icon: "fas fa-eye" },
+                                                    }
+                                                    @*@if (Model.EnableEditButton)
+                                                    {
+                                                        @:"delete": { name: "Delete", icon: "fas fa-trash" },
+                                                    }*@
+                                                }
+                                            };
+
+
+                                    }
+                                }
+                            });
+                        });
+
+                        function GetData_kgrid_@(NtsActiveUserTypeEnum.SharedWith.ToString())() {
+                            document.getElementById("kgrid_@NtsActiveUserTypeEnum.SharedWith.ToString()").innerHTML = "";
+                            var prms = FilterSharedWithGrid();
+                            var p = 'categoryCode=' + prms.categoryCode + '&templateCode=' + prms.templateCode+'&ownerType=' + prms.ownerType + '&serviceStatusCode' + prms.serviceStatusCode;
+                            gridConfig(
+                                "kgrid_@NtsActiveUserTypeEnum.SharedWith.ToString()",
+                                "/cms/NtsService/LoadNtsServiceIndexPageGrid?"+p,
+                                columnDefs_@NtsActiveUserTypeEnum.SharedWith.ToString(),
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+                    </script>
+                    <div id="kgrid_@NtsActiveUserTypeEnum.SharedWith.ToString()" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                    @*@(Html.Kendo().Grid<ServiceViewModel> ()
+        .Name($"kgrid_{NtsActiveUserTypeEnum.SharedWith}")
+        .Columns(columns =>
+        {
+            //columns.Bound("TaskId").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.EnableEditButton)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+                }
+                //if (Model.EnableDeleteButton)
+                //{
+                //    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                //}
+            }).Width(120);
+            //foreach (var column in Model.SelectedTableRows)
+            //{
+
+            //    columns.Bound(column.ColumnName).Title(column.HeaderName);
+
+            //}
+            columns.Bound(x => x.Id).Visible(false);
+            columns.Bound(x => x.ServiceNo);
+            columns.Bound(x => x.ServiceSubject);
+            //columns.Bound(x=>x.TaskDescription);
+            columns.Bound(x => x.TemplateCode).Title("Template Name");
+            //columns.Bound(x=>x.TemplateCategoryCode);
+            columns.Bound(x => x.CreatedByUserName);
+            columns.Bound(x => x.LastUpdatedByUserName);
+            columns.Bound(x => x.Module);
+        })
+
+        .ToolBar(toolbar =>
+        {
+            //if (Model.EnableCreateButton)
+            //{
+            //    toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.CreateButtonText.ToDefaultCreateButtonText()}</button>");
+            //}
+        })
+        //.Events(e => e.DataBound(string.Concat("OnDataBound_", Model.FieldName)))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(false)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadNtsServiceIndexPageGrid", "NtsService", new { @area="Cms"}).Data("FilterSharedWithGrid"))
+        //.Model(model => model.Id(p => p.Id))
+
+        )
+
+        )*@
+                    @*@(Html.Kendo().Grid<dynamic> ()
+        .Name($"kgrid_{NtsActiveUserTypeEnum.SharedWith}")
+        .Columns(columns =>
+        {
+            columns.Bound("ServiceId").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.EnableEditButton)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+                }
+                //if (Model.EnableDeleteButton)
+                //{
+                //    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                //}
+
+            }).Width(120);
+            //foreach (var column in Model.SelectedTableRows)
+            //{
+
+            //    columns.Bound(column.ColumnName).Title(column.HeaderName);
+
+            //}
+
+        })
+
+        .ToolBar(toolbar =>
+        {
+            //if (Model.EnableCreateButton)
+            //{
+            //    toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.CreateButtonText.ToDefaultCreateButtonText()}</button>");
+            //}
+        })
+
+        //.Events(e => e.DataBound(string.Concat("OnDataBound_", Model.FieldName)))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(false)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadNtsServiceIndexPageGrid", "NtsService", new { area = "Cms" }).Data("FilterSharedWithGrid"))
+        //.Model(model => model.Id(p => p.Id))
+
+        )
+
+        )*@
+
+                </div>
+            </div>
+            <div id="sharedByMe" class="tab-pane" role="tabpanel" aria-labelledby="sharedByMe-tab">
+                <div class="pt-2 pl-2">
+                    <span class="filter-by">Filter By:<b class="pl-1 pr-1 text-primary"></b> </span>
+                    <span style="display:none;" class="filter-status">Status:<b></b></span>
+                </div>
+                <div class="p-2">
+                    <script>
+                        var columnDefs_@NtsActiveUserTypeEnum.SharedBy.ToString() = [
+                            {
+                                headerName: "Actions",
+                                field: "Id",
+                                cellRenderer: params => {
+                                    return "<div class='btn-group grid-menu' id='tree-SharedBy' data-idvalue='" + params.value + "' data-status=\"0\" data-status='" + params.data.NoteStatusCode + "'><i class='fas fa-ellipsis-v'></i></div>";
+                                }
+                            },
+                            {
+                                field:"ServiceNo"
+                            }
+                            ,
+                            {
+                                field: "ServiceSubject"
+                            },
+                            {
+                                field: "TemplateCode",headerName:"TemplateName"
+                            },
+                            {
+                                field: "CreatedByUserName"
+                            },
+                            {
+                                field: "LastUpdatedByUserName"
+                            },
+                            {
+                                field: "Module"
+                            }
+                          
+                        ];
+                        $(function () {
+                                    GetData_kgrid_@(NtsActiveUserTypeEnum.SharedBy.ToString())();
+                              $.contextMenu({
+                                  selector: '#tree-SharedBy',
+                                trigger: 'left',
+                                build: function ($trigger, e) {
+
+
+                                    var id = $trigger.data('idvalue');
+                                    var status = $trigger.data('status');
+                                            switch (0) {
+                                                case 0:
+                                                    return {
+                                                        callback: function (key, options) {
+                                                            switch (key) {
+
+                                                                case 'view':
+                                                                    OnView(id, status);
+                                                                    break;
+
+                                                                case 'delete':
+                                                                    OnDelete(id);
+                                                                    break;
+
+                                                                default:
+                                                            }
+                                                        },
+                                                items: {
+                                                            @if (Model.EnableEditButton)
+                                                    {
+                                                        @:"view": { name: "Edit", icon: "fas fa-pencil" },
+                                                    }
+                                                   
+                                                }
+                                            };
+
+
+                                    }
+                                }
+                            });
+                        });
+
+                        function GetData_kgrid_@(NtsActiveUserTypeEnum.SharedBy.ToString())() {
+                            document.getElementById("kgrid_@NtsActiveUserTypeEnum.SharedBy.ToString()").innerHTML = "";
+                            var prms = FilterSharedByGrid();
+                            var p = 'categoryCode=' + prms.categoryCode + '&templateCode=' + prms.templateCode + '&ownerType=' + prms.ownerType + '&serviceStatusCode' + prms.serviceStatusCode;
+                            gridConfig(
+                                "kgrid_@NtsActiveUserTypeEnum.SharedBy.ToString()",
+                                "/cms/NtsService/LoadNtsServiceIndexPageGrid?"+p,
+                                columnDefs_@NtsActiveUserTypeEnum.SharedBy.ToString(),
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+                    </script>
+                    <div id="kgrid_@NtsActiveUserTypeEnum.SharedBy.ToString()" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                    @*@(Html.Kendo().Grid<ServiceViewModel> ()
+        .Name($"kgrid_{NtsActiveUserTypeEnum.SharedBy}")
+        .Columns(columns =>
+        {
+            //columns.Bound("TaskId").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.EnableEditButton)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+                }
+                //if (Model.EnableDeleteButton)
+                //{
+                //    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                //}
+            }).Width(120);
+            //foreach (var column in Model.SelectedTableRows)
+            //{
+
+            //    columns.Bound(column.ColumnName).Title(column.HeaderName);
+
+            //}
+            columns.Bound(x => x.Id).Visible(false);
+            columns.Bound(x => x.ServiceNo);
+            columns.Bound(x => x.ServiceSubject);
+            //columns.Bound(x=>x.TaskDescription);
+            columns.Bound(x => x.TemplateCode).Title("Template Name");
+            //columns.Bound(x=>x.TemplateCategoryCode);
+            columns.Bound(x => x.CreatedByUserName);
+            columns.Bound(x => x.LastUpdatedByUserName);
+            columns.Bound(x => x.Module);
+        })
+
+        .ToolBar(toolbar =>
+        {
+            //if (Model.EnableCreateButton)
+            //{
+            //    toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.CreateButtonText.ToDefaultCreateButtonText()}</button>");
+            //}
+        })
+        //.Events(e => e.DataBound(string.Concat("OnDataBound_", Model.FieldName)))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(false)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadNtsServiceIndexPageGrid", "NtsService", new { @area = "Cms" }).Data("FilterSharedByGrid"))
+        //.Model(model => model.Id(p => p.Id))
+
+        )
+
+        )*@
+                    @*@(Html.Kendo().Grid<dynamic> ()
+        .Name($"kgrid_{NtsActiveUserTypeEnum.SharedBy}")
+        .Columns(columns =>
+        {
+            columns.Bound("ServiceId").Visible(false);
+            var c = columns.Command(command =>
+            {
+                if (Model.EnableEditButton)
+                {
+                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnView").HtmlAttributes(new { @class = "action-icon" });
+                }
+                //if (Model.EnableDeleteButton)
+                //{
+                //    command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon" });
+                //}
+            }).Width(120);
+            //foreach (var column in Model.SelectedTableRows)
+            //{
+
+            //    columns.Bound(column.ColumnName).Title(column.HeaderName);
+
+            //}
+
+        })
+
+        .ToolBar(toolbar =>
+        {
+            //if (Model.EnableCreateButton)
+            //{
+            //    toolbar.ClientTemplate($"<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;{Model.CreateButtonText.ToDefaultCreateButtonText()}</button>");
+            //}
+        })
+        //.Events(e => e.DataBound(string.Concat("OnDataBound_", Model.FieldName)))
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(false)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+
+        //.Events(events => events.Error("OnError"))
+        .Read(read => read.Action("LoadNtsServiceIndexPageGrid", "NtsService",new { area = "Cms" }).Data("FilterSharedByGrid"))
+        //.Model(model => model.Id(p => p.Id))
+
+        )
+
+        )*@
+
+                </div>
+            </div>
+        </div>
+        @(Html.Kendo().Dialog()
+        .Name("confirmDelete")
+        .Title("Confirm Delete")
+        .Content(Model.DeleteConfirmationMessage)
+        .Width(400)
+        .Modal(true)
+        .Visible(false)
+        .Actions(actions =>
+        {
+            actions.Add().Text("Cancel");
+            actions.Add().Text("Continue Delete").Primary(true).Action("ConfirmDelete");
+        }))
+    </div>
+</div>
+

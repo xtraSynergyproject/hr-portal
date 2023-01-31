@@ -1,0 +1,105 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using System.Web;
+@model BLSApplicantViewModel
+@{
+    ViewBag.Title = "Payment Confirmation";
+    Layout = null;
+}
+@inject IUserContext usercontext;
+
+<style>
+    .text-success{
+        color:green;
+    }
+</style>
+<script>
+    var btnId = "";
+    function FillApplication() {
+
+        debugger;
+        var portalId = $('#GlobalPortalId').val();
+
+        //var prms = encodeURIComponent('parentServiceId=' + '&sequenceOrder=' + order);
+        var udfs = encodeURIComponent('AppointmentId=@Model.AppointmentId&Surname=@Model.LastName&FirstName=@Model.FirstName&ApplicantsEmailId=@Model.ApplicantEmail&DateOfBirth=@Model.DateOfBirth&ApplicationStatusId=@ViewBag.ApplicationStatus&TelephoneNo=@Model.CurrentContactNumber');
+        var roudfs = encodeURIComponent('AppointmentId=true');
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&pageType=Service&source=Create&dataAction=Create&templateCodes=BLS_VISA_SCHENGEN&portalId=' + portalId + '&udfs=' + udfs + '&roudfs=' + roudfs;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Application', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function ViewAppointmentReceipt() {
+        debugger;
+        window.location.href = "/Portal/BLSCustomer/AppointmentReceipt?prms=serviceId=@ViewBag.ServiceId";
+        return false;
+    }
+
+    function FillVisaApplication(serId,fname,lname,email,dob,appstatus,conNumber) {
+        debugger;
+        btnId = serId;
+        var portalId = $('#GlobalPortalId').val();
+                
+        var udfs = encodeURIComponent('Surname=' + lname + '&FirstName=' + fname + '&ApplicantsEmailId=' + email + '&DateOfBirth=' + dob + '&ApplicationStatusId=' + appstatus + '&TelephoneNo=' + conNumber);
+        var roudfs = encodeURIComponent('AppointmentId=true');
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterService&pageType=Service&source=Edit&dataAction=Edit&templateCodes=BLS_VISA_SCHENGEN&portalId=' + portalId + '&udfs=' + udfs + '&roudfs=' + roudfs + '&recordId='+serId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Fill Visa Application', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function OnAfterService() {
+        //$('#' + btnId).prop('disabled', true);
+        ShowNotification("Application Saved Successfully", "success");
+    }
+</script>
+
+<div class="row" style="background-color:#fff;text-align:center;padding-top:50px;height:100vh;">
+    <div class="col-12">
+        <h5 class="text-success" style="font-weight:600;">Your payment has been completed successfully</h5>
+        <br />
+        <br />
+
+        <div class="row">
+            <div class="col-12">
+                <button class="btn btn-primary" onclick="ViewAppointmentReceipt();">View Appointment Receipt</button>
+            </div>
+            @*<div class="col-6">
+                <button class="btn btn-primary" onclick="FillApplication();">Fill Application</button>
+            </div>*@
+        </div>
+        <br />
+        <br />
+        <div>
+            <table class="table" id="fillApplication">
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name </th>
+                        <th>Date Of Birth </th>
+                        <th>Passport No </th>
+                        <th>Action </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < ViewBag.VisaApplicationList.Count; i++)
+                    {
+                        <tr>
+                            <td class="align-middle"> @ViewBag.VisaApplicationList[i].FirstName </td>
+                            <td class="align-middle"> @ViewBag.VisaApplicationList[i].LastName </td>
+                            <td class="align-middle"> @ViewBag.VisaApplicationList[i].DateOfBirthT </td>
+                            <td class="align-middle"> @ViewBag.VisaApplicationList[i].PassportNo </td>
+                            <td class="align-middle"> <button class="btn btn-primary" id="@ViewBag.VisaApplicationList[i].ApplicationServiceId" onclick="FillVisaApplication('@ViewBag.VisaApplicationList[i].ApplicationServiceId','@ViewBag.VisaApplicationList[i].FirstName','@ViewBag.VisaApplicationList[i].LastName','@ViewBag.VisaApplicationList[i].ApplicantEmail','@ViewBag.VisaApplicationList[i].DateOfBirth','@ViewBag.ApplicationStatus','@ViewBag.VisaApplicationList[i].CurrentContactNumber');">Fill Application</button> </td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>

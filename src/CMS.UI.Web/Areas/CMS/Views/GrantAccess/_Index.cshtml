@@ -1,0 +1,238 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+@model GrantAccessViewModel
+@{
+    ViewBag.Title = "Manage GrantAccess";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+<script>
+      var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(GrantStatusEnum)))';
+    var statusObj = JSON.parse(status);
+       var columnDefs = [
+        {
+            field: "UserName",
+
+           },
+           {
+               field: "StartDate",
+               cellRenderer: params => {
+
+                   var date = new Date(params.value);
+                   return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+               }
+           },
+           {
+               field: "EndDate",
+               cellRenderer: params => {
+
+                   var date = new Date(params.value);
+                   return date.getDate() + "/" + (date.getMonth()+1) + "/" + date.getFullYear();
+               }
+           },
+           {
+               field: "GrantStatus",
+               cellRenderer: params => {
+                   return statusObj[params.value]; //only for enum
+               }
+           },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBin' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    $(function () {
+
+        getAccessData();
+
+       // $.contextMenu('update');
+      //  $('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-menuBin',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEdit(id);
+                                        break;
+
+                                    case 'delete':
+                                        OnDeletePageDetails(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                               // "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+    function getAccessData() {
+        document.getElementById("kgrdGrantAccess").innerHTML = "";
+        gridConfig(
+            "kgrdGrantAccess",
+            "/cms/GrantAccess/ReadGrantAccessData",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<div id="appWrapper">   
+    <div>
+        <div class="row">
+            <div class="col-12">
+                <button type='button' class='btn btn-primary' onclick='OnAdd();'><i class='fa fas fa-plus'></i>&nbsp;Add User</button>
+                <br /><br />
+                <div id="kgrdGrantAccess" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            </div>
+        </div>
+        @*@(Html.Kendo().Grid<GrantAccessViewModel>
+                            ().Name("kgrdGrantAccess")
+                            .Columns(col =>
+                            {
+                                col.Bound(c => c.UserName);
+                                col.Bound(c => c.StartDate).Width(150).Format("{0:dd MMM yyyy}");
+                                col.Bound(c => c.EndDate).Width(150).Format("{0:dd MMM yyyy}");
+                                col.Bound(c => c.GrantStatus);
+                                col.Command(command =>
+                                {
+                                    command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon" });
+                                }).Title("Action").Width(100);
+
+                            })
+                            .ToolBar(toolbar =>
+                            {
+                                toolbar.Custom().Text("Add User").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAdd();" });
+                            })
+                            //.Events(e => e.DataBound("OnDataBound"))
+                            .Scrollable(x => x.Enabled(false))
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(false))
+                            .Filterable(f => f.Extra(false)
+                                    .Operators(o => o.ForString(s => s.Clear()
+                                    .Contains("Contains")
+                                    .IsEqualTo("Is equal to")
+                            )))
+                            .Pageable(pageable => pageable
+                            .Refresh(true)
+                            .PageSizes(true)
+                            .ButtonCount(5))
+                            .AutoBind(true)
+                            .DataSource(
+                            dataSource => dataSource
+                            .Ajax()
+                            .PageSize(10)
+                            .Read(read => read.Action("ReadGrantAccessData", "GrantAccess"))
+                            .Model(model => model.Id(p => p.Id))
+                            )
+                            .Editable(
+                            editable => editable.Mode(GridEditMode.PopUp)
+
+                            )
+
+        )*@
+
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".k-grid .k-grid-btnAdd span").addClass("k-icon k-add");
+    });
+
+    //function OnDataBound(arg) {
+
+    //    $("#kgrdGrantAccess tbody tr").each(function () {
+    //        var currentDataItem = $("#kgrdGrantAccess").data("kendoGrid").dataItem($(this));
+           
+    //    });
+    //}
+    function Close(dorefresh, mode) {
+        var wnd = $("#kiframepopupwindow").data("kendoWindow");
+        if (wnd != null) {
+            wnd.close();
+        }
+        if (dorefresh) {
+
+            if (mode == "Create") {
+                $("#kgrdGrantAccess").data("kendoGrid").dataSource.read();
+                ShowNotification("Access granted successfully", "success");
+            }
+            else if (mode == "Correct") {
+                $("#kgrdGrantAccess").data("kendoGrid").dataSource.read();
+                ShowNotification("Access granted successfully", "success");
+            }
+        }
+    }
+    function OnEnd(e) {
+        if (e.type == "destroy") {
+            if (e.response.success) {
+                ShowNotification('Deleted successfully');
+            }
+            else {
+                var msg = ExtractError(e.response.errors, true);
+                alert(msg);
+            }
+            $("#kgrdGrantAccess").data("kendoGrid").dataSource.read();
+        }
+    }
+
+    function OnEdit(id) {
+       // e.preventDefault();
+      //  var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/cms/grantAccess/Correct?Id=" + id;
+        win.OpenWindow({ Title: 'Grant User Access', Width: 600, Height: 550 });
+        return false;        
+    }
+    function OnAdd(e) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/cms/grantAccess/Create";
+        win.OpenWindow({ Title: 'Grant User Access', Width: 600, Height: 550 });
+        return false;
+    }
+    //function Revoke(e) {
+    //    var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+    //    $.ajax({
+    //        type: "POST",
+    //        url: "/admin/GrantAccess/update",
+    //        data: { 'id': dataItem.Id},
+    //        success: function (data) {
+    //            $("#kgrdGrantAccess").data("kendoGrid").dataSource.read();
+    //        },
+    //        dataType: "json",
+    //    });
+    //}
+
+</script>

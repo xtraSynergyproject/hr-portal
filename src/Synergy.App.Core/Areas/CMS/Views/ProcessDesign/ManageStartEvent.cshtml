@@ -1,0 +1,195 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model ProcessDesignVariableViewModel
+
+
+<style>
+    .k-tabstrip-wrapper {
+        height:100%;
+    }
+    .form-label-group {
+        position: relative;
+        margin-bottom: 0px;
+    }
+
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+    /*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+
+</style>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/ProcessDesign/GetColumnsList?TemplateId="+'@Model.TemplateId',
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#ColumnsView").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#eventtemplate").html())
+        });
+     });
+
+    $(document).on('mouseenter', '.divbutton', function () {
+        $(this).find(".btnins").show();
+    }).on('mouseleave', '.divbutton', function () {
+        $(this).find(".btnins").hide();
+    });
+
+
+    function closeNavPortal() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    var onAjaxSuccess = function (res) {
+
+    };
+
+    function UseEnum(fieldNameValue) {
+        var ReturnValue = "";
+        var values = [
+            { text: "Text", value: 1 },
+            { text: "Bool", value: 2 },
+            { text: "DateTime", value: 3 },
+            { text: "Integer", value: 4 },
+            { text: "Double", value: 5 },
+            { text: "Bool", value: 6 }
+        ]
+        values.forEach(function (element) {
+            if (element.value == fieldNameValue) {
+                ReturnValue = element.text
+            }
+        });
+        return ReturnValue;
+    }
+
+</script>
+<style>
+    .pd-var {
+        font-size: small;
+        border: 1px solid #007bff;
+        border-left: 8px solid #007bff;
+        padding: 3px;
+        border-radius: 3px;
+    }
+
+    .pd-var-icon {
+        font-size: small;
+        background-color: #007bff;
+        color: #fff;
+        border-bottom-color: #007bff;
+        border-top-color: #007bff;
+        border-left-color: #007bff;
+        border-bottom-left-radius: 3px;
+        border-top-left-radius: 3px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-right: 6px;
+        padding-left: 6px;
+    }
+
+    .pd-var-text {
+        
+    }
+</style>
+<div class="pad-15">
+
+    @*<input type="button" value="Create Variable" onclick="OpenCreateVariablepopup();" class="btn btn-light" />*@
+    <div class="col-12 pad-15">
+        @*@(Html.Kendo().ListView<ProcessDesignVariableViewModel>()
+                    .Name("ColumnsView")
+                    .TagName("div")
+                    .ClientTemplateId("eventtemplate")
+                    //.AutoBind(true)
+                    .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Read(read => read.Action("GetColumnsList", "ProcessDesign", new { @area = "Cms", @TemplateId = @Model.TemplateId}))
+                    .PageSize(21)
+                    )                    
+            )*@
+
+        <div id="ColumnsView"></div>
+    </div>
+
+    <script type="text/x-kendo-tmpl" id="eventtemplate">
+        <div class="row col-12 divbutton" style="margin:5px;">
+
+             <div class="col-6">
+             <span>#:Name#</span>
+             </div>
+
+            <div class="col-3">
+                 <input type="button" style="display: none;" class="btn btn-primary btnins" value="Insert">
+            </div>
+            <div class="col-3">
+                 <span>#:UseEnum(DataType)#</span>
+            </div>
+        </div>
+    </script>
+</div>

@@ -1,0 +1,208 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "File Upload";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@*<link href="~/js/tus/app.progress.css" rel="stylesheet" />*@
+<style>
+    body {
+        padding-top: 40px;
+    }
+
+    .progress {
+        height: 32px;
+    }
+
+    a.btn {
+        margin-bottom: 2px;
+    }
+</style>
+<div style="margin-top:80px;">
+    <div style="display:none;">
+        <div></div>
+        <div>
+            <div role="progressbar"
+                 aria-valuemin="0" aria-valuemax="100">
+                <span></span>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div>
+            <input name="file" id="file" type="file" />
+        </div>
+    </div>
+    <div>
+        <div>
+            <input id="submit" type = "submit" value = "Upload" />
+            <input type = "button" id="pause" value = "pause" />
+            <input type = "button" id="continue" value = "continue" />
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        var upload;
+
+        //Upload
+        $('#submit').click(function () {
+            debugger;
+            $('#progress-group').show();
+
+            var file = $('#file')[0].files[0];
+
+            //Create tus upload object
+            upload = new tus.Upload(file, {                
+                //File server upload endpoint address settings
+                endpoint: "https://localhost:44398/files",                
+                //Retrying delay settings
+                retryDelays: [0, 3000, 5000, 10000, 20000],
+                //Metadata required by attachment server
+                metadata: {
+                    name: file.name,
+                    contentType: file.type || 'application/octet-stream',
+                    emptyMetaKey: ''
+                },
+                //Callback errors that cannot be resolved by retrying
+                onError: function (error) {
+                    console.log("Failed because: " + error)
+                },
+                //Upload progress callback
+                onProgress: onProgress,
+                //Callback after upload
+                onSuccess: function () {
+                    console.log("Download %s from %s", upload.file.name, upload.url)
+                }
+            })
+
+            upload.start()
+        });
+
+        //Pause
+        $('#pause').click(function () {
+            upload.abort()
+        });
+
+        //Continue
+        $('#continue').click(function () {
+            upload.start()
+        });
+
+        //Upload进度展示
+        function onProgress(bytesUploaded, bytesTotal) {
+            var percentage = (bytesUploaded / bytesTotal * 100).toFixed(2);
+            $('#progress').attr('aria-valuenow', percentage);
+            $('#progress').css('width', percentage + '%');
+
+            $('#percentage').html(percentage + '%');
+
+            var uploadBytes = byteToSize(bytesUploaded);
+            var totalBytes = byteToSize(bytesTotal);
+
+            $('#size').html(uploadBytes + '/' + totalBytes);
+        }
+
+        //Convert bytes to byte, KB, MB, etc
+        function byteToSize(bytes, separator = '', postFix = '') {
+            if (bytes) {
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.min(parseInt(Math.floor(Math.log(bytes) / Math.log(1024)).toString(), 10), sizes.length - 1);
+                return `${(bytes / (1024 ** i)).toFixed(i ? 1 : 0)}${separator}${sizes[i]}${postFix}`;
+            }
+            return 'n/a';
+        }
+    });
+
+</script>
+@*<div class="container">
+    <h1>tus-js-client demo - File Upload</h1>
+
+    <p>
+        This demo shows the basic functionality of the tus protocol. You can select a file using the controls below and start/pause the upload as you wish.
+    </p>
+
+    <p>
+        For a prettier demo please go to the
+        <a href="http://tus.io/demo.html">tus.io</a> website.
+        This demo is just here to aid developers.
+    </p>
+
+    <p>
+        A demo where a video is recorded from your webcam while being simultaneously uploaded, can be found <a href="./video.html">here</a>.
+    </p>
+
+    <div class="alert alert-warining hidden" id="support-alert">
+        <b>Warning!</b> Your browser does not seem to support the features necessary to run tus-js-client. The buttons below may work but probably will fail silently.
+    </div>
+
+    <br>
+
+    <table>
+        <tr>
+            <td>
+                <label for="endpoint">
+                    Upload endpoint:
+                </label>
+            </td>
+            <td>
+                <input type="text" id="endpoint" name="endpoint" value="https://tusd.tusdemo.net/files/">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="chunksize">
+                    Chunk size (bytes):
+                </label>
+            </td>
+            <td>
+                <input type="number" id="chunksize" name="chunksize">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="paralleluploads">
+                    Parallel upload requests:
+                </label>
+            </td>
+            <td>
+                <input type="number" id="paralleluploads" name="paralleluploads" value="1">
+            </td>
+        </tr>
+    </table>
+
+    <br>
+
+    <input type="file">
+
+    <br>
+    <br>
+
+    <div class="row">
+        <div class="span8">
+            <div class="progress progress-striped progress-success">
+                <div class="bar" style="width: 0%;"></div>
+            </div>
+        </div>
+        <div class="span4">
+            <button class="btn stop" id="toggle-btn">start upload</button>
+        </div>
+    </div>
+
+    <hr>
+    <h3>Uploads</h3>
+    <p id="upload-list">
+        Succesful uploads will be listed here. Try one!
+    </p>
+
+</div>*@
+
+
+<script src="~/js/tus/tus.min.js"></script>
+@*<script src="~/js/tus/demo.js"></script>*@
+
+
+
+

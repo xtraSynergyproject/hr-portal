@@ -1,0 +1,884 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.TAA.Controllers.AttendanceController> Resource
+@using Synergy.App.ViewModel;
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.Extensions;*@
+@model AttendanceViewModel
+@{
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+    ViewBag.Title = "Attendance For Payroll Post";
+}
+<style>
+    /*.normal1 {
+        background-color: #e6f2ff;
+        border-color: #e6f2ff;
+    }*/
+
+    .leave {
+        background-color: lightpink;
+        border-color: #c6ecd9;
+        border-bottom: solid 1px rgb(222,222,224) !important;
+    }
+
+    .normal {
+        background-color: #c6ecd9;
+        border-color: #ffd9b3;
+        border-bottom: solid 1px rgb(222,222,224) !important;
+    }
+
+    .dayoff {
+        background-color: lightgrey;
+        border-color: #e6f2ff;
+        border-bottom: solid 1px rgb(222,222,224) !important;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#PayrollGroupId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+	    optionLabel:"@ApplicationConstant.PlaceHolder_AllOption",
+            change: OnChange,
+            value:'@Model.PayrollGroupId',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Pay/PayrollBatch/ReadPayrollGroupList",
+                    }
+                }
+            }
+        });
+
+         $("#OrganizationId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            change: OnOrgChange,
+            value:'@Model.OrganizationId',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Taa/Attendance/GetIdNameListWithLegalEntityAsAllOption",
+                    }
+                }
+            }
+        });
+
+         $("#SearchMonth").kendoDropDownList({
+                                    optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                    filter: "contains",
+                                    dataTextField: "Text",
+                                    dataValueField: "Value",
+                                    value:'@Model.SearchMonth',
+                                    dataSource: [
+
+                                        { Text : "Jan", Value : "1" },
+                                                { Text: "Feb", Value: "2" },
+                                                { Text: "Mar", Value: "3" },
+                                                { Text: "Apr", Value: "4" },
+                                                { Text: "May", Value: "5" },
+                                                { Text: "Jun", Value: "6" },
+                                                { Text: "Jul", Value: "7" },
+                                                { Text: "Aug", Value: "8" },
+                                                { Text: "Sep", Value: "9" },
+                                                { Text: "Oct", Value: "10" },
+                                                { Text: "Nov", Value: "11" },
+                                                { Text: "Dec", Value: "12" },
+
+                                        ],
+
+                                 });
+
+
+        $("#btnSearch").click(function () {
+            //var search = FilterGrid();
+           // $("#kgrdAttendance").data("kendoGrid").dataSource.read(search);
+            OnChange();
+        })
+
+        if (localStorage["Org-options"] != null) {
+            $("#OrganizationId").data("kendoDropDownList").value(localStorage["Org-options"]);
+            $("#OrganizationId").val(localStorage["Org-options"]);
+        }
+        //var url = window.location.href;
+        //if (url.indexOf("isRepeat=1")==-1) {
+        //    OnChange();
+        //}
+
+
+        //var gridData = $("#kgrdAttendance").data("kendoGrid");
+
+        //var search = FilterGrid();
+        //gridData.dataSource.read(search);
+
+    });
+    $(".checkboxAll").bind("change", function (e) {
+        if ($(this).attr('checked')) {
+            $('.checkboxAll').removeAttr('checked');
+            $('.checkbox').prop('checked', false);
+            $(".checkbox").closest("td").removeClass("k-state-selected");
+        } else {
+            $('input.checkbox[type=checkbox]').each(function (e) {
+                if (!this.disabled) {
+                    $('.checkboxAll').attr('checked', 'checked');
+                    $(this).prop('checked', true);
+                    $(this).closest("td").addClass("k-state-selected");
+                }
+            });
+            //$('.checkboxAll').attr('checked', 'checked');
+            //$('.checkbox').prop('checked', true);
+            //$(".checkbox").closest("td").addClass("k-state-selected");
+        }
+        });
+        function FilterGrid() {
+            return {
+                payrollGroupId: $("#PayrollGroupId").val(),
+                startMonth: $("#SearchMonth").val(),
+                orgId: localStorage["Org-options"],
+                year: $("#Year").val(),
+            };
+    }
+
+    function OnChange() {
+        var pay = $("#PayrollGroupId").val();
+        var orgId = $("#OrganizationId").val();
+        var date = $("#SearchMonth").val();
+        var year = $("#Year").val();
+        var url = "/taa/attendance/AttendancePostToPayroll?&payrollGroupId=" + pay + "&startMonth=" + date + "&Year=" + year + "&orgId=" + orgId;
+        //window.location.href = url;
+        LoadPartailView(url, $('#cms-content'));
+    }
+    function OnOrgChange() {
+
+        var orgId = $("#OrganizationId").val();
+        localStorage["Org-options"] = orgId;
+    }
+
+    function OnDateChange(e) {
+
+        var orgId = $("#OrganizationId").val();
+        var date = $("#SearchDate").val();
+
+        if (orgId == '') {
+            orgId = 0;
+        }
+        var url = "/taa/attendance/AttendancePostToPayroll?orgId=" + orgId + "&date=" + date;
+        window.location.href = url;
+
+    }
+
+     function OnRowSelection(element) {
+
+            $('input.checkbox[type=checkbox]').each(function (e) {
+                if (this.checked) {
+                    $(this).closest("td").addClass("k-state-selected");
+                }
+            });
+            var isChecked = $(element).prop('checked');
+            if (isChecked) {
+                $(element).prop('checked', true);
+                $(element).closest("td").addClass("k-state-selected");
+            }
+            else {
+                $(element).prop('checked', false);
+                $(element).closest("td").removeClass("k-state-selected");
+            }
+         var numChkBoxes = $('#kgrdAttendance input[type=checkbox][class=checkbox]').length;
+         var numChkBoxesChecked = $('#kgrdAttendance tbody input:checkbox:checked').length;
+            if (numChkBoxes == numChkBoxesChecked && numChkBoxes > 0) {
+                $('.checkboxAll').prop('checked', true);
+            }
+            else {
+
+                $('.checkboxAll').prop('checked', false);
+            }
+
+
+
+    }
+
+    function OnDataBound2(arg) {
+        var grid = $("#kgrdAttendance").data("kendoGrid");
+        var index = grid.wrapper.find(".k-grid-header [data-field=Total]").index();
+
+        var rows = grid.tbody.children();
+        for (var j = 0; j < rows.length; j++) {
+            var row = $(rows[j]);
+            var data = grid.dataItem(row);
+
+            for (var m = 2; m < index; m++)
+            {
+                var post = false;
+                if (m == 2 && data.P1)
+                    post = true;
+                else if (m == 3 && data.P2)
+                    post = true;
+                else if (m == 4 && data.P3)
+                    post = true;
+                else if (m == 5 && data.P4)
+                    post = true;
+                else if (m == 6 && data.P5)
+                    post = true;
+                else if (m == 7 && data.P6)
+                    post = true;
+                else if (m == 8 && data.P7)
+                    post = true;
+                else if (m == 9 && data.P8)
+                    post = true;
+                else if (m == 10 && data.P9)
+                    post = true;
+                else if (m == 11 && data.P10)
+                    post = true;
+                else if (m == 12 && data.P11)
+                    post = true;
+                else if (m == 13 && data.P12)
+                    post = true;
+                else if (m == 14 && data.P13)
+                    post = true;
+                else if (m == 15 && data.P14)
+                    post = true;
+                else if (m == 16 && data.P15)
+                    post = true;
+                else if (m == 17 && data.P16)
+                    post = true;
+                else if (m == 18 && data.P17)
+                    post = true;
+                else if (m == 19 && data.P18)
+                    post = true;
+                else if (m == 20 && data.P19)
+                    post = true;
+                else if (m == 21 && data.P20)
+                    post = true;
+                else if (m == 22 && data.P21)
+                    post = true;
+                else if (m == 23 && data.P22)
+                    post = true;
+                else if (m == 24 && data.P23)
+                    post = true;
+                else if (m == 25 && data.P24)
+                    post = true;
+                else if (m == 26 && data.P25)
+                    post = true;
+                else if (m == 27 && data.P26)
+                    post = true;
+                else if (m == 28 && data.P27)
+                    post = true;
+                else if (m == 29 && data.P28)
+                    post = true;
+                else if (m == 30 && data.P29)
+                    post = true;
+                else if (m == 31 && data.P30)
+                    post = true;
+                else if (m == 32 && data.P31)
+                    post = true;
+
+                if (post) {
+                    var day = row.children().eq(m);
+                    day.removeClass();
+                    day.addClass('normal');
+                }
+            }
+        }
+
+        //$('td').each(function () { if ($(this).val()) { $(this).addClass('normal') } });
+        //$('td').each(function () { if ($(this).index() == 1 || $(this).index() == index) { $(this).removeClass() } });
+
+        //$("#kgrdAttendance tbody tr").each(function () {
+        //    var currentDataItem = $("#kgrdAttendance").data("kendoGrid").dataItem($(this));
+        //    var update = $(this).find(".k-grid-Edit");
+
+        //    if (currentDataItem.Id == 0 || currentDataItem.IsOverridden) {
+        //        update.remove();
+        //    }
+
+
+        //});
+
+
+        $(".checkbox").bind("change", function (e) {
+            OnRowSelection(e.target);
+        });
+
+        $(".canEdit").bind("click", function (e) {
+            OnEditSelection(e.target);
+        });
+
+        //     var grid = $("#kgrdAttendance").data("kendoGrid");
+        //localStorage["kendo-grid-options"] = kendo.stringify(grid.getOptions());
+    }
+   // function OnEditSelection(element) {
+        //var grid = $("#kgrdAttendance").data("kendoGrid");
+
+       // alert($(element).val());
+        //var isChecked = $(element).prop('checked');
+
+       // dataItem = grid.dataItem($(element).closest("tr"));
+       // dataItem.set("OverrideAttendanceText", $(element).val());
+
+
+//   }
+    function OnSuccess(response) {
+        if (response.success) {
+            kendo.alert("Posted Successfully");
+            var search = FilterGrid();
+            $("#kgrdAttendance").data("kendoGrid").dataSource.read(search);
+        }
+        else {
+            //var msg = ExtractError(response.errors);
+            //alert(response.errors);
+            kendo.alert(response.errors);
+            //ShowErrors(response.errors);
+        }
+    }
+    function OnCancel(e) {
+        window.location.href = "/hrs/userhierarchy";
+        return true;
+    }
+    function OnChart(e) {
+        //var posId = $("#PositionId").data("kendoDropDownList").value();
+        var posId = $("#PositionId").val();
+        if (posId == null || posId == 0) {
+            posId = $("#ParentPositionId").val();
+        }
+        var param = this.element.attr("param");
+        url = decodeURI(param) + "&posId=" + posId;
+        window.location.href = url;
+        return true;
+    }
+    function OnUpdate() {
+
+        var users = '';
+
+        var startDate = $("#SearchStart").val();
+        var endDate = $("#SearchEnd").val();
+
+        //var grid = $("#kgrdAttendance").data("kendoGrid");
+        //grid.tbody.find("input:checked").closest("tr").each(function (index) {
+        //    users = users + grid.dataItem(this).UserId + ',';
+        //});
+        var grid = $("#kgrdAttendance").data("JSGrid");
+        grid.updateItem();
+        var arr = $("#kgrdAttendance").data("JSGrid").data;
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].Select == true) {
+                users = users + arr[i].UserId + ',';
+
+            }
+
+        }
+        if (users == '' || users == ',') {
+            alert("Please Select atleast one user from the grid");
+        }
+        else {
+
+            $.ajax({
+                type: "POST",
+                url: "/taa/attendance/PostAttendanceToPayroll",
+                data: { 'personIds': users, 'startDate': startDate, 'endDate': endDate },
+                success: function (data) {
+                    OnSuccess(data);
+                },
+                dataType: "json",
+            });
+
+
+        }
+
+    }
+
+    function OnEdit(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+       
+        var url = "/taa/attendance/OverrideAttendance?id=" + dataItem.Id + "&userId=" + dataItem.UserId + "&empName=" + dataItem.EmployeeName;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "@Html.Raw(Resource["OverrideAttendance"])", Width: 1000, Height: 450 });
+        return false;
+
+    }
+
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+        }
+    function Close(dorefresh, mode) {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        if (dorefresh) {
+
+            $("#kgrdAttendance").data("kendoGrid").dataSource.read();
+            ShowNotification('UpdateSuccess');
+
+        }
+    }
+    function OnEditSelection(element) {
+        var grid = $("#kgrdAttendance").data("kendoGrid");
+
+        var dataItem = grid.dataItem($(element).closest("tr"));
+
+
+        var colIdx = $(element).closest("td").index();
+        if (colIdx == 4) {
+            startDate = dataItem.A1;
+            Id = dataItem.Id1;
+        }
+        if (colIdx == 5) {
+            startDate = dataItem.A2;
+            Id = dataItem.Id2;
+        }
+        if (colIdx == 6) {
+            startDate = dataItem.A3;
+            Id = dataItem.Id3;
+        }
+        if (colIdx == 7) {
+            startDate = dataItem.A4;
+            Id = dataItem.Id4;
+        }
+        if (colIdx == 8) {
+            startDate = dataItem.A5;
+            Id = dataItem.Id5;
+        }
+        if (colIdx == 9) {
+            startDate = dataItem.A6;
+            Id = dataItem.Id6;
+        }
+        if (colIdx == 10) {
+            startDate = dataItem.A7;
+            Id = dataItem.Id7;
+        }
+        if (colIdx == 11) {
+            startDate = dataItem.A8;
+            Id = dataItem.Id8;
+        }
+        if (colIdx == 12) {
+            startDate = dataItem.A9;
+            Id = dataItem.Id9;
+        }
+        if (colIdx == 13) {
+            startDate = dataItem.A10;
+            Id = dataItem.Id10;
+        }
+        if (colIdx == 14) {
+            startDate = dataItem.A11;
+            Id = dataItem.Id11;
+        }
+        if (colIdx == 15) {
+            startDate = dataItem.A12;
+            Id = dataItem.Id12;
+        }
+        if (colIdx == 16) {
+            startDate = dataItem.A13;
+            Id = dataItem.Id13;
+        }
+        if (colIdx == 17) {
+            startDate = dataItem.A14;
+            Id = dataItem.Id14;
+        }
+        if (colIdx == 18) {
+            startDate = dataItem.A15;
+            Id = dataItem.Id15;
+        }
+        if (colIdx == 19) {
+            startDate = dataItem.A16;
+            Id = dataItem.Id16;
+        }
+        if (colIdx == 20) {
+            startDate = dataItem.A17;
+        Id = dataItem.Id17;
+        }
+        if (colIdx == 21) {
+            startDate = dataItem.A18;
+            Id = dataItem.Id18;
+        }
+        if (colIdx == 22) {
+            startDate = dataItem.A19;
+            Id = dataItem.Id19;
+        }
+        if (colIdx == 23) {
+            startDate = dataItem.A20;
+            Id = dataItem.Id20;
+        }
+        if (colIdx == 24) {
+            startDate = dataItem.A21;
+            Id = dataItem.Id21;
+        }
+        if (colIdx == 25) {
+            startDate = dataItem.A22;
+            Id = dataItem.Id22;
+        }
+        if (colIdx == 26) {
+            startDate = dataItem.A23;
+            Id = dataItem.Id23;
+        }
+        if (colIdx == 27) {
+            startDate = dataItem.A24;
+            Id = dataItem.Id24;
+        }
+        if (colIdx == 28) {
+            startDate = dataItem.A25;
+            Id = dataItem.Id25;
+        }
+        if (colIdx == 29) {
+            startDate = dataItem.A26;
+            Id = dataItem.Id26;
+        }
+        if (colIdx == 30) {
+            startDate = dataItem.A27;
+            Id = dataItem.Id27;
+        }
+        if (colIdx == 31) {
+            startDate = dataItem.A28;
+            Id = dataItem.Id28;
+        }
+        if (colIdx == 32) {
+            startDate = dataItem.A29;
+            Id = dataItem.Id29;
+        }
+        if (colIdx == 33) {
+            startDate = dataItem.A30;
+            Id = dataItem.Id30;
+        }
+        if (colIdx == 34) {
+            startDate = dataItem.A31;
+            Id = dataItem.Id31;
+        }
+
+        if(Id==null)
+         Id = "";
+        @*var date = kendo.toString(kendo.parseDate(startDate), '@Constant.Annotation.DefaultDateFormatOnly');*@
+        var date = kendo.toString(kendo.parseDate(startDate), 'dd MMM yyyy');
+
+       
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/taa/attendance/UpdateAttendance?id=" + Id + "&userId=" + dataItem.UserId + "&empName=" + dataItem.EmployeeName + "&date=" + date;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["UpdateAttendance"])', Width: 500, Height: 600 });
+        return false;
+    }
+    function OnCloseUpdateAttendance() {
+        var search = FilterGrid();
+        $("#kgrdAttendance").data("kendoGrid").dataSource.read(search);
+    }
+    function RefreshGrid() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        $("#kgrdAttendance").data("kendoGrid").dataSource.read();
+    }
+    function OnError(e) {
+        //alert(e.toString());
+    }
+</script>
+
+<div id="appWrapper">
+    <div class="formHeader">
+        @*<h4>
+                @ViewBag.Title
+            </h4>*@
+    </div>
+    <div class="row no-gutter hr-pad-top-bot-5">
+        <div class="form-group col-xs-12 col-sm-3">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Resource["PayrollGroup"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(x => x.PayrollGroupId)
+        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+        .SelectedIndex(2)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("ReadPayrollGroupList", "PayrollBatch", new { area = "Pay" });
+            });
+        })
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .Filter(FilterType.Contains)
+        .AutoBind(true)
+        //.Events(e => e.Change("OnOrgChange"))
+        .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input id="PayrollGroupId" class="hr-xx-large" />
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-sm-3">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Resource["Department"]
+
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(x => x.OrganizationId)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetIdNameListWithLegalEntityAsAllOption", "Attendance", new { area = "Taa" });
+            });
+        })
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .Filter(FilterType.Contains)
+        .Events(e => e.Change("OnOrgChange"))
+        .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input id="OrganizationId" class="hr-xx-large" />
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-sm-2">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Resource["SearchMonth"]
+            </div>
+            <div class="col-lg-12">
+                <input id="SearchMonth" class="hr-large" />
+                @*@(Html.Kendo().DropDownListFor(x => x.SearchMonth)
+        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+        //.Events(e => e.Change("OnChange"))
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .HtmlAttributes(new { @class = "hr-large" })
+        .BindTo(new List<SelectListItem>() {
+            new SelectListItem() { Text = "Jan", Value = "1"},
+            new SelectListItem() { Text = "Feb", Value = "2"},
+            new SelectListItem() { Text = "Mar", Value = "3"},
+            new SelectListItem() { Text = "Apr", Value = "4"},
+            new SelectListItem() { Text = "May", Value = "5"},
+            new SelectListItem() { Text = "Jun", Value = "6"},
+            new SelectListItem() { Text = "Jul", Value = "7"},
+            new SelectListItem() { Text = "Aug", Value = "8"},
+            new SelectListItem() { Text = "Sep", Value = "9"},
+            new SelectListItem() { Text = "Oct", Value = "10"},
+            new SelectListItem() { Text = "Nov", Value = "11"},
+            new SelectListItem() { Text = "Dec", Value = "12"}
+        }))*@
+
+               
+            </div>
+        </div>
+        <div class="form-group col-xs-6 col-sm-2">
+            <div class="col-lg-12 label-div">
+                <span class="required">*</span>
+                @Resource["Year"]
+            </div>
+            <div class="col-lg-12">
+                @*@Html.Kendo().NumericTextBoxFor(m => m.Year).Format("yyyy").HtmlAttributes(new { @class = "form-control hr-large" })*@
+            </div>
+        </div>
+        <div class="form-group col-xs-6 col-sm-1">
+            <div class="col-lg-12 label-div">
+                &nbsp;
+            </div>
+            <div class="col-lg-12">
+                @*@Html.Kendo().Button().Name("btnSearch").Content(@SharedResource["Search"]).HtmlAttributes(new { @class = "k-primary" })*@
+                <button type="button" id="btnSearch" class="btn btn-primary">@SharedResource["Search"]</button>
+            </div>
+        </div>
+        @*<div class="form-group col-xs-12 col-sm-6">
+                <div class="col-lg-3 label-div">
+                    <span class="required">*</span>
+                    @Html.LabelFor(x => x.SearchEnd, new { @class = "control-label" })
+                </div>
+                <div class="col-lg-9">
+                    @Html.Kendo().DatePickerFor(x => x.SearchEnd).Events(e => e.Change("OnDateChange")).HtmlAttributes(new { @class = "form-control hr-small" })
+                </div>
+            </div>*@
+
+    </div>
+    <hr />
+    <div class="row" style="margin-bottom:10px;margin-top:15px;text-align:right">
+        <div class="col-md-12">
+            <span style="font-size:14px;border-radius:5px;padding:3px;background-color:#c6ecd9">&nbsp;@Resource["PostedForPayroll"]&nbsp;</span>&nbsp;
+        </div>
+    </div>
+    <div>
+        <input type="button" class="btn btn-primary" value="@Resource["SubmitForPayroll"]" onclick="OnUpdate()" />
+        <div id="kgrdAttendance"></div>
+        @*@(Html.Kendo().Grid<AttendanceToPayrollViewModel>()
+                                                        .Name("kgrdAttendance")
+                                                        .Columns(columns =>
+                                                        {
+                                                            columns.Bound(x => x.Id).Width(50).ClientTemplate(@"<input class='checkbox' type='checkbox' #=CheckFlag==false?disabled='disabled' : ''# />").ClientHeaderTemplate(" ").Filterable(false);
+
+                                                            columns.Bound(c => c.EmployeeName).Title(@Resource["EmployeeName"]).Width(300).Filterable(ftb => ftb.Multi(true).Search(true));
+                                                            columns.Bound(c => c.PersonNo).Title(@Resource["EmployeeNo"]).Width(150);
+                                                            columns.Bound(c => c.SponsorshipNo).Title(@Resource["IqamahNo"]).Width(150);
+
+                                                            var i = 1;
+                                                            if (Model.Columns != null)
+                                                            {
+                                                                foreach (var j in Model.Columns)
+                                                                {
+
+                                                                    columns.Bound("Day" + i).Title("" + j).Filterable(false).Width(80).HtmlAttributes(new { @class = "canEdit" });
+                                                                    i++;
+                                                                }
+                                                            }
+                                                            columns.Bound(c => c.TotalPresent).Title(@Resource["TotalPresent"]).Width(150);
+                                                            columns.Bound(c => c.TotalAbsent).Title(@Resource["TotalAbsent"]).Width(150);
+                                                            columns.Bound(c => c.TotalOT).Title(@Resource["TotalOT"]).Width(150);
+                                                            columns.Bound(c => c.TotalDED).Title(@Resource["TotalDED"]).Width(150);
+
+                                                        })
+
+                                                        .ToolBar(toolbar =>
+                                                        {
+
+                                                            toolbar.Custom().Text(@Resource["SubmitForPayroll"]).Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnUpdate();" });
+                                                            toolbar.Excel();
+                                                        })
+                                                        .Events(e => e.DataBound("OnDataBound2"))
+                                                        .Resizable(resize => resize.Columns(true))
+                                                        .Reorderable(reorderable => reorderable.Columns(true))
+                                                        .Scrollable(scrollable => scrollable.Enabled(true).Height(550))
+                                                        .Selectable(select => select.Enabled(false).Mode(GridSelectionMode.Multiple))
+                                                        .Sortable(srt => srt.Enabled(false))
+                                                        // .Filterable(filter => filter.Mode(GridFilterMode.Row))
+                                                        .Filterable()
+                                                        // .Events(e => e.DataBound("grid_dataBound"))
+                                                        .Excel(e => e.FileName("Attendance.xlsx").AllPages(true))
+                                                        .Pageable(pageable => pageable
+                                                        .Refresh(true)
+                                                        .PageSizes(new[] { 10, 50, 100, 200, 500, 1000, 2000 })
+                                                        .ButtonCount(10))
+                                                        .DataSource(
+                                                        dataSource => dataSource
+                                                        .Ajax()
+                                                        .PageSize(1000)
+                                                        .Events(events => events.Error("OnError"))
+                                                        .Read(read => read.Action("ReadAttendanceForPostPayrollList", "Attendance").Data("FilterGrid"))
+
+                                                        .Model(model =>
+                                                        {
+                                                            model.Id(p => p.Id);
+                                                            model.Field(p => p.EmployeeName).Editable(false);
+                                                            model.Field(p => p.JobName).Editable(false);
+                                                            model.Field(p => p.SystemAttendance).Editable(false);
+                                                        })
+
+                                                        )
+
+        )*@
+    </div>
+
+    @Html.HiddenFor(x => x.DataAction)
+    @Html.HiddenFor(x => x.Id)
+    @Html.HiddenFor(x => x.ReturnUrl)
+    @Html.HiddenFor(x => x.UserIds)
+    @Html.HiddenFor(x => x.SearchStart)
+    @Html.HiddenFor(x => x.SearchEnd)
+</div>
+
+<script>
+
+   
+    $("#kgrdAttendance").jsGrid({
+        width: "100%",
+        height: "600px",
+
+        inserting: false,
+        editing: true,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        deleteConfirm: "Do you really want to delete client?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                var param = FilterGrid();
+                return $.ajax({
+                    type: "GET",
+                    url: "/TAA/Attendance/ReadAttendanceForPostPayrollList?payrollGroupId=" + param.payrollGroupId+"&startMonth="+ param.startMonth+"&orgId=" + param.orgId+"&year=" + param.year,
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+            //insertItem: function (item) {
+            //    return $.ajax({
+            //        type: "POST",
+            //        url: "/api/data",
+            //        data: item,
+            //        dataType: "json"
+            //    });
+            //},
+            updateItem: function (item) {
+                //return $.ajax({
+                //    type: "POST",
+                //    url: "/cms/Template/UpdateServiceIndexPage",
+                //    data: item,
+                //    //dataType: "json",
+                //    //success: function (result) {
+                //    //    alert("Success", "updated successfully");
+                //    //},
+                //    //error: function (err) {
+                //    //    alert(err, "Error updating");
+                //    //}
+                //});
+            },
+            //deleteItem: function (item) {
+            //    return $.ajax({
+            //        type: "DELETE",
+            //        url: "/api/data/" + item.ID,
+            //        dataType: "json"
+            //    });
+            //}
+        },
+        onDataLoaded: function (args)
+        {
+
+        },
+        onItemEditing: function (e) {
+            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                e.grid.updateItem();
+            }
+        },
+        fields: [
+            {
+                name: "Select", type: "checkbox", width: 60, itemTemplate: function (value, item)
+                {
+                    return "<input class='checkbox' type='checkbox' " +item.CheckFlag+"==false?disabled='disabled' : '' />";
+                }
+            },
+            { name: "EmployeeName", type: "text",title:"@Resource["EmployeeName"]", width: 150, readOnly: true, editing: false},
+            { name: "PersonNo", type: "text",title:"@Resource["EmployeeNo"]", width: 200, readOnly: true},
+            { name: "SponsorshipNo", title: "@Resource["IqamahNo"]", type: "text", width: 200 },
+
+        @if(Model.Columns != null)
+        {
+            
+        @for (var j=0;j< Model.Columns.Count();j++)
+            {
+                var a = j + 1;
+                @:{ name: "Day" + @a, title: "@j", type: "text", width: 80},
+               
+            }
+        }
+            { name: "TotalPresent", title: "@Resource["TotalPresent"]", type: "text", width: 150 },
+            { name: "TotalAbsent", title: "@Resource["TotalAbsent"]", type: "text", width: 150 },
+            { name: "TotalOT",title:"@Resource["TotalOT"]", type: "text", width: 150 },
+            { name: "TotalDED",title:"@Resource["TotalDED"]", type: "text", width: 150 },
+
+
+        ]
+    });
+</script>
+

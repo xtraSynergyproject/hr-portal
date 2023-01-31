@@ -1,0 +1,218 @@
+﻿@{
+
+    ViewBag.Title = "Staff Candidate";
+    Layout = null;
+}
+
+<div id="jsGrid"></div>
+
+<script>
+
+    $(function () {
+
+        var MyDateField = function (config) {
+            jsGrid.Field.call(this, config);
+        };
+
+        MyDateField.prototype = new jsGrid.Field({
+            sorter: function (date1, date2) {
+                return new Date(date1) - new Date(date2);
+            },
+
+            itemTemplate: function (value) {
+                if (value) {
+                    return new Date(value).toDateString();
+                } else {
+                    return "";
+                }
+            },
+
+            insertTemplate: function (value) {
+                if (value) {
+                    return this._insertPicker = $("<input>").datepicker({ defaultDate: new Date() });
+                } else {
+                    return "";
+                }
+            },
+
+            editTemplate: function (value) {
+                if (value) {
+                    return this._editPicker = $("<input>").datepicker().datepicker("setDate", new Date(value));
+                } else {
+                    return "";
+                }
+            },
+
+            insertValue: function () {
+                    return this._insertPicker.datepicker("getDate").toISOString();              
+            },
+
+            editValue: function () {
+            }
+        });
+
+        jsGrid.fields.myDateField = MyDateField;
+
+        var MyLinkField = function (config) {
+            jsGrid.Field.call(this, config);
+        };
+
+        MyLinkField.prototype = new jsGrid.Field({
+
+            itemTemplate: function (value) {
+                if (value) {
+                    return $("<button class='btn btn-primary' onclick='alert()'>upload</button>");
+                } else {
+                    return "";
+                }
+            },
+
+            insertTemplate: function (value) {
+                if (value) {
+                    return $("<button class='btn btn-primary' onclick='alert()'>upload</button>");
+                } else {
+                    return "";
+                }
+            },
+
+            editTemplate: function (value) {
+                if (value) {
+                    return this._editPicker = $("<button class='btn btn-primary' onclick='alert()'>upload</button>");
+                } else {
+                    return "";
+                }
+            },
+
+            insertValue: function () {
+               // return this._insertPicker.datepicker("getDate").toISOString();
+            },
+
+            editValue: function () {
+            }
+        });
+
+        jsGrid.fields.myLinkField = MyLinkField;
+
+
+
+
+        var nationalities;
+        var countries;
+        var maritalStatus;
+        $.ajax({
+            url: "/career/candidateProfile/GetNationalityList",
+                        success: function (res) {
+                            nationalities = res;
+                            debugger;
+
+                            $.ajax({
+                                url: "/career/candidateProfile/GetCountryList",
+                                success: function (res) {
+                                    countries = res;
+                                    $.ajax({
+                                        url: "/career/careerPortal/GetMaritalStatus",
+                                        success: function (res) {
+                                            maritalStatus = res;
+
+                                    $("#jsGrid").jsGrid({
+                                        width: "100%",
+                                        height: "600px",
+
+                                        inserting: false,
+                                        editing: true,
+                                        sorting: true,
+                                        paging: true,
+                                        autoload: true,
+                                        pageSize: 14,
+                                        pageButtonCount: 5,
+                                        deleteConfirm: "Do you really want to delete client?",
+                                        controller: {
+                                            loadData: function (filter) {
+                                                return $.ajax({
+                                                    type: "GET",
+                                                    url: "/career/careerPortal/ReadGridStaffDetails",
+                                                    data: filter,
+                                                    dataType: "json"
+                                                });
+                                            },
+                                            updateItem: function (item) {
+                                            },
+                                        },
+                                        onItemEditing: function (e) {
+                                            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                                                //
+                                                e.grid.updateItem();
+                                            }
+                                        },
+                                        fields: [
+                                            { name: "Select", type: "checkbox", width: 60 },
+                                            { name: "ApplicationNo", type: "text", width: 200, validate: "required", editing: true },
+                                            {
+                                                name: "CVSendDate", validate: "required", editing: true,
+                                                type: "myDateField", width: 200, align: "center"
+                                            },
+                                            { name: "CandidateName", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "PassportNumber", type: "text", width: 200, validate: "required", editing: true },
+                                            {
+                                                name: "Nationality", type: "select", width: 200, validate: "required", editing: true,
+                                                items: nationalities, valueField: "Id", textField: "NationalityName"
+                                            },
+                                            { name: "ContactNumber", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "EmailId", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "TotalWorkExperience", type: "text", width: 200, validate: "required", editing: true },
+                                            //{
+                                            //    name: "Qualification", type: "select", width: 200, validate: "required", editing: true,
+                                            //    items: qualifications, valueField: "Id", textField: "Name"
+                                            //},
+                                            { name: "Qualification", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "PresentEmployer", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "Designation", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "PresentSalary", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "ExpectedSalary", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "NoticePeriod", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "CurrentLocation", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "PermanentAddressHouse", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "PermanentAddressStreet", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "PermanentAddressCity", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "PermanentAddressState", type: "text", width: 200, validate: "required", editing: true },
+                                            {
+                                                name: "PermanentAddressCountry", type: "select", width: 200, validate: "required", editing: true,
+                                                items: countries, valueField: "Id", textField: "CountryName"
+                                            },
+                                            {
+                                                name: "MaritalStatus", type: "select", width: 200, validate: "required", editing: true,
+                                                items: maritalStatus, valueField: "Id", textField: "Name"
+                                            },
+                                           
+                                            //{ name: "MaritalStatus", type: "text", width: 200, validate: "required", editing: true },
+                                            { name: "ResumeLink", type: "myLinkField", width: 200, validate: "required", editing: true },
+                                            { name: "PassportLink", type: "myLinkField", width: 200, validate: "required", editing: true },
+                                            { name: "EducationLink", type: "myLinkField", width: 200, validate: "required", editing: true },
+                                            { name: "ExperienceLetterLink", type: "myLinkField", width: 200, validate: "required", editing: true },
+                                             { name: "DocumentLink", type: "myLinkField", width: 200, validate: "required", editing: true },
+                                            { name: "Actions", type: "control", width: 200, }
+
+                                        ]
+                                    });
+                                },
+                                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                                    alert(customErrorMessage);
+                                }
+                            });
+
+                    
+                        },
+                        error: function (xhr, httpStatusMessage, customErrorMessage) {
+                            alert(customErrorMessage);
+                        }
+                            });
+            },
+            error: function (xhr, httpStatusMessage, customErrorMessage) {
+                alert(customErrorMessage);
+            }
+        });
+
+
+    
+    });
+</script>

@@ -1,0 +1,241 @@
+﻿@{
+    ViewData["Title"] = "View Stock Entries";
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@model ItemStockViewModel
+
+<style>
+    .label-div{
+        font-weight:bold;
+        color: black;
+    }
+    .required{
+        color:red;
+    }
+</style>
+
+@*<script src="~/js/IMS/InventoryManagement/Vendor.js" asp-append-version="true"></script>*@
+<div class="row-12" style="margin-left:15px;">
+
+    <form asp-controller="InventoryMaster" asp-action="ViewStockEntries" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+
+    
+                <div style="width: 100%;" class="p-3">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Search Criteria</legend>
+
+                        <div class="row col-12" style="padding:10px;">
+
+                            <div class="col-1" style="padding-bottom:10px;">
+                                <label>From Date</label>
+                            </div>
+                            <div class="col-3" style="padding-bottom:10px;">
+                                <input type="text" asp-for="FromDate" id="FromDate" class="form-control" />
+                            </div>
+                            <div class="col-1" style="padding-bottom:10px;">
+                                <label>To Date</label>
+                            </div>
+                            <div class="col-3" style="padding-bottom:10px;">
+                                <input type="text" asp-for="ToDate" id="ToDate" class="form-control" />
+                            </div>
+                            <div class="col-4" style="text-align:right;">
+                                <input type="button" class="btn btn-primary" value="Get" style="margin:5px;" onclick="OnStockSearch();" />
+                            </div>
+
+                        </div>
+
+                    </fieldset>
+
+
+
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Item Header</legend>
+                        <div class="card pad-10" style="padding-top:0px;">
+
+                            <div class="row col-12" style="padding:10px;">
+
+                                <div class="col-2" style="padding-bottom:10px;">
+                                    <label>Warehouse </label>
+                                </div>
+                                <div class="col-2" style="padding-bottom:10px;">
+                                    :&nbsp;@Html.DisplayFor(x => x.WarehouseName)
+                                </div>
+                                <div class="col-2" style="padding-bottom:10px;">
+                                    <label>Storage Type</label>
+                                </div>
+                                <div class="col-2" style="padding-bottom:10px;">
+                                    :&nbsp;@Html.DisplayFor(x => x.ItemTypeName)
+                                </div>
+                                <div class="col-2" style="padding-bottom:10px;">
+                                    <label>Item Name</label>
+                                </div>
+                                <div class="col-2" style="padding-bottom:10px;">
+                                    :&nbsp;@Html.DisplayFor(x => x.ItemName)
+                                </div>
+                                <div class="col-2" style="padding-bottom:10px;">
+                                    <label>Closing Quantity </label>
+                                </div>
+                                <div class="col-2" style="padding-bottom:10px;">
+                                    :&nbsp;@Html.DisplayFor(x => x.ClosingQuantity)
+                                </div>
+
+                            </div>
+                        </div>
+                    </fieldset>
+
+
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Stock Entries List</legend>
+                        <div id="stockList" style="width: 100%;height:550px" class="ag-theme-alpine">
+
+                        </div>
+                    </fieldset>
+
+
+
+             
+                        @*<div class="row col-12" style="padding:5px;">
+
+                            <div class="col-12" style="text-align:right;">
+                                <input type="button" class="btn btn-primary" value="Save" style="margin:5px;" onclick="OnSubmit()" />
+                                <input type="button" class="btn btn-warning" value="Close" style="margin:5px;color:red" onclick="closeNav()" />
+                            </div>
+
+                        </div>*@
+                   
+                </div>
+
+</form>
+        </div>
+<script>
+
+    $(function () {
+
+        GetStockItemList();
+        $.contextMenu({
+            selector: '#tree-menustock1',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var ainfo = $trigger.data('ai');
+                var refId = $trigger.data('rid');
+                var refHId = $trigger.data('rhid');
+
+                if (ainfo == "Opening Balance") {
+                    refHId = refId;
+                }
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'serialNumbers':
+                                        OnSerailNos(refId, refHId);
+                                        break;                                 
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "serialNumbers": { name: "Serial Numbers", icon: "fas fa-pencil" },
+                               
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+    function GetStockItemList(sd,ed) {
+        document.getElementById("stockList").innerHTML = "";
+       
+        gridConfig(
+            "stockList",
+            "/Ims/InventoryMaster/ReadStockEntriesData?itemId=@Model.ItemId&warehouseId=@Model.WarehouseId&FromDate=" + sd+"&ToDate="+ed,
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function OnStockSearch() {
+        var sd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        var ed = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        GetStockItemList(sd,ed);
+    }
+        var d = new Date();
+        d.setDate(d.getDate() - 6);
+        console.log(d.toLocaleDateString());
+        $("#FromDate").kendoDatePicker({
+            value: d,
+            format: 'dd.MM.yyyy'
+        });
+
+        $("#ToDate").kendoDatePicker({
+            value: new Date(),
+            format: 'dd.MM.yyyy'
+        });
+
+        function closeNav() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    var columnDefs1 = [
+        {
+            field: "AdditionalInfo",
+            headerName: "Item Description",
+        },       
+        {
+            field: "TransactionDate",
+            cellRenderer: params => {
+                var d = new Date(params.value);
+                return d.getDate() + "." + (d.getMonth() + 1 )+ "." + d.getFullYear()
+            }
+        },
+        { field: "TransactionQuantity" },
+        {
+            field: "CreatedBy",
+        },
+        //{
+        //    field: "CreatedDate",
+        //    headerName: "Created On",
+        //    cellRenderer: params => {
+        //        return params.value.getDate() + "." + params.value.getMonth() + 1 + "." + params.value.getYears()
+        //    }
+        //},
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menustock1' data-idvalue='" + params.value + "' data-ai='" + params.data.AdditionalInfo + "' data-rid='" + params.data.ReferenceId + "' data-rhid='" + params.data.ReferenceHeaderId + "'><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+    function OnSerailNos(id, headerId)
+    {
+        debugger;
+        //var portalId = $('#GlobalPortalId').val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Ims/InventoryManagement/ManageSerialNo?referenceId=" + id+"&referenceHeaderId=" + headerId;
+        win.OpenWindow({ Title: 'Edit Contact Person', Width: 1000, Height: 700 });
+        return false;
+    }
+</script>

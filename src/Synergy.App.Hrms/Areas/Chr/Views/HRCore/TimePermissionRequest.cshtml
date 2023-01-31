@@ -1,0 +1,385 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRCoreController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+
+
+@model TimePermisssionViewModel
+@{
+    ViewBag.Title = Resource["TimePermissionRequest"];
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    //Layout = null;
+}
+
+<style>
+    .k-grid a:hover {
+        text-decoration: underline !important;
+    }
+
+    .hover:hover {
+        text-decoration: underline;
+    }
+
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .date {
+        margin-left: 1%;
+        margin-right: 1%
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    #banner {
+        width: 100%;
+        height: 140px;
+        /* height: 160px;*/
+        left: 389px;
+        top: 157px;
+        background: #2D9FCA;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 6px;
+        font-family: roboto;
+    }
+</style>
+<Script>
+  var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(StatusEnum)))';
+    var statusObj = JSON.parse(status);
+
+    var columnDefs = [
+        {
+            field: "ServiceNo",
+            cellRenderer: params => {
+                                   
+                return "<a style='cursor:pointer;color:blue;' href='javascript:gotoService(\"" + params.data.Id + "\",\"" + params.data.pagename + "\");'>" + params.value + " </a>";
+                //"<a target='_self' class='hover' style='cursor:pointer' onclick=\"OnEdit('# =ServiceId#')\">#=ServiceNo#</a>"
+
+            }
+        },
+        { field: "ServiceOwner", },
+        { field: "Name", },
+        { field: "Hours", },
+        {
+                 field: "Date",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+
+          
+        { field: "ServiceStatus", },
+
+            ];
+
+
+            $(function () {
+
+            getDataTimePermission();
+
+
+            });
+
+    function getDataTimePermission() {
+        document.getElementById("myGridTimePermission").innerHTML = "";
+        //var templateId = $("#TemplateId").val();
+        //var projectNo = $("#ProjectNo").val();
+        //var noteNo = $("#NoteNo").val();
+        //var docDescription = $("#DocumentName").val();
+        gridConfig(
+            "myGridTimePermission",
+            "@Url.Action("GetTimePermissionGridData", "HRCore", new { @area = "CHR", UserId = Model.UserId })",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+            }
+   </Script>
+            <div class="col-12">
+                <button type='button' class='btn btn-primary' onclick='OnService();'><i class='fa fas fa-plus'></i>&nbsp;Add Time Permission</button>
+                <br /><br />
+                <div id="myGridTimePermission" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            </div>
+
+    <script>
+
+
+        function tpcallback() {
+            
+            getDataTimePermission();
+        }
+
+
+    function OnService() {
+
+         if ('@Model.UserId' == '' || '@Model.UserId' == null) {
+             alert("@Resource["PleaseMapUserToPersonFromManagePerson"]");
+         }
+         else {
+             var win = GetMainWindow();
+             win.iframeOpenUrl = '@Url.Action("SelectServiceTemplate", "NtsService", new { area = "Cms" })?templateCode=&categoryCode=TimePermission&cbm=tpcallback&userId=' + '@Model.UserId';
+             win.OpenWindow({ Title: '@Html.Raw(Resource["AddTimePermission"])', Width: 1200, Height: 600 });
+             return false;
+         }
+
+        //    var portalId = $('#GlobalPortalId').val();
+        //    //'8edc86b3-9934-46e3-95de-d76c816404b4';//;
+        //   // var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=BusinessTrip&portalId=' + portalId /* +'&prms=' + prms*/;
+        //
+        //var userid = '@Model.UserId';
+        //
+        //
+        //var url = '/CHR/HRCore/PopupTimePermission?Userid=' + userid + '&Portalid=' + portalId;
+        //
+        //
+        //    //LoadCmsPartialView(url, 'Service', true, 1000, 600, 'Create Project');
+        //    //return false;
+        //    var win = GetMainWindow();
+        //    win.iframeOpenUrl = url;
+        //    win.OpenWindow({ Title: 'Time Permission', Width: 1000, Height: 600 });
+        //    return false;
+      ////  }
+
+
+
+
+    }
+
+
+
+
+    function OnAfterServiceCreate(service) {
+
+       // $("#TimePermissionGridView").data("kendoGrid").dataSource.read();
+        Window.Parent.getDataTimePermission();
+    }
+
+    function OnEmployeechange(e) {
+        var dataItem = e.sender.dataItem();
+        var id = dataItem.UserId;
+
+
+
+
+        var Status = {
+            Id: id,
+        };
+        $("#TimePermissionGridView").data("kendoGrid").dataSource.read(Status);
+
+    }
+
+
+
+    function gotoService(NoteId,Pagename) {
+
+
+
+        var portalId = $('#GlobalPortalId').val();
+
+        // var url = '/Cms/Page?source=Edit&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + id ;
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&pageName=' + Pagename + '&portalId=' + portalId + '&recordId=' + NoteId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "" + Pagename+"", Width: 1200, Height: 600 });
+        return false;
+
+    }
+            </script>
+
+
+
+
+
+            @*<div id="banner" role="group" style="width:100%;color:#FFFFFF;background: #17a2b8;padding-left: 5px;">
+                       <div class="row" style="padding-top:10px;">
+
+                           <div class=" col-md-9">
+                               <div style="font-size:.8em;padding-top:0px;">
+                                   select Employee
+
+                                   <div class="project-dropdown" id="dropdown" title="Task Template">
+
+                                       @(Html.Kendo().DropDownList()
+                                 .Name("ddlTemplate")
+
+                                       .DataTextField("EmployeeName")
+                                       .DataValueField("UserId")
+                                       .Filter(FilterType.Contains)
+                                       .OptionLabel("Select Employee")
+                                       .DataSource(source =>
+                                       {
+                                           source.Read(read =>
+                                           {
+                                               read.Action("GetAllEmployee", "BusinessTrip", new { @area = "Cms"});
+                                           });
+                                       })
+                                       .Events(x => x.Change("OnEmployeechange"))
+                                       .HtmlAttributes(new { @class = "form-control" , @style="width:80%" })
+                                       )
+
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+
+                    <div class="btn banner-item banner-item-date col-sm-2">&nbsp;</div>
+                </div>*@
+
+
+            @*<div class="row">
+                <div class="col-12">
+                    <button class="btn btn-filter-reset" onclick="OnService()" title="@SharedResource["ResetFilter"]">@Resource["AddTimePermission"]</button>
+                    <div class="panel panel-primary">
+                        <div class="panel-heading"></div>
+                        <div class="panel-body">
+                            @(Html.Kendo().Grid<TimePermisssionViewModel>()
+                                .Name("TimePermissionGridView")
+                                .Columns(columns =>
+                                {
+                                    //columns.Select().Width(75).HtmlAttributes(new { @class = "checkbox-align" }).HeaderHtmlAttributes(new { @class = "checkbox-align" });
+                                    columns.Bound(p => p.ServiceNo).Title(@SharedResource["ServiceNo"]).Width(170).ClientTemplate("<a target='_self' class='hover' style='cursor:pointer' onclick=\"gotoService('#=Id#','#=pagename#')\" >#=ServiceNo#</a>");
+                                    columns.Bound(p => p.ServiceOwner).Title(@SharedResource["ServiceOwner"]).Width(170);
+                                    columns.Bound(p => p.Name).Title(@SharedResource["Name"]).Width(170);
+                                    columns.Bound(p => p.Hours).Title(@SharedResource["Hours"]).Width(170);
+                                    columns.Bound(p => p.Date).Title(@SharedResource["Date"]).Format("{0:dd MMM yyyy}").Width(300);
+                                    columns.Bound(p => p.ServiceStatus).Title(@SharedResource["Status"]).Width(250);
+
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //toolbar.Excel();
+                                    //toolbar.Pdf();
+                                    toolbar.Search().Text(@SharedResource["Search"]);
+                                })
+    //.Pdf(pdf=>pdf.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    //.Excel(excel=>excel.ProxyURL(Url.Action("Excel_Export_Save", "Grid")))
+    .ColumnMenu(col=>col.Filterable(false))
+    .Height(700)
+    .Editable()
+    .Pageable()
+    .Sortable()
+    .Navigatable()
+    .Resizable(r=>r.Columns(true))
+    .Reorderable(r => r.Columns(true))
+    .Groupable(g=>g.ShowFooter(false))
+    .Filterable()
+    .Scrollable()
+    //.Events(events => events.DataBound("onDataBound"))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(20)
+        .AutoSync(true)
+        .ServerOperation(false)
+        //.Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+
+        })
+        //.Group(group=>group.Add("Category.CategoryName", typeof(string), ListSortDirection.Descending))
+        //.Create("DetailProducts_Create", "Grid")
+        .Read("GetTimePermissionGridData", "HRCore", new { @area = "CHR", UserId = Model.UserId})
+    //.Update("DetailProducts_Update", "Grid")
+    //.Destroy("DetailProducts_Destroy", "Grid")
+    )
+)
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+
+
+
+

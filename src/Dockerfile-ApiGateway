@@ -1,0 +1,22 @@
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+WORKDIR /apigateway
+COPY NuGet.Config .
+COPY Synergy.App.ApiGateway/Synergy.App.ApiGateway.csproj ./Synergy.App.ApiGateway/
+COPY Synergy.App.Web/LocalDependencies/ ./Synergy.App.Web/LocalDependencies/
+RUN dotnet restore Synergy.App.ApiGateway/Synergy.App.ApiGateway.csproj
+
+COPY . .
+
+WORKDIR /apigateway/Synergy.App.ApiGateway
+RUN dotnet publish Synergy.App.ApiGateway.csproj -c Release -o /apigatewayout
+
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS runtime
+
+WORKDIR /apigateway 
+
+COPY --from=build /apigatewayout ./
+
+ENV ASPNETCORE_ENVIRONMENT Production
+ENV ASPNETCORE_URLS http://*:5021
+ENTRYPOINT ["dotnet", "Synergy.App.ApiGateway.dll"]
+

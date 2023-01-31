@@ -1,0 +1,175 @@
+﻿@{
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    Layout = ViewBag.Layout ?? null;
+
+}
+
+<div id="kgrdEmployeeTransferItemList" style="width: 100%;height:550px" class="ag-theme-alpine">
+
+</div>
+
+<br />
+<div class="">
+    <div style="text-align:center"><button class="btn btn-primary" onclick="onUpdate()">Save</button></div>
+</div>
+
+<script>
+    // var columnDefs = [
+    //    {
+    //        field: "Name",
+    //    },
+    //     { field: "Id" },
+
+    //];
+
+    $(function () {
+        $.ajax({
+            type: "GET",
+            url: "/Cms/LOV/GetListOfValueList?type=Item_Transfer_Type",
+            dataType: "json",
+            success: function (data) {
+
+                $("#kgrdEmployeeTransferItemList").jsGrid({
+                    width: "100%",
+                    inserting: false,
+                    editing: true,
+                    sorting: true,
+                    paging: true,
+                    autoload: true,
+                    pageSize: 14,
+                    pageButtonCount: 5,
+                    controller: {
+                        loadData: function (filter) {
+
+                            return $.ajax({
+                                type: "GET",
+                                url: "/chr/HrCore/ReadEmployeeTransferItemList?employeeId=@ViewBag.EmployeeId",
+                                data: filter,
+                                dataType: "json"
+                            });
+                        },
+                        onItemEditing: function (e) {
+                            debugger;
+                            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                                //
+                                e.grid.updateItem();
+                            }
+                        },
+                        updateItem: function (item) {
+                            debugger;
+
+                        },
+                    },
+                    fields: [
+                        {
+                            name: "ItemName",
+                            type: "text",
+                            editing: false
+                        },
+                        {
+                            name: "IssuedQuantity",
+                            type: "text",
+                            editing: false
+                        },
+                        {
+                            name: "RequestType",
+                            title: "Transfer Type",
+                            type: "select",
+                            editing: true,
+                            items: data, valueField: "Id", textField: "Name",
+                        },
+                        { name: "ItemId", type: "text", editing: false, visible: false },
+                        { name: "EmployeeId", type: "text", editing: false, visible: false },
+                        { name: "TransferItemId", type: "text", editing: false, visible: false },
+                    ]
+                });
+            }
+        });
+    });
+
+    @*function getEmployeeTransferItemList() {
+        document.getElementById("kgrdEmployeeTransferItemList").innerHTML = "";
+        gridConfig(
+            "kgrdEmployeeTransferItemList",
+            "/chr/HrCore/ReadEmployeeTransferItemList?employeeId=@ViewBag.EmployeeId",
+
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }*@
+    var otherinfoItems = [];
+    function onUpdate() {
+        debugger;
+       // var listOfItems = $("#kgrdEmployeeTransferItemList").jsGrid("option", "data")
+        var selectedDataItems = [];
+        debugger;
+        var entityGrid = $("#kgrdEmployeeTransferItemList").data("JSGrid");
+        if (entityGrid._editingRow != null) {
+            entityGrid.updateItem();
+        }
+
+        for (var i = 0; i < entityGrid.data.length; i++) {
+            selectedDataItems.push(entityGrid.data[i]);
+        }
+
+        var result = selectedDataItems.map(function (el) {
+            var o = Object.assign({}, el);
+            o.EmployeeId = '@ViewBag.EmployeeId';
+            return o;
+        });
+
+        $.ajax({
+            type: "POST",
+            url: "/CHR/HrCore/UpdateEmployeeTransferItemDetails",
+            data: { 'items': result},
+            success: function (data) {
+
+                if (data.success) {
+                    debugger;
+                    var win = GetMainWindow();
+                    
+                    if ('@ViewBag.IsIframe'=='True') {
+
+                    } else {
+                        closeNav();
+                        win.parent.ShowNotification("Transfer Item data saved successfully", "success");
+                    }
+
+                }
+                else {
+                    ShowNotification(res.error, "error");
+                }
+            },
+            dataType: "json",
+        });
+
+
+    }
+
+    function closeNav() {
+        var win = GetMainWindow();
+        win.CloseWindow(/*{ MethodName: "OnAfterUpdate", IframeName: "IframeToDisplayIndividualTransferItem_iframe" }*/);
+        return false;
+    }
+</script>
+
+<style>
+    .container {
+        height: 200px;
+        position: relative;
+        border: 3px solid green;
+    }
+
+    .vertical-center {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%);
+    }
+</style>

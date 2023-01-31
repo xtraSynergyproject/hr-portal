@@ -1,0 +1,337 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CMS.Controllers.LandingPageController> Resource
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+@using Synergy.App.ViewModel
+@model AnnouncementViewModel
+@{
+    ViewBag.Title = "GreetingAnnouncement";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<form asp-controller="LandingPage" asp-action="GreetingAnnouncement" class="form-horizontal"
+      data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+      data-ajax="true" data-ajax-method="POST">
+    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+    <div id="appWrapper">
+        @*<div class="formHeader">
+                <h4>
+                    @ViewBag.Title
+                </h4>
+            </div>*@
+        <div class="row no-gutter hr-pad-15">
+
+            <div class="form-group col-xs-12 col-lg-6">
+                <div class="col-lg-12 label-div">
+                    <span class="required">*</span>
+                    @Resource["NoteSubject"]
+                </div>
+                <div class="col-lg-12">
+                    @*@Html.Kendo().TextBoxFor(model => model.NoteSubject).HtmlAttributes(new { @class = "form-control" })*@
+                    <input asp-for="NoteSubject" type="text" class="form-control" />
+
+                </div>
+            </div>
+            <div class="form-group col-xs-12 col-lg-6">
+                <div class="col-lg-12 label-div">
+                    <span class="required">*</span>
+                    @Resource["NoteDescription"]
+                    @*@Html.LabelFor(model => model.NoteDescription, new { @class = "control-label" })*@
+                </div>
+                <div class="col-lg-12">
+                    @*@Html.TextAreaFor(model => model.NoteDescription, new { @class = "form-control", @rows = "4" })*@
+                    <textarea asp-for="NoteDescription" placeholder="Description" rows="4" class="form-control"></textarea>
+                </div>
+            </div>
+            @*<div class="form-group col-xs-12 col-lg-6">
+                    <div class="col-lg-12 label-div">
+
+                        @Html.LabelFor(model => model.Attachment, new { @class = "control-label" })
+                    </div>
+                    <div class="col-lg-12">
+                        @(Html.Kendo().Upload().Multiple(false)
+                                                .Name("files")
+                                                //.TemplateId("fileTemplate")
+                                                .Async(a => a
+                                                .Save("Create", "File",new { area="General"})
+                                                .AutoUpload(false)
+                                                )
+                                                .Events(events => events
+                                                .Success("onUploadSuccess")
+                                                // .Upload("OnUploadData")
+                                                )
+                                                //   .Validation(validation => validation.MaxFileSize(Constant.MaxFileSizeAllowed).AllowedExtensions(new string[] { ".pdf" }))
+                                                .HtmlAttributes(new { @class = "hr-xx-large" })
+                    )
+                    </div>
+                </div>*@
+            <div class="form-group col-xs-5 col-lg-3">
+                <div class="col-lg-12 label-div">
+                    <span class="required">*</span>
+                    @SharedResource["StartDate"]
+                    @*@Html.LabelFor(model => model.StartDate, new { @class = "control-label" })*@
+                </div>
+                <div class="col-lg-12">
+                    @*@Html.Kendo().DatePickerFor(model => model.StartDate).HtmlAttributes(new { @class = "hr-small" })*@
+                    @*@Html.Kendo().DateTimePickerFor(model => model.StartDate).Events(m => m.Change("StartDateChange")).HtmlAttributes(new { @class = "form-control" })*@
+                    <input asp-for="StartDate" id="StartDate" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group col-xs-5 col-lg-3">
+                <div class="col-lg-12 label-div">
+                    <span class="required">*</span>
+                    @SharedResource["ExpiryDate"]
+                    @*@Html.LabelFor(model => model.ExpiryDate, new { @class = "control-label" })*@
+                </div>
+                <div class="col-lg-12">
+                    @*@Html.Kendo().DatePickerFor(model => model.ExpiryDate).Events(e => e.Change("OnExpiryDateChange")).HtmlAttributes(new { @class = "hr-small" })*@
+                    @*@Html.Kendo().DateTimePickerFor(model => model.ExpiryDate).Events(x => x.Change("ExpiryDateChange")).HtmlAttributes(new { @class = "form-control" })*@
+                    <input asp-for="ExpiryDate" id="ExpiryDate" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group col-xs-12 col-lg-6">
+                <div class="col-lg-12 label-div">
+                    @Resource["IsNotifyByEmail"]
+          
+                </div>
+                <div class="col-lg-12">
+                    @*@Html.Kendo().CheckBoxFor(model => model.IsNotifyByEmail).HtmlAttributes(new { @class = "form-control" })*@
+                    <input asp-for="IsNotifyByEmail" type="checkbox">                    
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="row no-gutter hr-pad-15">
+            <div class="form-group col-xs-5 col-lg-6">
+                <div class="col-lg-12 label-div">
+                    * @SharedResource["RequiredFields"]
+                </div>
+
+            </div>
+            <div class="form-group col-xs-5 col-lg-6" id="divAnnouncement">
+                <div class="col-lg-12">
+                    @if (Model.DataAction == DataActionEnum.Create || Model.DataAction == DataActionEnum.Edit)
+                    {
+                        @*@Html.Kendo().Button().Name("btnCancel").Content(@SharedResource["Cancel"]).Icon("cancel").Events(x => x.Click("OnCancel")).HtmlAttributes(new { @type = "button" })
+                        @Html.Kendo().Button().Name("btnSubmit").Content(@SharedResource["Submit"]).Icon("check-outline").HtmlAttributes(new { @class = "k-primary" })*@
+                    <button type="button" class="btn btn-light" id="btnCancel" onclick="OnCancel();" icon="cancel">@SharedResource["Cancel"]</button>
+                        <input type="submit" class="btn btn-primary" id="btnSubmit" value="@SharedResource["Submit"]" icon="check-outline"/>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.OrgId)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.ReferenceId)
+        @Html.HiddenFor(x => x.ReferenceType)
+        @Html.HiddenFor(x => x.CreatedBy)
+        @Html.HiddenFor(x => x.LastUpdatedBy)
+        @Html.HiddenFor(x => x.CreatedDate)
+        @Html.HiddenFor(x => x.LastUpdatedDate)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.ReturnUrl)
+        @Html.HiddenFor(x => x.Attachment)
+        @Html.HiddenFor(x => x.Json)
+        @Html.HiddenFor(x => x.DataJson)
+        @Html.HiddenFor(x => x.CompanyId)
+        @Html.HiddenFor(x => x.NotePriorityId)
+    </div>
+</form>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#btnSubmit").click(function () {
+            //alert("button");
+            ShowLoader($('#divAnnouncement'));
+        });
+
+        $("#ExpiryDate").kendoDateTimePicker({ change: ExpiryDateChange,});
+        $("#StartDate").kendoDateTimePicker({ change: StartDateChange,});
+    });
+
+    function setLocalFileIds(fileId) {
+        if (fileId != null) {
+            var fileIds = $("#Attachment").val() == null ? '' : $("#Attachment").val();
+
+            fileIds = fileId + ',' + fileIds;
+            $("#Attachment").val(fileIds);
+        }
+
+    }
+    function onUploadSuccess(e) {
+        if (e.response.success) {
+            setLocalFileIds(e.response.fileId);
+        }
+        else {
+            var msg = ExtractError(e.response.errors, true);
+            $(".hr-v-summary ul").html(msg);
+        }
+        return true;
+    }
+
+    function OnSuccess(response) {
+        if (response.success) {
+            if (response.operation == "Create")
+                kendo.alert("@Resource["NewAnnouncementCreatedSuccessfully"]");
+
+            if (response.operation == "Correct")
+                kendo.alert("@Resource["AnnouncementCorrectedSuccessfully"]");
+
+            if (response.ru == "")
+                window.parent.Close();
+
+            if (response.ru == "/nts/Note/OrgHome")
+                window.parent.loadOrgHome();
+
+            if (response.ru == "/nts/Note/CompanyHome")
+                window.parent.loadCompanyHome();
+
+        }
+        else {
+            ShowErrors(response.errors);
+        }
+    }
+
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+    }
+
+    function OnCancel(e) {
+        //alert("Cancel");
+        window.parent.Close();
+    }
+    function OnSubmit(e) {
+        //alert("Submited");
+        ShowLoader($('#divAnnouncement'));
+        //window.parent.Close();
+        //var startdate = $("#StartDate").val();
+        //var expirydate = $("#ExpiryDate").val();
+
+        //if (startdate != "" && expirydate == "") {
+        //    $(".hr-v-summary").removeClass("validation-summary-valid");
+        //    $(".hr-v-summary").addClass("validation-summary-errors");
+        //    $(".hr-v-summary ul").html("End date is empty");
+        //    return false;
+        //} else if (new Date(startdate) > new Date(expirydate)) {
+        //    $(".hr-v-summary").removeClass("validation-summary-valid");
+        //    $(".hr-v-summary").addClass("validation-summary-errors");
+        //    $(".hr-v-summary ul").html("Expiry date date should be greater than start date");
+        //    return false;
+        //} else {
+        //    $(".hr-v-summary").removeClass("validation-summary-errors");
+        //    $(".hr-v-summary").addClass("validation-summary-valid");
+        //    return true;
+        //}
+
+        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        var ed = kendo.toString($("#ExpiryDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        if (new Date(ed) > new Date(sd)) {
+            //var days = GetSLA(sd, ed);
+            //$("#Duration").val(days);
+            //$("#DurationText").val(days);
+            $(".hr-v-summary").removeClass("validation-summary-errors");
+            $(".hr-v-summary").addClass("validation-summary-valid");
+            $("#btnSubmit").data("kendoButton").enable(true);
+            return true;
+        } else {
+            HideLoader($('#divAnnouncement'));
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            $(".hr-v-summary ul").html("@SharedResource["Expirydateshouldbegreaterthanstartdate"]");
+            $("#btnSubmit").data("kendoButton").enable(false);
+            return false;
+        }
+    }
+    function OnExpiryDateChange(e) {
+
+        var startdate = $("#StartDate").val();
+        var expirydate = $("#ExpiryDate").val();
+        $("#btnSubmit").data("kendoButton").enable(false);
+        if (startdate != "" && expirydate == "") {
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            $(".hr-v-summary ul").html("@Resource["Enddateisempty"]");
+        } else if (new Date(startdate) > new Date(expirydate)) {
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            $(".hr-v-summary ul").html("@SharedResource["Expirydateshouldbegreaterthanstartdate"]");
+        } else {
+            $(".hr-v-summary").removeClass("validation-summary-errors");
+            $(".hr-v-summary").addClass("validation-summary-valid");
+            $("#btnSubmit").data("kendoButton").enable(true);
+        }
+
+    }
+
+    function StartDateChange() {
+
+        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        var ed = kendo.toString($("#ExpiryDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        if (new Date(ed) > new Date(sd)) {
+            //var days = GetSLA(sd, ed);
+            //$("#Duration").val(days);
+            //$("#DurationText").val(days);
+            $(".hr-v-summary").removeClass("validation-summary-errors");
+            $(".hr-v-summary").addClass("validation-summary-valid");
+            $("#btnSubmit").data("kendoButton").enable(true);
+            return true;
+        } else {
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            $(".hr-v-summary ul").html("@SharedResource["Expirydateshouldbegreaterthanstartdate"]");
+            $("#btnSubmit").data("kendoButton").enable(false);
+            return false;
+        }
+    }
+    function ExpiryDateChange() {
+        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        var ed = kendo.toString($("#ExpiryDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        if (new Date(ed) > new Date(sd)) {
+            //var days = GetSLA(sd, ed);
+            //$("#Duration").val(days);
+            //$("#DurationText").val(days);
+            $(".hr-v-summary").removeClass("validation-summary-errors");
+            $(".hr-v-summary").addClass("validation-summary-valid");
+            $("#btnSubmit").data("kendoButton").enable(true);
+            return true;
+        } else {
+            $(".hr-v-summary").removeClass("validation-summary-valid");
+            $(".hr-v-summary").addClass("validation-summary-errors");
+            $(".hr-v-summary ul").html("@SharedResource["Expirydateshouldbegreaterthanstartdate"]");
+            $("#btnSubmit").data("kendoButton").enable(false);
+            return false;
+        }
+    }
+    var onAjaxSuccess = function (res) {
+        // HideLoader($('.emaildata'));
+        if (res.success) {
+            
+            ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+            HideLoader($('#divAnnouncement'));
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName: 'CallBack' });
+
+
+        }
+        else {
+            showError(res.error);
+        }
+        HideLoader($('#divAnnouncement'));
+    };
+
+    function ShowLoader(target) {
+        // target.loadingOverlay();
+        kendo.ui.progress(target, true);
+    }
+    function HideLoader(target) {
+        //target.loadingOverlay('remove');
+        kendo.ui.progress(target, false);
+    }
+</script>

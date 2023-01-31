@@ -1,0 +1,223 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@{
+    Layout = null;
+}
+
+@model TemplateViewModel
+@inject IUserContext _userContext;
+
+<style>
+
+    .title-bg1 {
+        background-color: #070f74;
+        padding: 6px 0 2px 20px;
+        margin: 0;
+        font-size: 20px;
+        color: #fff;
+        border-radius: 12px 12px 0 0;
+        height: auto;
+        font-weight: 500;
+    }
+
+    .indiv-block-bg1 {
+        /* background-color: #F5EBBC; */
+        height: 100px;
+        width: 230px;
+        border-radius: 20px;
+        margin-left: 20px;
+        overflow: hidden !important;
+        /* border: 1px solid #e66c80; */
+        background-color: #cdcdcd;
+    }
+
+    .label1 {
+        font-size: 20px;
+    }
+
+    .cancel-button {
+        background: #eb7c63;
+        order: 2;
+    }
+
+    .k-listview-content {
+        height: unset !important;
+        overflow-y: hidden !important;
+    }
+
+    .k-listview {
+        border-style: none !important;
+        height: unset !important;
+    }
+
+    #listView, #listViewPO, #listViewPU {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        display: flex;
+    }
+
+
+    .k-listview:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .footer-item {
+        cursor: pointer;
+        border: 1px solid;
+        border-radius: 30px;
+        padding: 4px;
+        padding-left: 13px;
+        margin-left: 10px;
+    }
+
+    .nts-card {
+        float: left;
+        position: relative;
+        width: 253px;
+        margin: 0 10px;
+        padding: 0;
+        height: 180px;
+    }
+
+    .card-body-margin {
+        padding: 1em;
+    }
+
+    .card-border {
+        border-color: var(--info);
+    }
+
+    .card-number-div {
+        text-align: center;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+    .card-number-all {
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+        .card-number-div:hover, .card-number-all:hover {
+            background-color: #f2f2f2;
+        }
+</style>
+<script>
+
+    $(document).ready(function () {
+
+        var dataSourcePM = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/NtsService/ReadTemplatesListWithServiceCount?templateCodes=@Model.TemplateCodes&catCodes=@Model.CategoryCodes&groupCodes=@Model.GroupCodes&showAllServicesForAdmin=@Model.ShowAllServicesForAdmin",
+                    dataType: "json",
+                }
+            },
+        });
+
+        $("#listView").kendoListView({
+            dataSource: dataSourcePM,
+            //height: 350,
+            scrollable: "endless",
+            template: kendo.template($("#template").html())
+        });
+
+    });
+
+    function OnAfterServiceCreate() {
+        $("#listView").data("kendoListView").dataSource.read();
+    }
+
+
+    function OpenServiceList(tcode,status) {
+        var url = '/cms/NtsService/ServiceListByFilters?templateCodes=' + tcode +'&statusCodes='+status;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Service List', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+
+    $("#searchListView").keyup(function () {
+        var val = $('#searchListView').val();
+        var listView = $("#listView").data("kendoListView");        
+        listView.dataSource.filter({
+            logic: "or",
+            filters: [
+                {
+                    field: "DisplayName",
+                    operator: "contains",
+                    value: val
+                },               
+
+            ]
+        });
+    });
+
+
+</script>
+
+<script id="template" type="text/kendo-ui-template">
+        <div class="card nts-card mb-4">
+        <div class="card-body card-body-margin">
+            <div class="row text-secondary">
+                <div class="col-9" style="font-size:1.5em;">
+                    <span class="card-number-all p-1" onclick="OpenServiceList('#:TemplateCode#','')">
+                        #:TotalCount#
+                    </span>
+                </div>
+                <div class="col-3">
+                    <i class="fa fa-list-alt pt-1" style="font-size:2em"></i>
+                </div>
+                <div class="col-12" style="font-size:.9em;">
+                    #:DisplayName#
+                </div>
+            </div>
+            <hr class="mt-1 mb-1" />
+            <div class="row no-gutters">
+                <div class="col-4 text-primary" style="text-align:center">
+                    <div class="p-1 card-number-div" onclick="OpenServiceList('#:TemplateCode#','SERVICE_STATUS_INPROGRESS,SERVICE_STATUS_OVERDUE')">
+                        <div class="pb-1" style="font-size:1.2em">#:CreatedByMeInProgreessOverDueCount#</div>
+                        <div class="bg-primary" style="height:8px; border-radius:4px;">&nbsp;</div>
+                        <div class="pt-1" style="font-size:.6em;">IN PROGRESS</div>
+                    </div>
+                </div>
+                <div class="col-4 text-success" style="text-align:center">
+                    <div class="p-1 card-number-div" onclick="OpenServiceList('#:TemplateCode#','SERVICE_STATUS_COMPLETE')">
+                        <div class="pb-1" style="font-size:1.2em">#:CreatedByMeCompleteCount#</div>
+                        <div class="bg-success" style="height:8px; border-radius:4px;">&nbsp;</div>
+                        <div class="pt-1" style="font-size:.6em;">COMPLETED</div>
+                    </div>
+                </div>
+                <div class="col-4 text-danger" style="text-align:center">
+                    <div class="p-1 card-number-div" onclick="OpenServiceList('#:TemplateCode#','SERVICE_STATUS_REJECT,SERVICE_STATUS_CANCEL')">
+                        <div class="pb-1" style="font-size:1.2em">#:CreatedOrRequestedByMeRejectCancelCloseCount#</div>
+                        <div class="bg-danger" style="height:8px; border-radius:4px;">&nbsp;</div>
+                        <div class="pt-1" style="font-size:.6em;">REJECTED</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</script>
+
+<br />
+<div class="row pl-2 pb-3">
+    <div class="col-5" style="color:var(--secondary);font-weight:500;font-size:22px">
+        Service Dashboard
+    </div>
+    <div class="col-6">
+        <input id="searchListView" type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1">
+    </div>
+</div>
+<div id="listView" style="height:650px;background-color: transparent;margin-right:10px;"></div>
+
+
+
+

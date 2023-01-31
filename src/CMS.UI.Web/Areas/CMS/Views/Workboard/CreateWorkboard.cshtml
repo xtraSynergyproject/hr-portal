@@ -1,0 +1,305 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@model WorkBoardViewModel
+@{
+    ViewData["Title"] = "Create Workboard";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    .button-pane {
+        margin-top: 20px;
+    }
+
+    .titlebar {
+        color: #6d6e70;
+        font-weight: 700;
+        font-size: 14pt;
+        line-height: 30px;
+        margin-left: 30px;
+        margin-right: 40px;
+        margin-top: 15px;
+    }
+
+    h3 {
+        margin-bottom: 10px;
+        color: #6d6e70;
+        font-weight: 700;
+        font-size: 10pt;
+    }
+
+    .name-section, .dashboard-type, .template, .button-pane, .template-selected {
+        margin-left: 30px;
+        margin-right: 40px;
+    }
+
+    .name-input {
+        padding: 0 17px;
+        height: 40px;
+        border-radius: 4px;
+    }
+
+    input::placeholder {
+        color: #D8D8D8 !important;
+        font-style: italic;
+        font-size: small !important;
+    }
+
+    .template-text {
+        font-family: proxima-nova,"Tikal Sans",Helvetica,Arial,sans-serif;
+        color: #6d6e70
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: #3bafda;
+        border-color: #28a5d4;
+    }
+
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            color: #fff;
+            background-color: #269bc7;
+            border-color: #1e7da0;
+        }
+
+    .btn-outline-primary {
+        color: #28a5d4;
+        background: #fff;
+        border-color: #ccc;
+    }
+
+        .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+            color: #28a5d4;
+            border-color: #28a5d4;
+            background: #e0f6ff;
+        }
+
+    .btn-outline-danger {
+        color: #eb7c63;
+        background: #fff;
+        border-color: #ccc;
+    }
+
+        .btn-outline-danger:hover, .btn-outline-danger:focus, .btn-outline-danger:active {
+            color: #eb7c63;
+            border-color: #eb7c63;
+            background-color: #f7cac0;
+        }
+</style>
+<script>
+    $(document).ready(function () {
+ 
+        
+        document.getElementById("WorkBoardTeamIds").style.display = "none";
+          if('@Model.WorkBoardType'=='@WorkBoardTypeEnum.Team')
+        {
+            document.getElementById("WorkBoardTeamIds").style.display = "block";
+
+            //$('#teamList').show();
+        }
+
+        @*$("#WorkBoardTeamIds").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/cms/Team/GetTeamsBasedOnAllowedPortals",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            //placeholder: "--Select Team--",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.WorkBoardTeams)),
+            //valuePrimitive: true,
+            //serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });*@
+        $("#WorkBoardTeam").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/cms/Team/GetTeamsBasedOnAllowedPortals",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select WorkBoard Teams...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.WorkBoardTeamIds)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });
+
+
+
+        //$("#WorkBoardTeamIds").data("kendoMultiSelect").value("[@*@string.Join(",", Model.WorkBoardTeamIds)*@]");
+    });
+</script>
+
+<div class="row-12" style="margin-left:15px;">
+
+    <form asp-controller="WorkBoard" asp-action="ManageWorkBoard" method="post" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+
+
+        <div class="titlebar">
+            <span>New Workboard</span>
+        </div>
+
+        <div class="main-content">
+            <div class="text-danger" asp-validation-summary="All"></div>
+            <div class="name-section">
+                <h3>1. Name Your Workboard <span class="required">*</span></h3>
+                <input id="name-input" asp-for="WorkBoardName" type="text" required="required" class="form-control" placeholder="Enter your workboard name" />
+            </div>
+
+            <hr />
+            @*<div class="name-section">
+                    <h3>2. Workboard Unique Id</h3>
+                    <input id="uniqueid-input" asp-for="WorkboardUniqueId" type="text" class="form-control" readonly="readonly" />
+                </div>
+                <hr />
+                <div class="name-section">
+                    <h3>3. Workboard Share Key</h3>
+                    <input id="sharekey-input" asp-for="ShareKey" type="text" class="form-control" readonly="readonly" />
+                </div>
+                <hr />*@
+            <div class="dashboard-type">
+                <h3>2. Choose a Workboard Type</h3>
+                <ul class="checkbox-list radios">
+                    <li>
+                        <label for="personal">
+                            @Html.RadioButtonFor(model => model.WorkBoardType, @WorkBoardTypeEnum.Personal.ToString(), new { @onclick = "onChange(this);", @checked = "true" }) @*@Html.Label("tea:")*@
+                            @*<input asp-for="WorkBoardType" type="radio" name="dashboard-type" value="@WorkBoardTypeEnum.Personal.ToString()" id="personal" onclick="onChange(this);" checked />*@
+                            <span style="margin-left: 10px; font-size: 12pt; font-weight: 500;">
+                                Personal Workboard
+                            </span>
+                        </label>
+                    </li>
+                    <li>
+                        <label for="team">
+                            @Html.RadioButtonFor(model => model.WorkBoardType, @WorkBoardTypeEnum.Team.ToString(), new { @onclick = "onChange(this);" })
+                            @*<input asp-for="WorkBoardType" type="radio" name="dashboard-type" value="@WorkBoardTypeEnum.Team.ToString()" id="team" onclick="onChange(this);" />*@
+                            <span style="margin-left: 10px; font-size:12pt; font-weight: 500;">
+                                Team Workboard
+                            </span>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+            <div id="teamList" class=" name-section" @*style="display:none"*@>
+                @*<select id="WorkBoardTeamIds" asp-for="WorkBoardTeamIds"></select>*@
+                <select asp-for="WorkBoardTeamIds" id="WorkBoardTeam" data-placeholder="--Select--" style="width:80%"></select>
+                <span>&nbsp;</span>
+            </div>
+            <hr />
+            <div class="template">
+                <h3>3. Templates</h3>
+                <span class="template-text">
+                    Choose a template now or get started with a basic Work Board. You can change the template any time by clicking the templates button once you're in your Work Board. We have templates available for all types of business processes — Kanban, Agile, Design Thinking, and more!
+                </span>
+            </div>
+
+
+        </div>
+
+        <div class="button-pane">
+            <div class="button-set">
+                @if (Model.DataAction == DataActionEnum.Create)
+                {
+                    <button type="button" class="btn btn-link" id="choose-template-btn" onclick='ChooseTemplate()'>
+                        <span>Choose a Template</span>
+                    </button>}
+                <button type="button" class="btn btn-light" onclick='CloseCreateWorkboard()' style="float:right;">
+                    <span>Cancel</span>
+                </button>
+                <input type="submit" class="btn btn-primary" style="float: right; margin-right: 10px;" value="Save Workboard" />
+                @*<span></span>*@
+            </div>
+        </div>
+
+        @Html.HiddenFor(x => x.TemplateTypeId)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.WorkBoardStatus)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.JsonContent)
+        @Html.HiddenFor(x => x.WorkboardUniqueId)
+        @Html.HiddenFor(x => x.ShareKey)
+        <div id="template-name" class="template-selected">Template - Basic WorkBoard</div>
+        <input type="text" id="wbDate" value="" asp-for="WorkBoardDate" hidden />
+        <br />
+    </form>
+</div>
+
+<script>
+
+    function ChooseTemplate() {
+        var url = "/Cms/Workboard/ChooseTemplate";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Select Template', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function CloseCreateWorkboard() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "refreshList" });
+        return false;
+    }
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            
+            if (res.result.DataAction == "Create") {
+
+                ClosePopupAndOpenWorkBoard(res);
+            }
+            else {
+                CloseCreateWorkboard();
+
+
+            }
+        }
+        else {
+
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+
+            return false;
+        }
+    };
+    function ClosePopupAndOpenWorkBoard(res) {
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "openWorkBoard", Prms: res.result.UdfNoteTableId });
+        return false;
+    }
+    function afterSelection(Prms) {
+        
+        $("#template-name").html("Template - " + Prms.name);
+        $("#template-name").show();
+        /*$("#choose-template-btn span").html(Prms.name);*/
+        $("#TemplateTypeId").val(Prms.id);
+        $("#wbDate").attr("value", Prms.date);
+    }
+    function onChange(myRadio) {
+        
+        if (myRadio.value == "Team") {
+
+            document.getElementById('teamList').style.display = "block";
+        } else {
+            document.getElementById('teamList').style.display = "none";
+        }
+
+
+    }
+   
+
+</script>

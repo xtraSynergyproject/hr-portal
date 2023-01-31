@@ -1,0 +1,312 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pay.Controllers.PayrollReportController> Resource
+@using Kendo.Mvc.UI;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model PayrollReportViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = ViewBag.Layout ?? null;
+}
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnVacationSearch").click(function () {
+            var search = FilterVacationGrid();
+            $("#kgrdVacationAccrual").data("kendoGrid").dataSource.read(search);
+        });
+
+         $("#Year").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Text",
+            dataValueField: "Value",
+            value: "@Model.Year",
+            filter: "contains",
+            autoBind: true,
+            dataSource: @((ApplicationExtension.GetYearList(Model.Year.ToString())).ToArray()),
+        });
+
+        $("#Month").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Text",
+            dataValueField: "Value",
+            value: "@Model.Month",
+            height: 350,
+            filter: "contains",
+            autoBind: true,
+            dataSource: @((EnumExtension.SelectListFor(typeof(MonthEnum), (MonthEnum)Model.Month)).ToArray()),
+        });
+
+        $("#PersonId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.PersonId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/CHR/HRDirect/GetPersonList",
+                    }
+                }
+            }
+        });
+
+    });
+        function FilterVacationGrid() {
+        var search = {
+            Year: $("#Year").val(),
+            Month: $("#Month").val(),
+            PersonId: $("#PersonId").val(),
+            PayrollId: $("#PayrollId").val(),
+        };
+        return search;
+    }
+        function OnVacationExportToExcel()
+    {
+        var grid = $("#kgrdVacationAccrual").data("kendoGrid");
+        var requestObject = (new kendo.data.transports["aspnetmvc-server"]({ prefix: "" }))
+            .options.parameterMap({
+                page: grid.dataSource.page(),
+                sort: grid.dataSource.sort(),
+                filter: grid.dataSource.filter()
+            });
+        var href = '@Url.Action("VacationAccuralDetailsByDateDataExcel", "PayrollReport", new { area = "rpt",})';
+        href = href + "?page=" + (requestObject.page || '1');
+        href = href + "&sort=" + (requestObject.sort || '~');
+        href = href + "&pageSize=" + (grid.dataSource._pageSize || '0');
+        href = href + "&filter=" + (requestObject.filter || '~');
+          var search = FilterVacationGrid();
+            href = href + "&PayrollId=" + search.PayrollId + "&Year=" + search.Year + "&Month=" + search.Month + "&personId=" + search.PersonId;
+        window.location.href = href;
+    }
+
+</script>
+<script>
+
+    var NtsType = '@Html.Raw(EnumExtension.EnumToJson(typeof(NtsTypeEnum)))';
+    var NtsTypeObj = JSON.parse(NtsType);
+     var UserType = '@Html.Raw(EnumExtension.EnumToJson(typeof(UserTypeEnum)))';
+    var UserTypeObj = JSON.parse(UserType);
+    var columnDefs = [
+        {
+            headerName: "@Resource["EmployeeNo"]",
+            field: "PersonNo",
+
+        },
+        {
+            field: "PersonName",
+             headerName: "@Resource["EmployeeName"]",
+        },
+           {
+               field: "ElementName",
+                headerName: "@Resource["ElementName"]",
+           },
+           {
+               field: "OrganizationName",
+               headerName: "@Resource["OrganizationName"]",
+           },
+           {
+               field: "PayrollDate",
+               cellRenderer: params => {
+                   var date = new Date(params.value);
+                   return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+               }
+           },
+
+        {
+            field: "JobName",
+            headerName: "@Resource["JobName"]",
+        },
+        {
+            field: "OpeningQuantity",
+            headerName: "@Resource["OpeningQuantity"]",
+        },
+        {
+            field: "EarningQuantity",
+            headerName: "@Resource["Accrual"]",
+        },
+        {
+            field: "DeductionQuantity",
+            headerName: "@Resource["LeavesTaken"]",
+        },
+        {
+            field: "ClosingQuantity",
+            headerName: "@Resource["ClosingQuantity"]",
+        },
+    ];
+
+    $(function () {
+
+        getSickLeaveData();
+    });
+
+    function getSickLeaveData() {
+        document.getElementById("kgrdVacationAccrual").innerHTML = "";
+        gridConfig(
+            "kgrdVacationAccrual",
+            "/Pay/PayrollReport/SickLeaveAccrualReportData?Year="+$("#Year").val()+"&Month="+$("#Month").val()+"&PersonId="+$("#PersonId").val()+"&PayrollId="+$("#PayrollId").val(),
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+<div class="appWrapper">
+    <div class="formHeader">
+        <h4>
+            @ViewBag.Title
+        </h4>
+    </div>
+
+    @Html.HiddenFor(x => x.Year)
+    @Html.HiddenFor(x => x.Month)
+    @Html.HiddenFor(x => x.PersonId)
+    <div class="row no-gutter hr-pad-top-15">
+        <div class="form-group col-xs-12 col-lg-4">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Year"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownList()
+        .Name("Year")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+        .Filter(FilterType.Contains)
+        .HtmlAttributes(new { @class = "hr-small" })
+        .BindTo(ApplicationExtension.GetYearList(Model.Year.ToString())))*@
+                
+                <input id="Year" class="hr-small" />
+
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-lg-4">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Month"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownList()
+        .Name("Month")
+        .Height(350)
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+        .Filter(FilterType.Contains)
+        .HtmlAttributes(new { @class = "hr-small" })
+        .BindTo(EnumExtension.SelectListFor(typeof(MonthEnum), (MonthEnum)Model.Month)))*@
+                
+                <input id="Month" class="hr-small" />
+            </div>
+        </div>
+
+
+        <div class="form-group col-xs-12 col-lg-4">
+            <div class="col-lg-12 label-div">
+                @SharedResource["Person"]
+            </div>
+            <div class="col-lg-12">
+                @*@(Html.Kendo().DropDownListFor(model => model.PersonId)
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetPersonList", "HRDirect", new { area = "CHR" });
+            });
+        })
+        .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .Filter(FilterType.Contains)
+        .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input asp-for="PersonId" id="PersonId" class="hr-xx-large" />
+            </div>
+        </div>
+
+
+
+
+
+        <div class="form-group col-xs-12 col-lg-2">
+            <div class="col-lg-12 label-div">
+                &nbsp;
+            </div>
+            <div class="col-lg-12">
+                @*@Html.Kendo().Button().Name("btnVacationSearch").Content(@SharedResource["Search"]).HtmlAttributes(new { @class = "k-primary" })*@
+                <button type="button" class="btn btn-primary" id="btnVacationSearch">@SharedResource["Search"]</button>
+            </div>
+        </div>
+    </div>
+    <div class="hr-pad-top-10">
+        <button type='button' class='btn btn-primary' onclick='OnVacationExportToExcel();'><i class='fa fas fa-plus'></i>&nbsp;@Resource["GenerateExcelReport"]</button>
+        <br /><br />
+        <div id="kgrdVacationAccrual" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<PayrollReportViewModel>
+        ().Name("kgrdVacationAccrual")
+        .Columns(col =>
+        {
+            col.Bound(c => c.PersonNo).Title(@Resource["EmployeeNo"]).Width(150);
+            col.Bound(c => c.PersonName).Title(@Resource["EmployeeName"]).Width(200);
+            //col.Bound(c => c.SponsorshipNo).Title("Iqamah No").Width(150);
+            col.Bound(c => c.ElementName).Title(@Resource["ElementName"]).Width(200);
+            // col.Bound(c => c.ElementType);
+            col.Bound(c => c.PayrollDate).Title(@Resource["PayrollDate"]);
+            col.Bound(c => c.OrganizationName).Title(@Resource["OrganizationName"]);
+            col.Bound(c => c.JobName).Title(@Resource["JobName"]);
+            col.Bound(c => c.OpeningQuantity).Title(@Resource["OpeningQuantity"]);
+            col.Bound(c => c.EarningQuantity).Title(@Resource["Accrual"]);
+            col.Bound(c => c.DeductionQuantity).Title(Resource["LeavesTaken"]);
+            col.Bound(c => c.ClosingQuantity).Title(@Resource["ClosingQuantity"]);
+
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Custom().Text(@Resource["GenerateExcelReport"]).Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnVacationExportToExcel();" });
+        })
+        .Excel(e => e.FileName("SickLeaveAccrualReport.xlsx").AllPages(true))
+        .Scrollable(x => x.Enabled(false))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(100)
+        .Read(read => read.Action("SickLeaveAccrualReportData", "PayrollReport",new { area="Pay"}).Data("FilterVacationGrid"))
+        .Update(update => update.Action("Update", "PayrollReport"))
+        .Destroy(destroy => destroy.Action("Delete", "PayrollReport"))
+        .Model(model => model.Id(p => p.Id))
+        )
+        )*@
+        )
+
+
+
+
+    </div>
+
+
+</div>
+
+

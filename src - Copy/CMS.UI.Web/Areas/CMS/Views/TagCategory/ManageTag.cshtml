@@ -1,0 +1,110 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+
+@{
+    ViewData["Title"] = "Manage Tag Category";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model TagViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+    });
+
+    function Close() {
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnSave(evt) {
+
+        ShowLoader($('.form-horizontal'));
+        if ($("#Tag").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Tag Category Type is required");
+            HideLoader($('.form-horizontal'));
+            evt.preventDefault();
+            return false;
+        }
+
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+            $(".text-danger").html("");
+        }
+    }
+
+    var onAjaxSuccess = function (res) {
+        HideLoader($('.form-horizontal'));
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                window.parent.ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                window.parent.ShowNotification("Updated Successfully", "success");
+            }
+
+            Close();
+            //window.parent.parent.$("#kgrdTag").data("kendoGrid").dataSource.read({TagCategoryId: 'fkdjhfkj' });
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName: 'OnAfterTagCreate' });
+            return false;
+
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+       }
+    };
+
+</script>
+
+<div class="row-12">
+
+    <form asp-controller="TagCategory" asp-action="ManageTag" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+        <div class="row-12" style="padding:10px;">
+        
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="ParentNoteId" type="hidden" class="form-control" placeholder="Enter Tag" required="required" autocomplete="off" style="width:80%" />
+                    <input asp-for="NoteSubject" type="text" class="form-control" placeholder="Enter Tag" required="required" autocomplete="off" style="width:100%" />
+                    <label for="NoteSubject">Tag Name <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10" style="text-align:right;">
+                <button type="button" class="btn btn-light" onclick="Close();">Close</button>
+                <input type="submit" class="btn btn-primary" value="Save" id="submitBtn" onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+    </form>
+</div>
+
+

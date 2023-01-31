@@ -1,0 +1,150 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Tags";
+    Layout = null;
+}
+
+<style>
+
+</style>
+
+<script>
+    $(document).ready(function () {
+        getDmsTagData();
+    });
+
+    var columnDefs = [
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuDmsTag' data-idvalue='" + params.value + "' data-noteid='" + params.data.NtsNoteId + "' ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+        {
+            headerName: "Tag Name",
+            field: "TagName",
+        },
+        {
+            headerName: "Pinned?",
+            field: "TagPinned"
+        },
+        {
+            headerName: "Description",
+            field: "TagDescription"
+        },
+        {
+            headerName: "Tag Parent",
+            field: "TagParentName"
+        },
+    ];
+
+    function getDmsTagData() {
+        document.getElementById("kgrdDMSTag").innerHTML = "";
+        gridConfig(
+            "kgrdDMSTag",
+            "/Dms/Document/ReadDMSTagData",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    $(function () {
+
+        $.contextMenu({
+            selector: '#tree-menuDmsTag',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                var id = $trigger.data('idvalue');
+                var noteid = $trigger.data('noteid');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        onEditTag(id);
+                                        break;
+                                    case 'delete':
+                                        onDeleteTag(id);
+                                        break;
+                                    case 'tag':
+                                        /*OnTagView(noteid, tname, type);*/
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+                                /*"tag": { name: "Tag", icon: "fas fa-cog" },*/
+
+                            }
+                        };
+                }
+            }
+        });
+
+
+    });
+    function OnCreateTag(){
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Dms/Document/DMSTag";
+        win.OpenWindow({ Title: 'Create Tag', Width: 1000, Height: 800 });
+        return false;
+    }
+    function onEditTag(tagid) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Dms/Document/DMSTag?tagId="+tagid;
+        win.OpenWindow({ Title: 'Manage Tag', Width: 1000, Height: 800 });
+        return false;
+    }
+    function onDeleteTag(tagid) {
+        var flag = confirm('Do you really want to delete the Tag?');
+        if (flag) {
+            $.ajax({
+                url: '@Url.Action("DeleteDMSTag", "Document", new { @area="Dms"})?id=' + tagid,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    if (result.success) {
+                        kendo.alert("Tag Deleted Successfully.");
+                        getDmsTagData();
+                    } else {
+                        getDmsTagData();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    getDmsTagData();
+                }
+            });
+            return false;
+        }
+    }
+
+</script>
+
+<div>
+    <h4>@ViewBag.Title</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-12">
+            <button type='button' class='btn btn-primary' onclick='OnCreateTag();'><i class='fa fas fa-plus'></i>&nbsp;Create</button>
+            <br /><br />
+            <div id="kgrdDMSTag" style="width: 100%;height:550px;" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>

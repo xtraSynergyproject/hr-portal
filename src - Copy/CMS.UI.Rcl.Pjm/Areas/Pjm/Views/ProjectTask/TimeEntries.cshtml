@@ -1,0 +1,927 @@
+﻿@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+@model ServiceViewModel
+@inject IUserContext _userContext;
+@{
+
+    Layout = null;
+}
+
+@*<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.44/css/bootstrap-datetimepicker.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.44/js/bootstrap-datetimepicker.min.js"></script>*@
+<style>
+    .bootstrap-datetimepicker-widget.dropdown-menu.bottom:before {
+        border-left: 7px solid transparent;
+        border-right: 7px solid transparent;
+        border-bottom: 7px solid #ccc;
+        border-bottom-color: rgba(0, 0, 0, 0.2);
+        top: auto;
+        left: 7px;
+        position: static !important
+    }
+
+    .bootstrap-datetimepicker-widget.dropdown-menu.bottom:after {
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 6px solid white;
+        top: auto;
+        left: 100px;
+        position: static !important
+    }
+
+    .bootstrap-datetimepicker-widget.dropdown-menu.top:before {
+        border-left: 7px solid transparent;
+        border-right: 7px solid transparent;
+        border-top: 7px solid #ccc;
+        border-top-color: rgba(0, 0, 0, 0.2);
+        bottom: -7px;
+        left: 100px;
+        position: absolute
+    }
+
+    #dropdown > span {
+/*        height: 25px !important;*/
+    }
+    .row {
+    margin-right:0px !important;
+    margin-left:0px !important;
+    }
+    html {
+        font-size: 16px !important;
+    }
+</style>
+@*<style>
+        .listViewDoc {
+            border: none;
+            border-radius: 6px;
+            overflow-x: hidden;
+        }
+
+        input.largerCheckbox {
+            width: 15px;
+            height: 20px;
+            background-color: #2196F3;
+        }
+
+        .board {
+            border: none;
+            overflow-x: scroll;
+            display: flex;
+        }
+
+        .card_task {
+            border-color: #209EB8;
+        }
+
+        .newtask {
+            background-color: black;
+            color: #fff;
+        }
+
+        .tasklist {
+            background-color: #209EB8;
+            color: #fff;
+            border-radius: 0px 0px 3px 3px;
+        }
+
+        .taskname {
+            /*color: #1D6EF4;*/
+            color: black;
+        }
+
+        .drp-user-photo {
+            height: 50px;
+            width: 50px;
+            border-radius: 30px;
+        }
+
+        #board > .k-listview-content {
+            display: flex;
+        }
+
+        .k-listview-content {
+            overflow: unset;
+        }
+
+        #listView {
+            padding: 10px 5px;
+            margin-bottom: -1px;
+            min-height: 510px;
+        }
+
+        .scrollbtn {
+            background-color: #4E4D4D;
+            color: white;
+            border: 1px solid #FFFFFF;
+            box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+            border-radius: 2px;
+        }
+
+        .k-treeview-lines {
+            overflow-x: scroll;
+            width: 100%;
+        }
+    </style>*@
+
+<script>
+    $(document).ready(function () {
+         $("#EndDate").kendoDateTimePicker({
+            @*format: "@ApplicationConstant.Database.JQueryDateFormat",*@
+            change: OnStartDateDueDateChange,
+            @*value:'@Model.EndDate'*@
+        });
+        $("#StartDate").kendoDateTimePicker({
+            @*format: "@ApplicationConstant.Database.JQueryDateFormat",*@
+            change: OnStartDateDueDateChange,
+            value:'@DateTime.Now'
+        });
+        $("#UserId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+			value: "@_userContext.UserId",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        //url: "/cms/User/ReadUserData",
+                        url: "/PJM/ProjectTask/GetSubordinatesUserIdNameList",
+                    }
+                }
+            }
+        });
+         $("#NtsTaskId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+             dataTextField: "Title",
+            dataValueField: "Id",
+			@*value: "@_userContext.UserId",*@
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/PJM/ProjectTask/GetProjectsTasksList?projectId=@Model.Id",
+                    }
+                }
+            }
+        });
+     $("#TimeLogDate").kendoDatePicker({ format:"@ApplicationConstant.DateAndTime.DefaultJqueryDateFormatOnly", change: TimeLogDateChange});
+       GetTimeEntriesData();
+        LoadPartailView1("/pjm/ProjectTask/ProjectDetailsFilter?hideProject=true", 'ProjectFilter');
+        HideLoader($("#global-overlay"));
+        $.contextMenu({
+            selector: '#tree-menuBinUser',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEdit(id);
+                                        break;
+
+                                    case 'del':
+                                        onDeleteEntry(id);
+                                        break;
+
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-pencil" },
+                                "del": { name: "Delete", icon: "fas fa-trash" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+
+
+                @*$.ajax({
+                    type: "GET",
+                    url: "/PJM/ProjectTask/GetProjectsTasksList?projectId=@Model.Id",
+
+                    dataType: "json",
+                    success: function (task) {*@
+                          @*$("#kgrdTaskWorkTime").jsGrid({
+        width: "100%",
+        height: "600px",
+
+        inserting: false,
+        editing: false,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        deleteConfirm: "Do you really want to delete ?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                var sd = kendo.toString($("#TimeLogDate").data("kendoDatePicker").value(), '@ApplicationConstant.Database.JQueryDateFormat');
+                var tuser = $("#TimeLogUser").val();
+        var url = "/PJM/ProjectTask/ReadTaskWorkTimeDetails?serviceId=@Model.Id&TimeLogDate=" + sd+"&TimeLogUserId="+tuser;
+                return $.ajax({
+                    type: "GET",
+                    url: url,
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+            //insertItem: function (item) {
+            //    return $.ajax({
+            //        type: "POST",
+            //        url: "/api/data",
+            //        data: item,
+            //        dataType: "json"
+            //    });
+            //},
+            updateItem: function (item) {
+                if (item.DataAction !='Create')
+                {
+                     item.DataAction = '@DataActionEnum.Edit';
+                }
+                debugger;
+                if (item.Status==0) {
+                    item.Status = 1;
+                }
+                if (new Date(item.StartDate) > new Date(item.EndDate)) {
+                    alert("error : Start date should be less than or equal to end date.");
+                    var grid = $("#kgrdTaskWorkTime").data("JSGrid");
+                    grid.render();
+                    return false;
+                }
+                return $.ajax({
+                    type: "POST",
+                    url: "/cms/ManageTaskTimeEntry",
+                    data: item,
+                    success: function (result) {
+                        var grid = $("#kgrdTaskWorkTime").data("JSGrid");
+                        grid.render();
+                        if (!result.success) {
+                            alert("error : " + result.error);
+                        }
+                    },
+                    error: function (result) {
+                        alert("error : "+result.error);
+                    }
+                });
+            },
+            deleteItem: function (item) {
+                OnDelete(item.Id);
+            }
+        },
+
+                              fields: [
+                                  { name: "ProjectName",title:"Project Name", type: "text", editing: false },
+                                  { name: "TaskName", title: "Task Name", type: "text", /*items: task, valueField: "Id", textField: "Title", editing: true*/ },
+                                  {
+                                      name: "StartDate", type: "text", editing: true,
+                                      //editTemplate: function (value) {
+                                      //      debugger;
+                                      //      var Duration = this._grid.fields[4];
+                                      //      var enddateControl = this._grid.fields[3].valueOf();
+                                      //      // var $editControl = jsGrid.fields.date.prototype.editTemplate.call(this, value);
+
+                                      //      var changeStartDate = function () {
+                                      //      debugger;
+                                      //      var enddateValue = enddateControl.editValue();
+                                      //      var startdate = this.value;
+                                      //      if (new Date(enddateValue) >= new Date(startdate)) {
+                                      //            var sec = GetSLAInSeconds(startdate, enddateValue);
+                                      //            var durations = secondsToDhms(sec);
+                                      //            $(".team-edit").empty().append(Duration.editTemplate(durations));
+                                      //        } else {
+                                      //            var durations = "0:0:0:0";
+                                      //            $(".team-edit").empty().append(Duration.editTemplate(durations));
+                                      //        }
+                                      //      };
+                                      //      //this._editPicker = $("<input>").datepicker().datepicker("setDate", new Date(value));
+                                      //      this._editPicker = $('<input>').datetimepicker({
+                                      //          //format: 'L LTS',
+                                      //          widgetPositioning: {
+                                      //          horizontal: 'auto',
+                                      //          vertical: 'bottom'
+                                      //          },
+                                      //     });
+
+                                      //      if (value !== null) {
+                                      //      this._editPicker.data('DateTimePicker').defaultDate(moment(value));
+                                      //      this._editPicker.data('DateTimePicker').date(moment(value));
+                                      //      }
+                                      //    //this._editPicker.on("change", changeStartDate);
+                                      //     this._editPicker.on("dp.change", changeStartDate);
+                                      //    //changeStartDate();
+                                      //    return this._editPicker;
+                                      //}
+                                  },
+                                  {
+                                      name: "EndDate", type: "text", editing: true,
+                                      //editTemplate: function (value) {
+                                      //    debugger;
+                                      //    var Duration = this._grid.fields[4];
+                                      //    var startdateValue = this._grid.fields[2].valueOf();
+                                      //   // var $editControl = jsGrid.fields.date.prototype.editTemplate.call(this, value);
+                                      //    var changeCriteria = function () {
+                                      //        debugger
+                                      //        var startdate = startdateValue.editValue();
+                                      //        var enddateValue = this.value;
+                                      //        if (new Date(enddateValue) >= new Date(startdate)) {
+                                      //            var sec = GetSLAInSeconds(startdate, enddateValue);
+                                      //            var durations = secondsToDhms(sec);
+                                      //            $(".team-edit").empty().append(Duration.editTemplate(durations));
+
+                                      //        } else {
+                                      //            var durations = "0:0:0:0";
+                                      //            $(".team-edit").empty().append(Duration.editTemplate(durations));
+                                      //        }
+                                      //    };
+                                      //    //this._editPicker = $("<input>").datepicker().datepicker("setDate", new Date(value));
+                                      //    this._editPicker = $('<input>').datetimepicker({
+                                      //        //format: 'L LTS',
+                                      //        widgetPositioning: {
+                                      //            horizontal: 'auto',
+                                      //            vertical: 'bottom',
+                                      //            //position:'relative'
+                                      //        },
+
+                                      //    });
+
+                                      //    if (value !== null) {
+                                      //        this._editPicker.data('DateTimePicker').defaultDate(moment(value));
+                                      //        this._editPicker.data('DateTimePicker').date(moment(value));
+                                      //    }
+                                      //    this._editPicker.on("dp.change", changeCriteria);
+                                      //   // this._editPicker.on("change", changeCriteria);
+                                      //   // changeCriteria();
+                                      //    return this._editPicker;
+
+                                      //}
+                                  },
+                                  { name: "Duration", type: "text", editing: false, editcss: "team-edit"},
+            { name: "Comment", type: "text" },
+                                  { name: "UserName", type: "text", editing: false },
+            { name: "SequenceOrder", type: "number" },
+            { type: "control" }
+
+        ]
+    });*@
+                //    }
+                //});
+         @*$("#TimeLogUser").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+	    optionLabel:'@SharedResource["Select"]',
+             change: onChangeTimeLogUser,
+            
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/PJM/ProjectTask/GetSubordinatesUserIdNameList",
+                    }
+                }
+            }
+         });*@
+    });
+    //function onChangeTimeLogUser() {
+    //   // $("#kgrdTaskWorkTime").data("JSGrid").render();
+    //    GetTimeEntriesData();
+    //}
+
+    //var MyDateField = function (config) {
+    //    jsGrid.Field.call(this, config);
+    //};
+
+    //MyDateField.prototype = new jsGrid.Field({
+
+    //    css: "date-field",            // redefine general property 'css'
+    //    align: "center",              // redefine general property 'align'
+
+    //    myCustomProperty: "foo",      // custom property
+
+    //    sorter: function (date1, date2) {
+    //        return new Date(date1) - new Date(date2);
+    //    },
+
+    //    itemTemplate: function (value) {
+    //      // return new Date(value).toDateString();
+    //        if (value === null) {
+    //            return '';
+    //        } else {
+    //            return moment(value).format('L LTS');
+    //        }
+    //    },
+
+    //    insertTemplate: function (value) {
+    //      // return this._insertPicker = $("<input>").datepicker({ defaultDate: new Date() });
+    //        this._insertPicker = $('<input>').datetimepicker({
+    //            //format: 'L LTS',
+    //            defaultDate: moment(),
+    //            widgetPositioning: {
+    //                horizontal: 'auto',
+    //                vertical: 'bottom'
+    //            }
+    //        });
+
+    //        this._insertPicker.data('DateTimePicker').date(moment());
+    //        return this._insertPicker;
+    //    },
+
+    //    //editTemplate: function (value) {
+    //    //    //return this._editPicker = $("<input>").datepicker().datepicker("setDate", new Date(value));
+    //    //    //this._editPicker = $('<input>').datetimepicker({
+    //    //    //    format: 'L LTS',
+    //    //    //    widgetPositioning: {
+    //    //    //        horizontal: 'auto',
+    //    //    //        vertical: 'bottom'
+    //    //    //    }
+    //    //    //});
+
+    //    //    //if (value !== null) {
+    //    //    //    this._editPicker.data('DateTimePicker').defaultDate(moment(value));
+    //    //    //    this._editPicker.data('DateTimePicker').date(moment(value));
+    //    //    //}
+    //    //   // return this._editPicker;
+    //    //},
+
+    //    insertValue: function () {
+    //        //return this._insertPicker.datepicker("getDate").toISOString();
+    //        var insertValue = this._insertPicker.data('DateTimePicker').date();
+    //        if (typeof insertDate !== 'undefined' && insertDate !== null) {
+    //            return insertDate.format('L LTS');
+    //        } else {
+    //            return null;
+    //        }
+    //    },
+
+    //    editValue: function () {
+    //       //return this._editPicker.datepicker("getDate").toISOString();
+    //        var editValue = this._editPicker.data('DateTimePicker').date();
+    //        if (typeof editValue !== 'undefined' && editValue !== null) {
+    //            return editValue.format('L LTS');
+    //        } else {
+    //            return null;
+    //        }
+    //    }
+    //});
+
+    //jsGrid.fields.date = MyDateField;
+
+    function secondsToDhms(seconds) {
+        seconds = Number(seconds);
+        var d = Math.floor(seconds / (3600 * 24));
+        var h = Math.floor(seconds % (3600 * 24) / 3600);
+        var m = Math.floor(seconds % 3600 / 60);
+        var s = Math.floor(seconds % 60);
+
+        var dDisplay = d > 0 ? d : "0";
+        var hDisplay = h > 0 ? h : "0";
+        var mDisplay = m > 0 ? m : "0";
+        var sDisplay = s > 0 ? s : "0";
+        return dDisplay + ":" + hDisplay + ":" + mDisplay + ":" + sDisplay;
+    }
+    var columnDefs = [
+        {
+            field: "ProjectName",
+            headerName: "ProjectName"
+        },
+        {
+            field: "TaskName",
+            headerName:"Task Name"
+        },
+        {
+            field: "StartDateDisplay",
+            headerName: "@SharedResource["StartDate"]",
+            //cellRenderer: params => {
+            //   // var date = new Date(params.value);
+            //    //var d = new Date(date),
+            //    //    month = '' + (d.getMonth() + 1),
+            //    //    day = '' + d.getDate(),
+            //    //    year = d.getFullYear();
+
+            //    //if (month.length < 2)
+            //    //    month = '0' + month;
+            //    //if (day.length < 2)
+            //    //    day = '0' + day;
+
+            //    //return [day, month, year].join('.');
+            //    var d = new Date(params.value),
+            //        dformat = [d.getDate(),
+            //        d.getMonth() + 1,
+            //        d.getFullYear()].join('/') + ' ' +
+            //            [d.getHours(),
+            //            d.getMinutes(),
+            //            ].join(':');
+            //    return dformat;
+            //}
+        },
+        {
+            field: "EndDateDisplay",
+            headerName: "@SharedResource["DueDate"]",
+            //cellRenderer: params => {
+            //    //var date = new Date(params.value);
+            //    //var d = new Date(date),
+            //    //    month = '' + (d.getMonth() + 1),
+            //    //    day = '' + d.getDate(),
+            //    //    year = d.getFullYear();
+
+            //    //if (month.length < 2)
+            //    //    month = '0' + month;
+            //    //if (day.length < 2)
+            //    //    day = '0' + day;
+
+            //    //return [day, month, year].join('.');
+            //    var d = new Date(params.value),
+            //        dformat = [d.getDate(),
+            //        d.getMonth() + 1,
+            //        d.getFullYear()].join('/') + ' ' +
+            //            [d.getHours(),
+            //            d.getMinutes(),
+            //            ].join(':');
+            //    return dformat;
+            //}
+        },
+
+        {
+            field: "Duration",
+            headerName:"@SharedResource["Duration"]"
+        },
+        {
+            field: "Comment",
+            headerName:"@SharedResource["WorkComment"]"
+        },
+        {
+            field: "UserName",
+            headerName:"@SharedResource["LoggedBy"]"
+        },
+
+        {
+            field: "Id",
+            headerName: "@SharedResource["Action"]",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBinUser' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+
+    ];
+
+    function GetTimeEntriesData(date) {
+       // alert($("#TimeLogDate").data("kendoDatePicker").value());
+        if (date == null || date == "" || date == "undefined")
+        {
+            date = "";
+        }
+        var sd = kendo.toString($("#TimeLogDate").data("kendoDatePicker").value(), '@ApplicationConstant.Database.JQueryDateFormat');
+        var url = "/PJM/ProjectTask/ReadTaskWorkTimeDetails?serviceId=@Model.Id&TimeLogDate=" + sd;
+
+        document.getElementById("kgrdTaskWorkTime").innerHTML = "";
+        gridConfig(
+            "kgrdTaskWorkTime",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+    function GetSLAInSeconds(startDate, endDate) {
+        var query = "startDate=" + startDate + "&endDate=" + endDate;
+        var diff = UtilityAjax("GetSLAInSeconds", query);
+        return diff;
+    }
+    function OnEdit(id) {
+
+        $.ajax({
+            url: "/cms/GetTaskTimeEntry?Id=" + id,
+            dataType: "json",
+            type:"GET",
+            success: function (data) {
+                debugger;
+                if (data.success) {
+
+                    $("#DataAction").val("Edit");
+                    document.getElementById("Id").value = data.result.Id;
+                    $("#TimeEntryId").val(data.result.Id);
+                    $("#UserId").val(data.result.UserId);
+                    $("#UserId").data("kendoDropDownList").value(data.result.UserId);
+                    $("#NtsTaskId").val(data.result.NtsTaskId);
+                    $("#NtsTaskId").data("kendoDropDownList").value(data.result.NtsTaskId);
+                    $("#StartDate").val(data.result.StartDate);
+                    $("#StartDate").data("kendoDateTimePicker").value(data.result.StartDate);
+                    $("#EndDate").val(data.result.EndDate);
+                    $("#EndDate").data("kendoDateTimePicker").value(data.result.EndDate);
+                    $("#Comment").val(data.result.Comment);
+                    $("#IsBillable").val(data.result.IsBillable);
+                    onShowtimeEntry();
+                }
+            }
+        });
+        //var url = "/pjm/ProjectTask/AddTaskTimeEntry?id=" + id ;
+
+        //var win = GetMainWindow();
+        //win.iframeOpenUrl = url;
+        //win.OpenWindow({ Title: 'Correct Task Work Time', Width: 1200, Height: 600 });
+    }
+
+
+
+    function TimeLogDateChange() {
+        debugger;
+        var data = $("#TimeLogDate").data("kendoDatePicker").value();
+        @*var sd = kendo.toString($("#TimeLogDate").data("kendoDatePicker").value(), '@ApplicationConstant.DateAndTime.DefaultJqueryDateFormatOnly');
+        $("#TimeLogDate").val(sd);*@
+        //$("#kgrdTaskWorkTime").data("JSGrid").render();
+        GetTimeEntriesData(data)
+    }
+
+
+
+
+
+
+    function CloseLogTime(dorefresh) {
+
+        window.parent.CloseIframePopup3();
+        if (dorefresh) {
+            $("#kgrdTaskWorkTime").data("kendoGrid").dataSource.read();
+        }
+    }
+
+
+</script>
+<script type="text/javascript">
+   
+    function onAdd()
+    {
+        $("#TimeLogUserDiv").hide();
+        $("#logTimeDiv").hide();
+        $("#DataAction").val("Create");
+        $("#StartDate").data("kendoDateTimePicker").value("@DateTime.Now");
+        onShowtimeEntry();
+    }
+    function onSave(e) {
+        var startDate = $("#StartDate").data("kendoDateTimePicker").value();
+        var endDate = $("#EndDate").data("kendoDateTimePicker").value();
+        if (startDate >= endDate) {
+            e.preventDefault();
+            kendo.alert("Start date should be less than end date");
+
+        }
+        if ($("#NtsTaskId").data("kendoDropDownList").value() == "" || $("#NtsTaskId").data("kendoDropDownList").value() == null || $("#NtsTaskId").data("kendoDropDownList").value() == undefined) {
+            e.preventDefault();
+            kendo.alert("Task is required");
+
+        }
+    }
+     var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+
+            ShowNotification("Saved Successfully", "success");
+            //$("#kgdTimeEntries").data("kendoGrid").dataSource.read();
+            GetTimeEntriesData();
+            onHidetimeEntry();
+            //$("#kgrdTaskWorkTime").data("JSGrid").render();
+        }
+        else {
+            ResetDate();
+            showError(res.error);
+        }
+    };
+    var showError = function (error) {
+
+        //#validation-summary-manageform
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    function onDeleteEntry(id) {
+       // e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var flag = confirm('Are you sure you want to delete the selected entry?');
+        if (flag) {
+            $.ajax({
+                type: "POST",
+                url: '/cms/DeleteTaskTimeEntry',
+                data: { id: id },
+                success: function (data) {
+                    //$("#kgdTimeEntries").data("kendoGrid").dataSource.read();
+                    //$("#kgrdTaskWorkTime").data("JSGrid").render();
+                    GetTimeEntriesData();
+                    kendo.alert("Entry Deleted Successfully");
+                },
+                dataType: "json",
+            });
+        }
+
+        return false;
+    }
+    function OnStartDateDueDateChange() {
+        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        var ed = kendo.toString($("#EndDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        if (new Date(ed) > new Date(sd)) {
+            var sec = GetSLAInSeconds(sd, ed);
+            $('#Duration').data('durationPicker').setValue(sec);
+        }
+    }
+    function GetSLAInSeconds(startDate, endDate) {
+        var query = "startDate=" + startDate + "&endDate=" + endDate;
+        var diff = window.parent.UtilityAjax("GetSLAInSeconds", query);
+        return diff;
+    }
+    function GetAddSeconds(startDate, seconds) {
+        var query = "date=" + startDate + "&seconds=" + seconds;
+        var diff = window.parent.UtilityAjax("AddSeconds", query);
+        return diff;
+    }
+    (function ($) {
+        $('#Duration').durationPicker({
+            showSeconds: false,
+            onChanged: function (newVal, init) {
+                if (!init) {
+                    var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+                    var ed = GetAddSeconds(sd, newVal);
+                    var f = new Date(ed);
+                    console.log(f);
+                    $("#EndDate").data("kendoDateTimePicker").value(f)
+                }
+
+            }
+        });
+    })(jQuery);
+    function onShowtimeEntry() {
+        $("#addTimeEntry").hide('slow');
+        $("#timeEntryDiv").show('slow');
+
+        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        var ed = kendo.toString($("#EndDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        if (new Date(ed) > new Date(sd)) {
+            var sec = GetSLAInSeconds(sd, ed);
+            $('#Duration').data('durationPicker').setValue(sec);
+        }
+    }
+    function onHidetimeEntry() {
+        $("#TimeLogUserDiv").show();
+        $("#logTimeDiv").show();
+        $('#frmTaskTimeEntry')[0].reset();
+        $("#TimeEntryId").val('');
+        $("#Id").val('');
+        $("#DataAction").val("");
+        $("#addTimeEntry").show('slow');
+        $("#timeEntryDiv").hide('slow');
+    }
+</script>
+<div class="row hr-pad-top-10">
+
+   
+</div>
+
+
+
+
+<div id="divgridview" class="row">
+
+    <div class="col-sm-12">
+        <div class="row" style="padding-top:25px;font-family:roboto" id="TimeLogUserDiv">
+            <div class="col-md-5">
+                @*<label class="control-label"> Time Entries For</label>
+                
+                <input id="TimeLogUser" class="hr-x-large" />*@
+            </div>
+            <div class="col-md-5" id="logTimeDiv">
+                <label class="control-label"> Time Log Date</label>
+
+                <div style="display:inline-flex">
+                    
+                    <input id="TimeLogDate" style="width:320px" />
+                </div>
+            </div>
+            <div class="col-xs-2" id="button" style="float:right;cursor:pointer">
+                @*<button class="btn btn-primary" onclick="OnCreate()">Add Time Log</button>*@
+                <button type="button" id="addTimeEntry" class="btn btn-primary" onclick="onAdd()">Add Time</button>
+            </div>
+
+        </div>
+        <form asp-controller="Cms" asp-action="ManageTaskTimeEntry" asp-area="" method="post" class="form-parse-date  form-horizontal" id="frmTaskTimeEntry"
+              data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+              data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+              data-ajax="true" data-ajax-method="POST" onsubmit="ConvertDate()">
+            <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+            <div class="p-3">
+                @*<div id="div-add-time">
+                    <button type="button" id="addTimeEntry" class="btn btn-primary" onclick="onShowtimeEntry()">Add Time</button>
+                </div>*@
+                <div class="row  div-time-entry ml-0 mr-0" id="timeEntryDiv" style="display:none;">
+                    <div class="form-group col-4">
+                        <label class="col-form-label">
+                            Time Entry For
+                        </label>
+                        <div>
+
+
+                            <input name="UserId" id="UserId" class="form-control" />
+
+                        </div>
+                    </div>
+                    <div class="form-group col-4">
+                        <label class="col-form-label">
+                            Task
+                        </label>
+                        <div>
+
+
+                            <input name="NtsTaskId" id="NtsTaskId" class="form-control" />
+
+                        </div>
+                    </div>
+                    <div class="form-group col-4">
+                        <label class="col-form-label">
+                            &nbsp;
+                        </label>
+                        <div>
+
+                            <input type="checkbox" name="IsBillable" id="IsBillable" />
+                            <label>Is Billable</label>
+                        </div>
+                    </div>
+                    <div class="form-group col-xs-6 col-sm-4">
+                        <label class="col-form-label">
+                            Start Date
+                        </label>
+                        <div>
+                            @*@Html.Kendo().DateTimePickerFor(x => x.StartDate).Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat).HtmlAttributes(new { @style = "width:100%;" }).Events(e => e.Change("OnStartDateDueDateChange"))*@
+                            <input asp-for="StartDate" id="StartDate" style="width:100%" />
+                        </div>
+                    </div>
+                    <div class="form-group col-xs-6 col-sm-4">
+                        <label class="col-form-label">
+                            End Date
+                        </label>
+                        <div>
+                            @*@Html.Kendo().DateTimePickerFor(x => x.EndDate).Format(ApplicationConstant.DateAndTime.DefaultDateTimeFormat).HtmlAttributes(new { @style = "width:100%;" }).Events(e => e.Change("OnStartDateDueDateChange"))*@
+                            <input name="EndDate" id="EndDate" style="width:100%" />
+                        </div>
+                    </div>
+
+                    <div class="form-group col-xs-6 col-sm-4">
+                        <label class="col-form-label">
+                            Total Time
+                        </label>
+                        <div>
+
+                            <input name="Duration" id="Duration" type="text" class="form-control" style="width:100%" />
+                        </div>
+                    </div>
+
+
+                    <div class="form-group col-12">
+                        <label class="col-form-label">
+                            Comment
+                        </label>
+                        <div>
+                            <textarea id="Comment" name="Comment" rows="2" cols="24" style="width: 100%; border-color: lightgray"></textarea>
+
+                        </div>
+                    </div>
+                    <div class="form-group col-12" style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" onclick="onSave(event)">Save</button>
+                        <button type="button" class="btn btn-light" onclick="onHidetimeEntry()">Cancel</button>
+                    </div>
+                    <input type="hidden" name="TimeEntryId" id="TimeEntryId" value=""/>
+                    @Html.HiddenFor(x => x.Id)
+                    @Html.HiddenFor(x => x.DataAction)
+                </div>
+
+                
+            </div>
+        </form>
+        <div id="kgrdTaskWorkTime" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+    </div>
+</div>
+
+
+

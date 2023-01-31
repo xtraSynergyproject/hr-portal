@@ -1,0 +1,21 @@
+﻿match(n:NTS_NotificationTemplate) set n.DoNotCopyFromMasterTemplate=false,n.NotifyByEmail=true,n.NotifyBySms=false,n.SendAlways=false;
+match (n:GEN_NotificationMasterTemplate) set n.NotifyByEmail=true,n.NotifyBySms=false,n.SendAlways=false;
+match (n:ADM_User) set n.EnableEmailSummary=true,n.EnableRegularEmail=true;
+
+
+MATCH  (n:GEN_Notification ) set n.NotificationType="Regular"
+
+//match (n:ADM_User) set n.EnableRegularEmail=false; // For grade 7 to 12 :below query
+match(u:ADM_User{IsDeleted:0,Status:"Active",CompanyId:1})
+                  match(u)-[:R_User_PersonRoot]-(pr:HRS_PersonRoot{ IsDeleted:0,Status:"Active",CompanyId:1})
+                  match(pr)-[:R_PersonRoot]-(p:HRS_Person{ IsDeleted:0,Status:"Active",CompanyId:1})
+                where  p.EffectiveStartDate <= "2019-04-30" <= p.EffectiveEndDate
+                  match(pr)-[:R_AssignmentRoot_PersonRoot]-(ar:HRS_AssignmentRoot{ IsDeleted:0,Status:"Active",CompanyId:1})
+                  match(ar)-[:R_AssignmentRoot]-(a:HRS_Assignment{ IsDeleted:0,Status:"Active",CompanyId:1})
+                where a.EffectiveStartDate <= "2019-04-30" <= a.EffectiveEndDate
+
+                  match(a)-[:R_Assignment_GradeRoot]-(gr:HRS_GradeRoot{ IsDeleted:0,Status:"Active",CompanyId:1})
+                  match(gr)-[:R_GradeRoot]-(g:HRS_Grade{ IsDeleted:0,Status:"Active",CompanyId:1})
+                where g.EffectiveStartDate <= "2019-04-30" <= g.EffectiveEndDate
+                with u,g where g.Name in ['G-7','G-8','G-9','G-10','G-11','G-12']
+               with u set u.EnableRegularEmail=false

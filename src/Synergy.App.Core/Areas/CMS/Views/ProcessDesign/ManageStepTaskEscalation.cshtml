@@ -1,0 +1,494 @@
+﻿
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common
+@model StepTaskEscalationViewModel
+@{
+    Layout = "/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+<style>
+    /* Remove default bullets */
+    ul, #myUL {
+        list-style-type: none;
+    }
+
+    /* Remove margins and padding from the parent ul */
+    #myUL {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Style the caret/arrow */
+    .caret {
+        cursor: pointer;
+        user-select: none; /* Prevent text selection */
+    }
+
+        /* Create the caret/arrow with a unicode, and style it */
+        .caret::before {
+            content: "\25B6";
+            color: black;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+    /* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+    .caret-down::before {
+        transform: rotate(90deg);
+    }
+
+    /* Hide the nested list */
+    .nested {
+        display: none;
+    }
+
+    /* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+    .active {
+        display: block;
+    }
+
+    .align {
+        text-align: center;
+    }
+
+    .splitter-container, .splitter-container1, .splitter-container2, .splitter-container3 {
+        height: 750px;
+        width: 100%;
+    }
+
+    .left {
+        min-width: 200px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 100vh !important;
+    }
+
+    .k-switch-container {
+        font-size: x-small !important;
+        font-weight: bold;
+    }
+
+    .k-widget.k-switch-on .k-switch-container,
+    /* override the mouse over selector */
+    .k-switch-on:hover .k-switch-container {
+        background-color: red;
+        color: #fff;
+    }
+
+    .k-widget.k-switch-off .k-switch-container,
+    /* override the mouse over selector */
+    .k-switch-off:hover .k-switch-container {
+        background-color: green;
+    }
+
+    .k-switch-label-on, .k-switch-label-off {
+        display: block;
+    }
+
+    .bre-badge {
+        padding: 10px;
+        /*padding-bottom: 20px;*/
+    }
+</style>
+
+<script type="text/javascript">
+     var onAjaxSuccess = function (res) {
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName: "GetStepTaskEsclation" });
+        }
+        else {
+            showError(res.error);
+        }
+    };
+</script>
+<div class="text-danger" asp-validation-summary="All"></div>
+<div class="row no-gutters pad-10">
+    <form asp-controller="ProcessDesign" asp-action="ManageStepTaskEscalation" class="form-horizontal" id="steptaskform" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST" style="width:100%">
+        <div class="col-12 pad-10">
+            <div class="form-label-group">
+                <input asp-for="Name" type="text" class="form-control" placeholder="Name" required="required" autocomplete="off" />
+                <label for="Name">Name</label>
+            </div>
+        </div>
+
+        <div class=" col-12 pad-10">
+            <div class="col-12">Parent StepTask Escalation </div>
+            <div class="form-label-group">
+                <input asp-for="ParentStepTaskEscalationId" id="ParentStepTaskEscalationId" class="form-control" style="width:80%" />
+            </div>
+        </div>
+
+        <div class=" col-12 pad-10">
+            <div class="col-12"> StepTask Escalation Type</div>
+            <div class="form-label-group">
+                <input asp-for="StepTaskEscalationType" id="StepTaskEscalationType" class="form-control" style="width:80%" />
+            </div>
+        </div>
+
+        <div class=" col-12 pad-10">
+            <div class="col-12">Assignee Type </div>
+            <div class="form-label-group">
+                <input asp-for="AssignedToTypeId" id="AssignedToTypeId" class="form-control" style="width:80%" />
+            </div>
+        </div>
+
+
+        <div class=" col-12 pad-10" id="teamid" @*style="display:none"*@>
+            <div class="col-12">Assignee To Team </div>
+            <div class="form-label-group">
+                <input asp-for="AssignedToTeamId" id="AssignedToTeamId" class="form-control" style="width:80%" />
+            </div>
+        </div>
+
+        <div class=" col-12 pad-10" id="userid" @*style="display:none"*@>
+            <div class="col-12">Assignee To User </div>
+            <div class="form-label-group">
+
+                <input asp-for="AssignedToUserId" id="AssignedToUserId" class="form-control" style="width:80%" />
+
+            </div>
+
+
+        </div>
+
+
+        <div class=" col-12 pad-10" id="hmid" @*style="display:none"*@>
+            <div class="col-12">Assigned To Hierarchy Master </div>
+            <div class="form-label-group">
+                <input asp-for="AssignedToHierarchyMasterId" id="AssignedToHierarchyMasterId" class="form-control" style="width:80%" />
+            </div>
+        </div>
+
+        <div class=" col-12 pad-10" id="hmlevelid" @*style="display:none"*@>
+            <div class="col-12">Assigned To Hierarchy Master Level </div>
+            <div class="form-label-group">
+                <input asp-for="AssignedToHierarchyMasterLevelId" id="AssignedToHierarchyMasterLevelId" class="form-control" style="width:80%" />
+
+            </div>
+
+
+        </div>
+        <div class=" col-12 pad-10">
+            <div class="col-12"> New Priority </div>
+            <div class="form-label-group">
+                <input asp-for="NewPriorityId" id="NewPriorityId" class="form-control" style="width:80%" />
+            </div>
+        </div>
+
+        <div class=" col-12 pad-10">
+            <div class="col-12"> Notification Template For Task Assignee </div>
+            <div class="form-label-group">
+                <input asp-for="NotificationTemplateId" id="NotificationTemplateId" class="form-control" style="width:80%" />
+            </div>
+        </div>
+
+        <div class=" col-12 pad-10">
+            <div class="col-12"> Notification Template For Escalated User </div>
+            <div class="form-label-group">
+                <input asp-for="EscalatedToNotificationTemplateId" id="EscalatedToNotificationTemplateId" class="form-control" style="width:80%" />
+            </div>
+        </div>
+
+
+        <div class=" col-12 pad-10">
+            <div class="col-12"> Trigger Days After OverDue </div>
+            <div class="form-label-group">
+                <input asp-for="TriggerDaysAfterOverDue" type="number" id="TriggerDaysAfterOverDue" class="form-control" style="width:80%" />
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success" id="btnSave" style="float:right;" onclick="CreateDecisionNode(event)">Save</button>
+        @Html.HiddenFor(x => x.StepTaskComponentId)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+    </form>
+</div>
+
+
+
+
+<script>
+
+    function CreateDecisionNode(evt)
+    {
+        if ($("#Name").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Name is required");
+            evt.preventDefault();
+            return false;
+        }
+
+    }
+
+    $(document).ready(function () {
+
+        $("#ParentStepTaskEscalationId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+              optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+              value: '@Model.ParentStepTaskEscalationId',
+            dataSource: {
+            transport: {
+                    read: {
+                    url: "/Cms/ProcessDesign/ReadStepTaskEscalation?stepTaskComponentId=@Model.StepTaskComponentId&id=@Model.Id",
+                    }
+                }
+            }
+        });
+
+        $("#StepTaskEscalationType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            //filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.StepTaskEscalationType.ToString()',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StepTaskEscalationTypeEnum",
+                    }
+                }
+            }
+             });
+
+        $("#NewPriorityId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.NewPriorityId',
+            dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/LOV/GetLOVIdNameList?lovType=TASK_PRIORITY",
+                    }
+                }
+            }
+        });
+
+        $("#NotificationTemplateId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.NotificationTemplateId',
+            dataSource: {
+            transport: {
+                    read: {
+                    url: "/Cms/NotificationTemplate/ReadNotificationTemplateDataList",
+                    }
+                }
+            }
+        });
+
+        $("#EscalatedToNotificationTemplateId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.EscalatedToNotificationTemplateId',
+            dataSource: {
+            transport: {
+                    read: {
+                    url: "/Cms/NotificationTemplate/ReadNotificationTemplateDataList",
+                    }
+                }
+            }
+        });
+
+        $("#AssignedToTypeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+         //   filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.AssignedToTypeId',
+            change: onchangetype,
+            dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/LOV/GetLOVIdNameList?lovType=TASK_ASSIGN_TO_TYPE",
+                    }
+                }
+            }
+        });
+
+           $("#AssignedToTeamId").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.AssignedToTeamId',
+            change: onchangeteam,
+            dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/ProcessDesign/ReadTeamData",
+                    }
+                }
+            }
+           });
+
+
+            assigneToUserDropdown("@Model.AssignedToType");
+
+
+            $("#AssignedToHierarchyMasterId").kendoDropDownList({
+        dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.AssignedToHierarchyMasterId',
+            change: assigneToLevel,
+            dataBound: assigneToLevel,
+            dataSource: {
+            transport: {
+                read: {
+                    url: "/Cms/ProcessDesign/ReadHierarchyMasterData",
+                    }
+                }
+            }
+            });
+
+
+        debugger;
+        //var ddl = $("#AssignedToTypeId").data("kendoDropDownList");
+       // var assigneeType = ddl.dataItem();
+        var userId = '@Model.AssignedToType'; //$("#AssignedToTypeId").val();
+        if (userId == "TASK_ASSIGN_TO_USER") {
+
+            $("#userid").show();
+            $("#teamid").hide();
+            $("#hmid").hide();
+            $("#hmlevelid").hide();
+        }
+        else if (userId == "TASK_ASSIGN_TO_TEAM") {
+            $("#userid").show();
+            $("#teamid").show();
+            $("#userteamid").show();
+            $("#hmid").hide();
+            $("#hmlevelid").hide();
+        }
+        else if (userId == "TASK_ASSIGN_TO_USER_HIERARCHY") {
+            $("#userid").hide();
+            $("#teamid").hide();
+            //  $("#userteamid").hide();
+            $("#hmid").show();
+            $("#hmlevelid").show();
+        }
+        else {
+            $("#userid").hide();
+            $("#teamid").hide();
+            $("#hmid").hide();
+            $("#hmlevelid").hide();
+        }
+
+    });
+
+
+
+    function onchangetype(e) {
+        debugger;
+        var dataItem = this.dataItem();
+
+        assigneToUserDropdown(dataItem.Code);
+        var userId = dataItem.Code; //$("#AssignedToTypeId").data("kendoDropDownList").value();
+        if (userId == "TASK_ASSIGN_TO_USER") {
+            $("#AssignedToTeamId").data("kendoDropDownList").value("");
+            $("#userid").show();
+            $("#teamid").hide();
+            // $("#userteamid").hide();
+            $("#hmid").hide();
+            $("#hmlevelid").hide();
+        }
+        else if (userId == "TASK_ASSIGN_TO_TEAM") {
+            $("#userid").show();
+            $("#teamid").show();
+            // $("#userteamid").show();
+            $("#hmid").hide();
+            $("#hmlevelid").hide();
+        }
+        else if (userId == "TASK_ASSIGN_TO_USER_HIERARCHY") {
+            $("#userid").hide();
+            $("#teamid").hide();
+            //  $("#userteamid").hide();
+            $("#hmid").show();
+            $("#hmlevelid").show();
+        }
+        else {
+            $("#userid").hide();
+            $("#teamid").hide();
+            //  $("#userteamid").hide();
+            $("#hmid").hide();
+            $("#hmlevelid").hide();
+        }
+
+    }
+    function onchangeteam() {
+
+        assigneToUserDropdown("TASK_ASSIGN_TO_TEAM");
+        //getteamowner();
+    }
+
+
+
+    function assigneToUserDropdown(code) {
+        debugger
+       // var ddl = $("#AssignedToTypeId").data("kendoDropDownList");
+        //var assigneeType = ddl.dataItem();
+        var teamId = $("#AssignedToTeamId").data("kendoDropDownList").value();
+
+            $("#AssignedToUserId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.AssignedToUserId',
+            dataSource:
+            {
+                transport:
+                {
+                read:
+                   {
+                    url: "/Cms/User/GetUsersListOnTypeBasis?assigneeType=" + code + "&teamId=" + teamId,
+                    }
+                }
+            }
+        });
+    }
+
+        function assigneToLevel() {
+            var value = $("#AssignedToHierarchyMasterId").data("kendoDropDownList").value();
+
+            $("#AssignedToHierarchyMasterLevelId").kendoDropDownList({
+
+             dataTextField: "Name",
+            dataValueField: "Id",
+          //  filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.AssignedToHierarchyMasterLevelId',
+            dataSource: {
+            transport: {
+                    read: {
+                    url: "/Cms/ProcessDesign/ReadHierarchyMasterLevelDataById?Id=" + value,
+                    }
+                }
+            }
+        });
+        }
+    function OnSelect(e) {
+        e.preventDefault();
+    }
+
+</script>

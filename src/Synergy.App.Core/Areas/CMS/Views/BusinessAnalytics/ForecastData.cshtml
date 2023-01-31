@@ -1,0 +1,309 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext
+
+@{
+    ViewData["Title"] = "Forecast Data";
+    Layout = null;
+    //Layout = "~/Areas/Core/Views/Shared/Themes/HR/_Layout.cshtml";
+}
+
+<script>
+
+    $(function () {
+        ShowLoader($("#yhat"));
+        $.ajax({
+            url: "/CMS/BusinessAnalytics/GetForecastData",
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                debugger;
+                HideLoader($("#yhat"));
+
+                var ActualTrace = {
+                    x: response[0]["history_data"].map(x => new Date(x.ds)),
+                    y: response[0]["history_data"].map(x => x.y),
+                    name: "Actual no. of calls made",
+                    mode: "markers",
+                    type: "scatter",
+                    marker: {
+                        color: 'black',
+                        size: 5
+                    },
+                };
+
+                var forecastTrace = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.yhat),
+                    name: "Predicted no. of calls",
+                    mode: "lines",
+                    line: {
+                        color: "rgb(40, 116, 166)",
+                        width: 1,
+                    },
+                    type: 'scatter'
+                };
+                var forecastUV = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.yhat_upper),
+                    name: "Predicted Upper Value",
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(174, 214, 241, 0.5)',
+                    mode: "lines",
+                    line: {
+                        color: 'rgba(174, 214, 241, 0.5)',
+                        width: 1
+                    },
+                    type: "scatter"
+                };
+
+                var forecastLV = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.yhat_lower),
+                    name: "Predicted Lower Value",
+                    fill: 'white',
+                    mode: "lines",
+                    line: {
+                        color: 'rgba(174, 214, 241, 0.5)',
+                        width: 1
+                    },
+                    type: 'scatter'
+                };
+
+                var data = [ActualTrace, forecastLV, forecastUV, forecastTrace];
+
+                var layout = {
+                    //title: "yhat",
+                    xaxis: {
+                        title: "Time",
+                        showgrid: true,
+                        zeroline: true
+                    },
+                    yaxis: {
+                        autotick: false,
+                        ticks: 'outside',
+                        tick0: 0,
+                        dtick: 100,
+                        ticklen: 2,
+                        tickwidth: 2,
+                        tickcolor: '#000',
+                        title: "No. of calls",
+                        showline: true
+                    },
+                    //yaxis: {
+                    //    title: "y value",
+                    //    showline: false
+                    //}
+                };
+
+                var config = { responsive: true }
+
+                Plotly.newPlot('yhat', data, layout, config);
+
+                debugger;
+                var dailyDs = findTodayDs(response[1]["forecast_data"]);
+
+                var DforecastTrace = {
+                    x: dailyDs.map(x => new Date(x.ds)),
+                    y: dailyDs.map(x => x.daily),
+                    name: "Predicted no. of calls",
+                    mode: "lines",
+                    line: {
+                        color: "rgb(40, 116, 166)",
+                        width: 1,
+                    },
+                    type: 'scatter'
+                };
+                var DforecastUV = {
+                    x: dailyDs.map(x => new Date(x.ds)),
+                    y: dailyDs.map(x => x.daily_upper),
+                    name: "Predicted Upper Value",
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(174, 214, 241, 0.5)',
+                    mode: "lines",
+                    line: {
+                        color: 'rgba(174, 214, 241, 0.5)',
+                        width: 1
+                    },
+                    type: "scatter"
+                };
+
+                var DforecastLV = {
+                    x: dailyDs.map(x => new Date(x.ds)),
+                    y: dailyDs.map(x => x.daily_lower),
+                    name: "Predicted Lower Value",
+                    fill: 'white',
+                    mode: "lines",
+                    line: {
+                        color: 'rgba(174, 214, 241, 0.5)',
+                        width: 1
+                    },
+                    type: 'scatter'
+                };
+
+                var dataD = [DforecastLV, DforecastUV, DforecastTrace];
+
+                //Plotly.newPlot('ydaily', dataD, layout, config);
+
+
+                var WforecastTrace = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.weekly),
+                    name: "Predicted no. of calls",
+                    mode: "lines",
+                    line: {
+                        color: "rgb(40, 116, 166)",
+                        width: 1,
+                    },
+                    type: 'scatter'
+                };
+                var WforecastUV = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.weekly_upper),
+                    name: "Predicted Upper Value",
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(174, 214, 241, 0.5)',
+                    mode: "lines",
+                    line: {
+                        color: 'rgba(174, 214, 241, 0.5)',
+                        width: 1
+                    },
+                    type: "scatter"
+                };
+
+                var WforecastLV = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.weekly_lower),
+                    name: "Predicted Lower Value",
+                    fill: 'white',
+                    mode: "lines",
+                    line: {
+                        color: 'rgba(174, 214, 241, 0.5)',
+                        width: 1
+                    },
+                    type: 'scatter'
+                };
+
+                var dataW = [WforecastLV, WforecastUV, WforecastTrace];
+
+                //Plotly.newPlot('yweekly', dataW, layout, config);
+
+
+                var TforecastTrace = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.trend),
+                    name: "Predicted no. of calls",
+                    mode: "lines",
+                    line: {
+                        color: "rgb(40, 116, 166)",
+                        width: 1,
+                    },
+                    type: 'scatter'
+                };
+                var TforecastUV = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.trend_upper),
+                    name: "Predicted Upper Value",
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(174, 214, 241, 0.5)',
+                    mode: "lines",
+                    line: {
+                        color: 'rgba(174, 214, 241, 0.5)',
+                        width: 1
+                    },
+                    type: "scatter"
+                };
+
+                var TforecastLV = {
+                    x: response[1]["forecast_data"].map(x => new Date(x.ds)),
+                    y: response[1]["forecast_data"].map(x => x.trend_lower),
+                    name: "Predicted Lower Value",
+                    fill: 'white',
+                    mode: "lines",
+                    line: {
+                        color: 'rgba(174, 214, 241, 0.5)',
+                        width: 1
+                    },
+                    type: 'scatter'
+                };
+
+                var dataT = [TforecastLV, TforecastUV, TforecastTrace];
+
+                var layoutT = {
+                    //title: "Trends Forecast",
+                    xaxis: {
+                        title: "Time",
+                        showgrid: true,
+                        zeroline: true
+                    },
+                    yaxis: {
+                        autotick: false,
+                        ticks: 'outside',
+                        tick0: 0,
+                        dtick: 100,
+                        ticklen: 2,
+                        tickwidth: 2,
+                        tickcolor: '#000',
+                        title: "Trend",
+                        showline: true
+                    }
+                };
+
+                Plotly.newPlot('trend', dataT, layoutT, config);
+            },
+            error: function (ert) {
+                
+            }
+
+        });
+
+    });
+
+    function findTodayDs(objarr) {
+        //debugger;
+        today = [];
+
+        var tDate = new Date();
+        tDate.setHours(00);
+        tDate.setMinutes(00);
+        tDate.setSeconds(00);
+        tDate.setMilliseconds(000);
+        tDate = tDate.getTime();
+
+        var fDate = new Date(tDate);
+        fDate.setHours(24);
+        fDate = fDate.getTime();
+
+        objarr.reduce((acc, obj) => {
+            //debugger;
+            const dsVal = obj.ds;
+            if (dsVal > tDate && dsVal < fDate) {
+                today.push(obj);
+            }
+            return acc;
+        }, {});
+
+        return today;
+    }
+
+</script>
+
+<div class="container">
+        <div>
+            <h5 style="font-weight: 300; color: black">No. of Calls Forecast</h5>
+            <div id="yhat"></div>
+        </div>
+        @*<div>
+            <h5 style="font-weight: 300; color: black">Daily Forecast</h5>
+            <div id="ydaily"></div>
+        </div>
+        <div>
+            <h5 style="font-weight: 300; color: black">Weekly Forecast</h5>
+            <div id="yweekly"></div>
+        </div>*@
+        <div>
+            <h5 style="font-weight: 300; color: black">Trend Forecast</h5>
+            <div id="trend"></div>
+        </div>
+</div>

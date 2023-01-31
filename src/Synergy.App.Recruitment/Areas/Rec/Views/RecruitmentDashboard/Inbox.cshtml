@@ -1,0 +1,517 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+
+@*@model ApplicationDataViewModel;*@
+@model ApplicationSearchViewModel;
+
+@{
+    ViewBag.Title = "";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<style>
+    #inboxTreeView {
+        padding-left: 25px;
+        padding-bottom: 65px;
+        /*position:fixed;*/
+    }
+    .tree-item-status {
+        cursor: pointer;
+    }
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 85vh !important;
+        width: 100%;
+        position:relative;
+        /*position:fixed;*/
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+    /*Portal Start*/
+    .sidenav {
+        height: 100%; /* 100% Full-height */
+        width: 0; /* 0 width - change this with JavaScript */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Stay on top */
+        top: 0; /* Stay at the top */
+        right: 0;
+        background-color: #fff; /* Black*/
+        border-left: 1px solid silver;
+        overflow-x: hidden; /* Disable horizontal scroll */
+        padding-top: 30px; /* Place content 60px from the top */
+        transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    }
+
+
+
+        /* Position and style the close button (top right corner) */
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 15px;
+            font-size: 30px;
+            font-weight: bold;
+            margin-left: 20px;
+            color: gray;
+            border: none;
+            text-decoration: none;
+        }
+
+            .sidenav .closebtn:hover {
+                color: red;
+            }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+    /*Portal End*/
+</style>
+<script>
+    $(document).ready(function () {
+        $(".toggle-nav").trigger("click");
+
+        //var treeview = $("#inboxTreeView"),
+        //    kendoTreeView = treeview.data("kendoTreeView");
+
+        //treeview.on("click", ".k-in", function (e) {
+        //    kendoTreeView.toggle($(e.target).closest(".k-item"));
+        //});
+
+    });
+     function OnDelete(id) {
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(id);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDelete(id) {
+
+
+        $.ajax({
+
+            url:'@Url.Action("DeleteTemplate", "Template", new { @area= "Cms" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+
+                ShowNotification("Deleted Successfully", "success");
+                window.parent.$("#inboxTreeView").data("kendoTreeView").dataSource.read();
+
+            }
+        });
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+       // window.parent.CloseIframePopup();
+
+    }
+
+
+
+
+    function closeNavCategory() {
+        document.getElementById("mySidenavPageCategory").style.width = "0";
+        $("#overlay").removeClass("overlay");
+    }
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+    //function OnSelect(e) {
+    //    e.preventDefault();
+
+    //}
+     function editNavStyle(sid, stype) {
+       // document.getElementById("mySidenavStyle").style.width = "650px";
+        @*iframeOpenUrl = '@Url.Action("TemplateProperties", "Template", new { @area="Cms"})?id=' + sid;
+         OpenIframePopup(650, 1200, 'Template Properties');*@
+          var win = GetMainWindow();
+       win.iframeOpenUrl = '@Url.Action("TemplateProperties", "Template", new { @area = "Cms" })?id=' + sid;
+         win.OpenWindow({ Title: 'Template Properties', Width: 650, Height: 1000 });
+        return false;
+        //LoadPartailView(iframeOpenUrl, $('#page-style-content'));
+        //$("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+
+
+    function editNavStyle1(sid, stype, tempfieldid) {
+       // document.getElementById("mySidenavStyle").style.width = "650px";
+         // alert(sid);
+        window.parent.iframeOpenUrl = '@Url.Action("TemplateField", "Template", new { @area="Cms"})?templatefieldId=' + sid;
+         window.parent.OpenIframePopup(650, 1200,'Template Fields');
+        //LoadPartailView(iframeOpenUrl, $('#page-style-content'));
+        //$("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+    function OpenIframeModal(url, title) {
+        iframeOpenUrl = url;
+        OpenIframePopup(450, 1200, title);
+        //window.iframeOpenUrl = url;
+        //window.OpenIframePopup(600, 550, title);
+    }
+    //$(function () {
+    //    $.contextMenu({
+    //        selector: '.tree-menu',
+    //        trigger: 'left',
+
+    //        items: {
+    //            "edit": {
+    //                name: "Edit", icon: "cut", callback: function (itemKey, opt, e) {
+    //                    console.log($(this).data('id'));
+    //                }
+    //            },
+    //            "cut": { name: "Cut", icon: "cut" },
+    //            "copy": { name: "Copy", icon: "copy" },
+    //            "paste": { name: "Paste", icon: "paste" },
+    //            "delete": { name: "Delete", icon: "delete" },
+    //            "sep1": "---------",
+    //            "quit": { name: "Quit" }
+    //        }
+    //    });
+    //});
+
+
+    $(function () {
+        $.contextMenu({
+            selector: '.tree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var parentId = $trigger.data('id');
+                var parentType = $trigger.data('type');
+                var selectParentId = $trigger.data('parentId');
+
+                switch (parentType) {
+                    case 'Root':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateCategory?type=Note', 'Create Category');
+                                        $("#sidebarHeader").html("Create Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+
+                                        LoadPartailView('@Url.Action("Create", "TemplateCategory", new { @area = "Cms" })?type=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-chart-area" },
+                            }
+                        };
+                    case 'Category':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+
+                                        LoadPartailView('@Url.Action("Template", "Template", new { @area="Cms"})?categoryId=' + parentId/* + '&type=' + parentType*/, $('#inbox-content-div'));
+                                        break;
+                                    case 'open':
+                                        $("#sidebarHeader").html("Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("Edit", "TemplateCategory", new { @area="Cms"})?id=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                       // OpenIframeModal('/cms/Template/EditCategory?id=' + parentId, 'Category');
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "add": { name: "Create Template", icon: "fas fa-chart-area" },
+                                "open": { name: "Manage Category", icon: "fas fa-chart-area" },
+                            }
+                        };
+                    case 'Template':
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                       // OpenIframeModal('/cms/Template/EditTemplateMaster?id=' + parentId, 'Edit Template');
+                                        $("#sidebarHeader").html("Edit Template");
+                                           document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("EditTemplateMaster", "Template", new { @area="Cms"})?id=' + parentId, $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    case 'open':
+                                        LoadPartailView('@Url.Action("Template", "Template", new { @area="Cms"})?templateId=' + parentId /*+ '&type=' + selectParentId*/, $('#inbox-content-div'));
+                                        break;
+                                    case 'deletePage':
+                                        OnDelete(parentId);
+                                       break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                //"edit": { name: "Edit Template", icon: "fas fa-chart-area" },
+                                "open": { name: "Edit Template", icon: "fas fa-chart-area" },
+                                "deletePage": { name: "Delete Template", icon: "fas fa-trash-alt" },
+                            }
+                        };
+
+                        return {
+
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'add':
+                                       // OpenIframeModal('/cms/Template/CreateCategory?type=Task', 'Create Category');
+                                        $("#sidebarHeader").html("Create Category");
+                                        document.getElementById("mySidenavPageCategory").style.width = "450px";
+                                        LoadPartailView('@Url.Action("CreateCategory", "Template", new { @area="Cms", @type = "Task" })' , $('#create-category'));
+                                        $("#overlay").addClass("overlay");
+                                        break;
+                                    default:
+                                }
+
+                            },
+                            items: {
+                                "add": { name: "Create Category", icon: "fas fa-chart-area" },
+
+                            }
+                        };
+
+                    default:
+                        return {
+                            callback: function (key, options) {
+                                alert(parentId);
+                                alert(parentType);
+                            },
+                            items: {
+
+                            }
+                        };
+                }
+
+
+            }
+        });
+    });
+    var expandedItem = null;
+    function onExpand(e) {
+        expandedItem = this.dataItem(e.node);
+        console.log(expandedItem);
+    }
+    function AddData() {
+        if (expandedItem == null) {
+            return { type: null, parentId: null, userRoleId: null };
+        }
+        else {
+            return { type: expandedItem.Type, parentId: expandedItem.ParentId, userRoleId: expandedItem.userRoleId };
+        }
+    }
+    function OnSelect(e) {
+        expandedObjlist = [];
+        var data = this.dataItem(e.node);
+        let temp;
+        let stage;
+        let batch;
+        
+        let userRole = expandedDataItem.find(x => x.Type === "USERROLE");
+        if (userRole) {
+            expandedObjlist.push({ id: userRole.id, type: userRole.Type, parentId: userRole.ParentId, userRoleId: userRole.UserRoleId, stageName: userRole.StageName, stageId: userRole.StageId, batchId: userRole.BatchId });
+        }
+        if (data.StageId) {
+            temp = expandedDataItem.find(x => x.id === data.StageId);
+            if (temp) {
+                expandedObjlist.push({ id: temp.id, type: temp.Type, parentId: temp.ParentId, userRoleId: temp.UserRoleId, stageName: temp.StageName, stageId: temp.StageId, batchId: temp.BatchId });
+            }
+        } else {
+            temp = expandedDataItem.find(x => x.id === data.ParentId);
+            if (temp) {
+                expandedObjlist.push({ id: temp.id, type: temp.Type, parentId: temp.ParentId, userRoleId: temp.UserRoleId, stageName: temp.StageName, stageId: temp.StageId, batchId: temp.BatchId });
+            }
+        }
+        if (temp && temp.ParentId) {
+            stage = expandedDataItem.find(x => x.id === temp.ParentId);
+            if (stage) {
+                expandedObjlist.push({ id: stage.id, type: stage.Type, parentId: stage.ParentId, userRoleId: stage.UserRoleId, stageName: stage.StageName, stageId: stage.StageId, batchId: stage.BatchId });
+            }
+        }
+        if (data.BatchId) {
+            batch = expandedDataItem.find(x => x.id === data.BatchId);
+            if (batch) {
+                expandedObjlist.push({ id: batch.id, type: batch.Type, parentId: batch.ParentId, userRoleId: batch.UserRoleId, stageName: batch.StageName, stageId: batch.StageId, batchId: batch.BatchId });
+            }
+        }
+
+        
+        if (data.Type === 'STATUS') {
+
+            var url = '/cms/task/BulkTaskAction?layoutMode=None&code=' + data.StageId + '&status=' + data.StatusCodeStr + '&batch=' + data.BatchId;
+            LoadPartailView1(url, "inbox-content-div");
+            var content = document.getElementById("inbox-content-div");
+            var removewith = document.querySelector('.left');
+            var leftwidth = removewith.offsetWidth;
+            content.style.width = "100%";
+            var width = content.offsetWidth;
+            var w = (width - leftwidth) + 'px';
+            content.style.width = w;
+            
+        }
+        else if (data.Type === 'HRBATCH' || data.Type === 'NotSelected') {
+            debugger;
+            var url = '/recruitment/CandidateShortlist/CandidateShortlistByHR?layoutMode=None&batchId=' + data.BatchId;
+            if (data.ParentId == 'ClosedBatches') {
+                url = '/recruitment/CandidateShortlist/index?layoutMode=None&batchId=' + data.BatchId + '&code=' + data.ParentId;
+
+            }
+            else if (data.ParentId == 'OpenBatches') {
+                url = '/recruitment/CandidateShortlist/index?layoutMode=None&batchId=' + data.BatchId + '&code=' + data.ParentId;
+
+            }
+            if (data.id == 'Rejected') {
+                url = '/recruitment/CandidateShortlist/CandidateShortlistByHR?layoutMode=None&batchId=' + data.BatchId + '&status=REJECTED';
+            }
+            //document.getElementById("iframeData").src = url;
+            LoadPartailView1(url, "inbox-content-div");
+            var content = document.getElementById("inbox-content-div");
+            var removewith = document.querySelector('.left');
+            var leftwidth = removewith.offsetWidth;
+            content.style.width = "100%";
+            var width = content.offsetWidth;
+            var w = (width - leftwidth) + 'px';
+            content.style.width = w;
+        }        
+        else if (data.Type === 'HMBATCH') {
+            var url = '/recruitment/CandidateShortlist/index?layoutMode=None&batchId=' + data.BatchId + '&code=' + data.ParentId;
+
+           // document.getElementById("iframeData").src = url;
+            LoadPartailView1(url, "inbox-content-div");
+            var content = document.getElementById("inbox-content-div");
+            var removewith = document.querySelector('.left');
+            var leftwidth = removewith.offsetWidth;
+            content.style.width = "100%";
+            var width = content.offsetWidth;
+            var w = (width - leftwidth) + 'px';
+            content.style.width = w;
+        }
+        else {
+            //e.preventDefault();
+            return false;
+        }
+    }
+
+    //function onMyFrameLoad() {
+    //    kendo.ui.progress($(".cms-content"), false);
+    //};
+    var expandedItem = null;
+    var expandedDataItem = [];
+    var expandedObjlist = [];
+    function onExpand(e) {
+        expandedItem = this.dataItem(e.node);
+        if (expandedItem.Type != "BATCH") {
+            expandedDataItem.push(expandedItem);
+        }
+    }
+    function AddData() {
+        var exp = JSON.stringify(expandedObjlist);
+        //expandedObjlist = [];
+        if (expandedItem == null) {
+            return { type: null, parentId: null, userRoleId: null };
+        }
+        else {
+            return { type: expandedItem.Type, parentId: expandedItem.ParentId, userRoleId: expandedItem.UserRoleId, stageName: expandedItem.StageName, stageId: expandedItem.StageId, batchId: expandedItem.BatchId, expandingList: exp };
+        }
+    }
+    //var frame = document.getElementById("iframeData");
+    //frame.onload = function () {
+    //    var frame = document.getElementById("iframeData");
+    //    frame.style.height = frame.contentWindow.document.body.scrollHeight + 'px';
+    //    frame.style.width ="100%";
+    //};
+
+    function refreshInbox() {
+        var search = { type: null, parentId: null, userRoleId: null };
+        $("#inboxTreeView").data('kendoTreeView').dataSource.read(search);
+        //$("#inboxTreeView").data('kendoTreeView').expandPath(["INBOX","0515a39a-35fa-4b7c-b7b4-4230c52890ec", "Overseas Business Visa", "Staff Joining", "UPLOAD_PASSPORT_VISA_QATARID"]);
+    }
+
+
+
+</script>
+
+<div class="splitter-container" style="left:0px !important; margin-left:0px; margin-left:0px !important;">
+    <div class="left">
+        @(Html.Kendo().TreeView()
+        .Name("inboxTreeView").HtmlAttributes( new {@class="treeview"})
+        .Events(e=>e.Expand("onExpand").Select("OnSelect"))
+        .DataTextField("Name")
+        .TemplateId("ct-tv-template")
+        .DataSource(dataSource => dataSource
+            .Read(read => read
+                .Action("GetInboxTreeviewList", "RecruitmentDashboard",new { @area="Recruitment"}).Data("AddData")
+            )
+        )
+    )
+
+
+        <script id="ct-tv-template" type="text/kendo-ui-template">
+            <span style="width:100%" id="#: item.id #" class="tree-item-#:item.Type.toLowerCase()#">#: item.Name #</span>
+
+        </script>
+        @*<span data-id="#:item.id#" data-type="#:item.Type#" data-portal-name="#:item.Name#" data-parent-id="#:item.ParentId#" class="tree-menu" data-level="#:item.Level#"><i class="fa fa-ellipsis-h"></i></span>*@
+
+    </div>
+    <div class="right pad-l-t-15" id="inbox-content-div" style="width:100%">
+        @*<iframe id="iframeData" width="100%" height="400px" style="border:none;" ></iframe>*@
+    </div>
+</div>
+<div id="create-category-div">
+    <div id="mySidenavPageCategory" class="sidenav">
+        <h1 class="cms-panel-header-name" id="sidebarHeader">Create Category</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavCategory()" title="Close">&times;</a>
+        <hr />
+        <div id="create-category" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>

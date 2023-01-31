@@ -1,0 +1,148 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI*@
+
+@{
+    ViewBag.Title = "Application List";
+    Layout = null;
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<script type="text/javascript">
+
+    function IssueAdmit(Id) {
+        
+        var portalId = $('#GlobalPortalId').val();
+        var udfs = encodeURIComponent('ApplicationId=' + Id);
+
+        var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=AdmitCardService&portalId=' + portalId + '&udfs=' + udfs;
+        LoadCmsPartialView(url, 'Service', true, 1400, 700, 'Issue Admit Card');
+    }
+
+    function ViewApplication(Id) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/career/candidateProfile/PrintableView?applicationId=' + Id;
+        win.OpenWindow({ Title: 'View Profile', Width: 550, Height: 800 });
+        return false;
+    }
+
+
+    function OnAfterServiceCreate(service) {
+
+        getApplicationData();
+    }
+
+</script>
+
+<script>
+    var columnDefs = [
+        {
+            field: "Id",
+            headerName: "Issue Admit Card",
+            cellRenderer: params => {
+                 return  "<input type='button' value='Issue Admit Card' class='btn btn-sm btn-primary' onclick='IssueAdmit(\"" + params.data.Id + "\")' />"
+                
+            }
+
+
+        },
+        {
+            field: "Id",
+            headerName: "Issue Admit Card",
+            cellRenderer: params => {
+                return "<input type='button' value='View Application' class='btn btn-sm btn-primary' onclick='ViewApplication(\"" + params.data.Id + "\")' />"
+
+            }
+
+
+        },
+        {
+            field: "ApplicationNo",
+            headerName: "Application No",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.value + "</div>";
+            }
+        },
+
+        {
+            field: "FirstName",
+            headerName: "First Name",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.value + "</div>";
+            }
+
+        },
+        {
+            field: "Email",
+            headerName: "Candidate Email",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.value + "</div>";
+            }
+        },
+        {
+            field: "PassportNumber",
+            headerName: "Passport Number",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.value + "</div>";
+            }
+
+        },
+        {
+            field: "JobName",
+            headerName: "Job Name",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.value + "</div>";
+            }
+
+        },
+
+        {
+            field: "TotalWorkExperience",
+            headerName: "Experience",
+            cellRenderer: params => {
+                return "<div class='text-justify' >" + params.value + "</div>";
+            }
+        },
+
+
+
+    ];
+
+    $(function () {
+
+        getApplicationData();
+
+    });
+
+    function getApplicationData() {
+        document.getElementById("kgrdapplication").innerHTML = "";
+       // var param = Filter();
+        gridConfig(
+            "kgrdapplication",
+            "/Rec/RecruitmentTransaction/GetJobApplicationList",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+
+<div class="row" id="application">
+    <div class="col bot-margin" style="margin-top:20px">
+        <div class="fa-2x pad-b-15 head">Issue Admit Card</div>
+        <div class="col-md-12">
+
+            <div id="kgrdapplication" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+
+        </div>
+    </div>
+</div>

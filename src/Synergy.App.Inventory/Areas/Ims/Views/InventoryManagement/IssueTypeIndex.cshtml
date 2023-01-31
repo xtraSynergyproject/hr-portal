@@ -1,0 +1,269 @@
+﻿@{
+    ViewData["Title"] = "Issue Type";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+<div class="row pad-10 no-gutters page-content">
+    <div class="container" style="padding:0px;max-width:100%">
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li class="nav-item"><a data-toggle="tab" href="#draft" class="nav-link active" role="tab" aria-controls="draft" aria-selected="true" onclick="onIssueItemList()"><i class="far fa-file-alt" style="margin-left:15px;"></i><br />ISSUE ITEM LIST</a></li>
+        </ul>
+        <div class="tab-content" style="border: 1px solid silver;border-top:none;">
+            <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+                <div style="width: 100%;" class="p-3">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Search Criteria</legend>
+                        <div class="text-danger" asp-validation-summary="All"></div>
+                        <div class="row">
+                            <div class="col-4 form-group">
+                                <div class="col-form-label required">
+                                    <label>From Date</label>
+                                </div>
+                                <input id="FromDate" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label required">
+                                    <label>To Date</label>
+                                </div>
+                                <input id="ToDate" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Issue Type</label>
+                                </div>
+                                <input id="IssueTypeId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Department</label>
+                                </div>
+                                <input id="DepartmentId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Employee</label>
+                                </div>
+                                <input id="EmployeeId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    <label>Issue To Type</label>
+                                </div>
+                                <input id="IssueToTypeId" class="form-control" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <div class="col-form-label">
+                                    &nbsp;
+                                </div>
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Search" onclick="OnSearch()" />
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Reset" onclick="OnReset()" />
+                                <input type="button" id="btnPrint" class="btn btn-primary btn-control" style="color:white" value="Print" onclick="OnPrint()" />
+                                <input type="button" id="btnDownload" class="btn btn-primary btn-control" style="color:white" value="Download" onclick="OnDownload()" />
+                                @*<button class="btn btn-warning" onclick="AddVendor()"><i class="fas fa-plus"></i> Add Vendor</button>*@
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset class="fieldset" id="itemFieldSet" style="display:none;">
+                        <legend class="fs-legend">Issue Item List</legend>
+                        <div id="ItemListGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <div id="detailPage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        document.getElementById("btnPrint").disabled = true;
+        document.getElementById("btnDownload").disabled = true;
+
+        var d = new Date();
+        d.setDate(d.getDate() - 6);
+        $("#FromDate").kendoDatePicker({
+            value: d,
+            format: "dd.MM.yyyy"
+        });
+        $("#ToDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd.MM.yyyy"
+        });
+
+        $("#IssueTypeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=IMS_ISSUE_TYPE",
+                    }
+                }
+            }
+        });
+
+        $("#DepartmentId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            autoBind: false,
+            //dataSource: {
+            //    transport: {
+            //        read: {
+            //            url: "/IMS/InventoryManagement/GetItemCategoryList",
+            //            }
+            //    }
+            //}
+        });
+
+        $("#EmployeeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            autoBind: false,
+            //dataSource: {
+            //    transport: {
+            //        read: {
+            //            url: "/IMS/InventoryManagement/GetItemSubCategoryList",
+            //            }
+            //    }
+            //}
+        });
+
+        $("#IssueToTypeId").kendoDropDownList({
+            dataTextField: "CustomerName",
+            dataValueField: "Id",
+            optionLabel: "--All--",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetCustomerList",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function onIssueItemList() {
+
+    }
+    var columnDefs = [
+        {
+            headerName: "Sr No.",
+            field: "SNo",
+        },
+        {
+            headerName: "Date",
+            field: "CreatedDate",
+            cellRenderer: (data) => {
+            var d = new Date(data.value);
+            return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
+            }
+        },
+        {
+            headerName: "Challan No",
+            field: "ChallanNo"
+        },
+        {
+            headerName: "Item Name",
+            field: "ItemName",
+        },
+        {
+            headerName: "Issue Qty",
+            field: "IssuedQuantity",
+        },
+        {
+            headerName: "Issue To Type",
+            field: "IssueToTypeName",
+        },
+        {
+            headerName: "Issue Type",
+            field: "IssueTypeName",
+        }
+
+    ];
+
+    $(function () {
+        var sd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        var ed = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+
+        GetItemListGrid(sd,ed,"","","","");
+    });
+
+    function GetItemListGrid(fromDate, toDate, issueTypeId, departmentId, employeeId, issueToTypeId) {
+        document.getElementById("ItemListGrid").innerHTML = "";
+        gridConfig(
+            "ItemListGrid",
+            "/Ims/InventoryManagement/ReadIssueTypeData?fromDate=" + fromDate + "&toDate=" + toDate + "&issueTypeId=" + issueTypeId + "&departmentId=" + departmentId + "&employeeId=" + employeeId + "&issueToTypeId=" + issueToTypeId,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function OnSearch() {
+        //alert("Search");
+        //if ($("#WarehouseId").val() == "") {
+        //    $(".text-danger").removeClass("validation-summary-valid");
+        //    $(".text-danger").addClass("validation-summary-errors");
+        //    $(".text-danger").html("Warehouse field is required");
+        //    return false;
+        //}
+        //else {
+        //    $(".text-danger").removeClass("validation-summary-errors");
+        //    $(".text-danger").addClass("validation-summary-valid");
+        //    $(".text-danger").html("");
+        //}
+        $("#itemFieldSet").show();
+        var sd = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+        var ed = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy-MM-dd HH:mm:ss');
+
+        var issuetype = $("#IssueTypeId").data("kendoDropDownList").value();
+        var department = $("#DepartmentId").data("kendoDropDownList").value();
+        var employee = $("#EmployeeId").data("kendoDropDownList").value();
+        var issuetotype = $("#IssueToTypeId").data("kendoDropDownList").value();
+
+        GetItemListGrid(sd, ed, issuetype, department, employee, issuetotype);
+
+    }
+    function OnReset() {
+        //alert("Reset");
+        var d = new Date();
+        d.setDate(d.getDate() - 2);
+        $("#FromDate").kendoDatePicker({
+            value: d,
+            format: "dd.MM.yyyy"
+        });
+        $("#ToDate").kendoDatePicker({
+            value: new Date(),
+            format: "dd.MM.yyyy"
+        });
+
+        $("#IssueTypeId").data("kendoDropDownList").value(-1);
+        $("#DepartmentId").data("kendoDropDownList").value(-1);
+        $("#EmployeeId").data("kendoDropDownList").value(-1);
+        $("#IssueToTypeId").data("kendoDropDownList").value(-1);
+        $("#itemFieldSet").hide();
+
+        document.getElementById("btnPrint").disabled = true;
+        document.getElementById("btnDownload").disabled = true;
+    }
+    function OnPrint() {
+        alert("Print");
+    }
+    function OnDownload() {
+        alert("Download");
+    }
+</script>

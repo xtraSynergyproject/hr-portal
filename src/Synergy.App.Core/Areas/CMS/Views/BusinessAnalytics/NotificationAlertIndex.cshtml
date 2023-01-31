@@ -1,0 +1,270 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Alert Rules";
+    Layout = null;
+}
+
+
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .ag-header-cell-text {
+        color: black;
+        font-weight: 200;
+        font-size: medium;
+    }
+
+    .ag-row:hover {
+        background-color: #fbfcfd;
+    }
+
+    .ag-header-cell {
+        /*background-color: #DCDCDC;*/
+        background-color: #fff;
+        color: black;
+    }
+
+    /*.dashboard {
+        position: fixed;
+        top: 15%;
+        left: 10%;
+    }*/
+
+    .ag-root-wrapper-body.ag-layout-normal {
+        min-height: 200px !important;
+    }
+
+    .btn-primary {
+        background-color: #006bb4;
+        border-color: #006bb4;
+        color: #fff;
+        position: relative;
+        top: 0;
+        transition: top ease 0.3s;
+    }
+
+        .btn-primary:hover {
+            background-color: #0060a2;
+            top: -2px;
+        }
+
+            .btn-primary:hover .button-text {
+                text-decoration: underline;
+            }
+
+    .button-text {
+        margin-left: 5px;
+        font-size: medium;
+    }
+</style>
+<script>
+
+    var columnDefs = [
+        {
+            field: "NoteSubject",
+            maxWidth: 200,
+            headerName: 'Name',
+
+        },
+        {
+            field: "NoteDescription",
+            headerName: 'Description',
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            maxWidth: 140,
+            cellRenderer: params => {
+                ui = document.createElement('div');
+                ui.innerHTML = `
+                    <span style="margin-right:10px;">
+                        <a class='fas fa-pencil-alt btn-edit'></a>
+                    </span>
+                    &nbsp;&nbsp;
+                    <span>
+                        <a class='fas fa-trash-alt btn-del')></a>
+                    </span>
+                    &nbsp;&nbsp;
+                    <span>
+                        <a class='fas fa-external-link btn-sent')></a>
+                    </span>
+                `;
+                editClick = ui.querySelector('.btn-edit');
+                delClick = ui.querySelector('.btn-del');
+                sendClick = ui.querySelector('.btn-sent');
+
+                editEventListener = () => onEdit(params.value);
+                editClick.addEventListener('click', editEventListener);
+
+                delEventListener = () => OnDelete(params.value);
+                delClick.addEventListener('click', delEventListener);
+
+                sendEventListener = () => onTestApi(params.value);
+                sendClick.addEventListener('click', sendEventListener);
+                return ui;
+            }
+        }
+    ];
+
+    $(function () {
+
+        getDataGridNotificationAlert();
+
+        $.contextMenu({
+            selector: '#tree-menuBinNtsGroup',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                var id = $trigger.data('idvalue');
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        onEdit(id);
+                                        break;
+
+                                    case 'delete':
+                                        OnDelete(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+    function OnCreate() {
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("NotificationAlert", "BusinessAnalytics", new { @area="Cms"})?dataAction=@DataActionEnum.Create';
+        win.OpenWindow({ Title: 'Manage Alert Rule', Width: 1200, Height: 800 });
+        return false;
+
+    }
+    function onEdit(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("NotificationAlert", "BusinessAnalytics", new { @area="Cms"})?id='+id+'&dataAction=@DataActionEnum.Edit';
+        win.OpenWindow({ Title: 'Manage Alert Rule', Width: 1200, Height: 800 });
+        return false;
+    }
+
+    function OnDelete(id) {
+        var flag = confirm('Do you really want to delete?');
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("DeleteAlertRuleNote", "BusinessAnalytics", new { @area= "Cms" })?Id=' + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+
+                    if (result.success) {
+                        getDataGridNotificationAlert();
+                        kendo.alert("Deleted Successfully.");
+                    } else {
+                        getDataGridNotificationAlert();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    getDataGridNotificationAlert();
+                }
+            });
+            return false;
+        }
+    }
+
+    function getDataGridNotificationAlert() {
+       document.getElementById("GridNotificationAlert").innerHTML = "";
+       gridConfig(
+           "GridNotificationAlert",
+           "/cms/BusinessAnalytics/ReadNotificationAlertList",
+           columnDefs,
+           false,
+           true,
+           true,
+           true,
+           1,
+           true,
+           10);
+    }
+    function onTestApi(id) {
+        
+        $.ajax({
+            url: '@Url.Action("ExecuteCubeJs", "BusinessAnalytics", new { @area="Cms"})?id='+id,
+                type: 'GET',
+            success: function (result) {
+               
+                    kendo.alert("Send Successfully.");
+                
+
+                    
+                },
+                error: function (ert) {
+
+
+                }
+            });
+    
+    }
+</script>
+
+<div id="grid-stack-content">
+
+    <div class="card shadow dashboard" @*style="width: 80%;"*@>
+        <div class="card-body">
+            <div class="row" style="margin-bottom: 5px;">
+                <div class="col-9" style="justify-content: center">
+                    <h1>Alert Rule</h1>
+                </div>
+                <div class="col-3 ">                    
+                    <button type='button' class='btn btn-primary shadow' onclick='OnCreate();' style="float:right;">
+                        <span class="button-body">
+                            <span class="fa fa-plus-circle"></span>
+                            <span class="button-text">Create Rule</span>
+                        </span>
+                    </button>
+                    @*<input type="button" name="name" value="Test API" onclick="onTestApi()" />*@
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-12">                   
+                    <div id="GridNotificationAlert" style="width: 100%; height: 540px;" class="ag-theme-material"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+

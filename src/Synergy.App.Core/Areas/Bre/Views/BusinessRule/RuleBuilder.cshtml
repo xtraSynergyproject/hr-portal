@@ -1,0 +1,712 @@
+﻿@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common
+@model BusinessRuleViewModel
+@{
+    Layout = "/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+<style>
+    /* Remove default bullets */
+    ul, #myUL {
+        list-style-type: none;
+    }
+
+    /* Remove margins and padding from the parent ul */
+    #myUL {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Style the caret/arrow */
+    .caret {
+        cursor: pointer;
+        user-select: none; /* Prevent text selection */
+    }
+
+        /* Create the caret/arrow with a unicode, and style it */
+        .caret::before {
+            content: "\25B6";
+            color: black;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+    /* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+    .caret-down::before {
+        transform: rotate(90deg);
+    }
+
+    /* Hide the nested list */
+    .nested {
+        display: none;
+    }
+
+    /* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+    .active {
+        display: block;
+    }
+
+    .align {
+        text-align: center;
+    }
+
+    .splitter-container, .splitter-container1, .splitter-container2, .splitter-container3 {
+        height: 750px;
+        width: 100%;
+    }
+
+    .left {
+        min-width: 200px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 100vh !important;
+    }
+
+    .k-switch-container {
+        font-size: x-small !important;
+        font-weight: bold;
+    }
+
+    .k-widget.k-switch-on .k-switch-container,
+    /* override the mouse over selector */
+    .k-switch-on:hover .k-switch-container {
+        background-color: red;
+        color: #fff;
+    }
+
+    .k-widget.k-switch-off .k-switch-container,
+    /* override the mouse over selector */
+    .k-switch-off:hover .k-switch-container {
+        background-color: green;
+    }
+
+    .k-switch-label-on, .k-switch-label-off {
+        display: block;
+    }
+
+    .bre-badge {
+        padding: 10px;
+        /*padding-bottom: 20px;*/
+    }
+</style>
+<div class="text-danger" asp-validation-summary="All"></div>
+<div class="row no-gutters pad-10">
+    <div class="col-12 pad-10">
+        <div class="form-label-group">
+            <input asp-for="Name" type="text" class="form-control" placeholder="Name" required="required" autocomplete="off" />
+            <label for="Name">Name</label>
+        </div>
+    </div>
+    <div class=" col-12 pad-10">
+        <div class="col-12">Business Rule Logic Type </div>
+        <div class="form-label-group">
+            @*@(Html.Kendo().DropDownList().Name("BusinessRuleLogicType")
+                     .DataSource(source =>
+                     {
+                         source.Read(read =>
+                         {
+                             read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "BusinessRuleLogicTypeEnum" });
+                         });
+                     })
+                    .Events(e=>e.Change("OnBusinessRuleLogicType"))
+                     //.OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                     .DataTextField("Name")
+                     .DataValueField("Id")
+                     .HtmlAttributes(new { @class = "form-control"/*, @style = "width:80%;"*/ })
+        )*@
+            <input id="BusinessRuleLogicType" class="form-control" />
+
+        </div>
+    </div>
+</div>
+<br />
+<div id="basicDecision">
+    @*@(Html.Kendo().TreeView()
+            .Name("treeview").HtmlAttributes( new {@class= "treeview" })
+            .Events(e=>e.Select("OnSelect"))
+            //.DataTextField("Name")
+            .TemplateId("treeview-template")
+            //.LoadOnDemand(true)
+            .DataSource(dataSource => dataSource
+                .Read(read => read
+                    .Action("GetBusinessRuleModelList", "Bre",new { nodeId=Model.Id, decisionScriptComponentId=Model.DecisionScriptComponentId, isWorkFlow = Model.IsWorkFlow })
+                )
+            )
+        )*@
+
+    <div id="ruletreeview"></div>
+
+
+
+
+    @if (Model.IsWorkFlow == true@*&& Model.DataAction == DataActionEnum.Create*@)
+{
+<button type="button" class="btn btn-success" id="btnSave" style="float:right;" onclick="SaveWorkFlowDecision()">Save</button>
+}
+else if (Model.IsBusinessDiagram == true /*&& Model.DataAction == DataActionEnum.Create*/)
+{
+<button type="button" class="btn btn-success" id="btnSave" style="float:right;" onclick="CreateDecisionNode()">Save</button>
+}
+
+    <script id="treeview-template" type="text/kendo-ui-template">
+    # if (item.Condition!=null && item.Condition!="") { #
+    <div class="row">
+        <div class="col-12 bre-switch">
+            @*<span class="bre-badge badge badge-warning" onclick="editGroup('#:item.id#')"><i class="fas fa-edit"></i></span>*@
+            # if (item.Condition=='And') { #
+            <span class="bre-badge badge badge-info" onclick="editGroup('#:item.id#','#:item.DecisionScriptComponentId#')">#: item.Condition#</span>
+            # } else {#
+            <span class="bre-badge badge badge-info" onclick="editGroup('#:item.id#','#:item.DecisionScriptComponentId#')">#: item.Condition#</span>
+            # } #
+            <span class="bre-badge badge badge-danger" onclick="addGroup('#:item.id#','#:item.DecisionScriptComponentId#')"><i class="far fa-plus-circle"></i> Add Group</span>
+            <span class="bre-badge badge badge-danger" onclick="addCondition('#:item.id#','#:item.DecisionScriptComponentId#')"><i class="far fa-plus-circle"></i> Add Condition</span>
+            @*<i class="fas fa-edit" onclick="editGroup('#:item.id#')" title="Edit Group"></i>*@
+            #if(item.ParentId!=null){#
+            <i class="fas fa-trash" onclick="removeGroup('#:item.id#')" title="Remove Group"></i>
+            #}#
+
+        </div>
+    </div>
+    # } else {#
+    <div class="row" style="min-width:650px;">
+
+        @*<span class="bre-badge badge badge-warning" onclick="editCondition('#:item.id#')"><i class="fas fa-edit"></i></span>*@
+
+
+        @*<div class="col-3">
+            <span class="bre-badge badge badge-primary" style="width:170px;overflow-wrap:break-word !important;white-space:normal !important;">#: item.FieldSourceTypeStr# . #: item.Field#</span>
+
+        </div>*@
+
+        @*<div class="col-3">
+            <span class="bre-badge badge badge-success" style="width:170px;overflow-wrap:break-word !important;white-space:normal !important;">#: item.OperatorType#</span>
+        </div>
+        <div class="col-3">
+            <span class="bre-badge badge badge-primary" style="width:170px;overflow-wrap:break-word !important;white-space:normal !important;">#: item.ValueSourceTypeStr# . #: item.Value#</span>
+        </div>*@
+     <div class="col-9" @*style="display:flex;margin-right:25px"*@>
+            <span class="bre-badge badge badge-primary" style="width:100%;overflow-wrap:break-word !important;white-space:normal !important;">#: item.OperationValue#</span>
+        </div>
+     <div class="col-1">
+       <span> <i class="fas fa-edit" onclick="editCondition('#:item.id#','#:item.DecisionScriptComponentId#')" title="Edit Condition"></i></span>
+     </div>
+        #if(item.ParentId!=null){#
+     <div class="col-1">
+       <span> <i class="fas fa-trash" onclick="removeCondition('#:item.id#')" title="Remove Condition"></i></span>
+     </div>
+    <div class="col-1"></div>
+        #}#
+
+    </div>
+    # } #
+    @*<span data-id="#:item.id#" data-type="#:item.ItemType#" class="tree-menu"><i class="fa fa-ellipsis-h"></i></span>*@
+
+    </script>
+
+
+
+
+</div>
+<br />
+<div id="custom" style="display:none;padding:10px">
+    <div class="row no-gutters">
+        <div class="col-12">
+            <span style="color:#0E00FF">public&nbsp;bool</span>&nbsp;<span style="color:#74531F;">DecisionScript</span>&nbsp;(<span style="color:#2B91AF">TaskTemplateViewModel</span>&nbsp;<span style="color:#1F377F">taskViewModel</span>,&nbsp;<span style="color:#2B91AF">ServiceTemplateViewModel</span> <span style="color:#1F377F">serviceViewModel</span>, <span style="color:#2B91AF">NoteTemplateViewModel</span> <span style="color:#1F377F">noteViewModel</span>, <span style="color:#2B91AF">Dictionary<span style="color:#0E00FF">&lt;string, object&gt;</span></span> <span>udf</span> )
+            {
+            <div class="form-label-group">
+                <textarea id="Script" name="w3review" rows="20" cols="50" style="width:100%"></textarea>
+            </div>
+            }
+        </div>
+
+    </div>
+    @if (Model.IsWorkFlow == true)
+    {
+        <button type="button" class="btn btn-success" id="btnSave" style="float:right;" onclick="SaveWorkFlowDecision(event)">Save</button>
+    }
+    else if (Model.IsBusinessDiagram == true)
+    {
+        <button type="button" class="btn btn-success" id="btnSave" style="float:right;" onclick="CreateDecisionNode(event)">Save</button>
+    }
+    @*<textarea id="Script" name="w3review" rows="20" cols="50" style="width:100%"></textarea>*@
+
+    @*<button type="button" class="btn btn-success" id="btnSave" style="float:right;" onclick="CreateDecisionNode()">Save</button>*@
+</div>
+
+
+
+@Html.HiddenFor(x => x.TemplateId)
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.DecisionParentId)
+@Html.HiddenFor(x => x.DecisionScriptComponentId)
+<script>
+
+
+    $(document).ready(function () {
+        $("#BusinessRuleLogicType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            change: OnBusinessRuleLogicType,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "BusinessRuleLogicTypeEnum" })",
+                    }
+                }
+            }
+        });
+
+        document.getElementById("Script").value = '@ViewBag.Script';
+        if ('@ViewBag.BusinessRuleLogicType' != "") {
+            $("#BusinessRuleLogicType").data("kendoDropDownList").value('@ViewBag.BusinessRuleLogicType');
+        } else {
+            $("#BusinessRuleLogicType").data("kendoDropDownList").value('Standard');
+        }
+        OnBusinessRuleLogicType();
+        readRuleTreeData();
+
+    });
+
+
+
+    function readRuleTreeData() {
+        document.getElementById('ruletreeview').innerHTML = "";
+        ShowLoader($('#maindiv'));
+        $.ajax({
+            url: '/bre/bre/GetBusinessRuleModelListNew?nodeId=@Model.Id&decisionScriptComponentId=@Model.DecisionScriptComponentId&isWorkFlow=@Model.IsWorkFlow',
+            dataType: "json",
+            success: function (result) {
+                
+                var root = document.getElementById('ruletreeview');
+                var parent = result.filter(x => x.ParentId == null);
+                for (var i = 0; i <= parent.length - 1; i++) {
+                    var data = parent[i];
+                   createTreeList(data, root, result, null);
+                }
+
+                var toggler = document.getElementsByClassName("caret");
+                var i;
+
+                for (i = 0; i < toggler.length; i++) {
+                    toggler[i].addEventListener("click", function () {
+                        this.parentElement.querySelector(".nested").classList.toggle("active");
+                        this.classList.toggle("caret-down");
+                    });
+                }
+                HideLoader($('#maindiv'));
+
+            }
+        });
+    }
+
+    function createTreeList(data, root, result, ul) {
+        
+        var child = [];
+       // if (data.ParentId == null) {
+            child = searchChild(data.id, result, root);
+        //} else {
+        //    chid = [];
+        //}
+        if (ul == null) {
+             ul = document.createElement('ul');
+        }
+       // li.classList.add("nested");
+        var li = document.createElement('li');
+        if (child.length > 0) {
+            li.classList.add("caret");
+        }
+        var p1 = "";
+        var p2 = "";
+        var p3 = "";
+        var p4 = "";
+        var p5 = "";
+
+        if (data.Condition == "And") {
+
+            p2 = "<span class='bre-badge badge badge-info' onclick='editGroup(\"" + data.id + "\",\"" + data.DecisionScriptComponentId + "\")'>" + data.Condition + "</span>";
+
+        } else {
+            p2 = "<span class='bre-badge badge badge-info' onclick='editGroup(\"" + data.id + "\",\"" + data.DecisionScriptComponentId + "\")'>" + data.Condition + "</span>";
+
+        }
+
+
+        if (data.Condition != null && data.Condition != "") {
+            p1 = "<div class='row'>" +
+                "<div class='col-12 bre-switch' > " + p2 +
+                "<span class='bre-badge badge badge-danger' onclick='addGroup(\"" + data.id + "\",\"" + data.DecisionScriptComponentId + "\")' > <i class='far fa-plus-circle'></i> Add Group</span >" +
+                "<span class='bre-badge badge badge-danger' onclick='addCondition(\"" + data.id + "\",\"" + data.DecisionScriptComponentId + "\")'><i class='far fa-plus-circle'></i> Add Condition</span>";
+            if (data.ParentId != null) {
+                p1 = p1 + "<i class='fas fa-trash' onclick='removeGroup(\"" + data.id + "\")' title='Remove Group' ></i >";
+
+            }
+            p1 = p1 + "</div ></div><br/>";
+        } else {
+           p1 = "<div class='col-9' >" +
+                "       <span class='bre-badge badge badge-primary' style='width:100%;overflow-wrap:break-word !important;white-space:normal !important;'>"+ data.OperationValue + "</span>" +
+                "   </div>" +
+                "<div class='col-1'>" +
+               "  <span> <i class='fas fa-edit' onclick='editCondition(\"" + data.id + "\",\"" + data.DecisionScriptComponentId + "\")' title='Edit Condition'></i></span>" +
+                "</div>";
+        if(data.ParentId != null) {
+            p1 = p1 + "<div class='col-1'>" +
+                "<span> <i class='fas fa-trash' onclick='removeCondition(\"" + data.id + "\")' title='Remove Condition'></i></span>" +
+                "</div>" +
+                "<div class='col-1'></div>";
+
+            }
+
+            p1 = p1 + "</div ><br/>";
+        }
+
+        li.innerHTML = p1;
+        ul.appendChild(li);
+        root.appendChild(ul);
+
+        if (child != [])
+        {
+            var ul = document.createElement('ul');
+            ul.classList.add("nested");
+           // ul.classList.add("active");
+            for (var x = 0; x <= child.length - 1; x++)
+            {
+                createTreeList(child[x], li, result, ul);
+            }
+        }
+       // return root;
+    }
+
+    function searchChild(nameKey, myArray) {
+        var newArray  = [];
+        for (var i = 0; i < myArray.length; i++) {
+            if (myArray[i].ParentId === nameKey) {
+                newArray.push( myArray[i]);
+            }
+        }
+        return newArray;
+    }
+
+
+    //$("#BusinessRuleLogicType").data("kendoDropDownList").value('@BusinessRuleLogicTypeEnum.Standard');
+    function OnBusinessRuleLogicType() {
+        var re = $("#BusinessRuleLogicType").data("kendoDropDownList").value();
+        if (re == '@BusinessRuleLogicTypeEnum.Custom') {
+            document.getElementById("basicDecision").style.display = "none";
+            document.getElementById("custom").style.display = "";
+        } else {
+            document.getElementById("basicDecision").style.display = "";
+            document.getElementById("custom").style.display = "none";
+        }
+    }
+
+    function SaveWorkFlowDecision(evt)
+    {
+        if ($("#Name").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Name is required");
+            evt.preventDefault();
+            return false;
+        }
+        else
+        {
+             $.ajax({
+            url: '/cms/ProcessDesign/CreateComponent',
+            type: "POST",
+            data:
+            {
+                Id:'@Model.Id',
+                ComponentType: "DecisionScript",
+                Name: $("#Name").val(),
+                ParentId: $("#DecisionParentId").val(),
+                TemplateId: $("#TemplateId").val(),
+                DecisionScriptComponentId: $("#DecisionScriptComponentId").val(),
+                Script: document.getElementById("Script").value,
+                BusinessRuleLogicType: $("#BusinessRuleLogicType").data("kendoDropDownList").value()
+            },
+            dataType: "json",
+            success: function (result) {
+                if (result.success) {
+                    var win = GetMainWindow();
+                    //win.CloseWindow({ MethodName: "CallBackMethod" });
+                    win.CloseWindow({ MethodName: "TemplateChangeCallback", Prms: { TemplateId: $("#TemplateId").val() }});
+                }
+            }
+        });
+        }
+
+    }
+    function CreateDecisionNode(evt)
+    {
+        if ($("#Name").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Name is required");
+            evt.preventDefault();
+            return false;
+        }
+        else {
+            $.ajax({
+                url: '/bre/BusinessRuleDiagram/ManageBusinessDiagramNode',
+                type: "POST",
+                data:
+                {
+                    Id: '@Model.Id',
+                    Type: "Decision",
+                    Name: $("#Name").val(),
+                    ParentNodeId: $("#DecisionParentId").val(),
+                    TemplateId: $("#TemplateId").val(),
+                    BusinessRuleId: '@ViewBag.ruleId',
+                    IsStarter: false,
+                    Script: document.getElementById("Script").value,
+                    BusinessRuleLogicType: $("#BusinessRuleLogicType").data("kendoDropDownList").value(),
+                    DataAction: '@Model.DataAction'
+                },
+                dataType: "json",
+                success: function (result) {
+                    if (result.success) {
+                        var win = GetMainWindow();
+                        win.CloseWindow({ MethodName: "TemplateChangeCallback", Prms: { TemplateId: $("#TemplateId").val() } });
+                        //win.CloseWindow({ MethodName: "createTemplateDiagram", Prms: { id: $("#TemplateId").val() } });
+                    }
+                }
+            });
+        }
+    }
+    function reloadtreeview() {
+      //  alert("test");
+       //$("#treeview").data("kendoTreeView").dataSource.read({ nodeId: '@Model.Id' });
+        readRuleTreeData();
+    }
+
+    //function addcondition(val, id) {
+    //
+    //    var docid = "cond_" + id;
+    //    var condval = document.getElementById(docid).textContent;
+    //    if (condval == "And") {
+    //        document.getElementById(docid).innerHTML = "Or";
+    //    }
+    //    else if (condval == "Or") {
+    //        document.getElementById(docid).innerHTML = "And";
+    //    }
+    //}
+
+    function OnSelect(e) {
+        e.preventDefault();
+    }
+    function addGroup(id, decisionScriptComponentId) {
+        
+
+        var data1 =  {"DataAction":"Create", "DecisionNodeId":'@Model.Id', "ParentRuleId":id, "Condition":"And","RuleId":'@ViewBag.ruleId'};
+        if ('@Model.IsWorkFlow' == 'True' || '@Model.IsBusinessDiagram' == 'True') {
+  $.ajax({
+
+            type: 'POST',
+            url: '/Bre/BusinessRule/CreateBusinessRuleBuilderGroup?dataAction=Create&nodeId=@Model.Id&parentId=' + id + '&condition=And"+"&decisionScriptComponetId=' + decisionScriptComponentId,
+            contentType: 'application/json; charset=utf-8',
+            //data: JSON.stringify({ 'DataAction': 'Create', 'DecisionNodeId': '@Model.Id', 'ParentRuleId': id, 'Condition': 'And', 'RuleId': '@ViewBag.ruleId' }),
+                                                dataType: 'json',
+                                                success: function (response)
+                                                {
+                                                    readRuleTreeData();
+                                                   // $("#treeview").data("kendoTreeView").dataSource.read({  nodeId:'@Model.Id' });
+                                                },
+                                                error: function (error) {
+                                                    alert("error")
+                                                }
+                                            });
+        }
+        else {
+                 $.ajax({
+
+            type: 'POST',
+            url: '/Bre/BusinessRule/CreateBusinessRuleBuilderGroup?dataAction=Create&nodeId=@Model.Id&parentId=' + id + '&condition=And"+"&ruleId=@ViewBag.ruleId',
+            contentType: 'application/json; charset=utf-8',
+            //data: JSON.stringify({ 'DataAction': 'Create', 'DecisionNodeId': '@Model.Id', 'ParentRuleId': id, 'Condition': 'And', 'RuleId': '@ViewBag.ruleId' }),
+                                                dataType: 'json',
+                                                success: function (response)
+                                                {
+                                                    //$("#treeview").data("kendoTreeView").dataSource.read({  nodeId:'@Model.Id' });
+                                                    readRuleTreeData();
+                                                },
+                                                error: function (error) {
+                                                    alert("error")
+                                                }
+                                            });
+        }
+
+
+
+    }
+    function addCondition(id, decisionScriptComponentId) {
+        if ('@Model.IsWorkFlow' == 'True' ) {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/Bre/BusinessRule/AddCondition?parentId=" + id + "&dataAction=Create&ruleId=@ViewBag.ruleId&templateId=@Model.TemplateId&decisionScriptComponentId=" + decisionScriptComponentId;
+            win.OpenWindow({ Title: 'View Details', Width: 1000, Height: 600, });
+
+        }
+        else  if ( '@Model.IsBusinessDiagram' == 'True') {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/Bre/BusinessRule/AddCondition?nodeId=@Model.Id&parentId=" + id + "&dataAction=Create&ruleId=@ViewBag.ruleId&templateId=@Model.TemplateId";
+            win.OpenWindow({ Title: 'View Details', Width: 1000, Height: 600, });
+
+        }
+        else
+        {
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl =  "/Bre/BusinessRule/AddCondition?nodeId=@Model.Id&parentId=" + id + "&dataAction=Create&ruleId=@ViewBag.ruleId&templateId=@Model.TemplateId";
+            win.OpenWindow({
+                Title: 'Add Condition', Width: 1000, Height: 700 });
+        }
+
+    }
+    function editGroup(id, decisionScriptComponentId) {
+        
+
+        if ('@Model.IsWorkFlow' == 'True' || '@Model.IsBusinessDiagram' == 'True')
+
+        {
+            $.ajax({
+
+                type: 'POST',
+                url: '/Bre/BusinessRule/CreateBusinessRuleBuilderGroup?dataAction=Edit&id=' + id + "&decisionScriptComponetId=" + decisionScriptComponentId,
+                contentType: 'application/json; cCustomarset=utf-8',
+                //data: JSON.stringify({ 'DataAction':BusiStandardnessRuleLogicTypeEnum'StandardCreate', 'DecisionNodeId': '@Model.Id', 'ParentRuleId': id, 'Condition': 'And', 'RuleId': '@ViewBag.ruleId' }),
+                dataType: 'json',
+                success: function (response) {
+                   // $("#treeview").data("kendoTreeView").dataSource.read();
+                    readRuleTreeData();
+                },
+                error: function (error) {
+                    alert("error")
+                }
+            });
+               }
+    else {
+ $.ajax({
+
+                type: 'POST',
+                url: '/Bre/BusinessRule/CreateBusinessRuleBuilderGroup?dataAction=Edit&id=' + id ,
+                contentType: 'application/json; cCustomarset=utf-8',
+                //data: JSON.stringify({ 'DataAction':BusiStandardnessRuleLogicTypeEnum'StandardCreate', 'DecisionNodeId': '@Model.Id', 'ParentRuleId': id, 'Condition': 'And', 'RuleId': '@ViewBag.ruleId' }),
+                dataType: 'json',
+                success: function (response) {
+                    //$("#treeview").data("kendoTreeView").dataSource.read();
+                    readRuleTreeData();
+                },
+                error: function (error) {
+                    alert("error")
+                }
+            });
+    }
+    }
+    function editCondition(id, decisionScriptComponentId) {
+        if ('@Model.IsWorkFlow' == 'True' || '@Model.IsBusinessDiagram' == 'True') {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/Bre/BusinessRule/AddCondition?id=" + id + "&templateId=@Model.TemplateId&decisionScriptComponentId=" + decisionScriptComponentId;
+            win.OpenWindow({ Title: 'View Details', Width: 1000, Height: 600, });
+
+        }
+        else {
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = "/Bre/BusinessRule/AddCondition?id=" + id + "&ruleId=@ViewBag.ruleId&templateId=@Model.TemplateId";
+            win.OpenWindow({ Title: 'Edit Condition', Width: 1000, Height: 700, });
+
+        }
+    }
+     function removeGroup(id)
+    {
+         var flag = confirm('Do you really want to delete');
+                                        if (flag) {
+                                            $.ajax({
+
+                                                type: 'GET',
+                                                url: '/Bre/breRuleModel/RemoveGroup?id=' + id,
+                                                contentType: 'application/json; charset=utf-8',
+                                                dataType: 'json',
+                                                success: function (response)
+                                                {
+                                                   // $("#treeview").data("kendoTreeView").dataSource.read({  nodeId:'@Model.Id' });
+                                                    readRuleTreeData();
+                                                },
+                                                error: function (error) {
+                                                    alert("error")
+                                                }
+                                            });
+                                        }
+    }
+    function removeCondition(id) {
+        var flag = confirm('Do you really want to delete');
+        if (flag) {
+            $.ajax({
+                type: 'GET',
+                url: '/Bre/breRuleModel/RemoveCondition?id=' + id,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function (response)
+                {
+                  //  $("#treeview").data("kendoTreeView").dataSource.read({ nodeId: '@Model.Id' });
+                    readRuleTreeData();
+                },
+                error: function (error) {
+                    alert("error")
+                }
+            });
+        }
+    }
+</script>
+@*@(Html.Kendo().TreeList<BusinessRuleModelViewModel>()
+        .Name("treelist")
+        .Toolbar(toolbar => toolbar.Create())
+        .Columns(columns =>
+        {
+            columns.Add().Field(e => e.ConditionStr).Width(220);
+            columns.Add().Field(e => e.Field).Width(220);
+            columns.Add().Field(e => e.OperatorType).Template("#=OperatorStr#").Width(180); ;
+            columns.Add().Field(e => e.Value).Width(100);
+            columns.Add().Width(300).Command(c =>
+            {
+                c.CreateChild().Text("Add child");
+                c.Edit();
+                c.Destroy();
+            })
+            .HtmlAttributes(new
+            {
+                style = "text-align: center;"
+            });
+        })
+        .Editable()
+        .DataSource(dataSource => dataSource
+            .Create(create => create.Action("Create", "bre"))
+            .Read(read => read.Action("GetBusinessRule", "bre",new { nodeId=1}))
+            .Update(update => update.Action("Update", "bre"))
+            .Destroy(delete => delete.Action("Destroy", "bre"))
+            .Model(m =>
+            {
+                m.Id(f => f.Id);
+                m.ParentId(f => f.ParentId);
+                m.Expanded(true);
+                //m.Field(f => f.FirstName);
+
+            })
+        )
+        .Height(540)
+    )*@
+
+@*<style>
+        .k-treelist .k-command-cell .k-button {
+            min-width: 0px;
+            padding: 10px 10px 10px 10px;
+        }
+    </style>
+    <script>
+        function onClick(e) {
+            alert("fff");
+        }
+    </script>*@

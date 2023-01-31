@@ -1,0 +1,1086 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model NtsEmailPageViewModel
+
+@{
+    ViewData["Title"] = "NtsEmailPage";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+<style>
+    .jqx-widget-header {       
+        border-color: #c5c5c5;
+        background: none !important;
+    }
+    .jqx-grid-groups-header {
+        
+        background-color: white !important;
+    }
+    .jqx-grid-header {
+        color: #fff !important;
+        background-color: #3a5e9f !important;
+    }
+    #body-row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    #sidebar-container {
+        min-height: 100vh;
+        background-color: rgb(216 228 251);
+        padding: 0;
+    }
+
+    /* Sidebar sizes when expanded and expanded */
+    .sidebar-expanded {
+        width: 270px;
+    }
+
+    .sidebar-collapsed {
+        width: 30px;
+    }
+
+    /* Menu item*/
+    #sidebar-container .list-group a {
+        height: 50px;
+        color: white;
+    }
+
+    /* Submenu item*/
+    #sidebar-container .list-group .sidebar-submenu a {
+        height: 45px;
+        padding-left: 30px;
+    }
+
+    .sidebar-submenu {
+        font-size: 0.9rem;
+    }
+
+    /* Separators */
+    .sidebar-separator-title {
+        background-color: #333;
+        height: 35px;
+    }
+
+    .sidebar-separator {
+        background-color: #333;
+        height: 25px;
+    }
+
+    .logo-separator {
+        background-color: #333;
+        height: 60px;
+    }
+
+    /* Closed submenu icon */
+    #sidebar-container .list-group .list-group-item[aria-expanded="false"] .submenu-icon::after {
+        content: " \f0d7";
+        font-family: FontAwesome;
+        display: inline;
+        text-align: right;
+        padding-left: 10px;
+    }
+    /* Opened submenu icon */
+    #sidebar-container .list-group .list-group-item[aria-expanded="true"] .submenu-icon::after {
+        content: " \f0da";
+        font-family: FontAwesome;
+        display: inline;
+        text-align: right;
+        padding-left: 10px;
+    }
+</style>
+<style>
+    .jstree-default .jstree-open > .jstree-ocl:before {
+        content: none !important;
+        color: #fff;
+    }
+    /*.jstree-default .jstree-leaf > .jstree-ocl {
+         background-position: 0px 0px;
+    }*/
+    /*.list-group-messages .list-group-item {
+         padding-top: 0rem !important;
+         padding-bottom: 0rem !important;
+    }*/
+    .required {
+        color: red;
+    }
+
+    .left {
+        min-width: 300px;
+        max-width: 600px;
+    }
+
+    .splitter-container {
+        height: 84.5vh !important;
+        width: 100%;
+    }
+
+    .treeview .k-in {
+        width: 100% !important;
+    }
+
+
+
+
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 85%;
+    }
+
+    #portal-div {
+        transition: margin-left .5s;
+        padding: 20px;
+    }
+
+    #overlay {
+        position: fixed;
+        background: rgba(0,0,0,.5);
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+        right: 100%;
+        top: 0;
+        /*  transition: right .5s ease;*/
+    }
+
+    .overlay {
+        right: 0 !important;
+        /* transition: right .5s ease !important;*/
+    }
+
+    .cms-panel-header-name {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 10px;
+        width: 80%;
+    }
+
+    .Drafted {
+        background-color: #17a2b8;
+        color: #fff;
+    }
+
+    .Pending {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .Completed {
+        background-color: #13b713;
+        color: #fff;
+    }
+    .cell-completed {
+        background-color: #13b713;
+    }
+
+    .cell-pending {
+        background-color: #007bff;
+    }
+
+    .cell-info {
+        background-color: #17a2b8;
+    }
+    .group-item-title {
+        font-size: 14px !important;
+    }
+    /*Portal End*/
+</style>
+<script>
+    $('#body-row .collapse').collapse('hide');
+
+    // Collapse/Expand icon
+    $('#collapse-icon').addClass('fa-angle-double-left');
+
+    // Collapse click
+    $('[data-toggle=sidebar-colapse]').click(function () {
+        SidebarCollapse();
+    });
+
+    function SidebarCollapse() {
+        $('.menu-collapsed').toggleClass('d-none');
+        $('.sidebar-submenu').toggleClass('d-none');
+        $('.submenu-icon').toggleClass('d-none');
+        $('#sidebar-container').toggleClass('sidebar-expanded sidebar-collapsed');
+
+        // Treating d-flex/d-none on separators with title
+        var SeparatorTitle = $('.sidebar-separator-title');
+        if (SeparatorTitle.hasClass('d-flex')) {
+            SeparatorTitle.removeClass('d-flex');
+        } else {
+            SeparatorTitle.addClass('d-flex');
+        }
+
+        // Collapse/Expand icon
+        $('#collapse-icon').toggleClass('fa-angle-double-left fa-angle-double-right');
+    }
+</script>
+<script>
+    $(document).ready(function () {
+
+        var dataSource1 = new kendo.data.DataSource({
+            transport: {
+                read: {
+                   // url: "/Nts/ReadNtsEmailList?serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes",
+                    url: "/Nts/ReadNtsEmailList?serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes&emailType=@EmailTypeEnum.Inbox&tempId=@ViewBag.TemplateId&targetType1=@ViewBag.TargetType1&targetType2=@ViewBag.TargetType2&wfStatus=@ViewBag.WorkflowStatus&slaType=@ViewBag.SLAType&st=@ViewBag.FromDate&dt=@ViewBag.ToDate",
+
+                    dataType: "json",
+                }
+            },
+            filterable: true,
+            pageSize: 10
+        });
+        var url1 = "/Nts/ReadNtsEmailList?serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes&emailType=@EmailTypeEnum.Inbox&tempId=@ViewBag.TemplateId&targetType1=@ViewBag.TargetType1&targetType2=@ViewBag.TargetType2&wfStatus=@ViewBag.WorkflowStatus&slaType=@ViewBag.SLAType&st=@ViewBag.FromDate&dt=@ViewBag.ToDate";
+
+        inboxGrid(url1);
+        $("#NotificationlistView").kendoListView({
+            dataSource: dataSource1,
+            height: 600,
+            scrollable: "endless",
+            //navigatable: true,
+            //pageable: true,
+            template: kendo.template($("#template").html()),
+            dataBound: function () {
+                $("#NotificationlistView").removeClass();
+                $("#NotificationlistView").children('.k-listview-content').addClass("list-group list-group-messages list-group-flush list-group-bordered");
+                $("#NotificationlistView").children('.k-listview-content').removeClass("k-listview-content");
+            }
+        });
+
+    });
+    function OnBack() {
+        var pname = "@ViewBag.PageName";
+        //LoadPartailView('@Url.Action("NtsEmailSummary", "Nts",new { area="Core"})', $('#cms-content'));
+        var portalId = '@ViewBag.PortalId';
+        var url = '/Cms/Page?lo=Div&pageName=' + pname + '&portalId=' + portalId;
+        LoadCmsPartialView(url, 'Custom', false, null, null, pname, null, null, $('#cms-content'), null);
+    }
+    function htmlDecode(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+
+    function OnCreateNewRequest() {
+        var url = '/Cms/NtsService/SelectServiceTemplate?templateCode=@ViewBag.TemplateCodes&categoryCode=@ViewBag.CategoryCodes&userId=@ViewBag.UserId&cbm=OnAfterServiceCreate';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Select Service', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+   function OpenService(id, templateCode,tid,ttype) {
+
+        var portalId =  $("#GlobalPortalId").val();
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId + '&recordId=' + id + '&targetId=' + tid + '&targetType=' + ttype;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View', Width: 1200, Height: 700 });
+        return false;
+    }
+    function OnAfterServiceCreate() {
+        //GetChart();
+        window.location.href = window.location.href;
+        //caseSummaryGrid();
+    }
+    function OnView() {
+        var portalId = '@ViewBag.PortalId';
+        var url = '/Cms/NtsForm?ntsId=51723883-2a49-44ae-a7fc-5e42c6d17105&portalId=' + portalId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'View', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+
+    $('#inboxTreeView').on("select_node.jstree", function (e, data) {
+        //alert("node_id: " + data.node.id);
+        debugger;
+        var id = data.node.a_attr.data_id /*$trigger.attr('data_id');*/
+        var inboxStatus = data.node.a_attr.data_id /*$trigger.attr('data_id');*/
+        var type = data.node.a_attr.data_type /*$trigger.attr('data_type');*/
+        var Name = data.node.a_attr.data_name /*$trigger.attr('data_name');*/
+        var etype = data.node.a_attr.email_type /*$trigger.attr('email_type');*/
+        var scode = data.node.a_attr.data_status /*$trigger.attr('email_type');*/
+        var tempcode = data.node.a_attr.data_tempcode /*$trigger.attr('email_type');*/
+        var catId = data.node.a_attr.data_catid /*$trigger.attr('email_type');*/
+        var tempId = data.node.a_attr.data_tempid /*$trigger.attr('email_type');*/
+        var catname = data.node.a_attr.cat_name /*$trigger.attr('email_type');*/
+        var tempname = data.node.a_attr.temp_name /*$trigger.attr('email_type');*/
+
+        RefreshListView(type, catId, tempId, inboxStatus);
+
+        UpdateFilterValues(etype, Name, catname, tempname);
+
+    });
+    $('#outboxTreeView').on("select_node.jstree", function (e, data) {
+        //alert("node_id: " + data.node.id);
+        debugger;
+        var id = data.node.a_attr.data_id /*$trigger.attr('data_id');*/
+        var inboxStatus = data.node.a_attr.data_id /*$trigger.attr('data_id');*/
+        var type = data.node.a_attr.data_type /*$trigger.attr('data_type');*/
+        var Name = data.node.a_attr.data_name /*$trigger.attr('data_name');*/
+        var etype = data.node.a_attr.email_type /*$trigger.attr('email_type');*/
+        var scode = data.node.a_attr.data_status /*$trigger.attr('email_type');*/
+        var tempcode = data.node.a_attr.data_tempcode /*$trigger.attr('email_type');*/
+        var catId = data.node.a_attr.data_catid /*$trigger.attr('email_type');*/
+        var tempId = data.node.a_attr.data_tempid /*$trigger.attr('email_type');*/
+        var catname = data.node.a_attr.cat_name /*$trigger.attr('email_type');*/
+        var tempname = data.node.a_attr.temp_name /*$trigger.attr('email_type');*/
+
+        RefreshListView(type, catId, tempId, inboxStatus);
+
+        UpdateFilterValues(etype, Name, catname, tempname);
+
+    });
+
+    function RefreshListView(emailType,catId,tempId,inboxStatus) {
+
+        var url1 = "/Nts/ReadNtsEmailList?serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes&emailType=" + emailType + "&catId=" + catId + "&tempId=" + tempId + "&inboxStatus=" + inboxStatus;
+        inboxGrid(url1);
+        @*if (type == "Inbox" && etype == "Status") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&statusCodes=" + id;
+        }
+        else if (type == "Inbox" && etype == "Template") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&templateCodes=" + id;
+        }
+        else if (type == "Inbox" && etype == "Category") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&catCodes=" + id;
+        }
+        else if (type == "Outbox" && etype == "Status") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&statusCodes=" + id;
+        }
+        else if (type == "Outbox" && etype == "Template") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&templateCodes=" + id;
+        }
+        else if (type == "Outbox" && etype == "Category") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&catCodes=" + id;
+        }
+        else if (type == "Outbox") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Outbox";
+        }*@
+
+        @*if (etype == "Category") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=" + type + "&catCodes=" + id;
+        }
+        else if (etype == "Template") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=" + type + "&templateCodes="+id;
+        }
+        else if (etype == "Status") {
+            url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=" + type + "&templateCodes=" + tempcode + "&statusCodes=" + scode + "&inboxStatus=" + name;
+        }*@
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: url1,
+                    dataType: "json",
+                }
+            },
+            pageSize: 10
+        });
+
+        var listView = $("#NotificationlistView").data("kendoListView");
+        listView.setDataSource(dataSource);
+
+        //$("#NotificationlistView").data("kendoListView").dataSource.read(search)
+        //$("#NotificationlistView").data("kendoListView").dataSource.read()
+
+        if (emailType == "Inbox") {
+            $("#p_in").show();
+            $("#p_out").hide();
+            $("#pg_in").show();
+            $("#pg_out").hide();
+        }
+        else {
+            $("#p_in").hide();
+            $("#p_out").show();
+            $("#pg_in").hide();
+            $("#pg_out").show();
+        }
+    }
+    var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(EmailInboxTypeEnum)))';
+    var statusObj = JSON.parse(status);
+    function inboxGrid(url) {
+
+ //var url = "/Nts/ReadNtsEmailList?templateCodes=EMIRATES_INTERNAL_INCIDENT&portalNames=@ViewBag.PortalNames&userId=@ViewBag.UserId";
+        //var url = "/Nts/ReadNtsEmailList?serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes&emailType=@EmailTypeEnum.Inbox";
+
+
+        var source ={
+            datatype: "json",
+            id: 'TargetId',
+            url: url
+        };
+        var dataAdapter = new $.jqx.dataAdapter(source);
+        $("#grid").jqxGrid(
+            {
+                width: '100%',// getWidth('Grid'),
+                height:'600px',
+                source: dataAdapter,
+                columnsresize: true,
+                showcolumnlines: false,
+                showcolumnheaderlines: false,
+                filterable: true,
+                sortable: true,
+                groupable: true,
+                    columns : [
+        {
+            datafield: "NtsNo", text: "Message Id", width:"130px",cellsrenderer: function (row, column, value) {
+                var datarow = $("#grid").jqxGrid('getrowdata', row);
+                return "<div class='p-2'><a href=\"javascript:OpenService('" + datarow.ServiceId + "','" + datarow.TemplateCode + "','" + datarow.TargetId + "','" + datarow.TargetType + "')\">" + value + "</a></div>";
+            }
+                        },
+                        { datafield: "MessageUserName", text: "User", width: "180px" },
+            { datafield: "Subject", width:"290px" },
+
+        {
+            datafield: "InboxStatus", text: "Status", width:"100px", cellclassname: function (row, columnfield, value) {
+                if (value == "@((int)(EmailInboxTypeEnum.Completed))") {
+                    return "cell-completed text-light";
+                } else if (value == "@((int)(EmailInboxTypeEnum.Pending))") {
+                    return "cell-pending text-light";
+                } else if (value == "@((int)(EmailInboxTypeEnum.Drafted))") {
+                    return "cell-info text-light";
+                }
+            }, cellsrenderer: function (row, column, value) {
+                return "<div class='p-2'>" + statusObj[value]+"</div>";
+                            }
+
+        },
+        {
+            datafield: "CreatedDate",
+            text: "Start Date", width:"130px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+        },
+        {
+            datafield: "DueDate",
+            text: "Due Date", width:"130px", cellsrenderer: function (row, column, value) {
+                                return "<div class='p-2'>" +  moment(value).format('@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormatForMoment') + "</div>";
+                            }
+        }
+                ]
+            }
+        );
+    }
+    function ChangeView(view)
+    {
+        debugger;
+        if (view == 1) {
+            $("#inboxList").show();
+            $("#inboxGrid").hide();
+        }
+        else if(view == 2)
+        {
+            $("#inboxList").hide();
+            $("#inboxGrid").show();
+        }
+    }
+</script>
+
+
+
+@*<div class="splitter-container">*@
+<div class="row" id="body-row">
+    <!-- Sidebar -->
+    <div id="sidebar-container" class="sidebar-expanded d-none d-md-block">
+        @*<div class="left p-2" style="background-color: rgb(216 228 251);">*@
+        <div class="row">
+            <div class="col-10"></div>
+            <div class="col-2 ">
+                <a href="#top" data-toggle="sidebar-colapse" class="align-items-center">
+                    <span id="collapse-icon" class="fa fa-2x mr-3"></span>
+                </a>
+            </div>
+        </div>
+        <div class="p-2 menu-collapsed">
+            <button type="button" class="btn btn-primary" onclick="OnCreateNewRequest();" id="CreatePortal">Create New Request</button>
+            @if (ViewBag.PageName != "" && ViewBag.PageName != null)
+            {
+                <button type="button" class="btn btn-secondary" onclick="OnBack();" id="CreatePortal">Back</button>
+            }
+
+        </div>
+        <div class="row-12 menu-collapsed" style="padding:5px;">
+            <label style="font-weight:bold;">Filters By :</label><br />
+            <label id="filterValues">
+                @if (ViewBag.FiltersByTemplates != "" && ViewBag.FiltersByTemplates != null)
+                {
+                    @ViewBag.FiltersByTemplates
+                    <br />
+                }
+                @if (ViewBag.FiltersByCategories != "" && ViewBag.FiltersByCategories != null)
+                {
+                    @ViewBag.FiltersByCategories
+                    <br />
+                }
+                @if (ViewBag.FiltersByStatus != "" && ViewBag.FiltersByStatus != null)
+                {
+                    @ViewBag.FiltersByStatus
+                }
+
+            </label>
+        </div>
+
+        <div class="form-group has-clearable menu-collapsed">
+            <button type="button" class="close show" aria-label="Close"><span aria-hidden="true"><i class="fa fa-times-circle"></i></span></button>
+            <input id="inboxTreeView_q" type="text" class="form-control" placeholder="Search here...">
+        </div>
+        <div id="inboxTreeView" class="menu-collapsed"> </div>
+        <div id="outboxTreeView" class="menu-collapsed"> </div>
+        <script id="ct-tv-template" type="text/kendo-ui-template">
+            <span style="width:100%">  #: item.Name # <i class="#:item.IconCss#" title="#:item.IconTitle#"></i></span>
+            <span data-id="#:item.id#" data-type="#:item.Type#" data-portal-name="#:item.Name#" data-parent-id="#:item.ParentId#" data-portal-id="#:item.PortalId#" class="tree-menu" data-level="#:item.ItemLevel#"><i class="fa fa-ellipsis-h"></i></span>
+        </script>
+
+
+        @*</div>*@
+    </div>
+
+
+    <div class="col p-4">
+        @*<div class="row p-2">
+                <div class="col-11">
+
+                </div>
+                <div class="col-1">
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-secondary active" onclick="ChangeView(1)"><input type="radio" name="options" id="option1" checked=""> <i class="fa-solid fa-list"></i></label>
+                        <label class="btn btn-secondary" onclick="ChangeView(2)"><input type="radio" name="options" id="option2"> <i class="fa-regular fa-table"></i></label>
+                    </div>
+                </div>
+            </div>*@
+        <!--New Grid-->
+        <div id="inboxList">
+            <div id="p_in" class="row">
+                <div class="col-11">
+                    <div class="task-title pb-2">
+                        <span class="badge badge-pill badge-primary badge-lg">Incoming</span>
+                    </div>
+
+                </div>
+                <div class="col-1">
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-secondary active" onclick="ChangeView(1)"><input type="radio" name="options" checked=""> <i class="fa-solid fa-list"></i></label>
+                        <label class="btn btn-secondary" onclick="ChangeView(2)"><input type="radio" name="options"> <i class="fa-regular fa-table"></i></label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="row task-title text-center">
+                        <div class="col-lg-3 text-center p-2">From</div>
+                        <div class="col-lg-7 text-center p-2">Subject</div>
+                        <div class="col-lg-2 text-center p-2">Received</div>
+                    </div>
+                </div>
+            </div>
+            <div id="p_out" class="row" style="display:none;">
+                <div class="col-11">
+                    <div class="task-title pb-2">
+                        <span class="badge badge-pill badge-primary badge-lg">Outgoing</span>
+                    </div>
+
+                </div>
+                <div class="col-1">
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-secondary active" onclick="ChangeView(1)"><input type="radio" name="options" checked=""> <i class="fa-solid fa-list"></i></label>
+                        <label class="btn btn-secondary" onclick="ChangeView(2)"><input type="radio" name="options"> <i class="fa-regular fa-table"></i></label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="row task-title text-center">
+                        <div class="col-lg-3 text-center p-2">To</div>
+                        <div class="col-lg-7 text-center p-2">Subject</div>
+                        <div class="col-lg-2 text-center p-2">Sent</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div id="NotificationlistView"></div>
+
+                </div>
+            </div>
+
+
+            <script id="template" type="text/x-kendo-template">
+                 <div class="card card-expansion-item">
+                <div class="list-group-item unread p-2">
+                    <div class="list-group-item-figure">
+                <button class="btn btn-reset" data-toggle="collapse" href="\\#id-#=TargetId#"><span class="collapse-indicator mr-2"><i class="fa fa-fw fa-caret-right"></i></span></button>
+
+                        <div class="avatar has-badge">
+
+                            <a href="##" class="user-avatar user-avatar-md"><img src="/cms/Document/GetImageMongo?id=#=MessageUserPhotoId#" onerror="OnPhotoError(this);" alt=""></a> <span class="tile tile-xs tile-circle d-none"></span>
+                        </div>
+                    </div>
+                    <div class="list-group-item-body pl-md-2" style="cursor:pointer;" onclick="OpenService('#=ServiceId#','#=TemplateCode#','#=TargetId#','#=TargetType#');">
+                        <div class="row">
+                            <div class="col-lg-3 d-none d-lg-block">
+                                 <p class="list-group-item-title text-truncate">
+                                 #if(MessageUserName != null){# #=MessageUserName# #}#
+                                 </p>
+                                #if(MessageUserDepartmentName != null){# <p class="list-group-item-text pt-1"> #=MessageUserDepartmentName# </p> #}#
+
+                            </div>
+                            <div class="col-lg-7">
+                                <p class="list-group-item-title text-truncate">
+                                #=Subject#
+                                </p>
+                              <p class="list-group-item-text text-truncate"> #if(Body!= null){#  #=htmlDecode(Body)# #}# </p>
+                            </div>
+                            <div class="col-lg-2">
+                                <p class="list-group-item-text pt-1"> #=CreatedDateStr# </p>
+                                <span class="badge badge-pill #=InboxStatusStr#">#=InboxStatusStr#</span>
+                            </div>
+                        </div>
+                    </div>
+
+                 </div>
+                <div id="id-#=TargetId#" class="panel-collapse collapse">
+                            <div class="card-body pt-0">
+                <p class="list-group-item-text"> #if(Body!= null){#  #=htmlDecode(Body)# #}# </p></div>
+                 </div>
+                </div>
+            </script>
+        </div>
+        <div id="inboxGrid" style="display:none;">
+            <div id="pg_in" class="row">
+                <div class="col-11">
+                    <div class="task-title pb-2">
+                        <span class="badge badge-pill badge-primary badge-lg">Incoming</span>
+                    </div>
+
+                </div>
+                <div class="col-1">
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-secondary active" onclick="ChangeView(1)"><input type="radio" name="options" checked=""> <i class="fa-solid fa-list"></i></label>
+                        <label class="btn btn-secondary" onclick="ChangeView(2)"><input type="radio" name="options"> <i class="fa-regular fa-table"></i></label>
+                    </div>
+                </div>
+            </div>
+            <div id="pg_out" class="row" style="display:none;">
+                <div class="col-11">
+                    <div class="task-title pb-2">
+                        <span class="badge badge-pill badge-primary badge-lg">Outgoing</span>
+                    </div>
+
+                </div>
+                <div class="col-1">
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-secondary active" onclick="ChangeView(1)"><input type="radio" name="options" checked=""> <i class="fa-solid fa-list"></i></label>
+                        <label class="btn btn-secondary" onclick="ChangeView(2)"><input type="radio" name="options"> <i class="fa-regular fa-table"></i></label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 default">
+                    <div id="grid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*</div>*@
+
+<div id="overlay" class=""></div>
+
+<script>
+
+    var nodeid;
+    var nodeparentid;
+    var nodetype;
+    var PortalName;
+    var PortalId;
+    var inboxUrl = "/Nts/ReadNtsEmailTree?emailType=Inbox&serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes";
+    $('#inboxTreeView') .jstree({
+         plugins: ['search'],
+        'core': {
+            'data': function (node, cb) {
+                if (node.id === "#") {
+                        $.ajax({
+                        async: true,
+                        type: "GET",
+                            url: inboxUrl,
+                        dataType: "json",
+                        success: function (json) {
+                            cb(json);
+                        },
+
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            alert(xhr.status);
+                            alert(thrownError);
+                        }
+                    });
+                }
+                else {
+                    $.ajax({
+                        async: true,
+                        type: "GET",
+                        url: "/Nts/ReadNtsEmailInboxData?id="+ node.id,
+                        dataType: "json",
+                        success: function (json) {
+                            cb(json);
+                        },
+
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            alert(xhr.status);
+                            alert(thrownError);
+                        }
+                    });
+                }
+            }
+        }
+    });
+    var outboxUrl = "/Nts/ReadNtsEmailTree?emailType=Outbox&serTempCodes=@ViewBag.ServiceTemplateCodes&statusCodes=@ViewBag.StatusCodes&userId=@ViewBag.UserId&portalNames=@ViewBag.PortalNames&templateCodes=@ViewBag.TemplateCodes&catCodes=@ViewBag.CategoryCodes&groupCodes=@ViewBag.GroupCodes";
+    $('#outboxTreeView').jstree({
+        plugins: ['search'],
+        'core': {
+            'data': function (node, cb) {
+                if (node.id === "#") {
+                    $.ajax({
+                        async: true,
+                        type: "GET",
+                        url: outboxUrl,
+                        dataType: "json",
+                        success: function (json) {
+                            cb(json);
+                        },
+
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            alert(xhr.status);
+                            alert(thrownError);
+                        }
+                    });
+                }
+                else {
+                    $.ajax({
+                        async: true,
+                        type: "GET",
+                        url: "/Nts/ReadNtsEmailInboxData?id=" + node.id,
+                        dataType: "json",
+                        success: function (json) {
+                            cb(json);
+                        },
+
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            alert(xhr.status);
+                            alert(thrownError);
+                        }
+                    });
+                }
+            }
+        }
+    });
+    var to = false;
+    $('#inboxTreeView_q').on('keyup', function () {
+        if (to) {
+            clearTimeout(to);
+        }
+
+        to = setTimeout(function () {
+            var v = $('#inboxTreeView_q').val();
+            $('#inboxTreeView').jstree(true).search(v);
+        }, 250);
+    });
+
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+    function ReloadTab() {
+
+
+
+    }
+    function SetTabControls(index, select) {
+        var tabStrip = $("#tabstrip").data("kendoTabStrip");
+        if (select) {
+            tabStrip.select(index);
+        }
+    }
+    function onTabSelect1(e) {
+        SetTabControls($(e.item).index(), false);
+    }
+    function OnSelect(e) {
+        //
+        e.preventDefault();
+
+
+    }
+    function onExpand(e)
+    {
+
+        var dataid = e.node.getAttribute("data-uid");
+        var dataitem=e.sender.dataSource.getByUid(dataid);
+        $("#contentTreeView").data("kendoTreeView").dataSource.read({ id: dataitem.id, portalId: dataitem.id, type: dataitem.Type })
+        e.preventDefault();
+    }
+    function OpenIframeModal(url, title) {
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: title, Width: 700, Height: 350 });
+        return false;
+    }
+
+    function UpdateFilterValues(type, name,catname,tempname) {
+        debugger;
+        var filtervalue = document.getElementById('filterValues').innerHTML;
+        if (type == "Category") {
+            document.getElementById('filterValues').innerHTML = "Categories in " + name;
+        }
+        else if (type == "Template") {
+            document.getElementById('filterValues').innerHTML = "Categories in " + catname + "<br>Templates in " + tempname;
+        }
+        else if (type == "Status") {
+            document.getElementById('filterValues').innerHTML = "Categories in " + catname + "<br>Templates in " + tempname +"<br>Status in " + name;
+        }
+    }
+
+    function sleep(milliseconds) {
+        const date = Date.now();
+        let currentDate = null;
+        do {
+            currentDate = Date.now();
+        } while (currentDate - date < milliseconds);
+    }
+    function filter() {
+
+        var ser = { serTempCodes: 'ewre', statusCodes: '', portalNames: '', catCodes: 'EMIRATES_INCIDENTS1' };
+        return ser;
+    }
+    @*$(function () {
+        $.contextMenu({
+            selector: '.jstree-anchor',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                //alert($("#contentTreeView").jstree('get_selected').attr('id'));
+
+                //var id = e.target.id;
+                //
+                debugger;
+
+                var id = $trigger.attr('data_id');
+                var type = $trigger.attr('data_type');
+                var Name = $trigger.attr('data_name');
+                var etype = $trigger.attr('email_type');
+
+
+                var url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox";
+                if (type == "Inbox" && etype == "Status") {
+                    url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&statusCodes=" + id;
+                }
+                else if (type == "Inbox" && etype == "Template") {
+                    url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&templateCodes="+id;
+                }
+                else if (type == "Inbox" && etype == "Category") {
+                    url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&catCodes=" + id;
+                }
+                else if (type == "Outbox" && etype == "Status") {
+                    url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&statusCodes=" + id;
+                }
+                else if (type == "Outbox" && etype == "Template") {
+                    url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&templateCodes=" + id;
+                }
+                else if (type == "Outbox" && etype == "Category") {
+                    url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Inbox&catCodes=" + id;
+                }
+                else if (type == "Outbox") {
+                    url1 = "/Nts/ReadNtsEmailList?userId=@ViewBag.UserId&emailType=Outbox";
+                }
+
+                 var dataSource = new kendo.data.DataSource({
+                        transport: {
+                            read: {
+                                url: url1,
+                                dataType: "json",
+                            }
+                        },
+                        pageSize: 10
+                    });
+                var listView = $("#NotificationlistView").data("kendoListView");
+                listView.setDataSource(dataSource);
+                //$("#NotificationlistView").data("kendoListView").dataSource.read(search)
+                //$("#NotificationlistView").data("kendoListView").dataSource.read()
+
+                if (type == "Inbox") {
+                    $("#p_in").show();
+                    $("#p_out").hide();
+                }
+                else {
+                    $("#p_in").hide();
+                    $("#p_out").show();
+                }
+
+                UpdateFilterValues(Name, etype);
+
+
+
+
+            }
+        });
+
+
+
+    });*@
+    function OnDelete(id) {
+
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").open();
+
+        // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(id);
+        }, function () {
+
+        });
+
+    }
+
+    function confirmDelete(id) {
+         //
+        //  var grid = $("#grd_OrderStatus").data("kendoGrid");
+        // var dataItem = $(e.currentTarget).closest("tr");
+        // alert(dataItem.Id);
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        $.ajax({
+           // url: "~/UserRole/DeleteUserRole?Id=" + id,
+            url:'@Url.Action("DeletePage", "Content", new { @area= "Cms" })?Id=' + id,
+            type: "GET",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+                // $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+                ShowNotification("Deleted Successfully", "success");
+                //window.parent.$("#contentTreeView").data("kendoTreeView").dataSource.read();
+                $('#contentTreeView').jstree(true).refresh();
+               // $("#grid").data("kendoGrid").dataSource.read();
+            }
+        });
+        //  $('#dlg_DeleteConfirmation').data("kendoDialog").close();
+
+
+    }
+
+    //Portal Script Start
+    function openNavPortal(ppid) {
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("CreatePortal", "Content", new { @area="Cms"})?parentId=' + ppid;
+        win.OpenWindow({ Title: 'Manage Portal', Width: 450, Height: 950, Position: 'Right'});
+        return false;
+
+        @*document.getElementById("mySidenavPortal").style.width = "450px";
+        LoadPartailView('@Url.Action("CreatePortal", "Content", new { @area="Cms"})?parentId='+ppid, $('#portal-content'));
+        $("#overlay").addClass("overlay");*@
+
+    }
+    function editNavPortal(id) {
+
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("EditPortal", "Content", new { @area="Cms"})?id=' + id;
+        win.OpenWindow({ Title: 'Manage Portal', Width: 450, Height: 950, Position: 'Right'});
+        return false;
+
+        @*document.getElementById("mySidenavPortal").style.width = "450px";
+        LoadPartailView('@Url.Action("EditPortal", "Content", new { @area="Cms"})?id='+id, $('#portal-content'));
+        $("#overlay").addClass("overlay");*@
+        // $('body').addClass('fadeMe');
+    }
+
+    function closeNavPortal() {
+        document.getElementById("mySidenavPortal").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+    //Portal Script End
+
+    //Style Script Start
+    function openNavStyle(sid, stype) {
+        alert(2)
+        //alert("Hello " + pcid);
+        document.getElementById("mySidenavStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("CreateStyle", "Content", new { @area="Cms"})?sourceId=' + sid +'&sourceType='+stype, $('#page-style-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    function editNavStyle(sid, stype,pid) {
+       // document.getElementById("mySidenavStyle").style.width = "650px";
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl ='@Url.Action("ManageStyle", "Content", new { @area="Cms"})?sourceId=' + sid + '&sourceType=' + stype + '&pageId=' + pid;
+        win.OpenWindow({ Title: 'Manage Style', Width: 650, Height: 950, Position: 'Right'});
+        return false;
+        //LoadPartailView(iframeOpenUrl, $('#page-style-content'));
+        //$("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }
+
+    function closeNavStyle() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        //document.getElementById("mySidenavStyle").style.width = "0";
+        //$("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".style-mybackgroundimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BackgroundImage").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    //Style Script End
+
+    //Pagecontent Style Start
+   function OpenManageSettings(sid,stype) {
+        document.getElementById("mySidenavPageContentStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("ManageSettings", "Content", new { @area="Cms"})?sourceId=' + sid +'&sourceType='+stype, $('#pagecontent-style-content'));
+        $("#overlay").addClass("overlay");
+
+    }
+    @*function editNavPageContentStyle(sid, stype) {
+        alert("Test Page Setting");
+        document.getElementById("mySidenavPageContentStyle").style.width = "650px";
+        LoadPartailView('@Url.Action("EditPageStyle", "Content", new { @area="Cms"})?sourceId=' + sid + '&sourceType=' + stype, $('#pagecontent-style-content'));
+        $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+    }*@
+
+    function closeNavPageContentStyle() {
+        document.getElementById("mySidenavPageContentStyle").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+
+    function onFileUploadSuccessPageStyle(e) {
+        if (e.response.success) {
+            //alert(e.response.fileId);
+            //console.log(e);
+            //return true;
+            $(".pagestyle-mybackgroundimage").attr("src", "/cms/content/GetBackgroundImage?id=" + e.response.fileId);
+            $("#BackgroundImage").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    //Pagecontent Style End
+</script>

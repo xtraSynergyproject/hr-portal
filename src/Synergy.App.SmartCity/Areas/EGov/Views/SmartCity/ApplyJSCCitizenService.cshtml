@@ -1,0 +1,147 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Parcel GIS View";
+    Layout = null;
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" type="text/css" rel="stylesheet" />
+<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+<link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet" />
+<script src="/geojson/geojsonleafletconfig.js"></script>
+
+<div class="row">
+    <div class="col-3" style="margin:1%">
+        Select Parcel Type
+        <input id="parcelType" class="form-control" style="width: 100%;" />
+        <br />
+        Select Ward No
+        <input id="ward" class="form-control" style="width: 100%;" />
+        <br />
+        Select Property
+        <input id="property" class="form-control" style="width: 100%;" />
+        <br />
+        <button class="btn btn-primary" onclick="onSearch()">Search Both</button>
+    </div>
+    <div class="col">
+        <div id="map-view" class="tab-pane">
+            <div class="card" style="padding:5px">
+                <div id="map"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+    var data1;
+    var data2;
+
+    function onSearch() {
+        var parcelType = $("#parcelType").data("kendoDropDownList").value();
+        var ward = $("#ward").data("kendoDropDownList").value();
+        getParcelSearchResult(parcelType, ward);
+    }
+
+
+
+    function getParcelSearchResult(parcelType, ward) {
+        $.ajax({
+            type: "GET",
+            url: "/EGov/SmartCity/GetParcelSearchByWardandType?ward=" + ward + "&parcelType=" + parcelType,
+            success: function (response) {
+                loadMap(response);
+            }
+        });
+    }
+
+    function onEachFeatureParcel(feature, layer) {
+        if (feature) {
+            var text = "Type - " + feature.type
+                + " <br/>Property Id - " + feature.prop_id
+                + " <br/>Residential Status - " + feature.res_stat
+                + " <br/>Road Details - " + feature.road_desc
+                + " <br/>Road Type - " + feature.road_type
+                + " <br/>Owner Details - " + feature.own_dtls
+                + " <br/>Owner Name - " + feature.own_name
+                + " <br/>Telephone No - " + feature.tel_no
+                + " <br/>Aadhar No - " + feature.aadhar;
+
+            layer.bindPopup(text);
+        }
+    }
+
+    function onEachFeature(feature, layer) {
+        if (feature) {
+            var text = "Type - " + feature.type
+                + " <br/>Property Id - " + feature.prop_id
+                + " <br/>Residential Status - " + feature.res_stat
+                + " <br/>Road Details - " + feature.road_desc
+                + " <br/>Road Type - " + feature.road_type
+                + " <br/>Owner Details - " + feature.own_dtls
+                + " <br/>Owner Name - " + feature.own_name
+                + " <br/>Telephone No - " + feature.tel_no
+                + " <br/>Aadhar No - " + feature.aadhar;
+
+            layer.bindPopup(text);
+        }
+    }
+
+    function onEachFeatureColony(feature, layer) {
+        if (feature) {
+            var text = "Colony - " + feature.col_name;
+            layer.bindPopup(text);
+        }
+    }
+
+
+    $("#parcelType").kendoDropDownList({
+        optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/EGov/SmartCity/GetParcelTypeList",
+                }
+            }
+        }
+    });
+
+    $("#ward").kendoDropDownList({
+        optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/EGov/SmartCity/GetWardList",
+                }
+            }
+        }
+    });
+    
+    $("#property").kendoDropDownList({
+        optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/EGov/SmartCity/GetJSCOwnerList?",
+                }
+            }
+        }
+    });
+
+    var element = document.getElementById('map');
+    element.style = 'height:650px;';
+
+</script>

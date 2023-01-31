@@ -1,0 +1,111 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRDirectController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@model DependentViewModel
+
+@{
+    ViewData["Title"] = Resource["Dependent Document List"];
+   // Layout = null;
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    .fa-plus {
+        margin-top: 5px;
+    }
+
+    .panelheader {
+        height: 45px;
+        background-color: #f5f5f5;
+        color: black;
+        border-color: #d4cfcf;
+        border-style: solid;
+        border-width: 1px;
+        border-radius: 6px 6px 0px 0px;
+        padding: 10px;
+        font-weight: bold;
+    }
+</style>
+
+<script>
+
+    $(document).ready(function () {
+
+        getDependentData();
+
+    });
+
+
+    var columnDefs1 = [
+           {
+            field: "NoteNo",
+               headerName: "@Resource["DocumentNo"]",
+               cellRenderer: params => {
+                   return "<input type='button' class='btn btn-link' onclick='OpenNote(\"" + params.data.DepNoteId + "\",\"" + params.data.TemplateCode + "\")' value=\"" + params.data.NoteNo +"\" />";
+               }
+           },
+           {
+               field: "DocumentType",
+                headerName:"@Resource["DocumentType"]"
+
+           },
+           {
+               field: "ExpiryDate",
+                headerName:"@Resource["ExpiryDate"]"
+           },
+
+
+    ];
+
+ 
+
+    function getDependentData() {
+                document.getElementById("gridDependentDocument").innerHTML = "";
+
+        gridConfig(
+            "gridDependentDocument",
+            "/Chr/HRDirect/ReadDependentDocumentList?dependentId=@Model.DependentId",
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+
+
+<div style="padding:15px;">
+    <h4>@ViewBag.Title</h4>
+    <hr />
+    <div id="gridDependentDocument" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+
+</div>
+
+
+@*@(Html.Kendo().Grid<PersonDocumentViewModel>
+    ()
+    .Name("gridDependentDocument") // template expression, to be evaluated in the master context //\\#=NoteId\\#,\\#=TemplateCode\\#
+    .Columns(col =>
+    {
+        //col.Command(c => c.Custom("<a target='_self' href='javascript:OpenNote();'>\\#=NoteNo\\#</a>").Click("OpenNote"));
+        col.Bound(c => c.NoteNo).Title(@Resource["DocumentNo"]).ClientTemplate("<input type='button' class='btn btn-link' onclick=\"OpenNote('\\#=DepNoteId\\#','\\#=TemplateCode\\#')\" value='\\#=NoteNo\\#' />").Width(300);
+        col.Bound(c => c.DocumentType).Title(@Resource["DocumentType"]);
+        col.Bound(c => c.ExpiryDate).Title(@Resource["ExpiryDate"]);
+    })
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(5)
+    .Read(read => read.Action("ReadDependentDocumentList", "HRDirect", new { area = "CHR", dependentId = "#=DependentId#" }))
+    .Model(model => model.Id(p => p.DepNoteId))
+    )
+    //.Pageable()
+    .Sortable()
+    .ToClientTemplate()
+    )*@
+

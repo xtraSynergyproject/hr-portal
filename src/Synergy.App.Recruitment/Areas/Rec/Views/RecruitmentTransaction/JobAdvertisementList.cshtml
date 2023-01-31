@@ -1,0 +1,157 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI*@
+
+@{
+    ViewBag.Title = "Prepare Vacancy List";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<script>
+
+    $(document).ready(function () {
+
+        $("#kgrdJobAdv").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/Rec/RecruitmentTransaction/GetJobAdvList",
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                onItemEditing: function (e) {
+                    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                        //
+                        e.grid.updateItem();
+                    }
+                },
+                updateItem: function (item) {
+                },
+            },
+            fields: [
+                {
+                    name: "Select", /*type: "checkbox",*/ width: 60, editing: true, align: "center",
+                    itemTemplate: function (value, item) {
+                        return $("<input>").attr("type", "checkbox")
+                            .attr("checked", function () {
+                                if (item.CheckFlag === false) {
+                                    $(this).prop("checked", false);
+                                    item.Select = false;
+                                } else if (item.CheckFlag === true) {
+                                    $(this).prop("checked", true);
+                                    item.Select = true;
+                                }
+                            })
+                            .on("click", function () {
+                                if (item.CheckFlag === true) {
+                                    item.CheckFlag = false;
+                                    item.Select = false;
+                                    $(this).prop("checked", false);
+                                } else {
+                                    item.CheckFlag = true;
+                                    item.Select = true;
+                                    $(this).prop("checked", true);
+                                }
+                            });
+                    }
+                },
+                //{
+                //    name: "PositionName",
+                //    title: "Position Name",
+                //    type: "text",
+                //    editing: false
+                //},
+                {
+                    name: "JobName",
+                    title: "Job Name",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "LocationName",
+                    title: "Location Name",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "ManpowerTypeName",
+                    title: "Manpower Type Name",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "NoOfPosition",
+                    title: "No Of Position",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "Experience",
+                    title: "Experience",
+                    type: "text",
+                    editing: false
+                },
+
+            ]
+        });
+    });
+
+
+    function OnAddJobAdv() {
+        var jaids = '';
+        var grid = $("#kgrdJobAdv").data("JSGrid");
+        //grid.updateItem();
+        for (var i = 0; i < grid.data.length; i++) {
+            if (grid.data[i].Select == true) {
+                jaids = jaids + grid.data[i].ServiceId + ',';
+            }
+        }
+
+        if (jaids == '' || jaids == ',') {
+            alert("Please Select atleast one job advertisement from the list");
+        }
+        else {
+            ShowLoader($('#jobadvdiv'));
+            $.ajax({
+                type: "POST",
+                url: "/Rec/RecruitmentTransaction/AddJobAdvertisements",
+                data: { 'vacancyId': '@ViewBag.VacancyListId', 'jobAdvIds': jaids },
+                success: function (data) {
+                    var win = GetMainWindow();
+                    win.CloseWindow({ MethodName: 'AfterAddJobAdvs', IframeName:'IFrameForPrepareVacancyList_iframe' });
+                },
+                dataType: "json",
+            });
+        }
+    }
+</script>
+
+
+
+<div class="row" id="jobadvdiv" style="margin:15px;">
+
+    <div class="col bot-margin" style="margin-top:20px">
+
+        <div style="padding: 5px 0px;">
+
+            <button type='button' class='btn btn-primary' onclick='OnAddJobAdv();'><i class='fa fas fa-plus'></i>&nbsp;Add Job Advertisements</button>
+
+        </div>
+
+        <div id="kgrdJobAdv"></div>
+
+    </div>
+
+</div>

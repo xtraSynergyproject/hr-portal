@@ -1,0 +1,526 @@
+﻿@inject Synergy.App.Common.IUserContext _userContext
+@inject IStringLocalizer<CMS.UI.Web.Controllers.CmsController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@{
+        //if (_userContext.PortalTheme == ThemeEnum.Looper.ToString())
+        //{
+        Layout = "~/Areas/Core/Views/Shared/Themes/Looper/_Layout.cshtml";
+    @*}
+    else
+    {
+        Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    }*@
+
+}
+
+@model TemplateViewModel
+@if (_userContext.PortalTheme != ThemeEnum.Looper.ToString())
+{
+    <style>
+        .announcement {
+            background-color: #f7e6be;
+            border: 2px solid white;
+            color: #373e4c;
+            padding: 10px 30px 15px 15px;
+        }
+
+        .announcement1 {
+            background-color: #cdced0;
+            border: 2px solid white;
+            color: #373e4c;
+            padding: 10px 30px 15px 15px;
+        }
+
+        .iconwithtextan {
+            display: flex;
+            align-items: center;
+        }
+
+            .iconwithtextan.img {
+                margin: 10px;
+                padding: 10px;
+                transition: margin 200ms;
+            }
+
+        .k-state-selected, .k-state-selected:link, .k-state-selected:visited, .k-tool.k-state-selected {
+            color: #fff;
+            background-color: #d6a03d;
+            /* border-color: #1a87cd; */
+        }
+
+        #listViewTM {
+            padding: 5px 5px;
+            margin-bottom: -1px;
+        }
+
+        #listView {
+            margin-bottom: -1px;
+            font: inherit;
+            background: white;
+            border-color: white;
+        }
+
+
+        .fa-span {
+            margin-left: 20%;
+        }
+
+        .template-description-tile {
+            /*  border: solid 1px #bfbfbf;*/
+            font-size: .9eM;
+            color: gray;
+            background-color: white;
+            /*height: 30px;*/
+            width: 149px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+        }
+
+
+
+        .template-flip-card {
+            background-color: transparent;
+            width: 150px;
+            height: 160px;
+            /*border: 1px solid #f1f1f1;*/
+            perspective: 1000px; /* Remove this if you don't want the 3D effect */
+        }
+
+        .template-flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .template-flip-card:hover .template-flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .template-flip-card-front, .template-flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden;
+        }
+
+        .template-flip-card-front {
+            /* background-color: #bbb;*/
+            color: black;
+            display: flex;
+            text-align: center;
+            align-items: center;
+        }
+
+        .template-flip-card-back {
+            background-color: #307bbb;
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .template-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
+            cursor: default;
+        }
+
+    /*    .card {
+            max-height: 90px !important;
+            min-height: 90px !important;
+            max-width: 280px !important;
+            min-width: 280px !important;
+            margin-top: 10px;
+            float: left;
+            margin-left: 10px;
+            flex-direction: unset;
+        }
+
+        .card-header {
+            background-color: #fff;
+            padding: 5px 0px 0px 0px;
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .card-body {
+            padding: unset;
+            padding-top: 2px;
+            font-size: 14px;
+        }*/
+
+        .multi-line-truncate {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+        }
+
+        .k-listview-content {
+            overflow: unset;
+        }
+
+        .k-listview {
+            border-style: none;
+        }
+
+        .row {
+            margin-left: 0px;
+            margin-right: 0px;
+        }
+
+        .taskicon {
+            background-color: MediumTurquoise;
+            border-radius: 3px 0px 0px 3px;
+            text-align: center;
+        }
+
+        .icon {
+            width: 100%;
+            height: 100%;
+            border-radius: 3px 0px 0px 3px;
+            padding: 10px;
+        }
+
+        .col-4 {
+            padding-left: unset;
+            padding-right: unset;
+        }
+
+        .announcementcolor {
+            background-color: yellow;
+        }
+    </style>
+}
+ 
+<script>
+
+    function SelectTemplate(id, tempCode) {
+
+        var portalId = "";
+        var prms = "";
+        var callbackMethod = "";
+        if (window.parent == "" || window.parent == undefined) {
+            portalId = $("#GlobalPortalId").val();
+        }
+        else {
+            portalId = window.parent.$("#GlobalPortalId").val();
+        }
+        if ('@Model.UserId' != null && '@Model.UserId' != '') {
+
+            if ('@Model.Prms' != null && '@Model.Prms' != '') {
+                prms = encodeURIComponent('ownerUserId=@Model.UserId&@Html.Raw(Model.Prms)');
+            }
+            else {
+                prms = encodeURIComponent('ownerUserId=@Model.UserId');
+            }
+
+            var udfs = encodeURIComponent('SelectedUserId=@Model.UserId');
+        }
+        else {
+            prms = encodeURIComponent('@Html.Raw(Model.Prms)');
+        }
+        if ('@Model.CallBackMethodName' != null && '@Model.CallBackMethodName' != '') {
+            callbackMethod = '@Model.CallBackMethodName';
+        } else {
+            callbackMethod = "OnAfterServiceCreate";
+        }
+
+        var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=' + callbackMethod +'&source=Create&dataAction=Create&templateCodes=' + tempCode + '&portalId=' + portalId + '&prms=' + prms + '&udfs=' + udfs;
+        @*var url = '@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?templateid=' + tempid + '&templateCodes=' + tempCode+'&lo=Popup&cbm=OnAfterServiceCreate';*@
+         var win = GetMainWindow();
+         win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["CreateService"])', Width: 1000, Height: 600, Reload: true });
+        return false;
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        //var win = GetMainWindow();
+        ////var parent = win.GetParentWindow();
+        ////parent.backtoNtsTaskIndex(id);
+        //win.CloseWindow({ MethodName: 'backtoNtsServiceIndex' });
+        //return false;
+    }
+    function OnTask(Id) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=' + Id);
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&pageName=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+        LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Task');
+        return false;
+    }
+
+    function EditTask(Id) {
+        var portalId = $('#GlobalPortalId').val();
+        // var prms = encodeURIComponent('parentServiceId=' + Id);
+        var url = '/Cms/Page?lo=Popup&source=Edit&dataAction=Edit&pageName=ProjectTask&portalId=' + portalId + '&recordId=' + Id;
+
+        LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Edit Task');
+        return false;
+    }
+
+    $(document).ready(function () {
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/NtsService/ReadServiceTemplateCategory?templateCode=" + '@Model.Code' + "&categoryCode=" + '@Model.CategoryCode' + "&moduleCodes=" + '@Model.ModuleCodes' + "&categoryIds=" + '@Model.CategoryIds' + "&templateIds=" + '@Model.TemplateIds' + "&categoryType=" + '@Model.TemplateCategoryType' + "&allBooks="+'@Model.AllBooks'+"&portalNames="+'@Model.PortalNames',
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listViewTM").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#templateTM").html()),
+            dataBound: function () {
+                $("#listViewSL").removeClass();
+                $("#listViewSL").children('.k-listview-content').addClass("row m-1");
+                $("#listViewSL").children('.k-listview-content').removeClass("k-listview-content");
+            }
+        });
+
+        var dataSource1 = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Cms/NtsService/ReadServiceTemplate",
+                    data: FilterData,
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listViewSL").kendoListView({
+            dataSource: dataSource1,
+            dataBound: OnDataBoundDoc,
+            template: kendo.template($("#tasktemplate1").html())
+        });
+       
+        $("#mysearch2").keyup(function () {
+            var val = $('#mysearch2').val();
+            var listView = $("#listViewSL").data("kendoListView");
+            // var listView = $("#kgrdService").data("kendoListView");
+            listView.dataSource.filter({
+                logic: "or",
+                filters: [
+                    {
+                        field: "DisplayName",
+                        operator: "contains",
+                        value: val
+                    },
+                    {
+                        field: "Description",
+                        operator: "contains",
+                        value: val
+                    },
+
+                ]
+            });
+        });
+    });
+
+    var colors = ['#F56564', '#1B4D3E','#555D50' ,'#90D142', '#28BAF5', '#7551F5', '#5BA79F', '#7A8F9D', '#4F67B6'];
+    function OnDataBoundDoc(arg) {
+
+
+        var childDiv = document.getElementById('listViewSL').children;
+        ////var childDiv = document.getElementById('count').children;
+
+        for (var i = 0; i < childDiv[0].children.length; i++) {
+            var uc = childDiv[0].children[i].getElementsByClassName("template-flip-card-front");
+            var colr = colors[Math.floor(Math.random() * colors.length)];
+            uc[0].style.backgroundColor = colr;
+        }
+    }
+
+    function FilterData() {
+        return {
+            templateCode: '@Model.Code',
+            categoryCode: '@Model.CategoryCode',
+            moduleCodes: '@Model.ModuleCodes',
+            categoryIds: '@Model.CategoryIds',
+            templateIds: '@Model.TemplateIds',
+            categoryType: '@Model.TemplateCategoryType',
+            allBooks: '@Model.AllBooks',
+            portalNames: '@Model.PortalNames',
+            serviceType: '@Model.ServiceType'
+        };
+    }
+
+    function OnChange(code) {
+
+        var data1 = { categoryCode: code };
+        $("#listViewSL").data('kendoListView').dataSource.read(data1);
+        //$("#listViewSL").data('kendoListView').dataSource.read({ categoryCode: id, templateCode: '@Model.Code' });
+
+        $(window).scrollTop(0);
+        //$("#listView").data('kendoListView').dataSource.read(search);
+    }
+
+
+    function highlight(element) {
+
+        let elements = document.getElementsByClassName('announcement');
+
+        var i;
+        for (i = 0; i < elements.length; i++) {
+            elements[i].style.background = "#f7e6be";
+        }
+        element.style.background = "#63BBDC";
+
+    }
+
+    function OnViewTemplate(id, code) {
+        @*if (code == "OFF_BOARDING_PROCESS") {
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("ServiceDiagramImage", "NtsService", new { @area = "cms" })?id=' + id + "&isTemplate=true&templateCode=" + code;
+            //win.iframeOpenUrl =  '@Url.Action("Swimlane", "NtsService", new { @area = "cms" })';
+            win.OpenWindow({ Title: 'Service Workflow', Width: 1200, Height: 650 });
+            return false;
+        } else {*@
+            var win = GetMainWindow();
+            win.iframeOpenUrl = '@Url.Action("ServiceDiagram", "NtsService", new { @area = "cms" })?id=' + id + "&isTemplate=true";
+            //win.iframeOpenUrl =  '@Url.Action("Swimlane", "NtsService", new { @area = "cms" })';
+            win.OpenWindow({ Title: 'Service Workflow', Width: 1200, Height: 650 });
+            return false;
+        //}
+    }
+</script>
+
+<script id="tasktemplate" type="text/kendo-ui-template">
+    <div class="card" onclick="SelectTemplate('#=Code#')" style="cursor:pointer;">
+
+            <div class="col-4 taskicon">
+               #if(IconFileId != null)
+                  {#
+                    <img class="icon" src="/cms/Document/GetImageMongo?id=#=IconFileId#">
+                  #}
+                  else
+                    {#
+                      <img class="icon" src='/images/profile.jpg'>
+                    #}#
+            </div>
+
+            <div class="col-8">
+                 <div class="card-header">#=DisplayName#</div>
+                 <div class="card-body multi-line-truncate">#=Description#</div>
+            </div>
+    </div>
+</script>
+@*<div class="row">
+        <div class="col-md-3">
+            <button id="btn" style="width: 100%;height: 30px;" class="k-button k-primary" href="javascript:void(0);" onclick="return OnChange();">
+                @SharedResource["All"]
+            </button>
+            <div id="listViewTM"></div>
+        </div>
+        <script type="text/x-kendo-tmpl" id="templateTM">
+            <div class="announcement" onclick="OnChange('#:Code#'); highlight(this);">
+                <div class="iconwithtextan" style="padding-left: 10px;cursor:pointer" >
+                    <div style="font-size: 10px; padding-left: 10px;"></div>
+                    <div style="font-size: 16px">#:Name#</div>
+                </div>
+            </div>
+        </script>
+        <div class="col-9" id="results">
+            <input type="hidden" id="hiddenval" />
+            <div class="col-12">
+                <input id="mysearch2" type="search" placeholder="@SharedResource["Search"]" class="form-control" style="border-radius: 30px;">
+            </div>
+            <div class="col-12">
+                <div id="listViewSL"></div>
+            </div>
+        </div>
+    </div>*@
+
+
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="row">
+                <div class="col-lg-3 col-md-4 col-sm-12">
+                    <div class="list-group mb-3">
+                        <a href="javascript:return OnChange()" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center active">All Templates @*<span class="badge badge-danger badge-pill">14</span>*@</a>
+                        <div class="list-group-header pt-0 pb-0"></div>
+                        <div id="listViewTM"></div>
+
+                        @*<a href="#" class="list-group-item list-group-item-action">Basic list item</a>*@
+                    </div>
+                </div>
+                <div class="col-lg-9 col-md-8 col-sm-12">
+                    <div id="listViewSL"></div>
+                    @*<div class="row">
+                            <div class="col-xl-3 col-lg-4 col-sm-6">
+                                <div class="card card-figure is-hoverable">
+                                    <figure class="figure">
+                                        <div class="figure-img">
+                                            <img class="img-fluid" src="/themes/looper/dist/assets/images/dummy/img-2.jpg" alt="Card image cap">
+                                            <figcaption class="figure-caption">
+                                                <h6 class="figure-title"> Hoverable figure </h6>
+                                                <p class="text-muted mb-0"> Give some text description </p>
+                                            </figcaption>
+                                            <div class="figure-description">
+                                                <h6 class="figure-title"> Long title text can be place here </h6>
+                                                <p class="text-muted mb-0">
+                                                    <small>Laboriosam neque officia adipisci quo ut placeat labore? Doloribus, ipsam? Voluptates, minus.</small>
+                                                </p>
+                                            </div>
+                                            <div class="figure-tools">
+                                                <a href="#" class="tile tile-circle tile-sm mr-auto"><span class="oi oi-data-transfer-download"></span></a> <span class="badge badge-danger">Social</span>
+                                            </div>
+                                            <div class="figure-action">
+                                                <a href="#" class="btn btn-block btn-sm btn-primary">Quick Action</a>
+                                            </div>
+                                        </div>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>*@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/x-kendo-tmpl" id="templateTM">
+    <a href="javascript:OnChange('#:Code#')" class="list-group-item list-group-item-action">#:Name#</a>
+</script>
+
+<script type="text/x-kendo-template" id="tasktemplate1">
+    <div class="col-xl-3 col-lg-4 col-sm-6">
+                          <div class="card card-figure is-hoverable">
+                              <figure class="figure">
+                                  <div class="figure-img text-center">
+                                      <img class="img-fluid" src="/cms/Document/GetImageMongo?id=#=IconFileId#" alt="Card image cap" style="height:140px;" onerror="OnServiceImageError(this);">
+                                      <figcaption class="figure-caption">
+                                          <h6 class="figure-title text-center">#: DisplayName#</h6>
+                                      </figcaption>
+                                      <div class="figure-description">
+                                          <h6 class="figure-title text-center">#: DisplayName#</h6>
+                                          <p class="text-muted mb-0 text-center">
+                                              # if (data.Name!=data.Description) { #
+                                                  <small>#: Description#</small>
+                                              # } else{ # <small> Please click below button to create the service request</small> # } #
+                                          </p>
+                                      </div>
+                                      <div class="figure-tools">
+                                          <a href="javascript:OnViewTemplate('#=Id#','#=Code#')" class="tile tile-circle tile-sm mr-auto"><span class="fa fa-project-diagram"></span></a>
+                                      </div>
+                                      <div class="figure-action">
+                                          <a href="javascript:SelectTemplate('#=Id#','#=Code#')" class="btn btn-block btn-sm btn-primary">Create</a>
+                                      </div>
+                                  </div>
+                              </figure>
+                          </div>
+                      </div>
+</script>
+
+
+

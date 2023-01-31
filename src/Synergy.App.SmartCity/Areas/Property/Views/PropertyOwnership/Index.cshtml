@@ -1,0 +1,716 @@
+﻿@using Synergy.App.ViewModel
+@model PropertyOwnershipViewModel
+
+@{
+    ViewBag.Title = "All Service";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+<style>
+    .searchtxt {
+        color: #007bff !important;
+        text-decoration: none;
+        background-color: transparent !important;
+    }
+</style>
+<script>
+
+    function SearchProperty() {
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("SearchProperty", "Property", new { @area="Property"})';
+        win.OpenWindow({ Title: 'Search Property', Width: 1500 ,Height: 1000 });
+        return false;
+
+    }
+    function IdPassCallback(Prms) {
+        
+        if (Prms.PropertyId != null && Prms.PropertyId != undefined) {
+
+            $("#PropertyNo").val(Prms.PropertyNo);
+            SearchPropertyByNo(Prms.PropertyId);
+        }
+
+    }
+    function SearchPropertyByNo(PropertyId)
+    {
+        location.href = "/Property/PropertyOwnership/Index?propertyId=" + PropertyId;
+    }
+    $(document).ready(function () {
+        getDataPropertyOwnership();
+
+        $("#NamantranPurpose").kendoDropDownList({
+            optionLabel: "--Select--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.NamantranPurpose",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetLOVIdNameList?LOVType=LOV_NAMANTARANPURPOSE",
+                    }
+                }
+            }
+        });
+
+        $("#WardNo").kendoDropDownList({
+            optionLabel: "--SelectOption--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.WardNo",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetLOVIdNameList?LOVType=PROP_WARD_NO.",
+                    }
+                }
+            }
+        });
+
+        $("#PropertyNo").val('@Model.PropertyNo');
+    });
+     var columnDefs = [
+
+      
+      
+         { headerName: "UsageType", field: "UsageType" },
+         { field: "UsageFactor", headerName: "UsageFactor" },
+         { headerName: "TypeOfConstruction", field: "TypeOfConstruction" },
+         { field: "Area", headerName: "Area" }
+    ];
+
+    function getDataPropertyOwnership() {
+       // var id = '@Model.Id';
+       
+        document.getElementById("PropertyOwnership").innerHTML = "";
+        gridConfig(
+            "PropertyOwnership",
+            //"/CHR/BusinessTrip/GetGridDate?Id=" + id,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<form asp-controller="PropertyOwnership" asp-action="ManagePropertyOwnershiphange" class="form-horizontal" id="myForm"
+      data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+      data-ajax="true" data-ajax-method="POST">
+    <div class="task-card">
+        <div style="background-color:#efefef!important">
+            <div class="row" style="height: 50px;">
+                <div class="col-12">
+                    <div class="row" style=" margin-left: 15px; margin-top: 8px;">
+
+                        <div class="col-12 pad-10">
+
+
+                            <div class="card pad-10">
+                                <h4><b>Search Property</b></h4><hr />
+                                <div class="row col-12 pad-10">
+                                    <div class="col-6 pad-10">
+                                        <label>Property Id <span class="required" style="color:red;">*</span> </label>&nbsp;
+                                        <input type="text" class="form-control" autocomplete="off" style="width:80%"  id="PropertyNo" />
+
+                                    </div>
+                                    <div class="col-6" style="padding-top: 38px;
+">
+                                        <button class="btn btn-primary" onclick="SearchPropertyByNo()">Submit</button>
+
+
+                                    </div>
+                                    <div class="row col-6">
+                                        <a onclick="SearchProperty()" style="padding-left:10px" class="searchtxt"><i class="fa fa-search"></i> If you dont know property id click here to search</a>
+                                    </div>
+
+
+                                </div>
+
+                            </div>
+
+                            <div class="card pad-10">
+                                <h4><b>Namantran Type</b></h4>
+                                <hr />
+                                <div class="row no-gutters pad-10">
+
+                                    <div class="col-12">
+                                        <label>Namantran Purpose: <span class="required" style="color:red;">*</span></label>
+                                        @*@(Html.Kendo().DropDownListFor(x => x.NamantranPurpose)
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetLOVIdNameList", "LOV", new { @area = "Cms", LOVType = "LOV_NAMANTARANPURPOSE" });
+                                        });
+                                    })
+                                    .DataTextField("Name")
+                                    .DataValueField("Id")
+                                    .HtmlAttributes(new { @class = "hr-x-large" })
+               )*@
+                                        <input asp-for="NamantranPurpose" id="NamantranPurpose" class="hr-x-large" />
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card pad-10">
+                                <h4><b>Original Owner Details</b></h4>
+                                <hr />
+                                <h6><b>Master Details of Property</b></h6>
+                                <div class="row pad-10">
+                                    <div class=" col-4">
+                                        <label for="PropertyId">@SharedResource["PropertyId"] </label>
+                                        <input asp-for="PropertyNo" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                    <div class="col-4">
+                                        <label for="ContactAccount">@SharedResource["ContractAccount"] </label>
+                                        <input asp-for="ContactAccount" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="RegistryNo">@SharedResource["RegistryNo"] </label>
+                                        <input asp-for="RegistryNo" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                </div>
+                                <div class="row pad-10">
+                                    <div class=" col-4">
+                                        <label for="PropertyId">@SharedResource["OwnerName"] </label>
+                                        <input asp-for="OldOwnerName" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                    <div class="col-4">
+                                        <label for="ContactAccount">@SharedResource["MiddleNameOfOwner"] </label>
+                                        <input asp-for="OldMiddleNameOfOwner" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="RegistryNo">@SharedResource["Surname"] </label>
+                                        <input asp-for="OldSurname" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                </div>
+                                <div class="row pad-10">
+                                    <div class=" col-4">
+                                        <label for="PropertyId">@SharedResource["FatherorHusbandName"] </label>
+                                        <input asp-for="OldFatherOrHusbandName" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                    <div class="col-4">
+                                        <label for="ContactAccount">@SharedResource["FatherMiddleName"] </label>
+                                        <input asp-for="OldFatherMiddleName" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="RegistryNo">@SharedResource["FatherorHusbandSurname"] </label>
+                                        <input asp-for="OldFatherOrHusbandSurname" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                </div>
+                                <h6><b>Address</b></h6>
+                                <div class="row pad-10">
+                                    <div class=" col-4">
+                                        <label for="PropertyId">@SharedResource["ULBNo"] </label>
+                                        <input asp-for="ULBNo" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                    <div class="col-4">
+                                        <label for="ContactAccount">@SharedResource["HouseNo"] </label>
+                                        <input asp-for="OldHouseNo" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="RegistryNo">@SharedResource["WardNo"] </label>
+                                        @*<input asp-for="WardNo" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />*@
+                                        @*@(Html.Kendo().DropDownListFor(x => x.WardNo)
+                                     .DataSource(source =>
+                                     {
+                                         source.Read(read =>
+                                         {
+                                             read.Action("GetLOVIdNameList", "LOV", new { @area = "Cms", LOVType = "PROP_WARD_NO" });
+                                         });
+                                     })
+                                     .Enable(false)
+                                     .DataTextField("Name")
+                                     .DataValueField("Id")
+                                     .HtmlAttributes(new { @class = "hr-x-large" })
+                )*@
+
+                                        <input asp-for="WardNo" id="WardNo" class="hr-x-large" />
+
+
+                                    </div>
+
+                                </div>
+                                <div class="row pad-10">
+                                    <div class=" col-4">
+                                        <label for="PropertyId">@SharedResource["Zone"] </label>
+                                        <input asp-for="Zone" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                    <div class="col-4">
+                                        <label for="OldLocalit">@SharedResource["Localit"] </label>
+                                        <input asp-for="OldLocalit" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="OldColony">@SharedResource["Colony"] </label>
+                                        <input asp-for="OldColony" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                </div>
+                                <div class="row pad-10">
+                                    <div class=" col-4">
+                                        <label for="PinCode">@SharedResource["PinCode"] </label>
+                                        <input asp-for="OldPinCode" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+                                    <div class="col-4">
+                                        <label for="City">@SharedResource["City"] </label>
+                                        <input asp-for="OldCity" type="text" class="form-control" autocomplete="off" style="width:80%" readonly />
+
+
+                                    </div>
+
+
+                                </div>
+                                <h6><b>Area Details</b></h6>
+                                <div class="row">
+                                    <div class="col-12">
+                                      
+
+                                        <div style="padding-top:20px;">
+                                            <div id="PropertyOwnership" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                        @*@(Html.Kendo().Grid<PropertyAreaDetailsViewModel>
+                ()
+                .Name("Usergrid")
+
+
+
+                    .Columns(columns =>
+                    {
+
+                        columns.Bound(c => c.UsageType);
+                        columns.Bound(c => c.UsageFactor);
+                        columns.Bound(c => c.TypeOfConstruction);
+                        columns.Bound(c => c.Area);
+
+
+                    })
+                     .Scrollable(x => x.Enabled(false))
+                                .Sortable(srt => srt.Enabled(true))
+                                .Selectable(select => select.Enabled(false))
+                                .Filterable(f => f.Extra(false)
+                                                                    .Operators(o => o.ForString(s => s.Clear()
+                                                                    .Contains("Contains")
+                                                                    .IsEqualTo("Is equal to")
+                                                                )))
+                                .Pageable(pageable => pageable
+                                .Refresh(true)
+
+                                .PageSizes(true)
+                                .ButtonCount(5))
+                                .AutoBind(true)
+                          //.DataSource(
+                          //dataSource => dataSource
+                          //.Ajax()
+                          //.PageSize(10)
+
+                          //.Read(read => read.Action("ReadData", "User"))
+                          //.Model(model => model.Id(p => p.Id))
+                          //)
+                          )*@
+                                    </div>
+
+
+                                    <div class="card pad-10">
+                                        <h4><b>New Owner Details</b></h4>
+                                        <hr />
+                                        <h6><b>New Owner Details</b></h6>
+                                        <div class="row pad-10">
+                                            <div class=" col-4">
+                                                <label for="OwnerName">@SharedResource["OwnerName"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="OwnerName" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+
+                                            <div class="col-4">
+                                                <label for="NewMiddleNameOfOwner">@SharedResource["MiddleNameOfOwner"] </label>
+                                                <input asp-for="MiddleNameOfOwner" type="text" class="form-control" autocomplete="off" style="width:80%" />
+
+
+                                            </div>
+                                            <div class="col-4">
+                                                <label for="NewSurname">@SharedResource["NewSurname"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="Surname" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+
+                                        </div>
+                                        <div class="row pad-10">
+                                            <div class=" col-4">
+                                                <label for="PropertyId">@SharedResource["FatherorHusbandName"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="FatherOrHusbandName" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+
+                                            <div class="col-4">
+                                                <label for="ContactAccount">@SharedResource["FatherMiddleName"] </label>
+                                                <input asp-for="FatherMiddleName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+
+
+                                            </div>
+                                            <div class="col-4">
+                                                <label for="RegistryNo">@SharedResource["FatherorHusbandSurname"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="FatherOrHusbandSurname" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+
+                                        </div>
+                                        <h6><b>Joint Owners</b></h6>
+                                        <div class="row pad-10">
+                                            <div class=" col-3">
+                                                JointOwner1
+
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner1FirstName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner1MiddleName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner1LastName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+
+                                        </div>
+                                        <div class="row pad-10">
+                                            <div class=" col-3">
+                                                Joint Owner2
+
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner2FirstName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner2MiddleName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner2LastName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+
+                                        </div>
+                                        <div class="row pad-10">
+                                            <div class=" col-3">
+                                                Joint Owner3
+
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner3FirstName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner3MiddleName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner3LastName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+
+                                        </div>
+                                        <div class="row pad-10">
+                                            <div class=" col-3">
+                                                Joint Owner4
+
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner4FirstName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner4MiddleName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner4LastName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+
+                                        </div>
+                                        <div class="row pad-10">
+                                            <div class=" col-3">
+                                                Joint Owner5
+
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner5FirstName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner5MiddleName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner5LastName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+
+                                        </div>
+                                        <div class="row pad-10">
+                                            <div class=" col-3">
+                                                Joint Owner6
+
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner6FirstName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner6MiddleName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+                                            <div class=" col-3">
+                                                <input asp-for="JointOwner6LastName" type="text" class="form-control" autocomplete="off" style="width:80%" />
+                                            </div>
+
+                                        </div>
+                                        <h6><b>New correspondance address</b></h6>
+                                        <div class="row pad-10">
+
+                                            <div class="col-4">
+                                                <label for="ContactAccount">@SharedResource["HouseNo"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="HouseNo" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+                                            <div class="col-4">
+                                                <label for="NewPinCode">@SharedResource["PinCode"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="PinCode" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+                                            <div class="col-4">
+                                                <label for="NewLocalit">@SharedResource["Localit"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="Localit" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+                                        </div>
+
+                                        <div class="row pad-10">
+                                            <div class=" col-4">
+                                                <label for="NewCity">@SharedResource["City"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="City" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+                                            <div class="col-4">
+                                                <label for="NewCountry">@SharedResource["Colony"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="Country" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+                                            <div class="col-4">
+                                                <label for="Mobile">@SharedResource["Mobile"] <span class="required" style="color:red;">*</span></label>
+                                                <input asp-for="Mobile" type="text" class="form-control" autocomplete="off" style="width:80%" required="required" />
+
+
+                                            </div>
+                                            <div class="col-4">
+                                                <label for="Email">@SharedResource["Email"] </label>
+                                                <input asp-for="Email" type="text" class="form-control" autocomplete="off" style="width:80%" />
+
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                    <div class="card pad-10">
+                                        <h4><b>Documents Submitted for Namantran</b></h4>
+                                        <div class="row pad-10">
+                                            <div class="col-3">
+                                                Photo Id of New Owner(Aadhar Card/ Voter Card):
+                                            </div>
+                                            <div class="col-9">
+                                                @*@(Html.Kendo().Upload().Multiple(false)
+                            .Name("PhotoId")
+                            .Async(a => a
+                            .Save("SaveFile", "Document", new { @area = "cms" })
+                            .AutoUpload(true)
+                            )
+                            //.Events(e => e.Success("onFileUploadSuccess")
+                            //)
+                                .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" }).MaxFileSize(2097152))
+                                .HtmlAttributes(new { @class = "hr-xx-large" })
+                        )*@
+
+                                                @{
+                                                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.PhotoId), Value = Model.PhotoId });
+                                                }
+                                            </div>
+                                            <div class="col-3">
+                                                Registered sale transfer:
+                                            </div>
+                                            <div class="col-9">
+                                                @*@(Html.Kendo().Upload().Multiple(false)
+                            .Name("RegisteredSaleTransfer")
+                            .Async(a => a
+                            .Save("SaveFile", "Document", new { @area = "cms" })
+                            .AutoUpload(true)
+                            )
+                            //.Events(e => e.Success("onFileUploadSuccess")
+                            //)
+                                .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" }).MaxFileSize(2097152))
+                                .HtmlAttributes(new { @class = "hr-xx-large" })
+                        )*@
+
+                                                @{
+                                                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.RegisteredSaleTransfer), Value = Model.RegisteredSaleTransfer });
+                                                }
+                                            </div>
+                                            <div class="col-3">
+                                                Document Supporting transfer:
+                                            </div>
+                                            <div class="col-9">
+                                                @*@(Html.Kendo().Upload().Multiple(false)
+                            .Name("DocumentsSupportingTransfer")
+                            .Async(a => a
+                            .Save("SaveFile", "Document", new { @area = "cms" })
+                            .AutoUpload(true)
+                            )
+                            //.Events(e => e.Success("onFileUploadSuccess")
+                            //)
+                                .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" }).MaxFileSize(2097152))
+                                .HtmlAttributes(new { @class = "hr-xx-large" })
+                        )*@
+
+                                                @{
+                                                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.DocumentsSupportingTransfer), Value = Model.DocumentsSupportingTransfer });
+                                                }
+                                            </div>
+                                            <div class="col-3">
+                                                Last paid property tax receipt:
+                                            </div>
+                                            <div class="col-9">
+                                                @*@(Html.Kendo().Upload().Multiple(false)
+                            .Name("PropertyTaxReceipt")
+                            .Async(a => a
+                            .Save("SaveFile", "Document", new { @area = "cms" })
+                            .AutoUpload(true)
+                            )
+                           // .Events(e => e.Success("onFileUploadSuccess")
+                            //)
+                                .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" }).MaxFileSize(2097152))
+                                .HtmlAttributes(new { @class = "hr-xx-large" })
+                        )*@
+
+                                                @{
+                                                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.PropertyTaxReceipt), Value = Model.PropertyTaxReceipt });
+                                                }
+                                            </div>
+                                            <div class="col-3">
+                                                Warison Transfer Documents:
+                                            </div>
+                                            <div class="col-9">
+                                                @*@(Html.Kendo().Upload().Multiple(false)
+                            .Name("WarisanTransferDocuments")
+                            .Async(a => a
+                            .Save("SaveFile", "Document", new { @area = "cms" })
+                            .AutoUpload(true)
+                            )
+                            //.Events(e => e.Success("onFileUploadSuccess")
+                           // )
+                                .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" }).MaxFileSize(2097152))
+                                .HtmlAttributes(new { @class = "hr-xx-large" })
+                        )*@
+
+
+                                                @{
+                                                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.WarisanTransferDocuments), Value = Model.WarisanTransferDocuments });
+                                                }
+                                            </div>
+                                            <div class="col-3">
+                                                Other Documents:
+                                            </div>
+                                            <div class="col-9">
+                                                @*@(Html.Kendo().Upload().Multiple(false)
+                            .Name("OtherDocuments")
+                            .Async(a => a
+                            .Save("SaveFile", "Document", new { @area = "cms" })
+                            .AutoUpload(true)
+                            )
+                           // .Events(e => e.Success("onFileUploadSuccess")
+                           // )
+                                .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" }).MaxFileSize(2097152))
+                                .HtmlAttributes(new { @class = "hr-xx-large" })
+                        )*@
+
+
+                                                @{
+                                                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.OtherDocuments), Value = Model.OtherDocuments });
+                                                }
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="card pad-10">
+                                        <h4><b>Self Declaration Aggreement</b></h4>
+                                        <div class="row pad-10">
+                                            <div class="col-12">
+                                                @*@(Html.Kendo().CheckBoxFor(m=>m.IsSelfDeclared).Label("I hearby declare that the given information is true about the property owned by me"))*@
+                                                <input type="checkbox" asp-for="IsSelfDeclared" id="IsSelfDeclared" />
+                                                <label>I hearby declare that the given information is true about the property owned by me</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="submit" class="btn btn-primary" value="Submit for Transfer" />
+
+
+                                </div>
+                            </div>
+
+                </div>
+
+
+
+            </div>
+        </div>
+        <hr style="margin-bottom: 1px !important;border-width: 0px;border-color: orange;">
+
+    </div>
+    @Html.HiddenFor(x => x.DataAction)
+    @Html.HiddenFor(x => x.ServiceId)
+</form>
+
+
+

@@ -1,0 +1,464 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentPermissionController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@model DocumentPermissionViewModel
+
+@{
+    ViewBag.Title = "External Share";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<style>
+
+    .k-primary{
+
+        margin-top:10px;
+
+    }
+    .product {
+        float: left;
+        position: relative;
+        height: 30px;
+        padding-left: 3px;
+        font-size: 16px;
+    }
+
+    .i-hover:hover {
+        width: 27px;
+        height: 27px;
+        background: #c1972a;
+        /* padding-left: 4px; */
+        border-radius: 50%;
+    }
+
+    .fa-ul > li {
+        padding: 3%;
+        position: relative;
+        border-bottom: 1px solid #eee;
+    }
+
+
+    .fa-li {
+        left: 0em;
+        position: absolute;
+        text-align: center;
+        width: 2em;
+        line-height: inherit;
+        color: grey;
+    }
+
+    .li-bg {
+        color: grey;
+        font-size: 12px;
+        text-align: left;
+    }
+
+        .li-bg > i {
+            font-size: 14px;
+        }
+
+    .li-fal {
+        font-size: 14px;
+        height: 21px;
+        left: 30%;
+    }
+
+    .li-bg:hover {
+        cursor: pointer;
+        color: white;
+        color: #fff;
+        background-color: #c1972a;
+    }
+
+    .fa-span {
+        margin-left: 20%;
+    }
+
+    .k-dropdown:hover {
+        transform: none !important;
+    }
+
+    .k-select:hover {
+        transform: none !important;
+    }
+
+    .k-input:hover {
+        transform: none !important;
+    }
+
+    .k-state-hover :hover {
+        transform: none !important;
+    }
+
+    span:hover {
+        transform: none !important;
+    }
+
+    .k-link:hover {
+        transform: none !important;
+    }
+</style>
+
+
+<script>
+    function OnListViewDataBound(e)
+    {
+        var abc = document.createElement("div")
+        abc.setAttribute("class", "product");
+            abc.innerHTML = "<a>"+'@Model.DocumentName'+" </a></div>"
+        var el = document.getElementById("listView");
+        el.appendChild(abc);
+
+    }
+    function OnSendMail() {
+        kendo.ui.progress($("#tabstrip"), true);
+        var link = $("#Link").val();
+        var emailTo = $("#Email").val();
+        var expirydate = $("#ExpiryDate").val();
+        var referenceId = $("#ReferenceId").val();
+        var note = '@Model.NoteId';
+        $.ajax({
+            type: "POST",
+            url: "/DMS/DocumentPermission/SendLink",
+            data: { 'noteId': note, 'linkId': referenceId,'emailTo': emailTo, 'link': link, 'expirydate': expirydate },
+
+            success: function (data) {
+                if (data.success) {
+                    var win = GetMainWindow();
+                    win.CloseWindow({ MethodName: "Refresh" });
+
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            },
+            dataType: "json",
+        });
+        //kendo.ui.progress($("#tabstrip"), false);
+    }
+    function OnEditExpiry() {
+            $("#ExpiryDate").data("kendoDatePicker").readonly(false);
+            //$("#DivEdit").hide();
+            //$("#DivUpdate").show();
+        }
+        function OnUpdate() {
+            //
+            var expirydate = $("#ExpiryDate").val();
+            var referenceId = $("#ReferenceId").val();
+            var note = '@Model.NoteId';
+            if (expirydate != null && expirydate != "") {
+         $.ajax({
+             type: "POST",
+             url: "/nts/noteshared/UpdateLink",
+             dataType: "json",
+             data: { 'noteId': note, 'linkId': referenceId, 'expirydate': expirydate },
+
+             success: function (data) {
+                 if (data.success) {
+                 $("#Link").val(data.Url);
+                 $("#divlink").show();
+                 $("#divCreateLink").hide();
+                 $("#ExpiryDate").data("kendoDatePicker").readonly();
+                 //$("#DivEdit").show();
+                 //$("#DivUpdate").hide();
+                     ShowNotification("updated successfully.");
+                 }
+             },
+             error: function (xhr, ajaxOptions, thrownError) {
+                 console.log(xhr.status);
+                 //alert(xhr.status);
+                 //alert(thrownError);
+             },
+
+         });
+            }
+            else {
+                alert("Enter Expiry Date");
+            }
+        }
+    function CreateLink(e) {
+        kendo.ui.progress($("#tabstrip"), true);
+
+
+
+         var expirydate = $("#ExpiryDate").val();
+         var note = '@Model.NoteId';
+         $.ajax({
+             type: "POST",
+             dataType: "json",
+             url: "/DMS/DocumentPermission/CreateLink",
+             data: { 'noteId': note,'fileId':'@Model.FileId' ,'expirydate': expirydate },
+
+             success: function (data) {
+                 if (data.success) {
+                     $("#ReferenceId").val(data.referenceId);
+                     $("#Link").val(data.Url);
+                     $("#divlink").show();
+                     $("#divCreateLink").hide();
+                     ShowNotification("Link has been created successfully.");
+                     $("#DivUpdate").show();
+                     kendo.ui.progress($("#tabstrip"), false);
+                     window.parent.parent.$("#kgrdLink").data("kendoGrid").dataSource.read();
+                 } else {
+                     kendo.ui.progress($("#tabstrip"), false);
+                     kendo.alert(data.htmlerror);
+                 }
+             },
+             error: function (xhr, ajaxOptions, thrownError) {
+                 kendo.ui.progress($("#tabstrip"), false);
+                 alert(xhr.status);
+                 alert(thrownError);
+             },
+
+         });
+        //kendo.ui.progress($("#tabstrip"), false);
+    }
+    function OnCopyLink() {
+        var copyText = document.getElementById("Link");
+        copyModelext.select();
+        copyText.setSelectionRange(0, 99999)
+        document.execCommand("copy");
+        ShowNotification("Link Copied To Clipboard");
+    }
+    function OnRemoveLink() {
+        var referenceId = $("#ReferenceId").val();
+        $.ajax({
+            type: "POST",
+            url: "/nts/noteshared/DeleteLink",
+            data: { 'noteId': referenceId },
+
+            success: function (data) {
+                if (data.success) {
+                    $("#divlink").hide();
+                    $("#divCreateLink").show();
+                    $("#DivEdit").hide();
+                    $("#DivUpdate").hide();
+                    $("#ExpiryDate").val("");
+                    $("#ExpiryDate").data("kendoDatePicker").readonly(false);
+                    ShowNotification("Link Deleted Successfully!");
+
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(thrownError);
+            },
+            dataType: "json",
+        });
+
+    }
+
+    $(document).ready(function () {
+
+        var pId = '@Model.ParentId' == null ? '@Model.WorkspaceId' : '@Model.ParentId';
+
+        $("#ExpiryDate").kendoDatePicker();
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Dms/Document/ReadFolderHierarchyData?parentId=" + pId +"&noteId="+'@Model.NoteId',
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listView1").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#template").html())
+        });
+
+        $("#divlink").hide();
+         //$("#DivEdit").hide();
+         //   $("#DivUpdate").hide();
+        //document.getElementById("listView").style.border = "none";
+        document.getElementById("listView1").style.border = "none";
+        document.getElementById("listView1").style.marginBottom = "10px";
+
+                    //$("#tabstrip").kendoTabStrip({
+                    //    animation:  {
+                    //        open: {
+                    //            effects: "fadeIn"
+                    //        }
+                    //    }
+                    //});
+    });
+
+    @*function onAddPermission() {
+
+    }
+    function onDisablePermission(inheritance)
+    {
+        //alert(inheritance);
+        $.ajax({
+            url: '/nts/NotePermission/DisableParentPermission?id=' + @Model.NoteId+"&InheritanceStatus=" + inheritance,
+            type: 'POST',
+            data: {},
+            dataType: 'json',
+            success: function (result) {
+                //
+                $("#notePermission").data("kendoGrid").dataSource.read();
+                window.location.href = window.location.href;
+                kendo.alert("Permissions Disabled Successfully.");
+            },
+            error: function (ert) {
+                $("#notePermission").data("kendoGrid").dataSource.read();
+                window.location.href = window.location.href;
+                kendo.alert("Permissions Disabled Successfully.");
+            }
+        });
+    }*@
+
+    function Close(dorefresh, data) {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+          $("#notePermission").data("kendoGrid").dataSource.read();
+    }
+
+    function CloseSuccess(dorefresh, data) {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+          $("#notePermission").data("kendoGrid").dataSource.read();
+          ShowNotification('Permission Added successfully.');
+    }
+
+    function Edit(id) {
+
+    }
+
+    function Delete(id) {
+          var flag = confirm('Do you really want to delete the Permission?');
+        if (flag) {
+            $.ajax({
+                url: '/nts/NotePermission/Delete?id=' + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    $("#notePermission").data("kendoGrid").dataSource.read();
+                                        kendo.alert("Document Deleted Successfully.");
+                },
+                error: function (ert) {
+                    $("#notePermission").data("kendoGrid").dataSource.read();
+                    kendo.alert("Document Deleted Successfully.");
+                }
+            });
+            return false;
+        }
+    }
+
+</script>
+
+
+<br />
+<br />
+<div id="tabstrip" style="margin-left:20px">
+    <div class="Sharing">
+        <div class="" style="padding:10px" id="OrgDiv">
+            <div class="row" style="margin-bottom:20px;">
+
+                @if (Model.WorkspaceId.IsNotNull())
+                {
+                    <div class="col-xs-7">
+                        @*@(Html.Kendo().ListView<Synergy.App.ViewModel.FolderViewModel>()
+                                 .Name("listView1")
+                                 .TagName("div")
+                                 .ClientTemplateId("template")
+                                 //.Events(events => events
+                                 //.DataBound("OnListViewDataBound"))
+                                 .DataSource(dataSource => dataSource
+                                 .Ajax()
+                                 .Read(read => read.Action("ReadFolderHierarchyData", "Document", new { area = "Dms", parentId = Model.ParentId == null ? Model.WorkspaceId : Model.ParentId,noteId=Model.NoteId }))
+                                 .ServerOperation(false)
+                                 )
+                    )*@
+
+                        <div id="listView1"></div>
+                        <script type="text/x-kendo-tmpl" id="template">
+                            <div class="product">
+                                <a href="javascript: void(0);">#:Name# > </a>
+                            </div>
+                        </script>
+                    </div>
+
+                }
+                <span style="font-size:15px;margin-left:10px"><b>Document Name</b> :  @Model.DocumentName</span>
+            </div>
+            <div class="row">
+                <div class="col-xs-11">
+                    <div class="editor-label">
+                        Expiry Date
+                    </div>
+                    <div class="editor-field">
+                        @*@Html.Kendo().DatePicker().Name("ExpiryDate").HtmlAttributes(new { @class = "hr-x-medium" })*@
+                        <input id="ExpiryDate" class="hr-x-medium" />
+                    </div>
+                </div>
+            </div>
+            <br />
+            <br />
+            <div class="row">
+
+                <div class="col-xs-3" id="divCreateLink">
+                    @*<a href="#" onclick="CreateLink()">Create Link</a>*@
+                    @*@(Html.Kendo().Button().Name("ButtonCreate").Content("Create Link").HtmlAttributes(new { title = "Create Link", @class = "k-primary", @style = "background-color:#3B80F4" }).Events(ev => ev.Click("CreateLink")))*@
+                    <button type="button" class="btn btn-primary" id="ButtonCreate" onclick="CreateLink();" style="background-color:#3B80F4">Create Link</button>
+                    <button type="button" class="btn btn-danger" id="btnClear" onclick="ApplyClear();">@SharedResource["Clear"]</button>
+                </div>
+                @*<div class="col-xs-3" id="DivEdit">
+                @(Html.Kendo().Button().Name("ButtonExpiry").Content("Edit Expiry").HtmlAttributes(new { title = "Edit Expiry", @class = "k-primary", @style = "background-color:#3B80F4" }).Events(ev => ev.Click("OnEditExpiry")))
+            </div>
+            <div class="col-xs-3" id="DivUpdate">
+                @(Html.Kendo().Button().Name("ButtonUpdate").Content("Update Expiry").HtmlAttributes(new { title = "Update Expiry", @class = "k-primary", @style = "background-color:#3B80F4" }).Events(ev => ev.Click("OnUpdate")))
+            </div>*@
+            </div>
+            <br />
+            <div class="row" id="divlink">
+                @*<div class="col-md-12">
+                <h4>Copy this link for sharing.</h4>
+            </div>*@
+                <div class="col-xs-11">
+                    <div class="editor-label">
+                        Link
+                    </div>
+                    @*@Html.Kendo().TextBox().Name("Link").HtmlAttributes(new { @class = "hr-xx-large", @readonly = "true" })*@
+                    <input id="Link" type="text" placeholder="Link" class="form-control" readonly="readonly" />
+
+                    @*@(Html.Kendo().Button().Name("ButtonCopy").Content("Copy Link").HtmlAttributes(new { title = "Copy Link", @class = "k-primary" }).Events(ev => ev.Click("OnCopyLink")))*@
+                    <button type="button" class="btn btn-primary" id="ButtonCopy" onclick="OnCopyLink();" title="Copy Link">Copy Link</button>
+                    @*@(Html.Kendo().Button().Name("ButtonRemove").Content("Remove Link").HtmlAttributes(new { title = "Remove Link", @class = "k-primary", @style = "background-color:#EA4436" }).Events(ev => ev.Click("OnRemoveLink")))*@
+                </div>
+                <br />
+                <br />
+                <div class="col-xs-11" style="margin-left:10px">
+                    <div class="editor-label">
+                        Email To
+                    </div>
+                    @*@Html.Kendo().TextBox().Name("Email").HtmlAttributes(new { @class = "hr-xx-large" })*@
+                    <input id="Email" type="text" placeholder="Email" class="form-control" />
+                    @*@(Html.Kendo().Button().Name("ButtonEmail").Content("Send Email").HtmlAttributes(new { title = "Send Email", @class = "k-primary" }).Events(ev => ev.Click("OnSendMail")))*@
+                    <button type="button" class="k-primary" name="ButtonEmail" onclick="OnSendMail();" title="Send Email">"Send Email"</button>
+                </div>
+                <div class="col-xs-11" style="margin-top:10px">
+                    <p class="required">Enter Multiple Email Address with ; Separation</p>
+                </div>
+                @*<div class="col-md-6">
+                <span><b>Expiry Date :</b></span>
+                @Html.DisplayFor(model => model.ExpiryDate, new { @class = "control-label" })
+                @(Html.Kendo().Button().Name("ButtonExpiry").Content("Edit Expiry").HtmlAttributes(new { title = "Edit Expiry", @class = "k-primary pull-right",@style= "background-color:#3B80F4" }).Events(ev => ev.Click("OnRemoveLink")))
+
+            </div>*@
+
+            </div>
+
+            @Html.HiddenFor(x => x.ReferenceId)
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,434 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceDocumentController> Resource
+
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@model TagCategoryViewModel
+
+@{
+    ViewData["Title"] = ""+Resource["CompetencyCategory"] +"";
+    Layout = null;
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+
+<style>
+    .kgrdPDM {
+        width: 100% !important;
+    }
+    .treeheader {
+        font-weight: 500;
+        text-align: center;
+        font-size: medium;
+        background-color: #006699;
+        color: #f2f2f2 !important;
+        border-style: solid;
+        border-width: 1px;
+        border-color: lightgrey;
+        padding: 5px 0px 5px 0px;
+    }
+
+    .treebody {
+        padding: 10px !important;
+        color: black !important;
+    }
+
+    .fancytree-icon {
+        display: none !important;
+    }
+
+    .pagination li:hover {
+        cursor: pointer;
+    }
+
+    .page {
+        font-size: 20px;
+        padding: 6px;
+        border: solid;
+        border-width: thin;
+        border-color: lightgrey;
+        margin-bottom: 45px;
+    }
+
+    .ancpagination {
+        padding: 20px;
+        border-right: solid;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border-color: lightgrey;
+        border-width: thin;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        HideLoader($("#global-overlay"));});
+    function OnCompetencyMaster(noteid) {
+        
+        //e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Pms/PerformanceDocument/CompetencyMaster?noteId=" + noteid;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["CompetencyMaster"])', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function OnCreateTagCategory() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Pms/PerformanceDocument/CompatencyCategoryAdd";
+        win.OpenWindow({ Title: '@Html.Raw(Resource["CreateCompetencyCategory"])', Width: 450, Height: 700 });
+        return false;
+    }
+    function onEditOnCreateTagCategory(Id) {
+        
+       // e.preventDefault();
+      //  var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        var win = GetMainWindow();
+       // var portalId = $('#GlobalPortalId').val();
+
+        win.iframeOpenUrl = "/Pms/PerformanceDocument/CompatencyCategoryAdd?Id=" + Id;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["EditCompetencyCategory"])', Width: 450, Height: 700 });
+    }
+
+    function OnDeleteTagCategory(id) {
+        var flag = confirm("@Resource["conformationdeletethecompetencycategory"]");
+        //alert("..Delete");
+     //   e.preventDefault();
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        if (flag) {
+            $.ajax({
+                url:'@Url.Action("Delete", "PerformanceDocument", new { @area="Pms"})?Id=' +id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                       // $("#kgrdTagCategory").data("kendoTreeList").dataSource.read();
+                        getTagTree();
+                        kendo.alert("@Resource["CompetencyCategoryDeletedSuccessfully"]");
+                    } else {
+                      //  $("#kgrdTagCategory").data("kendoTreeList").dataSource.read();
+                        getTagTree();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    getTagTree();
+                  //  $("#kgrdTagCategory").data("kendoTreeList").dataSource.read();
+                }
+            });
+            return false;
+        }
+    }
+
+
+    function onDataBound(arg) {
+        $("#kgrdTagCategory tbody tr").each(function () {
+
+            var currentDataItem = $("#kgrdTagCategory").data("kendoGrid").dataItem($(this));
+            var Tag = $(this).find(".k-grid-Tag");
+
+
+            //if (currentDataItem.TagCategoryType == "Master") {
+            //    Tag.remove();
+            //}
+
+        });
+    }
+
+    function OnTagView(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var Id = dataItem.NtsNoteId;
+        var Name = dataItem.TagCategoryName;
+        var Type = dataItem.TagCategoryType;
+
+        var win = GetMainWindow();
+
+        if (Type == "Static") {
+            win.iframeOpenUrl = "/cms/TagCategory/Tag?TagCategoryId=" + Id;
+        } else {
+            win.iframeOpenUrl = "/cms/TagCategory/TagMaster?TagCategoryId=" + Id;
+        }
+        win.OpenWindow({ Title: 'Manage Tag- ' + Name, Width: 1200, Height: 700 });
+    }
+
+      //context menu--------
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                
+                console.log($trigger);
+                var id = $trigger.data('idvalue');
+                var status = $trigger.data('status');
+                var noteid = $trigger.data('noteid');
+                //var portalName = $trigger.data('portal-name');
+
+                switch (status) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        onEditOnCreateTagCategory(id);
+                                        break;
+
+                                    case 'delete':
+                                        OnDeleteTagCategory(id);
+                                        break;
+                                    case 'competencymaster':
+                                        OnCompetencyMaster(noteid);
+                                        break;
+                                    default:
+                                    }
+                            },
+                            items: {
+                                "edit": { name: "@Html.Raw(SharedResource["Edit"])", icon: "fas fa-pencil" },
+                                "competencymaster": { name: "@Html.Raw(Resource["CompetencyMaster"])", icon: "fas fa-cog" },
+                                "delete": { name: "@Html.Raw(SharedResource["Delete"])", icon: "fas fa-trash" }
+                                }
+                        };
+
+
+                }
+            }
+        });
+
+    });
+
+
+      function OnAddMasterJob() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/Pms/PerformanceDocument/CompetencyMasterJob";
+    win.OpenWindow({ Title: '@Html.Raw(Resource["MapCompetencyToJob"])', Width: 900, Height: 800 });
+    }
+</script>
+
+
+<div>
+    <h4>@ViewBag.Title</h4>
+
+    <hr />
+
+    <div class="row">
+
+
+
+        <div class="col-md-12">
+            <button class="k-primary btn-primary" onclick="OnCreateTagCategory()"><i class="fas fa-plus"></i>@SharedResource["Create"]</button> &nbsp;&nbsp;
+            <button class="k-primary btn-primary" onclick="OnAddMasterJob()"><i class="fas fa-plus"></i>@SharedResource["MapCompetencyToJob"]</button>
+            <div id="tagdiv">
+                <table id="kgrdTagCategory" style="width:100%">
+                    <colgroup>
+                        <col width="10">
+                        <col width="20">
+                        <col width="200">
+                        <col width="200">
+                        <col width="200">
+
+
+
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th class="treeheader"><div id="NoteId"></div></th>
+                            <th class="treeheader"><div id="Action">Action</div></th>
+                            <th class="treeheader"><div id="CategoryName">@Resource["CategoryName"]</div></th>
+                            <th class="treeheader"><div id="CategoryCode">@Resource["CategoryCode"]</div></th>
+                            <th class="treeheader"><div id="CategoryDescription">@Resource["CategoryDescription"]</div></th>
+
+
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+
+
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+                            <td class="treebody"></td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <script>
+                function getTagTree() {
+                    $("#kgrdTagCategory tr").remove(); 
+                    debugger;
+                    $("#kgrdTagCategory").fancytree({
+                        extensions: ["table"],
+                        source: $.ajax({
+                            url: "/pms/performanceDocument/GetDetails",
+                            dataType: "json"
+                        }),
+                        lazyLoad: function (event, data) {
+                            var node = data.node;
+                            // Issue an Ajax request to load child nodes
+                            data.result = {
+                                url: "/pms/performanceDocument/GetDetails",
+                                data: { id: node.key }
+                            }
+
+                        },
+                        renderNode: function (event, data) {
+                            // Optionally tweak data.node.span
+                            // debugger;
+                            //var node = data.node;
+                            //  node.renderTitle();
+                            var node = data.node,
+                                $tdList = $(node.tr).find(">td");
+                            // (index #0 is rendered by fancytree by adding the checkbox)
+                            //  $tdList.eq(0).text(node.data.NoteSubject).addClass("alignRight");
+                            // (index #2 is rendered by fancytree)
+                            //if(Type=='Question'){#<div><i class='fa fas fa-pencil' onclick='onEditSalaryInfo(\"#:NoteId#\")'></i></div>#}
+
+                            $tdList.eq(1).html("<div class='btn-group grid-menu' id='tree-menu' data-idvalue='" + node.data.Id + "' data-noteid='" + node.data.NtsNoteId +"' data-status=\"0\"><i class='fas fa-ellipsis-v'></i></div>");
+                            // $tdList.eq(1).text(node.data.ServiceNo);
+                            $tdList.eq(2).text(node.data.CategoryName);
+                            $tdList.eq(3).text(node.data.CategoryCode);
+                            $tdList.eq(4).text(node.data.CategoryDescription);
+                            
+                        },
+                        dblclick: function (event, data) {
+                            var node = data.node;
+                        },
+                        contextMenu: {
+                            menu: function (data) {
+                                debugger;
+                                return {
+                                }
+                            },
+                            actions: function (node, action, options) {
+                            }
+                        }
+                    });
+
+                }
+
+                $(function () {
+                    getTagTree();
+
+                    setTimeout(function () {
+                        debugger;
+                        $('#kgrdTagCategory').after('<div id="nav" class="page"></div>');
+                        var rowsShown = 10;
+                        var rowsTotal = $('#kgrdTagCategory tbody tr').length;
+                        var numPages = rowsTotal / rowsShown;
+                        for (i = 0; i < numPages; i++) {
+                            var pageNum = i + 1;
+                            $('#nav').append('<a class="ancpagination" href="#" rel="' + i + '">' + pageNum + '</a> ');
+                        }
+                        $('#kgrdTagCategory tbody tr').hide();
+                        $('#kgrdTagCategory tbody tr').slice(0, rowsShown).show();
+                        $('#nav a:first').addClass('active');
+                        $('#nav a').bind('click', function () {
+
+                            $('#nav a').removeClass('active');
+                            $(this).addClass('active');
+                            var currPage = $(this).attr('rel');
+                            var startItem = currPage * rowsShown;
+                            var endItem = startItem + rowsShown;
+                            $('#kgrdTagCategory tbody tr').css('opacity', '0.0').hide().slice(startItem, endItem).
+                                css('display', 'table-row').animate({ opacity: 1 }, 300);
+                        });
+                    }, 3000);
+
+                    // getPagination('#treetable');
+                });
+            </script>
+            @*@(Html.Kendo().TreeList<CompetencyCategoryViewModel>()
+            .Name("kgrdTagCategory")
+
+            .Columns(columns =>
+            {
+
+                columns.Add().Field(c => c.Id).Template("<div class='btn-group grid-menu' id='tree-menu' data-idvalue=\"#:Id#\" data-status=\"0\" data-noteid=\"#:NtsNoteId#\" ><i class='fas fa-ellipsis-v'></i></div>").Width(150).Title("" + SharedResource["Action"] + "");
+                columns.Add().Field(e => e.CategoryName).Title("" + Resource["CategoryName"] + "").Width(220);
+                columns.Add().Field(e => e.CategoryCode).Title("" + Resource["CategoryCode"] + "").Width(220);
+                columns.Add().Field(e => e.CategoryDescription).Title("" + Resource["CategoryDescription"]).Width(220);
+
+
+
+            })
+            .Filterable()
+            .Sortable()
+            .DataSource(dataSource => dataSource
+                .Read(read => read.Action("GetDetails", "performanceDocument"))
+                .ServerOperation(false)
+                .Model(m => {
+                    m.Id(f => f.NtsNoteId);
+                    m.ParentId(f => f.ParentNoteId);
+                    m.Expanded(true);
+                    m.Field(f => f.CategoryName);
+                    m.Field(f => f.CategoryCode);
+                    m.Field(f => f.CategoryDescription);
+                })
+            )
+            .Height(540)
+            .Pageable(p => p.PageSize(15)
+                            .PageSizes(true)
+            )
+        )*@
+            @*@(Html.Kendo().Grid<dynamic>
+        ().Name("kgrdTagCategory").HtmlAttributes(new { @class = "kgrdPDM" })
+        .Columns(col =>
+        {
+
+            col.Command(command =>
+            {
+                command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("onEditOnCreateTagCategory").HtmlAttributes(new { @class = "action-icon", @title = "" + SharedResource["Edit"] + "" });
+                command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDeleteTagCategory").HtmlAttributes(new { @class = "action-icon", @title = "" + SharedResource["Edit"] + "" });
+                command.Custom("ManageCompetencyMaster").Text("<i class='fa fas fa-cog'></i>").Click("OnCompetencyMaster").HtmlAttributes(new { @class = "action-icon", @title = ""+Resource["ManageCompetencyMaster"] +"" });
+                // command.Custom("Tag").Text("<i class='fa fas fa-cog'></i>").Click("OnTagView").HtmlAttributes(new { @class = "action-icon", @title = "Tag" });
+
+            }).Title("Action").Width(150);
+            //col.Bound(c => c.Id);
+            col.Bound("CategoryName").Title(""+Resource["CategoryName"]+"").Width(220);
+            col.Bound("CategoryCode").Title(""+Resource["CategoryCode"]+"").Width(220);
+            col.Bound("CategoryDescription").Title(""+Resource["CategoryDescription"]).Width(220);
+
+
+
+
+
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Custom().Text("" + SharedResource["Create"] + "").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateTagCategory();" });
+        })
+        .Scrollable(x => x.Enabled(true))
+
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+          //.Events(e => e.DataBound("onDataBound"))
+          .Resizable(resize => resize.Columns(true))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Read(read => read.Action("ReadCompetencyCategoryData", "PerformanceDocument", new { Area="Pms"}))
+        .Model(model => model.Id("Id")))
+        )*@
+
+        </div>
+
+    </div>
+</div>

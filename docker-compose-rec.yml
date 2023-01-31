@@ -1,0 +1,32 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:alpine
+    hostname: 'nginx'
+    container_name: 'nginxweb'
+    volumes:
+      - ./nginx/nginxrec.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf:ro
+#     Only For SSL Implementation
+      - ./nginx/cert/bundlerec.crt:/etc/nginx/ssl/bundle.crt:ro
+      - ./nginx/cert/bundlerec.key:/etc/nginx/ssl/bundle.key:ro
+      - ./nginx/logs/:/var/log/nginx/
+    ports:
+      - '80:80'
+      - '443:443'
+    depends_on:
+      - api
+    restart: always
+
+  api:
+    build: 
+      context: ./src
+      dockerfile: Dockerfile-Web   
+    ports:
+      - '5000'
+    restart: always
+
+networks:
+  default:
+    external:
+      name: cmssynergy_default

@@ -1,0 +1,1882 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@{
+    ViewData["Title"] = "Grid Stack";
+    //  Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //
+
+    // Layout = "/Views/Shared/Themes/HR/_Layout.cshtml";
+    if(ViewBag.LayoutMode == LayoutModeEnum.Popup.ToString())
+    {
+        Layout = ViewBag.Layout;
+    }
+}
+
+@model WorkBoardViewModel
+@*<button onclick="TogetherJS(this); return false;" class="btn btn-primary">Start TogetherJS</button>*@
+<style>
+    .default {
+        background: #2A92BF;
+        color: #fff;
+    }
+
+
+    .custom-button {
+        right: 0;
+        position: absolute;
+        margin-top: -5px;
+        color: white;
+        font-size: 15px;
+    }
+
+    .custom-item-button {
+        right: 10px;
+        position: absolute;
+        margin-top: -7px;
+        color: black;
+        font-size: 14px;
+    }
+
+    .kanban-item {
+        background: unset;
+        padding: 0;
+    }
+
+    .kanban-file {
+        background: #fff6d4;
+        color: black;
+        padding: 10px;
+        font-weight: 300;
+        font-size: 15px;
+        border-radius: 5px;
+    }
+
+    .kanban-note {
+        background: #fff6d4;
+        color: black;
+        padding: 10px;
+        font-weight: 300;
+        font-size: 15px;
+        border-radius: 5px;
+    }
+
+    .kanban-task {
+        background: #ccc;
+        color: black;
+        padding: 10px;
+        font-weight: 300;
+        font-size: 15px;
+        border-radius: 5px;
+    }
+
+    .kanban-index {
+        background: #ccc;
+        color: black;
+        padding: 10px;
+        font-weight: 300;
+        font-size: 15px;
+        border-radius: 5px;
+        min-height: 100px;
+    }
+
+    .kanban-draw {
+        background: #f8f9fa;
+        color: black;
+        padding: 10px;
+        font-weight: 300;
+        font-size: 15px;
+        border-radius: 5px;
+        border: 1px solid gray;
+        min-height: 100px;
+    }
+
+    .board-add-custom-button {
+        right: 35px;
+        position: absolute;
+        top: 22px;
+        cursor: pointer;
+    }
+
+    .board-close-custom-button {
+        right: 10px;
+        position: absolute;
+        top: 22px;
+        cursor: pointer;
+    }
+
+    .item-custom-button {
+        right: 25px;
+        position: absolute;
+        margin-top: -10px;
+        cursor: pointer;
+    }
+
+    .droptarget {
+        float: left;
+        width: 150px;
+        height: 100px;
+        border: 1px solid #aaaaaa;
+    }
+
+    .wb-item-index ul {
+        padding-left: 0 !important;
+    }
+
+    .wb-item-index li {
+        list-style: inside !important;
+    }
+
+    .index-item {
+        right: 25px;
+        position: absolute;
+        cursor: pointer;
+        margin-top: 5px;
+        display: none !important;
+    }
+
+    li:hover .index-item {
+        display: inline !important;
+    }
+
+    .kanban-board {
+        background-color: #fff;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        min-height: 350px;
+    }
+
+    .wb-section-blue {
+        border: 3px solid #4bc1ec;
+    }
+
+        .wb-section-blue .section-blue {
+            background-color: #4bc1ec;
+            color: #fff;
+        }
+
+    .wb-section-yellow {
+        border: 3px solid #f9eb71;
+    }
+
+        .wb-section-yellow .section-yellow {
+            background-color: #f9eb71;
+            color: #fff;
+        }
+
+    .wb-section-pink {
+        border: 3px solid #ee85c1;
+    }
+
+        .wb-section-pink .section-pink {
+            background-color: #ee85c1;
+            color: #fff;
+        }
+
+    .wb-section-green {
+        border: 3px solid #a7d96d;
+    }
+
+        .wb-section-green .section-green {
+            background-color: #a7d96d;
+            color: #fff;
+        }
+
+    .wb-section-purple {
+        border: 3px solid #ac8fef;
+    }
+
+        .wb-section-purple .section-purple {
+            background-color: #ac8fef;
+            color: #fff;
+        }
+
+    .wb-section-grey {
+        border: 3px solid #a0adbd;
+    }
+
+        .wb-section-grey .section-grey {
+            background-color: #a0adbd;
+            color: #fff;
+        }
+
+    .wb-item {
+        border: none;
+    }
+
+    .wb-item-color-green {
+    }
+
+        .wb-item-color-green .card-header {
+            background-color: #91d049;
+            color: #6aa22a;
+            border: none;
+            padding: 3px 5px;
+        }
+
+        .wb-item-color-green .card-body {
+            background-color: #a7d96d;
+            border: none;
+            padding: 5px;
+            min-height: 60px;
+        }
+
+    .wb-item-color-yellow {
+    }
+
+        .wb-item-color-yellow .card-header {
+            background-color: #f7e43b;
+            color: #c4b108;
+            border: none;
+            padding: 3px 5px;
+        }
+
+        .wb-item-color-yellow .card-body {
+            background-color: #f9eb71;
+            border: none;
+            padding: 5px;
+            min-height: 60px;
+        }
+
+    .wb-item-color-pink {
+    }
+
+        .wb-item-color-pink .card-header {
+            background-color: #ea62af;
+            color: #e01f8c;
+            border: none;
+            padding: 3px 5px;
+        }
+
+    .wb-item-pink .card-body {
+        background-color: #ee85c1;
+        border: none;
+        padding: 5px;
+        min-height: 60px;
+    }
+
+    .wb-item-color-blue {
+    }
+
+        .wb-item-color-blue .card-header {
+            background-color: #2fb8e9;
+            color: #138db9;
+            border: none;
+            padding: 3px 5px;
+        }
+
+        .wb-item-color-blue .card-body {
+            background-color: #4bc1ec;
+            border: none;
+            padding: 5px;
+            min-height: 60px;
+        }
+
+    .wb-item-color-purple {
+    }
+
+        .wb-item-color-purple .card-header {
+            background-color: #8b63e9;
+            color: #5920df;
+            border: none;
+            padding: 3px 5px;
+        }
+
+        .wb-item-color-purple .card-body {
+            background-color: #ac8fef;
+            border: none;
+            padding: 5px;
+            min-height: 60px;
+        }
+
+    .wb-item-color-grey {
+    }
+
+        .wb-item-color-grey .card-header {
+            background-color: #8797ab;
+            color: #5e7187;
+            border: none;
+            padding: 3px 5px;
+        }
+
+        .wb-item-color-grey .card-body {
+            background-color: #a0adbd;
+            border: none;
+            padding: 5px;
+            min-height: 60px;
+        }
+
+    .wb-item-icons {
+        float: right;
+    }
+
+    .wb-item-icon {
+        padding-right: 8px;
+        cursor: pointer;
+    }
+    .wb-item-size-standard {
+        width: 100%;
+        height: 100%;
+    }
+
+        .wb-item-size-standard .card-content {
+            width: 100%;
+            height: 100%;
+        }
+
+    .wb-item-size-wide {
+        width: 147px;
+        height: 135px;
+    }
+
+        .wb-item-size-wide .card-content {
+            width: 136px;
+            height: 98px;
+        }
+</style>
+<div style="padding:10px">
+    <form asp-controller="Workboard" asp-action="ManageWorkBoard" class="form-horizontal"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+
+        <div class="row" style="display:flex;margin-bottom: 15px;">
+            <div class="col-4"><h4>@Model.WorkBoardName</h4></div>
+            <div class="col-8" style="text-align:right;">
+                @if (ViewBag.LayoutMode != LayoutModeEnum.Popup.ToString())
+                {
+
+                    @*   <input asp-for="NoteSubject" type="text" class="form-control" placeholder="Name" autocomplete="off" />&nbsp;*@
+                    @if (Model.kanbanTemplate == KanbanTemplateEnum.Custom)
+                    {
+                        <button type="button" class="btn btn-primary" onclick="createBoard()" title="Create Board" style="margin:0 5px"><span class="fa fa-plus"></span>  Create Section</button>
+                    }
+
+                    <button type="button" class="btn btn-info" onclick="renderJSON()">Save</button>
+                    <button type="button" class="btn btn-primary" onclick="backToDashboard()">Back</button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-info" onclick="renderJSONIndex()">Save</button>
+                }
+            </div>
+        </div>
+        <hr />
+        <div id="workboard" style="overflow:scroll;height:540px">
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.JsonContent)
+        @Html.HiddenFor(x => x.TemplateTypeId)
+        @Html.HiddenFor(x => x.WorkBoardName)
+        @Html.HiddenFor(x => x.WorkBoardDescription)
+        @Html.HiddenFor(x => x.ColorCode)
+        @Html.HiddenFor(x => x.IconFileId)
+        @Html.HiddenFor(x => x.WorkBoardStatus)
+        @Html.HiddenFor(x => x.boards)
+        @Html.HiddenFor(x => x.kanbanTemplate)
+        @Html.HiddenFor(x => x.Json)
+        @Html.HiddenFor(x => x.DataJson)
+        @Html.HiddenFor(x => x.CompanyId)
+        @Html.HiddenFor(x => x.CreatedBy)
+        @Html.HiddenFor(x => x.CreatedDate)
+        @Html.HiddenFor(x => x.LastUpdatedBy)
+        @Html.HiddenFor(x => x.LastUpdatedDate)
+    </form>
+</div>
+<script>
+    var drag = false;
+    var elem;
+    var sibl;
+    var _boards = [];
+    var kanban3;
+    @*if (('@Model.kanbanTemplate' == '@KanbanTemplateEnum.Weekly' ||'@Model.kanbanTemplate' == '@KanbanTemplateEnum.Yearly') && '@Model.DataAction' == '@DataActionEnum.Create') {
+         var days = @Html.Raw(ViewBag.Days);
+        for (var i = 0; i < days.length; i++) {
+            _boards.push({
+                title: days[i],
+                id: days[i],
+                class: 'day_' +(i+1)
+            })
+        }
+    }
+    else if('@Model.DataAction' == '@DataActionEnum.Create' && '@Model.kanbanTemplate' == '@KanbanTemplateEnum.Monthly') {
+        var days = '@ViewBag.NoOfDays';
+        for (var i = 1; i <= parseInt(days); i++) {
+            _boards.push({
+                title: 'Day '+i,
+                id: 'day' + i,
+                class: 'day_' + i
+            })
+        }
+    }*@
+
+     function renderJSONIndex() {
+
+        const obj = document.getElementById('workboard');
+        let boards = []
+        obj.querySelectorAll('.kanban-board').forEach(el => {
+            let item = []
+            el.querySelectorAll('.kanban-item').forEach(i => {
+                var color, shape, size;
+                let subItem = []
+                if (i.children.length > 0)
+                {
+                    if (i.children[0].className.includes("wb-item-index")) {
+                        i.children[0].querySelectorAll('.subItem').forEach(li => {
+                            debugger
+                            subItem.push({
+                                title: li.innerHTML,
+                                id: li.getAttribute('data-workboarditemid'),
+                                ParentId: i.children[0].getAttribute('data-workboarditemindexid'),                               
+                            })
+                        })
+                    }
+                    if (i.children[0].className.includes("wb-item-color-yellow")) {
+                        color = "#f9eb71";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-pink")) {
+                        color = "#ee85c1";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-green")) {
+                        color = "#a7d96d";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-blue")) {
+                        color = "#4bc1ec";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-purple")) {
+                        color = "#ac8fef";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-grey")) {
+                        color = "#a0adbd";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-square")) {
+                        shape = "Square";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-title")) {
+                        shape = "Title";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-octagen")) {
+                        shape = "Octagen";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-hexagon")) {
+                        shape = "Hexagon";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-gem")) {
+                        shape = "Gem";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-triangle")) {
+                        shape = "Triangle";
+                    }
+                    if (i.children[0].className.includes("wb-item-size-standard")) {
+                        size = "Standard";
+                    }
+                    if (i.children[0].className.includes("wb-item-size-wide")) {
+                        size = "Wide";
+                    }
+                    if (i.children[0].className.includes("wb-item-size-double")) {
+                        size = "Double";
+                    }
+                    if (i.children[0].className.includes("wb-item-size-resizable")) {
+                        size = "Resizable";
+                    }
+                    item.push({
+                        title: i.innerHTML,
+                        id: i.children[0].getAttribute('data-workboarditemid'),//i.getAttribute('data-eid')
+                        item: subItem,
+                        ColorCode: color,
+                        WorkBoardItemSize: size,
+                        WorkBoardItemShape: shape,
+                        ParentId: '@Model.IndexId'
+                    })
+                }
+
+            })
+            boards.push({
+                id: el.getAttribute('data-id'),
+                title: el.querySelector('.kanban-title-board').innerHTML,
+                class: el.firstElementChild.classList[1],
+                item,
+                WorkboardId: '@Model.Id',
+                ParentId: '@Model.IndexId'
+            })
+        })
+        boardsdata = JSON.stringify(boards);
+        boardsdata = boardsdata.replaceAll('\\"', "\\'");
+        $("#boards").val(boardsdata);
+        $("#JsonContent").val(boardsdata);
+
+        ShowLoader($("#cms-content"));
+        $.ajax({
+            type: "POST",
+            url: "/cms/WorkBoard/UpdateWorkBoardSectionAndItemSequenceForIndex",
+            data: { boards: boardsdata },
+            success: function (result) {
+                HideLoader($("#cms-content"));
+                if (result.success) {
+
+                }
+
+            },
+            error: function (e) { HideLoader($("#cms-content"));},
+            dataType: "json"
+        });
+
+    }
+
+
+    function renderJSON() {
+
+        const obj = document.getElementById('workboard');
+        let boards = []
+        obj.querySelectorAll('.kanban-board').forEach(el => {
+            let item = []
+            el.querySelectorAll('.kanban-item').forEach(i => {
+                var color, shape, size;
+                let subItem = []
+                if (i.children.length > 0)
+                {
+                    if (i.children[0].className.includes("wb-item-index")) {
+                        i.children[0].querySelectorAll('.subItem').forEach(li => {
+                            debugger
+                            subItem.push({
+                                title: li.innerHTML,
+                                id: li.getAttribute('data-workboarditemid'),
+                                ParentId: i.children[0].getAttribute('data-workboarditemid'),
+                                ColorCode: li.getAttribute("data-type").includes("wb-item-color-pink") ? "#ee85c1" : li.getAttribute("data-type").includes("wb-item-color-green") ? "#a7d96d" :
+                                    li.getAttribute("data-type").includes("wb-item-color-blue") ? "#4bc1ec" : li.getAttribute("data-type").includes("wb-item-color-purple") ? "#ac8fef" : li.getAttribute("data-type").includes("wb-item-color-grey") ?
+                                        "#a0adbd" : "#f9eb71",
+                            })
+                        })
+                    }
+                    if (i.children[0].className.includes("wb-item-color-yellow")) {
+                        color = "#f9eb71";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-pink")) {
+                        color = "#ee85c1";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-green")) {
+                        color = "#a7d96d";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-blue")) {
+                        color = "#4bc1ec";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-purple")) {
+                        color = "#ac8fef";
+                    }
+                    if (i.children[0].className.includes("wb-item-color-grey")) {
+                        color = "#a0adbd";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-square")) {
+                        shape = "Square";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-title")) {
+                        shape = "Title";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-octagen")) {
+                        shape = "Octagen";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-hexagon")) {
+                        shape = "Hexagon";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-gem")) {
+                        shape = "Gem";
+                    }
+                    if (i.children[0].className.includes("wb-item-shape-triangle")) {
+                        shape = "Triangle";
+                    }
+                    if (i.children[0].className.includes("wb-item-size-standard")) {
+                        size = "Standard";
+                    }
+                    if (i.children[0].className.includes("wb-item-size-wide")) {
+                        size = "Wide";
+                    }
+                    if (i.children[0].className.includes("wb-item-size-double")) {
+                        size = "Double";
+                    }
+                    if (i.children[0].className.includes("wb-item-size-resizable")) {
+                        size = "Resizable";
+                    }
+                    item.push({
+                        title: i.innerHTML,
+                        id: i.children[0].getAttribute('data-workboarditemid'),//i.getAttribute('data-eid')
+                        item: subItem,
+                        ColorCode: color,
+                        WorkBoardItemSize: size,
+                        WorkBoardItemShape: shape
+                    })
+                }
+
+            })
+            boards.push({
+                id: el.getAttribute('data-id'),
+                title: el.querySelector('.kanban-title-board').innerHTML,
+                class: el.firstElementChild.classList[1],
+                item,
+                WorkboardId:'@Model.Id'
+            })
+        })
+        boardsdata = JSON.stringify(boards);
+        boardsdata = boardsdata.replaceAll('\\"', "\\'");
+        $("#boards").val(boardsdata);
+        $("#JsonContent").val(boardsdata);
+
+        ShowLoader($("#cms-content"));
+        $.ajax({
+            type: "POST",
+            url: "/cms/WorkBoard/UpdateWorkBoardSectionAndItemSequence",
+            data: { boards: boardsdata },
+            success: function (result) {
+                HideLoader($("#cms-content"));
+                if (result.success) {
+
+                }
+
+            },
+            error: function (e) { HideLoader($("#cms-content"));},
+            dataType: "json"
+        });
+
+    }
+    function createBoard() {
+        var win = GetMainWindow();
+        var workboardid = '@Model.Id';
+        win.iframeOpenUrl = '@Url.Action("WorkBoardSection", "Workboard", new { @area="Cms"})?workBoardId=' + workboardid;
+        win.OpenWindow({ Title: 'Create Section', Width: 600, Height: 550 });
+        return false;
+
+    }
+    function EditBoard(e) {
+
+        var sectionId = e.currentTarget.parentElement.parentElement.getAttribute('data-id');
+        var win = GetMainWindow();
+        @*win.iframeOpenUrl = '@Url.Action("AddKanbanBoard", "Workboard", new { @area="Cms"})';*@
+        win.iframeOpenUrl = '@Url.Action("WorkBoardSection", "Workboard", new { @area="Cms"})?sectionId=' + sectionId;
+        win.OpenWindow({ Title: 'Manage Section', Width: 600, Height: 550 });
+        return false;
+
+    }
+    function addBoard(Prms) {
+        kanban3.addBoards(
+            [{
+                'id': Prms.note.WorkBoardSectionId,
+                'title': Prms.note.SectionDigit+"."+Prms.note.SectionName,
+            }]
+        )
+        var board_style = "background:" + Prms.note.HeaderColor + ";color:white";
+        if ($("[data-id='" + Prms.note.WorkBoardSectionId + "']").length > 0 && $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children.length > 0) {
+            /*$("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].style = board_style;*/
+            $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].classList.remove('undefined');
+            $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].classList.add('section-' + Prms.note.HeaderColorName);
+        }
+      //
+        $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].classList.add('wb-section-' + Prms.note.HeaderColorName);
+        //$(".kanban-board-header").last()[0].classList.add("col-10");
+       // var tst = $('<header class="col-2 kanban-board-header section-' + Prms.note.HeaderColorName + ' section-digit" style="border-right: solid;" >' + Prms.note.SectionDigit +'</header>')
+       // $(".kanban-board-header").last()[0].parentElement.prepend(tst[0]);
+        var btn = $('<span class="fal fa-plus board-add-custom-button" onclick="CreateItem(this)"></span>');
+        btn.appendTo($(".kanban-board-header").last());
+        var delbtn = $('<span id="tree-menuBoard" class="fal fa-edit board-close-custom-button"></span>');
+        delbtn.appendTo($(".kanban-board-header").last());
+        //$("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].prepend($('<div class="row" style="width:245px; margin-left: 0px;"></div>')[0]);
+       // $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].appendChild($("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[1]);
+       // $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].appendChild($("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[1]);
+    }
+    function changeBoard(Prms) {
+        $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].children[0].innerHTML = Prms.note.SectionName;
+        var existcolor = $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].classList[1];
+        $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].classList.remove(existcolor);
+        $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].classList.add('wb-section-' + Prms.note.HeaderColorName);
+
+        if ($("[data-id='" + Prms.note.WorkBoardSectionId + "']").length > 0 && $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children.length > 0) {
+            var cexistcolor = $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].classList[1];
+            $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].classList.remove(cexistcolor);
+            $("[data-id='" + Prms.note.WorkBoardSectionId + "']")[0].children[0].classList.add('section-' + Prms.note.HeaderColorName);
+        }
+    }
+    function deleteBoard(e) {
+
+        var boardId = e.currentTarget.parentElement.parentElement.getAttribute('data-id');
+        //var boardId = e.currentTarget.parentElement.parentElement.getAttribute('data-id');
+        kanban3.removeBoard(boardId);
+    }
+
+     function CreateItem(e) {
+        var boardId = "@Model.Id";
+        var sectionId = e.parentElement.parentElement.getAttribute('data-id');;
+         var win = GetMainWindow();
+         win.iframeOpenUrl = '@Url.Action("AddWorkBoardContent", "Workboard", new { @area="Cms"})?parentId=@Model.IndexId&workBoardId=' + boardId + '&workBoardSectionId=' + sectionId;
+        win.OpenWindow({ Title: 'WorkBoard Content', Width: 700, Height: 700 });
+        return false;
+    }
+    function changeItem(Prms) {
+
+        var menu = '<span class="wb-item-icons"><i data-id="' + Prms.note.NtsNoteId + '" class="wb-item-icon fa fa-message-middle"></i><i data-id="' + Prms.note.NtsNoteId + '" class="wb-item-icon fa fa-list-check"></i><i data-id="' + Prms.note.NtsNoteId + '" class="wb-item-icon wb-item-menu fa fa-ellipsis-v"></i></span>';
+        //Text
+        if (Prms.note.ItemType == 1) {
+            //kanban3.replaceElement(
+            //    Prms.note.NtsNoteId,
+            //    {
+            //        "title": '<div id="' + Prms.note.NtsNoteId + '" data-workBoardItemId="' + Prms.note.WorkBoardItemId + '" class="card wb-item wb-item-text wb-item-' + Prms.note.ColorName + ' ">\
+            //            <div class="card-header">\
+            //            '+ menu + '\
+            //        </div>\
+            //            <div class="card-body">\
+            //                <p class="card-text">'+ Prms.note.ItemContent + '</p>\
+            //            </div>\
+            //        </Modeliv>'
+
+            //    }
+            //);
+            var existcolor = $("[id='" + Prms.note.NtsNoteId + "']")[0].classList[3];
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.remove(existcolor);
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.add('wb-item-color-' + Prms.note.ColorName);
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].children[1].children[0].innerHTML = Prms.note.ItemContent;
+
+        }
+        //Index
+        else if (Prms.note.ItemType == 2) {
+            var existcolor = $("[id='" + Prms.note.NtsNoteId + "']")[0].classList[3];
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.remove(existcolor);
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.add('wb-item-color-' + Prms.note.ColorName);
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].children[1].children[0].innerHTML = Prms.note.ItemContent;
+        }
+        //whiteboard
+        else if (Prms.note.ItemType == 3) {
+            var existcolor = $("[id='" + Prms.note.NtsNoteId + "']")[0].classList[3];
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.remove(existcolor);
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.add('wb-item-color-' + Prms.note.ColorName);
+            var boardHtml = '<img id="' + Prms.note.ItemFileId + '" src="/cms/Document/GetImageMongo?id=' + Prms.note.ItemFileId + '" style="max-width:100%;max-height:100 %;" />';
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].children[1].children[0].innerHTML = boardHtml;
+        }
+        //image
+        else if (Prms.note.ItemType == 4) {
+            var existcolor = $("[id='" + Prms.note.NtsNoteId + "']")[0].classList[3];
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.remove(existcolor);
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.add('wb-item-color-' + Prms.note.ColorName);
+            var imageHtml = '<img id="' + Prms.note.ItemFileId + '" src="/cms/Document/GetImageMongo?id=' + Prms.note.ItemFileId + '" style="max-width:100%;max-height:100%;" />';
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].children[1].children[0].innerHTML = imageHtml;
+        }
+        //video
+        else if (Prms.note.ItemType == 5) {
+
+        }
+        //file
+        else if (Prms.note.ItemType == 6) {
+            var existcolor = $("[id='" + Prms.note.NtsNoteId + "']")[0].classList[3];
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.remove(existcolor);
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].classList.add('wb-item-color-' + Prms.note.ColorName);
+            var fileHtml = '<img id="' + Prms.note.ItemFileId + '" src="/cms/Document/GetSnapMongo?id=' + Prms.note.ItemFileId + '" onerror="OnDocError(this)" style="max-width:100%;max-height:100%;" />';
+            $("[id='" + Prms.note.NtsNoteId + "']")[0].children[1].children[0].innerHTML = fileHtml;
+        }
+        //note
+        else if (Prms.note.ItemType == 7) {
+
+        }
+        //task
+        else if (Prms.note.ItemType == 8) {
+
+        }
+        //service
+        else if (Prms.note.ItemType == 9) {
+
+        }
+    }
+
+    function getCard(id) {
+
+        var url = "/Cms/Workboard/ManageWorkBoardIndex?workboardItemId=" + id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Workboard Index', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function getMessages(noteid) {
+        var url = "/Cms/Workboard/WorkBoardItemComments?noteId=" + noteid;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'WorkBoard Item Comments', Width: 600, Height: 600 });
+        return false;
+    }
+
+    function getTaskList(noteid) {
+        //alert(noteid);
+        var url = "/Cms/NtsTask/TaskListByFilters?templateCodes=WB_TASK&parentNoteId="+ noteid +"&enableCreate=true";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Task List', Width: 1200, Height: 700 });
+        return false;
+    }
+
+    function addItem(Prms) {
+        debugger;
+        var menu = '<span class="wb-item-icons"><i data-id="' + Prms.note.NtsNoteId + '" onclick="getMessages(\'' + Prms.note.NtsNoteId + '\');" class="wb-item-icon fa fa-message-middle"></i><i data-id="' + Prms.note.NtsNoteId + '" onclick="getTaskList(\'' + Prms.note.NtsNoteId +'\');" class="wb-item-icon fa fa-list-check"></i><i data-id="' + Prms.note.NtsNoteId + '" class="wb-item-icon wb-item-menu fa fa-ellipsis-v"></i></span>';
+        if (Prms.note.ItemType == 1) {
+            kanban3.addElement(
+                Prms.note.WorkBoardSectionId,
+                {
+                    "title": '<div data-action="Edit" id="' + Prms.note.NtsNoteId + '" data-workBoardItemId="' + Prms.note.WorkBoardItemId + '" class="card wb-item wb-item-text wb-item-color-' + Prms.note.ColorName + ' ">\
+                        <div class="card-header">\
+                        '+ menu+'\
+                    </div>\
+                        <div class="card-body">\
+                            <p class="card-text">'+ Prms.note.ItemContent + '</p>\
+                        </div>\
+                    </div>'
+
+                }
+            );
+        }
+        //index
+        else if (Prms.note.ItemType == 2) {
+            menu = '<span class="wb-item-icons"><i data-id="' + Prms.note.WorkBoardItemId + '" onclick="getCard(\'' + Prms.note.WorkBoardItemId + '\');" class="wb-item-icon fa fa-external-link" title="Open this Index in Work Book"></i><i data-id="' + Prms.note.NtsNoteId + '" onclick="getMessages(\'' + Prms.note.NtsNoteId + '\');" class="wb-item-icon fa fa-message-middle" title="Comments"></i><i data-id="' + Prms.note.NtsNoteId + '" onclick="getTaskList(\'' + Prms.note.NtsNoteId +'\');" class="wb-item-icon fa fa-list-check" title="Tasks"></i><i data-id="' + Prms.note.NtsNoteId + '" class="wb-item-icon wb-item-menu fa fa-ellipsis-v" title="Actions"></i></span>';
+            kanban3.addElement(
+                Prms.note.WorkBoardSectionId,
+                {
+                    "title": '<div data-action="Edit" id="' + Prms.note.NtsNoteId + '"  data-workBoardItemId="' + Prms.note.WorkBoardItemId + '"  data-workBoardItemIndexId="' + Prms.note.IndexId + '" class="card wb-item wb-item-index wb-item-color-' + Prms.note.ColorName + ' ">\
+                        <div class="card-header">\
+                    <span class="card-text">'+ Prms.note.ItemName + '</span>\
+                     '+ menu + '\
+                        </div>\
+                        <div class="card-body">\
+                            <ul></ul>\
+                        </div>\
+                    </div>'
+                }
+            );
+        }
+        //whiteboard
+        else if (Prms.note.ItemType == 3) {
+            kanban3.addElement(
+                Prms.note.WorkBoardSectionId,
+                {
+                    "title": '<div data-action="Edit" id="' + Prms.note.NtsNoteId + '" data-workBoardItemId="' + Prms.note.WorkBoardItemId + '" class="card wb-item wb-item-whiteboard wb-item-color-' + Prms.note.ColorName + ' ">\
+                        <div class="card-header">\
+                    '+ menu +'\
+                        </div>\
+                        <div class="card-body">\
+                          <div style="background-color:#fff;"><img id="' + Prms.note.ItemFileId + '" src="/cms/Document/GetImageMongo?id=' + Prms.note.ItemFileId + '" style="max-width:100%;max-height:100 %;" /></div>\
+                        </div>\
+                    </div>'
+                }
+            );
+        }
+        //image
+        else if (Prms.note.ItemType == 4) {
+            kanban3.addElement(
+                Prms.note.WorkBoardSectionId,
+                {
+                    "title": '<div data-action="Edit" id="' + Prms.note.NtsNoteId + '" data-workBoardItemId="' + Prms.note.WorkBoardItemId + '" class="card wb-item wb-item-image wb-item-color-' + Prms.note.ColorName + ' ">\
+                        <div class="card-header">\
+                    '+ menu +'\
+                        </div>\
+                        <div class="card-body">\
+                          <div><img id="' + Prms.note.ItemFileId + '" src="/cms/Document/GetImageMongo?id=' + Prms.note.ItemFileId + '" style="max-width:100%;max-height:100%;" /></div>\
+                        </div>\
+                    </div>'
+                }
+            );
+        }
+        //video
+        else if (Prms.note.ItemType == 5) {
+
+        }
+        //file
+        else if (Prms.note.ItemType == 6) {
+            kanban3.addElement(
+                Prms.note.WorkBoardSectionId,
+                {
+                    "title": '<div data-action="Edit" id="' + Prms.note.NtsNoteId + '" data-workBoardItemId="' + Prms.note.WorkBoardItemId + '" class="card wb-item wb-item-file wb-item-color-' + Prms.note.ColorName +' ">\
+                        <div class="card-header">\
+                   '+ menu +'\
+                        </div>\
+                        <div class="card-body">\
+                          <div><img id="' + Prms.note.ItemFileId + '" src="/cms/Document/GetSnapMongo?id=' + Prms.note.ItemFileId + '" onerror="OnDocError(this)" style="max-width:100%;max-height:100%;" /></div>\
+                        </div>\
+                    </div>'
+                }
+            );
+        }
+        //note
+        else if (Prms.note.ItemType == 7) {
+            kanban3.addElement(
+                Prms.note.WorkBoardSectionId,
+                {
+                    "title": "<div data-action='Edit' id='" + Prms.note.NtsNoteId + "' data-workBoardItemId='" + Prms.note.WorkBoardItemId + "' class='wb-item wb-item-note'>" + Prms.note.ItemContent + "<span id='tree-menuItem' class='fal fa-ellipsis-h item-custom-button'></span></div>",
+                }
+            );
+        }
+        //task
+        else if (Prms.note.ItemType == 8) {
+            kanban3.addElement(
+                Prms.note.WorkBoardSectionId,
+                {
+                    "title": "<div data-action='Edit' id='" + Prms.note.NtsNoteId + '" data-workBoardItemId="' + Prms.note.WorkBoardItemId + "'  class='wb-item wb-item-task'>" + Prms.note.ItemContent + "<span id='tree-menuItem' class='fal fa-ellipsis-h item-custom-button'></span></div>",
+                }
+            );
+        }
+        //service
+        else if (Prms.note.ItemType == 9) {
+            kanban3.addElement(
+                Prms.note.WorkBoardSectionId,
+                {
+                    "title": "<div data-action='Edit' id='" + Prms.note.NtsNoteId + '" data-workBoardItemId="' + Prms.note.WorkBoardItemId + "' class='wb-item wb-item-service'>" + Prms.note.ItemContent + "<span id='tree-menuItem' class='fal fa-ellipsis-h item-custom-button'></span></div>",
+                }
+            );
+        }
+        $(".wb-item-index").mousemove(function (event) {
+            if (drag) {
+              //
+                el = event.currentTarget;
+                if (el != undefined && el.className.includes("wb-item-index") && !elem.firstChild.className.includes("wb-item-index")) {
+                    var li = document.createElement("li");
+                    li.id = elem.children[0].id;
+                    li.innerHTML = elem.children[0].textContent;
+                    li.setAttribute("data-type", elem.children[0].className);
+                    li.setAttribute("class", "subItem");
+                    li.setAttribute("data-workBoardItemId", elem.children[0].getAttribute('data-workboarditemid'));
+                    var span = document.createElement("span");
+                    span.className = "fa fa-minus-circle index-item";
+                    span.title = "Move Out";
+                    span.setAttribute("data-indexitemid", elem.children[0].id);
+                    li.setAttribute("data-parentindexitemid", el.getAttribute("data-workboarditemid"));
+                    span.onclick = function () {
+                        onMoveOut(this);
+                    };
+                    li.appendChild(span);
+                    el.getElementsByClassName('card-body')[0].children[0].append(li);
+                    //el.appendChild(li);
+                    elem.remove();
+
+                }
+                else if (el != undefined && el.parentElement != undefined && el.parentElement.className.includes("wb-item-index") && !elem.firstChild.className.includes("wb-item-index")) {
+                    var li = document.createElement("li");
+                    li.id = elem.children[0].id;
+                    li.innerHTML = elem.children[0].textContent;
+                    li.setAttribute("data-type", elem.children[0].className);
+                    li.setAttribute("class", "subItem");
+                    li.setAttribute("data-workBoardItemId", elem.children[0].getAttribute('data-workboarditemid'));
+                    var span = document.createElement("span");
+                    span.className = "fa fa-minus-circle index-item";
+                    span.title = "Move Out";
+                    span.setAttribute("data-indexitemid", elem.children[0].id);
+                    li.setAttribute("data-parentindexitemid", el.getAttribute("data-workboarditemid"));
+                    span.onclick = function () {
+                        onMoveOut(this);
+                    };
+                    li.appendChild(span);
+                    //el.parentElement.appendChild(li);
+                    el.parentElement.getElementsByClassName('card-body')[0].children[0].append(li);
+                    elem.remove();
+                }
+                elem = null;
+            }
+
+        });
+    }
+
+    function backToDashboard() {
+        window.location.href = "/portal/hr/WorkboardDashboard";
+        return false;
+    }
+
+
+
+
+    //document.addEventListener(
+    //    'mouseup', (e) => {
+    //        if (drag) {
+    //            drag = false;
+    //            var x = event.clientX;
+    //            var y = event.clientY;
+    //            el = document.elementFromPoint(x, y);
+    //            if (el.className == "kanban-index" && elem.firstChild.className !="kanban-index") {
+    //                var li = document.createElement("li");
+    //                li.id = elem.children[0].id;
+    //                li.innerHTML = elem.children[0].textContent;
+    //                li.setAttribute("data-type", elem.children[0].className);
+    //                var span = document.createElement("span");
+    //                span.className = "fa fa-minus-circle index-item";
+    //                span.title = "Move Out";
+    //                span.setAttribute("data-indexitemid", elem.children[0].id);
+    //                span.onclick = function () {
+    //                    onMoveOut(this);
+    //                };
+    //                li.appendChild(span);
+    //                el.appendChild(li);
+    //                elem.remove();
+    //            }
+    //            else if (el.parentElement != undefined && el.parentElement.className == "kanban-index" && elem.firstChild.className != "kanban-index") {
+    //                var li = document.createElement("li");
+    //                li.id = elem.children[0].id;
+    //                li.innerHTML = elem.children[0].textContent;
+    //                li.setAttribute("data-type", elem.children[0].className);
+    //                var span = document.createElement("span");
+    //                span.className = "fa fa-minus-circle index-item";
+    //                span.title = "Move Out";
+    //                span.setAttribute("data-indexitemid", elem.children[0].id);
+    //                span.onclick = function () {
+    //                    onMoveOut(this);
+    //                };
+    //                li.appendChild(span);
+    //                el.parentElement.appendChild(li);
+    //                elem.remove();
+    //            }
+    //        }
+    //    });
+
+    function editItem(e) {
+
+        var ntsNoteId = e.currentTarget.getAttribute('data-id');
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("AddWorkBoardContent", "Workboard", new { @area="Cms"})?id=' + ntsNoteId;
+        win.OpenWindow({ Title: 'Manage WorkBoard Content', Width: 700, Height: 700 });
+        return false;
+    }
+
+    function deleteItem(e) {
+
+        var el = e.currentTarget.parentElement.parentElement.parentElement;
+        //var el = e.currentTarget.parentElement.parentElement;
+        el.remove();
+
+    }
+    function onMoveOut(e) {
+        var itemId = e.parentElement.id;
+        var itemText = e.parentElement.innerText;
+        var type = e.parentElement.getAttribute('data-type');
+        var workBoardItemId = e.parentElement.getAttribute('data-workBoardItemId');
+        var boardId = e.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.getAttribute('data-id');
+        e.parentElement.remove();
+        moveOut(boardId, workBoardItemId, itemId, itemText, type);
+    }
+    function moveOut(boardId, workBoardItemId, itemId, itemText, type) {
+        //note
+        if (type.includes("wb-item-text")) {
+            //menu = '<span class="wb-item-icons"><i data-id="' + workBoardItemId + '" onclick="getCard(\'' + workBoardItemId + '\')" class="wb-item-icon fa fa-external-link" title="Open this Index in Work Book"></i><i data-id="' + itemId + '" class="wb-item-icon fa fa-message-middle" title="Comments"></i><i data-id="' + itemId + '" class="wb-item-icon fa fa-list-check" title="Tasks"></i><i data-id="' + itemId + '" class="wb-item-icon wb-item-menu fa fa-ellipsis-v" title="Actions"></i></span>';
+            menu = '<span class="wb-item-icons"><i data-id="' + itemId + '" class="wb-item-icon fa fa-message-middle" title="Comments" onclick="getMessages(\'' + itemId + '\');"></i><i data-id="' + itemId + '" class="wb-item-icon fa fa-list-check" title="Tasks" onclick="getTaskList(\'' + itemId + '\');"></i><i data-id="' + itemId + '" class="wb-item-icon wb-item-menu fa fa-ellipsis-v" title="Actions"></i></span>';
+            kanban3.addElement(
+                boardId,
+                {
+                    "title": '<div data-action="Edit" id="' + itemId + '" data-workBoardItemId="' + workBoardItemId + '" class="' + type + '">\
+                        <div class="card-header">\
+                        '+ menu + '\
+                    </div>\
+                        <div class="card-body">\
+                            <p class="card-text">'+ itemText + '</p>\
+                        </div>\
+                    </div>'
+
+                }
+            );
+        }
+    }
+    function copyMoveItem(e) {
+        // need to pass workboardId and itemId
+        var noteid = e.currentTarget.getAttribute('data-id');
+       // alert(noteid);
+        var currentwbid = "@Model.Id";
+       // alert(currentwbid);
+
+        var url = "/Cms/Workboard/CopyMoveItems?workboardId=" + currentwbid +"&itemNoteId="+noteid;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Copy/Move To...', Width: 600, Height: 600 });
+        return false;
+    }
+    function duplicateItem(e)
+    {
+
+         // need to pass workboardId and itemId
+        var id = e.currentTarget.getAttribute('data-id');
+        var url = "/Cms/Workboard/DuplicateItems";
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: { workboardId: "@Model.Id", itemId: id},
+            success: function (result)
+            {
+                if (result.success)
+                {
+                    ShowNotification("Duplicated Successfully");
+                   addItem(result);
+                }
+
+            },
+            dataType: "json"
+        });
+    }
+
+
+
+    $(document).ready(function () {
+
+        LoadWorkBoard();
+        //$('.kanban-board-header').parent('div').addClass(this.);
+        $(".kanban-board-header").each(function (index) {
+            var c = 'wb-' + $(this).attr('class').replace('kanban-board-header ', '');
+            $(this).parent('div').addClass(c);
+        });
+           var btn = $('<span class="fal fa-plus board-add-custom-button" onclick="CreateItem(this)"></span>');
+        btn.appendTo($(".kanban-board-header"));
+        var delbtn = $('<span id="tree-menuBoard" class="fal fa-edit board-close-custom-button"></span>');
+        delbtn.appendTo($(".kanban-board-header"));
+        //$(".kanban-board-header").each(function (index) {
+        //    var tst = $('<header class="col-2 ' + $(this)[0].getAttribute("class") + ' section-digit">1</header>')
+        //    $(this)[0].classList.add("col-10");
+        //    $(this)[0].parentElement.prepend(tst[0]);
+        //        var btn = $('<span class="fal fa-plus board-add-custom-button" onclick="CreateItem(this)"></span>');
+        //        btn.appendTo($(this)[0]);
+        //        var delbtn = $('<span id="tree-menuBoard" class="fal fa-edit board-close-custom-button"></span>');
+        //    delbtn.appendTo($(this)[0]);
+        //});
+        //$(".kanban-board").each(function (index) {
+        //
+        //    $(this)[0].prepend($('<div class="row" style="width:245px; margin-left: 0px;"></div>')[0]);
+        //    $(this)[0].children[0].appendChild($(this)[0].children[1]);
+        //    $(this)[0].children[0].appendChild($(this)[0].children[1]);
+
+        //});
+
+        if ('@Model.kanbanTemplate' == '@KanbanTemplateEnum.Monthly') {
+            document.getElementsByClassName('kanban-container')[0].style.width = "1500px";
+        }
+        $(".wb-item-index").mousemove(function (event) {
+
+            if (drag) {
+                //
+                el = event.currentTarget;
+                if (el != undefined && el.className.includes("wb-item-index") && !elem.firstChild.className.includes("wb-item-index")) {
+                    var li = document.createElement("li");
+                    li.id = elem.children[0].id;
+                    li.innerHTML = elem.children[0].textContent;
+                    li.setAttribute("data-type", elem.children[0].className);
+                    li.setAttribute("class", "subItem");
+                    li.setAttribute("data-workBoardItemId", elem.children[0].getAttribute('data-workboarditemid'));
+                    var span = document.createElement("span");
+                    span.className = "fa fa-minus-circle index-item";
+                    span.title = "Move Out";
+                    span.setAttribute("data-indexitemid", elem.children[0].id);//el.getAttribute("data-workboarditemid")
+                    li.setAttribute("data-parentindexitemid", el.getAttribute("data-workboarditemid"));
+                    span.onclick = function () {
+                        onMoveOut(this);
+                    };
+                    li.appendChild(span);
+                    el.getElementsByClassName('card-body')[0].children[0].append(li);
+                    //el.appendChild(li);
+                    elem.remove();
+
+                }
+                else if (el != undefined && el.parentElement != undefined && el.parentElement.className.includes("wb-item-index") && !elem.firstChild.className.includes("wb-item-index")) {
+                    var li = document.createElement("li");
+                    li.id = elem.children[0].id;
+                    li.innerHTML = elem.children[0].textContent;
+                    li.setAttribute("data-type", elem.children[0].className);
+                    li.setAttribute("class", "subItem");
+                    li.setAttribute("data-workBoardItemId", elem.children[0].getAttribute('data-workboarditemid'));
+                    var span = document.createElement("span");
+                    span.className = "fa fa-minus-circle index-item";
+                    span.title = "Move Out";
+                    span.setAttribute("data-indexitemid", elem.children[0].id);
+                    li.setAttribute("data-parentindexitemid", el.getAttribute("data-workboarditemid"));//el.getAttribute("data-workboarditemid")
+                    span.onclick = function () {
+                        onMoveOut(this);
+                    };
+                    li.appendChild(span);
+                    //el.parentElement.appendChild(li);
+                    el.parentElement.getElementsByClassName('card-body')[0].children[0].append(li);
+                    elem.remove();
+
+                }
+                elem = null;
+            }
+
+        });
+    });
+    function LoadWorkBoard() {
+        var json = @Html.Raw(Model.JsonContent);
+
+    kanban3 = new jKanban({
+        element: '#workboard',                                       // selector of the kanban container
+        gutter: '5px',                                       // gutter of the board
+        widthBoard: '250px',                                      // width of the board
+        responsivePercentage: false,                                    // if it is true I use percentage in the width of the boards and it is not necessary gutter and widthBoard
+        dragItems: true,
+        itemAddOptions: {
+            enabled: true,                                              // add a button to board for easy item creation
+            content: '+',                                                // text or html content of the board button
+            class: 'custom-button',         // default class of the button
+            footer: true                                                // position the button on footer
+        },
+        itemHandleOptions: {
+            enabled: false,                                 // if board item handle is enabled or not
+            handleClass: "item_handle",                         // css class for your custom item handle
+            customCssHandler: "drag_handler",                        // when customHandler is undefined, jKanban will use this property to set main handler class
+            customCssIconHandler: "drag_handler_icon",                   // when customHandler is undefined, jKanban will use this property to set main icon handler class. If you want, you can use font icon libraries here
+            customHandler: "<span class='item_handle'>+</span> %title% "  // your entirely customized handler. Use %title% to position item title
+
+        },
+        boards: json, //JSON.parse(json),
+        dragBoards: true,                                         // the boards are draggable, if false only item can be dragged
+
+        click: function (el) { },                             // callback when any board's item are clicked
+        context: function (el, event) { },                      // callback when any board's item are right clicked
+        dragEl: function (el, source) { elem = el; drag = true; },                     // callback when any board's item are dragged
+        dragendEl: function (el) {   },                             // callback when any board's item stop drag
+        dropEl: function (el, target, source, sibling) {
+            //
+            //var sb = sibling == null ? null : sibling.firstChild.id;
+            //TogetherJS.emit("visibilityItemChange", el.firstChild.id, sb, target.parentElement.dataset.id, true);
+            var WorkBoardItemId = elem.children[0].id;
+            var WorkBoardSectionId = elem.parentNode.parentNode.getAttribute("data-id");
+            //ShowLoader($("#cms-content"));
+        $.ajax({
+            type: "POST",
+            url: "/cms/WorkBoard/UpdateWorkBoardItemSectionId",
+            data: { "WorkBoardItemId": WorkBoardItemId, "WorkBoardSectionId": WorkBoardSectionId },
+            dataType: "json",
+            success: function (result) {
+                //HideLoader($("#cms-content"));
+                if (result.success) {
+
+                }
+
+            },
+            error: function (e) { //HideLoader($("#cms-content"));
+            },
+
+        });
+            setTimeout(function() {
+                drag = false;
+            }, 100);
+
+        },    // callback when any board's item drop in a board
+        dragBoard: function (el, source) { },                     // callback when any board stop drag
+        dragendBoard: function (el) {
+
+            var sb = el.nextSibling == null ? null : el.nextSibling.dataset.id;
+            TogetherJS.emit("visibilityBoardChange", el.dataset.id, sb, true);
+        },                             // callback when any board stop drag
+        buttonClick: function (el, boardId) { },                     // callback when the board's button is clicked
+        propagationHandlers: [],                                         // the specified callback does not cancel the browser event. possible values: "click", "context"
+    })
+    }
+
+    //$(document).ready(function () {
+    //    $('[data-toggle="popover"]').popover();
+
+    //    var btn = $('<span class="fal fa-plus board-add-custom-button" onclick="CreateItem(this)"></span>');
+    //    btn.appendTo($(".kanban-board-header"));
+    //    var delbtn = $('<span id="tree-menuBoard" class="fal fa-edit board-close-custom-button"></span>');
+    //    delbtn.appendTo($(".kanban-board-header"));
+        @*if ('@Model.kanbanTemplate' == '@KanbanTemplateEnum.Monthly') {
+            document.getElementsByClassName('kanban-container')[0].style.width = "1500px";
+        }*@
+    //});
+    //function convert_text_to_form_field(data) {
+    //
+    //    var field = "<input type='text' name='" + data.innerText + "' value='" + data.innerText + "' />";
+    //    data.html(field);
+    //}
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+                var win = GetMainWindow();
+                win.CloseWindow({ MethodName: "getDataGridKanbanBoard"});
+                return false;
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+                var win = GetMainWindow();
+                win.CloseWindow({ MethodName: "getDataGridKanbanBoard" });
+                return false;
+            }
+
+
+        }
+        else {
+            showError(res.error);
+        }
+        //HideLoader($('#template-content'));
+    };
+    var showError = function (error) {
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    function fireTogetherJSVisibilityItem(element, sibling, target, isVisible) {
+
+        TogetherJS.send({ type: "visibilityItemChange", isVisible: isVisible, element: element, sibling: sibling, target: target });
+    }
+    function fireTogetherJSVisibilityBoard(element, sibling, isVisible) {
+
+        TogetherJS.send({ type: "visibilityBoardChange", isVisible: isVisible, element: element, sibling: sibling });
+    }
+
+    TogetherJS.hub.on("visibilityItemChange", function (msg) {
+
+        var board = $("[data-id='" + msg.target + "']")[0].children[1];
+        var element = $("#" + msg.element)[0].parentElement;
+        if (msg.sibling == null) {
+            board.append(element);
+        }
+        else {
+            var sibling = $("#" + msg.sibling)[0].parentElement;
+            board.insertBefore(element, sibling);
+        }
+
+    });
+    TogetherJS.hub.on("visibilityBoardChange", function (msg) {
+
+        var container = $('.kanban-container')[0];
+        var boardelement = $("[data-id='" + msg.element + "']")[0];
+        if (msg.sibling == null) {
+            container.appendChild(boardelement);
+        }
+        else {
+            var sibling = $("[data-id='" + msg.sibling + "']")[0];
+            container.insertBefore(boardelement, sibling);
+        }
+    });
+    var selectedTile;
+    //$(function () {
+    //  $("#start-togetherjs").click(TogetherJS);
+    //});
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-menuBoard',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                //var id = $trigger.data('idvalue');
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        EditBoard(e);
+                                        break;
+                                    case 'delete':
+                                        deleteBoard(e);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit Section", icon: "fas fa-edit" },
+                                "delete": { name: "Remove Section", icon: "fas fa-trash" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+        /**************************************************
+    * Custom Command Handler
+    **************************************************/
+        $.contextMenu.types.label = function (item, opt, root) {
+            // this === item.$node
+
+            $('<div class="container">'+
+                ' <div id="menu" class="row">' +
+                //'     <div class="col" onclick="onPropChange(\'shape\')"><span class="fas fa-shapes" style="margin:3px 0 0 0"></span>Shape</div>' +
+                //'     <div class="col" onclick="onPropChange(\'size\')"><span class="fas fa-rectangles-mixed" style="margin:3px 0 0 0"></span>Size</div>' +
+                //'     <div class="col" onclick="onPropChange(\'color\')"><span class="fas fa-droplet" style="margin:3px 0 0 0"></span>Color</div>' +
+               // '<button type="button" id="shape_actions_btn"'
+               // +' class= "btn btn-default has-spinner-two"'
+               // +' data-toggle="popover" data-html="true"'
+               //+' data-placement="bottom" data-original-title=""'
+               // +' data-content="<span id=\'square\' class=\'fas fa-square\'></span><span  id=\'octagon\' class=\'fas fa-octagon\'></span><span id=\'hexagon\' class=\'fas fa-hexagon\'></span><span id=\'gem\' class=\'fas fa-gem\'></span>"'
+               // +' aria-describedby="popover335446"> <span class="fas fa-shapes" style="margin:3px 0 0 0"></span>  Shape'
+               // + '</button >' +
+                '<button type="button" id="size_actions_btn"'
+                +' class= "btn btn-default has-spinner-two"'
+                +' data-toggle="popover" data-html="true"'
+               +' data-placement="bottom" data-original-title=""'
+                + ' data-content="<span id=\'size2\' class=\'fas fa-square\'></span><span id=\'size1\' class=\'fas fa-rectangle-wide\'></span>"'
+                +' aria-describedby="popover335446"> <span class="fas fa-shapes" style="margin:3px 0 0 0"></span>  Size'
+                + '</button >' +
+                '<button type="button" id="color_actions_btn"'
+                +' class= "btn btn-default has-spinner-two"'
+                +' data-toggle="popover" data-html="true"'
+               +' data-placement="bottom" data-original-title=""'
+                + ' data-content="<span id=\'yellowc\'  class=\'circle-y\'></span><span id=\'pinkc\'  class=\'circle-pk\'></span><span id=\'greenc\'  class=\'circle-g\'></span></span><span id=\'bluec\'  class=\'circle-b\'></span></span><span id=\'purplec\'  class=\'circle-p\'></span></span></span><span id=\'greyc\'  class=\'circle-gr\'></span>"'
+                +' aria-describedby="popover335446"> <span class="fas fa-droplet" style="margin:3px 0 0 0"></span>  Color'
+                +'</button >'+
+                ' </div>' +
+              '</div >')
+                .appendTo(this)
+                .on('click', 'li', function () {
+                    // do some funky stuff
+                  //  console.log('Clicked on ' + $(this).text());
+                    // hide the menu
+                   // root.$menu.trigger('contextmenu:hide');
+                });
+
+            this.addClass('labels').on('contextmenu:focus', function (e) {
+                // setup some awesome stuff
+            }).on('contextmenu:blur', function (e) {
+                // tear down whatever you did
+            }).on('keydown', function (e) {
+                // some funky key handling, maybe?
+            });
+        };
+
+        $(document).on('click', '#shape_actions_btn', function (e) {
+            //
+            // If popover is visible: do nothing
+            //
+            if ($(this).prop('popShown') == undefined) {
+                $(this).prop('popShown', true).popover('show');
+            }
+        });
+        $(document).on('click', '#size_actions_btn', function (e) {
+            //
+            // If popover is visible: do nothing
+            //
+            if ($(this).prop('popShown') == undefined) {
+                $(this).prop('popShown', true).popover('show');
+            }
+        });
+        $(document).on('click', '#color_actions_btn', function (e) {
+            //
+            // If popover is visible: do nothing
+            //
+            if ($(this).prop('popShown') == undefined) {
+                $(this).prop('popShown', true).popover('show');
+            }
+        });
+
+        $(document).on('click', '#square', function (e) {
+            changeShape('square')
+        });
+        $(document).on('click', '#octagon', function (e) {
+            changeShape('octagon')
+        });
+        $(document).on('click', '#hexagon', function (e) {
+            changeShape('hexagon')
+        });
+        $(document).on('click', '#gem', function (e) {
+            changeShape('gem')
+        });
+        $(document).on('click', '#size1', function (e) {
+            changeSize('size1')
+        });
+        $(document).on('click', '#size2', function (e) {
+            changeSize('size2')
+        });
+
+        $(document).on('click', '#yellowc', function (e) {
+            changeColor('#f9eb71', "yellow");
+
+        });
+
+        $(document).on('click', '#pinkc', function (e) {
+            changeColor('#ee85c1', "pink")
+        });
+
+        $(document).on('click', '#greenc', function (e) {
+            changeColor('#a7d96d', "green")
+        });
+
+        $(document).on('click', '#bluec', function (e) {
+            changeColor('#4bc1ec', "blue")
+        });
+
+        $(document).on('click', '#purplec', function (e) {
+            changeColor('#ac8fef', "purple")
+        });
+
+        $(document).on('click', '#greyc', function (e) {
+            changeColor('#a0adbd',"grey")
+        });
+
+
+
+        $(function () {
+            $('#shape_actions_btn').on('hide.bs.popover', function (e) {
+                //
+                // on hiding popover stop action
+                //
+                e.preventDefault();
+            });
+
+            $('#size_actions_btn').on('hide.bs.popover', function (e) {
+                //
+                // on hiding popover stop action
+                //
+                e.preventDefault();
+            });
+
+            $('#color_actions_btn').on('hide.bs.popover', function (e) {
+                //
+                // on hiding popover stop action
+                //
+                e.preventDefault();
+            });
+        });
+
+
+        $.contextMenu({
+            selector: '.wb-item-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                //var id = $trigger.data('idvalue');
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                              //
+                                selectedTile = e;
+                                switch (key) {
+                                    case 'edit':
+                                        editItem(e);
+                                        break;
+                                    case 'delete':
+                                        deleteItem(e);
+                                        break;
+                                    case 'copy':
+                                        copyMoveItem(e);
+                                        break;
+                                    case 'duplicate':
+                                        duplicateItem(e);
+                                        break;
+                                    default:
+                                      return false;
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-pen-to-square" },
+                                "delete": { name: "Remove", icon: "fas fa-trash" },
+                                "copy": { name: "Copy/Move", icon: "fas fa-copy" },
+                                "duplicate": { name: "Duplicate", icon: "fas fa-clone" },
+                                label: { type: "label", customName: "Label" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+    });
+
+
+    function changeShape(shape) {
+
+        selectedTile.currentTarget.parentElement.parentElement.classList.remove("square");
+        selectedTile.currentTarget.parentElement.parentElement.classList.remove("octagon");
+        selectedTile.currentTarget.parentElement.parentElement.classList.remove("hexagon");
+        selectedTile.currentTarget.parentElement.parentElement.classList.remove("gem");
+        selectedTile.currentTarget.parentElement.parentElement.classList.add(shape)
+        //$(".popover").hide()
+    }
+
+    //$('body').on('click', function (e) {
+    //    $('[data-toggle=popover]').each(function () {
+    //
+    //        // hide any open popovers when the anywhere else in the body is clicked
+    //        if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
+    //            $(this).popover('hide');
+    //        }
+    //    });
+    //});
+
+    function changeSize(size) {
+        if (size == "size1") {
+            removeClass();
+            selectedTile.currentTarget.parentElement.parentElement.parentElement.children[0].classList.add("size1c");
+            selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.add("size1c");
+            selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.add("wb-item-size-standard");
+            selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.add("wb-item-size-standard");
+
+        }
+        if (size == "size2") {
+            removeClass();
+             selectedTile.currentTarget.parentElement.parentElement.parentElement.children[0].classList.add("size2c");
+            selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.add("size2c");
+            selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.add("wb-item-size-wide");
+            selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.add("wb-item-size-wide");
+        }
+        $("#size_actions_btn").popover('hide');
+    }
+
+    function removeClass() {
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.children[0].classList.remove("size1c");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.children[0].classList.remove("size2c");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.remove("wb-item-size-standard");
+
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.remove("size1c");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.remove("size2c");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.remove("wb-item-size-wide");
+
+
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-shape-square");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-shape-title");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-shape-octagen");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-shape-hexagon");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-shape-gem");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-shape-triangle");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-size-standard");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-size-wide");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-size-double");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-size-resizable");
+    }
+
+    function changeColor(colorCode, color) {
+        removeColor();
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.add("wb-item-color-" + color);
+        selectedTile.currentTarget.parentElement.parentElement.classList.add("wb-item-color-" + color);
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.children[1].classList.add("wb-item-color-" + color);
+        $("#color_actions_btn").popover('hide');
+    }
+
+    function removeColor() {
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-color-yellow");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-color-pink");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-color-green");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-color-blue");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-color-purple");
+        selectedTile.currentTarget.parentElement.parentElement.parentElement.classList.remove("wb-item-color-grey");
+    }
+
+
+    function onPropChange(prop) {
+        alert(prop);
+    }
+
+    //$('body').on('click', function (e) {
+    //    $('[data-toggle=popover]').each(function () {
+    //        // hide any open popovers when the anywhere else in the body is clicked
+    //        if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
+    //            $(this).popover('hide');
+    //        }
+    //    });
+    //});
+
+</script>
+
+<style>
+
+    .circle-pk {
+        background-color: #ee85c1;
+        border-radius: 25px;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        margin-left: 2px;
+        cursor: pointer;
+    }
+
+    .circle-g {
+        background-color: #a7d96d;
+        border-radius: 25px;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        margin-left: 2px;
+        cursor: pointer;
+    }
+
+    .circle-y {
+        background-color: #f9eb71;
+        border-radius: 25px;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        margin-left: 2px;
+        cursor: pointer;
+    }
+
+    .circle-b {
+        background-color: #4bc1ec;
+        border-radius: 25px;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        margin-left: 2px;
+        cursor: pointer;
+    }
+
+    .circle-p {
+        background-color: #ac8fef;
+        border-radius: 25px;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        margin-left: 2px;
+        cursor: pointer;
+    }
+
+    .circle-gr {
+        background-color: #a0adbd;
+        border-radius: 25px;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        margin-left: 2px;
+        cursor: pointer;
+    }
+
+    /*.size1c {
+        width: 125px;*/
+    /*min-height:75px;*/
+    /*}
+
+    .size2c {
+        width: 200px;*/
+    /*min-height:175px;*/
+    /*}*/
+
+    #size1 {
+        margin-right: 15px;
+        font-size: 20px;
+    }
+
+    #size2 {
+        margin-right: 15px;
+        font-size: 20px;
+    }
+
+    .menu {
+        width: 33%;
+        height: 25px;
+    }
+
+    .form-control {
+        width: 120px;
+    }
+
+    .popover {
+        max-width: 400px;
+    }
+
+    #square {
+        font-size: 30px;
+        margin-right: 10px;
+    }
+
+    #hexagon {
+        font-size: 30px;
+        margin-right: 10px;
+    }
+
+    #octagon {
+        font-size: 30px;
+        margin-right: 10px;
+    }
+
+    #gem {
+        font-size: 30px;
+        margin-right: 10px;
+    }
+
+
+    .square {
+        width: 100px;
+        height: 100px;
+        background-color: white;
+    }
+
+    .octagon {
+        width: 100px;
+        height: 100px;
+        background: transparent;
+        position: relative;
+    }
+
+        .octagon:before {
+            content: "";
+            width: 100px;
+            height: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-bottom: 29px solid white;
+            border-left: 29px solid transparent;
+            border-right: 29px solid transparent;
+        }
+
+        .octagon:after {
+            content: "";
+            width: 100px;
+            height: 0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            border-top: 29px solid white;
+            border-left: 29px solid transparent;
+            border-right: 29px solid transparent;
+        }
+
+    .hexagon {
+        width: 100px;
+        height: 57.735px;
+        background: transparent;
+        position: relative;
+    }
+
+        .hexagon::before {
+            content: "";
+            position: absolute;
+            top: -28.8675px;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 50px solid transparent;
+            border-right: 50px solid transparent;
+            border-bottom: 28.8675px solid white;
+        }
+
+        .hexagon::after {
+            content: "";
+            position: absolute;
+            bottom: -28.8675px;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 50px solid transparent;
+            border-right: 50px solid transparent;
+            border-top: 28.8675px solid white;
+        }
+
+    .gem {
+        border-style: solid;
+        border-color: transparent transparent white transparent;
+        border-width: 0 25px 25px 25px;
+        height: 0;
+        width: 50px;
+        box-sizing: content-box;
+        position: relative;
+        margin: 20px 0 50px 0;
+    }
+
+        .gem:after {
+            content: "";
+            position: absolute;
+            top: 25px;
+            left: -25px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+            border-width: 70px 50px 0 50px;
+        }
+</style>
+
+
+
+
+
+
+

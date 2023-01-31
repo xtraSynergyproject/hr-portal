@@ -1,0 +1,335 @@
+﻿@*@using Kendo.Mvc.UI*@
+
+
+@model List<Synergy.App.ViewModel.CompanyViewModel>
+@{
+    ViewData["Title"] = "Manage Companies";
+}
+<style>
+    .e-custom {
+        border-radius: 0;
+        height: 30px;
+        width: 80px;
+    }
+
+        .e-custom, .e-custom:hover, .e-custom:focus, .e-custom:active {
+            background-color: #ff6e40;
+            color: #fff;
+        }
+
+    .image img {
+        height: 55px;
+        width: 55px;
+        border-radius: 50px;
+        box-shadow: inset 0 0 1px #e0e0e0, inset 0 0 14px rgba(0, 0, 0, 0.2);
+    }
+
+    #btnEdit {
+        border-radius: 70%;
+        background-color: darkslateblue;
+    }
+
+    .req {
+        color: red;
+        padding-bottom: 2px;
+    }
+    /*#grid table {
+        min-width: 1190px;
+    }*/
+
+  /*  .k-grid-content {
+        overflow-x: scroll;
+    }
+*/
+
+  #grid {
+      width: 185vh;
+  }
+
+
+</style>
+<script>
+    var columnDefs = [
+        {
+            field: "LogoFileId",
+            cellRenderer: params => {
+                return '<div class="image"><img src=@Url.Content("company/companylogo")?id=' + params.value + '<div>'
+            }
+        },
+        {
+            field: "Name",
+        },
+        {
+            field: "Code",
+        },
+        {
+            field: "Address",
+        },
+        { field: "Email" },
+        { field: "Fax" },
+        {
+            field: "Phone",
+        },
+        {
+            field: "ContactPerson",
+        },
+        {
+            field: "ContactPersonEmail",
+        },
+        {
+            field: "ContactPersonPhone",
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBinUser' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+
+    $(function () {
+
+        GetCompanyData();
+
+
+
+        $.contextMenu({
+            selector: '#tree-menuBinUser',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEditUser(id);
+                                        break;
+                                    case 'del':
+                                        OnDeleteUser(id);
+                                        break;
+                                    case 'UserEntityPermission':
+                                        onUserEntityPermission(id);
+                                        break;
+                                    case 'hierarchyPermission':
+                                        onUserHierarchyPermission(id);
+                                        break;
+                                    case 'Permission':
+                                        onPermission(id);
+                                        break;
+                                    case 'ResendWelcomeEmail':
+                                        onResendWelcomeEmail(id);
+                                        break;
+                                    case 'ChangePassword':
+                                        ChangePassword(id);
+                                        break;
+                                    case 'viewPermission':
+                                        onViewPermission(id);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-pencil" },
+                                "del": { name: "Delete", icon: "fas fa-trash" },
+                                // "Permission": { name: "Permission", icon: "fas fa-user-shield" },
+                                "ResendWelcomeEmail": { name: "Resend Welcome Email", icon: "fas fa-envelope" },
+                                "UserEntityPermission": { name: "Manage Permission", icon: "fas fa-external-link" },
+                                "hierarchyPermission": { name: "User Hierarchy Permission", icon: "fas fa-external-link-square" },
+                                "ChangePassword": { name: "Change Password", icon: "fas fa-user" },
+                                "viewPermission": { name: "View Permission", icon: "fas fa-external-link-square" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+
+   function GetCompanyData() {
+       document.getElementById("grid").innerHTML = "";
+       gridConfig(
+           "grid",
+           "/Company/ReadCompanyData",
+           columnDefs,
+           false,
+           true,
+           true,
+           true,
+           1,
+           true,
+           10);
+    }
+
+</script>
+@{
+    List<object> commands = new List<object>(); commands.Add(new { buttonOption = new { content = "Edit", textAlign = "Center", iconCss = "fa fas fa-pencil", cssClass = "btnEdit" } });
+}
+@*<div>
+        <ejs-grid id="Grid" dataSource="@Model" commandClick="commandClick">
+            <e-grid-columns>
+                <e-grid-column headerText="Edit" width="100" commands="commands">
+                </e-grid-column>
+                <e-grid-column field="LogoField" headerText="Logo" width="120" template="#logo"></e-grid-column>
+                <e-grid-column field="Name" HeaderText="Company Name" Width="120"></e-grid-column>
+                <e-grid-column field="Id" Width="120" isPrimaryKey="true" visible="false"></e-grid-column>
+                <e-grid-column field="Code" HeaderText="Code" Width="120"></e-grid-column>
+                <e-grid-column field="Address" HeaderText="Address" Width="120"></e-grid-column>
+                <e-grid-column field="Phone" HeaderText="Phone" Width="120"></e-grid-column>
+                <e-grid-column field="Fax" HeaderText="Fax" Width="120"></e-grid-column>
+                <e-grid-column field="Email" HeaderText="Email" Width="120"></e-grid-column>
+                <e-grid-column field="ContactPerson" HeaderText="Contact Person" Width="120"></e-grid-column>
+                <e-grid-column field="ContactPersonMobile" HeaderText="Contact Person Mobile" Width="120"></e-grid-column>
+                <e-grid-column field="ContactPersonEmail" HeaderText="Contact Person Email" Width="120"></e-grid-column>
+            </e-grid-columns>
+        </ejs-grid>
+    </div>*@
+
+@*<script type="text/x-jsrender" id="edit">
+        <button class="fa fas fa-pencil" id="btnEditUser"></button>
+
+    </script>*@
+
+
+
+
+@*<div class="row">
+        <div class="col-12">
+            <kendo-grid name="grid" height="550">
+                <toolbar><toolbar-button text="Add"></toolbar-button></toolbar>
+                <columns>
+                    <column title="Edit">
+                        <commands><column-command template="#logo"></column-command></commands>
+                    </column>
+                    <column field="Id" title="Id" hidden="true">
+                        <filterable enabled="false"></filterable>
+                    </column>
+                    <column field="LogoField" title="Logo"></column>
+                    <column field="Name" title="Company Name" />
+                    <column field="Code" title="Code" />
+                    <column field="Address" title="Address" />
+                    <column field="Email" title="Email" />
+                </columns>
+                <scrollable enabled="true" />
+                <sortable enabled="true" />
+                <pageable enabled="true" />
+                <filterable enabled="true" />
+                <datasource type="DataSourceTagHelperType.Ajax" page-size="20">
+                    <transport>
+                        <read url="@Url.Action("Company_Read", "Company")" />
+                    </transport>
+                </datasource>
+            </kendo-grid>
+        </div>
+    </div>*@
+<div class="row">
+    <div class="col-12">
+        <button type='button' class='btn btn-primary' onclick='addcompany();'><i class='fa fas fa-plus'></i>&nbsp;Add company </button>
+        <br /><br />
+        <div id="grid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<Synergy.App.ViewModel.CompanyViewModel>()
+        .Name("grid")
+        .ToolBar(toolbar => toolbar.Custom().Text("Add company").HtmlAttributes(new { href = "javascript:addcompany();" }))
+        .Columns(columns =>
+        {
+            columns.Command(c => c.Custom("Edit").Click("OnEdit").IconClass("fa fas fa-pencil")).Width(110);
+            columns.Bound(c => c.LogoFileId).ClientTemplateId("template").Width(110);
+            columns.Bound(c => c.Id).Width(140).Hidden(true);
+            columns.Bound(c => c.Name).Width(140);
+            columns.Bound(c => c.Code).Width(110);
+            columns.Bound(c => c.Address).Width(190);
+            columns.Bound(c => c.Email).Width(190);
+            columns.Bound(c => c.Fax).Width(110);
+            columns.Bound(c => c.Phone).Width(110);
+            columns.Bound(c => c.ContactPerson).Width(110);
+            columns.Bound(c => c.ContactPersonEmail).Width(110);
+            columns.Bound(c => c.ContactPersonMobile).Width(110);
+
+
+        })
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(5)
+            .Read(read => read.Action("Company_Read", "Company"))
+        )
+        .HtmlAttributes(new { style = "height: 550px"})
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+
+        .Scrollable(x => x.Enabled(true))
+        //.Pageable(pageable => pageable
+        //                             .Refresh(true)
+        //                             .PageSizes(new[] { 10, 50, 100, 200, 500 })
+        //                             .ButtonCount(10))
+        )*@
+    </div>
+</div>
+
+<script type="text/x-jsrender" id="logo">
+    <div class="image">
+        <img class="img-myprofile" src="/company/companylogo?id=${LogoField}" onerror='OnPhotoError(this);' />
+    </div>
+
+</script>
+
+<script type="text/x-kendo-tmpl" id="template">
+    <div class="image">
+        @*<img class="img-myprofile" src="/company/companylogo?id=${data.LogoFieldId}" onerror='OnPhotoError(this);' />*@
+         <img src=@Url.Content("company/companylogo")#:data.LogoFieldId# />
+    </div>
+</script>
+
+
+    <script>
+        //document.getElementById('targetButton').onclick = function () {
+        //    // 
+        //    OpenIframeModal('/Company/AddCompany', 'Add Company', 350, 700);
+        //}
+
+        function addcompany() {
+            OpenIframeModal('/Company/AddCompany', 'Add Company', 350, 700);
+        }
+
+        
+        //function commandClick(e) {
+
+        //    //console.log(args);
+        //    //var companyId = args.rowData.Id;
+        //    var companyId = this.dataItem($(e.currentTarget).closest("tr"));
+        //    if (companyId != null && companyId != "") {
+        //        var url = '/company/editcompany?id=' + companyId;
+        //        OpenIframeModal(url, 'Edit Company', 350, 1000);
+        //    }
+        //}
+
+
+</script>
+
+<script type="text/javascript">
+    function OnEdit(id) {
+      //  //e.preventDefault();
+      ////  var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+      //  //console.log(dataItem);
+      //  var url = '/company/editcompany?id=' + id;
+      //  OpenIframeModal(url, 'Edit Company', 350, 1000);
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("editcompany", "company", new { @area="Cms"})?Id=' + id;
+        win.OpenWindow({ Title: 'Edit Company', Width: 600, Height: 600 });
+        return false;
+    }
+</script>

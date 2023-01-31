@@ -1,0 +1,486 @@
+﻿@*@using Syncfusion.EJ2
+@using Syncfusion.EJ2.Navigations*@
+@using Synergy.App.Common;
+@using Synergy.App.ViewModel
+@using Synergy.App.Business
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Team";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model Synergy.App.ViewModel.TeamViewModel
+
+
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .team-logo {
+        //border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+</style>
+
+<div class="row" style="margin-left:15px;">
+
+    <form asp-controller="Team" asp-action="Manage" method="post" class="form-horizontal" id="myForm">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Enter Name" title="Special character and space not allowed in name." required="required" autocomplete="off" style="width:80%" />
+                    <label for="Name">Name <span class="required">*</span></label>
+                </div>
+            </div>
+            @*<div class="col-12 pad-15">
+            @Html.TextBoxFor(model => model.Name, htmlAttributes: new { @class = "form-control", placeholder = "Name", style = "width:80%", required = "required" })
+        </div>*@
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Code" type="text" class="form-control" placeholder="Enter Short Name" title="Special character and space not allowed in name." autocomplete="off" style="width:80%" />
+                    <label for="Code">Code </label>
+                </div>
+            </div>
+            @*<div class="col-12 pad-15">
+            @Html.TextBoxFor(model => model.ShortName, htmlAttributes: new { @class = "form-control", placeholder = "Short Name", style = "width:80%", required = "required" })
+        </div>*@
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Description" type="text" class="form-control" placeholder="Enter Short Name" title="Special character and space not allowed in name." autocomplete="off" style="width:80%" />
+                    <label for="Description">Description </label>
+                </div>
+            </div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="GroupCode" type="text" class="form-control" placeholder="Enter Group Code" title="Special character and space not allowed in name." autocomplete="off" style="width:80%" />
+                    <label for="GroupCode">GroupCode </label>
+                </div>
+            </div>
+            <div class="col-12">TeamWork Assignment Type</div>
+            <div class="col-12 pad-15">              
+                <input asp-for="TeamWorkAssignmentType"  class="form-control" style="width:80%" />
+            </div>
+            <div class="col-12">Status</div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().DropDownListFor(x=>x.Status)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+            source.Read(read =>
+            {
+            read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "StatusEnum" });
+            });
+            })
+            .Value(Model.Status.ToString())
+            .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+            )*@
+                <input asp-for="Status" id="Status" class="form-control" style="width:80%" />
+            </div>
+            <div class="col-12">Users <span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().MultiSelectFor(x => x.UserIds)
+            .AutoClose(false)
+            .Placeholder("Select Users...")
+            .DataSource(source =>
+            {
+            source.Read(read =>
+            {
+            read.Action("GetUserIdNameList", "User",new { @area="Cms"});
+            });
+
+            })
+            .Events(x=>x.Change("OnChange"))
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .AutoBind(true)
+            .HtmlAttributes(new { @class = "hr-xx-large", @style = "width:80%" })
+            .ValuePrimitive(true)
+            .Height(300)
+            )*@
+
+                <select asp-for="UserIds" id="UserIds" data-placeholder="Select Users" style="width:80%"></select>
+            </div>
+            <div class="row col-12  pad-10" style="margin-bottom:50px;">
+                <div class="col-3">
+                    <label for="PortalId">Portal</label>
+                </div>
+                <div class="col-9">
+                    @*@(Html.Kendo().DropDownListFor(x=>x.PortalId)
+                                .DataTextField("Name")
+                                .DataValueField("Id")
+                   // .Events(e => e.Change("change"))
+                   .DataSource(source =>
+                   {
+                       source.Read(read =>
+                       {
+                           read.Action("GetPortalList", "Content", new { @area = "Cms" });
+                       });
+                   })
+                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                      .HtmlAttributes(new { style = "width: 100%" })
+                )*@
+                    <input asp-for="PortalId" id="PortalId" class="form-control" style="width:80%" />
+
+                </div>
+            </div>
+            <div class="col-12">Selected Users</div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().ListView<UserViewModel>
+            ()
+            .Name("UserlistView")
+            .TagName("div")
+            .ClientTemplateId("template")
+            .AutoBind(false)
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .Read(read => read.Action("GetTeamUsersList", "Team",new { area="Cms"}).Data("FilterDDl"))
+            .PageSize(21)
+            )
+            .Pageable()
+            )*@
+
+                <div id="UserlistView"></div>
+
+            </div>
+            <div class="col-12">Team Logo</div>
+            <div class="col-12 row no-gutters">
+                @*<div class="col-3" style="padding-bottom:10px;">
+                @if (Model.LogoId != null)
+                {
+                    <img class="team-logo" src="/cms/Document/GetImageMongo?id=@Model.LogoId" onerror='OnPhotoError(this);' />
+                }
+                else
+                {
+                    <img class="team-logo" style="background-color:gray;" src="~/images/icon-team64.png" />
+                }
+            </div>*@
+                <div class="col-8">
+                    @*@(Html.Kendo().Upload().Multiple(false)
+                    .Name("files")
+                    .Async(a => a
+                    .Save("SaveFile", "Document", new { @area = "cms" })
+                    .AutoUpload(true)
+                    )
+                    .Events(e => e.Success("onFileUploadSuccess")
+                    )
+                        .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png" }).MaxFileSize(2097152))
+                        .HtmlAttributes(new { @class = "hr-xx-large" })
+                )*@
+
+                    @*<div class="row">
+                <div class="col">
+                    <div id="iconFile" class="dm-uploader">
+                        <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                        <div class="btn btn-primary btn-block ">
+                            <span>Open the file Browser</span>
+                            <input type="file" title='Click to add Files' />
+                        </div>
+                    </div>
+
+                </div>*@
+                    @*if multiple use this*@
+
+                    @*<div class="col">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            File List
+                        </div>
+                        <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                            <li id="nofiles" class="text-muted text-center empty">No files uploaded.</li>
+                        </ul>
+                    </div>
+                </div>*@
+                    @*if multiple use this*@
+                    @*</div>*@
+
+                    @{
+                        await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.LogoId), Value = Model.LogoId });
+                    }
+
+                    @*<button type="button" class="btn btn-light" title="Click to Delete Logo" onclick="onLogoDel();"><i class='fa fas fa-trash'></i></button>*@
+                </div>
+            </div>
+
+            <div class="cms-slidebar-footer">
+                <button type="button" class="btn btn-light" onclick="closeNavMemberGroup();">Close</button>
+                <input type="submit" class="btn btn-primary" value="Save" id="submitBtn" onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.TeamOwnerId)
+        @Html.HiddenFor(x => x.LogoId)
+    </form>
+</div>
+<script type="text/x-kendo-tmpl" id="template">
+        <div class="row col-10" style="margin:5px;">
+        @*<div class="col-3">
+        <span>#:Id#</span>
+        </div>*@
+        <div class="col-9">
+          <span>#:Name#</span>
+        </div>
+         <div class="col-9"><span>
+        @* <input type="radio" name="IsTeamOwner" id="IsTeamOwner_#:Id#" value=#:Id#>*@
+        #if('@Model.TeamOwnerId'==Id){#
+
+    <input type="radio" name="IsTeamOwner1" id="IsTeamOwner_#:Id#"  value=#:Id# checked>
+    #}else{#
+    <input type="radio" name="IsTeamOwner1" id="IsTeamOwner_#:Id#" value=#:Id# >
+    #}#
+
+
+    </span>
+        </div>
+
+
+
+        </div></script>
+
+
+
+<script type="text/javascript">
+    @*$(document).ready(function () {
+        if ('@ViewBag.Success' == "True") {
+            closeNavMemberGroup();
+        }
+        if (window.parent.$("#Teamgrid").data("kendoGrid").dataSource.read()) { }
+    });*@
+    function OnChange(e)
+    {
+        var search = FilterDDl();
+        $("#UserlistView").data("kendoListView").dataSource.read(search)
+    }
+
+    function FilterDDl() {
+        ($("#UsersIds").val());
+        var multiselect = $("#UserIds").data("kendoMultiSelect");
+        var multiselectvalue = multiselect.value();
+        return {
+            selectedValues: multiselectvalue.join()
+        };
+    }
+    $(document).ready(function () {
+
+        $("#UserIds").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/cms/user/GetUserIdNameList",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select Users...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.UserIds)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+            change: OnChange
+        });
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/cms/Team/GetTeamUsersList",
+                    data: FilterDDl,
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#UserlistView").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#template").html())
+        });
+
+
+        if ('@ViewBag.Success' == "True") {
+            closeNavMemberGroup();
+           // if (window.parent.$("#Teamgrid").data("kendoGrid").dataSource.read()) { }
+            window.parent.getDataTeam();
+        }
+        else {
+            var search = FilterDDl();
+            $("#UserlistView").data("kendoListView").dataSource.read(search)
+        }
+        
+         $("#Status").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.Status.ToString()',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=StatusEnum",
+                    }
+                }
+            }
+         });
+        $("#TeamWorkAssignmentType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.TeamWorkAssignmentType.ToString()',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=WorkAssignmentTypeEnum",
+                    }
+                }
+            }
+         });
+
+        $("#PortalId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value:'@Model.PortalId',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/Content/GetPortalList",
+                    }
+                }
+            }
+         });
+       // uploadFile()
+    });
+
+    //function uploadFile() {
+    //    $("#iconFile").dmUploader({ //
+    //        url: '/Cms/Document/SaveFile',
+    //        multiple: false,
+    //        extFilter: ["jpg", "jpeg", "png", "gif"],
+    //        maxFileSize: 3000000, // 3 Megs
+    //        onDragEnter: function () {
+    //            // Happens when dragging something over the DnD area
+    //            this.addClass('active');
+    //        },
+    //        onDragLeave: function () {
+    //            this.removeClass('active');
+    //        },
+    //        onInit: function () {
+    //        },
+    //        onComplete: function () {
+    //        },
+    //        onNewFile: function (id, file) {
+    //            ui_multi_add_file(id, file);
+    //        },
+    //        onBeforeUpload: function (id) {
+    //            ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+    //            ui_multi_update_file_progress(id, 0, '', true);
+    //        },
+    //        onUploadCanceled: function (id) {
+    //            ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+    //            ui_multi_update_file_progress(id, 0, 'warning', false);
+    //        },
+    //        onUploadProgress: function (id, percent) {
+    //            ui_multi_update_file_progress(id, percent);
+    //        },
+    //        onUploadSuccess: function (id, data) {
+    //            $(".team-logo").attr("src", "/cms/Document/GetImageMongo?id=" + data.fileId);
+    //            $("#LogoId").val(data.fileId);
+
+    //            ui_multi_update_file_status(id, 'success', 'Upload Complete');
+    //            ui_multi_update_file_progress(id, 100, 'success', false);
+    //        },
+    //        onUploadError: function (id, xhr, status, message) {
+    //            ui_multi_update_file_status(id, 'danger', message);
+    //            ui_multi_update_file_progress(id, 0, 'danger', false);
+    //        },
+    //        onFallbackMode: function () {
+    //        },
+    //        onFileSizeError: function (file) {
+    //        }
+    //    });
+    //}
+
+
+    function closeNavMemberGroup() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function OnSave(evt) {
+
+     if ($('#UserIds').val()== "Select Users...") {
+
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Select Users");
+            evt.preventDefault();
+            return false;
+
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+     var radio = $('input[name="IsTeamOwner1"]:checked').val();
+        $('#TeamOwnerId').val(radio);
+
+   if($('#TeamOwnerId').val()=="")
+    {$(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Select TeamOwner");
+            evt.preventDefault();
+            return false;
+
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+    }
+
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            // alert(e.response.fileId);
+            $(".team-logo").attr("src", "/cms/Document/GetImageMongo?id=" + e.response.fileId);
+            $("#LogoId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+
+    function onLogoDel() {
+        if ($("#LogoId").val() != '') {
+            //
+            kendo.confirm("Are you sure that you want to proceed?").then(function () {
+                $(".team-logo").attr("src", "/images/icon-team64.png");
+                $("#LogoId").val('');
+                //var logoupload = $("#files").data("kendoUpload");
+                ////console.log(logoupload);
+                //logoupload.clearFile(function (file) { return true; });
+
+                $("#iconFile").dmUploader("reset");
+            }, function () {
+
+            });
+        }
+    }
+
+</script>

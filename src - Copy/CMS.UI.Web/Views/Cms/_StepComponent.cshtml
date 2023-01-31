@@ -1,0 +1,114 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@model ServiceTemplateViewModel
+
+@{
+
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = null;
+}
+
+<style>
+    .kgrdPDM {
+        width: 100% !important;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+
+        $("#Id").kendoDropDownList({
+            optionLabel: "Select Step",
+            dataTextField: "Subject",
+            dataValueField: "Id",
+		    value: "@Model.Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/ProcessDesign/GetStepTaskComponent?templateId=@Model.TemplateId&serviceId=@Model.ServiceId&taskId=@Model.TaskPlusId",
+                    }
+                }
+            }
+        });
+
+    });
+
+    function onViewClick(id)
+    {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("PreviewAttachment", "Cms", new { @area = "" })?ntsType=NTS_Service&Id=' + id +'&canEdit=false';
+            win.OpenWindow({ Title: 'Preview Attachment', Width: 1000, Height: 700 });
+    }
+    function OnOk() {
+        if ($("#Id").val() != "") {
+            var win = GetMainWindow().GetParentWindow();
+
+            win.FillNextStepId($("#Id").val());
+
+            @*$.ajax({
+                type: "POST",
+                url: "/cms/SaveNextStepComponent",
+                data: {
+                    ServiceId: "@Model.ServiceId",
+                    StepCompId: $("#Id").val(),
+                },
+                success: function (data) {
+                    if (data.success) {
+                        var win = GetMainWindow().GetParentWindow();
+                        win.FillNextStepId();
+
+                    }
+                    else {
+                        ShowErrors(data.errors);
+                    }
+                },
+                error: function (err) {
+                    $(".hr-v-summary").removeClass("validation-summary-valid");
+                    $(".hr-v-summary").addClass("validation-summary-errors");
+                    // var msg = ExtractError(err);
+                    $(".hr-v-summary ul").html(msg);
+                }
+
+            });*@
+        }
+    }
+
+
+</script>
+
+
+<div>
+
+
+    <div class="row" style="margin:10px;">
+
+
+        <div class="col-md-12">
+            @*@(Html.Kendo().DropDownListFor(x => x.Id)
+            .OptionLabel("Select Step")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetStepTaskComponent", "ProcessDesign", new { area = "Cms",templateId=Model.TemplateId,serviceId=Model.ServiceId,taskId=Model.TaskPlusId });
+                });
+            })
+            .DataTextField("Subject")
+            .DataValueField("Id")
+            .Filter(FilterType.Contains)
+            .AutoBind(true)
+            .HtmlAttributes(new { @class = "form-control", @style = "width:400px" })
+            )*@
+
+            <input asp-for="Id" id="Id" class="form-control" style="width: 400px;" />
+
+        </div>
+        <br/>
+        <div class="col-md-12" style="text-align:right;padding-top:15px;">
+            @*@Html.Kendo().Button().Name("btnComment").Events(e => e.Click("OnOk")).HtmlAttributes(new { @title = "Ok", @class = "k-primary" }).Content("Ok")*@
+            <button type="button" id="btnComment" class="btn btn-primary" title="Ok" onclick="OnOk()">Ok</button>
+        </div>
+    </div>
+</div>

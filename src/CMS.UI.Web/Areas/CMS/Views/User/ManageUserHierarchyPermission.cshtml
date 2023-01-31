@@ -1,0 +1,223 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Manage User Hierarchy Permission";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model UserHierarchyPermissionViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+<script>
+
+</script>
+
+<div class="row" style="margin-left:15px;">
+    <form asp-controller="User" asp-action="ManageUserHierarchyPermission" method="post" class="form-horizontal" id="myForm">
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+            <div class="col-12">User Name <span class="required">*</span></div>
+            <div class="col-12 pad-10">
+                <input asp-for="UserId" class="form-control" style="width: 80%;" readonly="readonly" />
+
+            </div>
+            <div class="col-12">Hierarchy Name <span class="required">*</span></div>
+            <div class="col-12 pad-10">
+                @*@(Html.Kendo().DropDownListFor(x=>x.HierarchyId)
+             .DataTextField("Name")
+             .DataValueField("Id")
+             .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("GetHierarchyIdNameList", "User", new { @area = "cms"});
+                 });
+             })
+            // .Value(Model.CompanyId)
+             .HtmlAttributes(new { @class = "form-control", @style = "width:80%"})
+             )*@
+
+                <input asp-for="HierarchyId" id="HierarchyId" class="form-control" style="width: 80%;" />
+
+            </div>
+            <div class="col-12">Hierarchy Permission Type <span class="required">*</span></div>
+            <div class="col-12 pad-10">
+                @*@(Html.Kendo().DropDownListFor(x=>x.HierarchyPermission)
+             .DataTextField("Name")
+             .DataValueField("Id")
+            .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "HierarchyPermissionEnum" });
+                 });
+             })
+             .Value(Model.HierarchyPermission.ToString())
+             // .Value(Model.NtsType.ToString())
+             .HtmlAttributes(new { @class = "form-control", @style = "width:80%"})
+             //.Events(e=>
+             //    { e.Change("onChange"); })
+             )*@
+
+                <input asp-for="HierarchyPermission" id="HierarchyPermission" class="form-control" style="width: 80%;" />
+            </div>
+            <div id="customBlock" style="display:none;" class="col-12">
+                <div class="col-12">Allowed Root <span class="required">*</span></div>
+                <div class="col-12 pad-10">
+                    <input asp-for="CustomRootId" class="form-control" style="width: 80%;" />
+
+                </div>
+            </div>
+           
+
+
+
+
+
+            <div class="col-12 pad-10"></div>
+            <br /><br />
+            <div class="cms-slidebar-footer">
+                <button type="button" class="btn btn-light" onclick="closeNavNote();">Close</button>
+                <input type="submit" class="btn btn-primary" value="Save" @*id="submitBtn"*@ onclick="OnSave(event);" />
+            </div>
+        </div>
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        
+    </form>
+</div>
+
+
+<script type="text/javascript">
+
+
+
+    $(document).ready(function () {
+
+        if ('@ViewBag.Success' == "True") {
+            closeNavNote();
+           // if (window.parent.$("#kgrdUserHierarchyPermission").data("kendoGrid").dataSource.read()) { }
+            window.parent.getDataUserHierarchy();
+        }
+         $("#UserId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+			value: "@Model.UserId",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/User/GetUserIdNameList",
+                    }
+                }
+            }
+        });
+        $("#HierarchyId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.HierarchyId",
+            change:OnHierarchyChange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/User/GetHierarchyIdNameList",
+                    }
+                }
+            }
+        });
+
+        $("#HierarchyPermission").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.HierarchyPermission",
+            change:HierarchyTypeChange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=HierarchyPermissionEnum",
+                    }
+                }
+            }
+        });
+
+        @*$("#CustomRootId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",           
+        });*@
+
+    });
+    function HierarchyTypeChange(e) {
+        var data = this.dataItem();
+        if (data.Id == "Custom") {
+            $("#customBlock").show();
+         
+            //var hierarchyitem = $("#HierarchyId").data("kendoDropDownList").dataItem();
+            //var url = "/Cms/User/GetHierarchyData?type=" + hierarchyitem.Code;            
+            //var remoteDataSource = new kendo.data.DataSource({
+            //    type: "json",
+            //    transport: {
+            //        read: url
+            //    }
+            //});
+            //$("#CustomRootId").data("kendoDropDownList").setDataSource(remoteDataSource);
+        }
+        else
+        {
+            $("#customBlock").hide();
+            $("#CustomRootId").val("");
+            //$("#CustomRootId").data("kendoDropDownList").value('');
+        }
+        debugger;
+    }
+    function OnHierarchyChange(e)
+    {
+        debugger;
+    }
+    function closeNavNote() {
+       // window.parent.CloseIframePopup();
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'CallBack' });
+        return false;
+    }
+
+
+    function OnSave(evt) {
+
+        if ($("#HierarchyId").val() == "") {
+            //
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Hierarchy Name is required");
+            evt.preventDefault();
+            return false;
+        }
+        else if ($("#HierarchyPermission").val() == "") {
+                //
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("Hierarchy Permission is required");
+                evt.preventDefault();
+                return false;
+            }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+        }
+
+    }
+</script>

@@ -1,0 +1,198 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "ItemShelf Category Mapping";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<style>
+
+
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .avatar-myProfile {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .avatar-mysign {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+    }
+
+    .bold {
+        font: bold
+    }
+</style>
+
+@*<div class="row" style="margin-left:15px;margin-bottom:60px;">
+        <div class="row">
+            <input id="ShelfId" class="form-control" />
+            <div id="categorytreeview"></div>
+        </div>
+
+
+        <div class="row" style="text-align:right;">
+            <input type="submit" class="btn btn-primary" onclick="OnSave()" value="Save" />
+
+        </div>
+
+
+    </div>*@
+<div class="row-12" id="addCat" style="margin-left:15px;margin-bottom:60px;padding:10px;">
+    <div class="col-12" style="text-align:right;">
+       
+            <fieldset class="fieldset">
+                <legend class="fs-legend">Shelf Category Mapping</legend>
+                <div class="col-6">
+                    <input id="ShelfId" class="form-control" readonly />
+                </div>
+                <div class="col-6">
+                    <input type="button" class="btn btn-primary" onclick="OnSave()" value="Save" />
+                </div>
+            </fieldset>
+        </div>
+
+    </div>
+
+<fieldset class="fieldset">
+
+    <div id="categorytreeview" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+</fieldset>
+
+
+    <script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#ShelfId").kendoDropDownList({
+            dataTextField: "ShelfNo",
+            dataValueField: "Id",
+			 value: "@Model.ShelfId",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Ims/InventoryMaster/ReadShelfList",
+                    }
+                }
+            }
+        });
+
+        getNotInCategoryData();
+
+    });
+       var columnDefs1 = [
+        {
+            field: "Id",
+            headerName: "Select",
+            cellRenderer: params => {
+                return "<input type='checkbox' class='checkcontact' data-id='" + params.value + "'/>"
+            }
+        },
+        {
+            field: "ItemCategoryName",
+            headerName: "Category Name"
+        },
+    ];
+
+     function getNotInCategoryData() {
+         document.getElementById("categorytreeview").innerHTML = "";
+        /*?Customer = " + $("#Customer").data("kendoDropDownList").value() + " & ProposalSource=" + $("#ProposalSource").data("kendoDropDownList").value() + " & WorkFlowStatus=$('input[WorkFlowStatus]:checked').val()" + " & FromDate=" + $("#FromDate").val() + " & ToDate=" + $("#ToDate").val(),*/
+        gridConfig(
+            "categorytreeview",
+            "/IMS/InventoryMaster/ReadItemCategoryNotInShelfCategoryData?itemShelfId=@Model.ShelfId",
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function OnSave()
+    {
+        debugger;
+        ShowLoader($('#addCat'));
+        var win = GetMainWindow();
+        var allVals = [];
+        $("input[class='checkcontact']:checked").each(function () {
+            allVals.push($(this).attr("data-id"));
+        });
+        //alert(allVals.join(", "));
+        //return;
+        if (allVals.length > 0) {
+            $.ajax({
+                url: "/Ims/InventoryManagement/ManageItemShelfCategoryMapping?ids=" + allVals.join(", ") + "&itemShelfId=@Model.ShelfId",
+                cache: false,
+                success: function (html) {
+                    HideLoader($('#addCat'));
+                    ShowNotification("Added Successfully")
+                    getNotInCategoryData();
+                    win.parent.getContactPersonGridListData();
+                }
+            });
+        }
+        else
+        {
+            kendo.alert("Please Select the categories");
+        }
+    }
+
+    //function getInputTree() {
+    //    $("#categorytreeview").fancytree({
+    //        checkbox: true,
+    //        source: $.ajax({
+    //            url: "/Bre/Bre/BreInputDataFancyTree",
+    //            dataType: "json"
+    //        }),
+    //        lazyLoad: function (event, data) {
+    //            var node = data.node;
+    //            // Issue an Ajax request to load child nodes
+    //            data.result = {
+    //                url: "/Bre/Bre/BreInputDataFancyTree",
+    //                data: { id: node.key}
+    //            }
+
+    //        },
+    //        select: function (event, data) {
+
+    //            var dataItem = data.node.data;
+    //            $("#FieldId").val(data.node.key);
+
+    //        },
+    //        renderNode: function (event, data) {
+    //            // Optionally tweak data.node.span
+    //            var node = data.node;
+    //            node.renderTitle();
+
+
+    //        },
+    //        dblclick: function (event, data) {
+    //            var node = data.node;
+    //        },
+    //        contextMenu: {
+    //            menu: function (data) {
+
+    //                return {
+    //                }
+    //            },
+    //            actions: function (node, action, options) {
+    //            }
+    //        }
+    //    });
+    //}
+
+    </script>
+

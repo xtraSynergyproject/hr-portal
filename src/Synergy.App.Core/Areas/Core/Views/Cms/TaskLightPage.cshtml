@@ -1,0 +1,2458 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using System.Web;
+<script src="~/lib/formio/js/formio.full.js" asp-append-version="true"></script>
+
+@model TaskTemplateViewModel;
+@{
+    Layout = null;
+}
+
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/theme.min.css" data-skin="default" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/vendor/flatpickr/flatpickr.min.css" asp-append-version="true">
+<link rel="stylesheet" href="~/Themes/Looper/dist/assets/stylesheets/custom.css" asp-append-version="true">
+<script>
+    function onFileUploadSuccess(e) {
+
+        if (e.response.success) {
+            $("#NextTaskAttachmentId").val(e.response.fileId);
+
+        }
+        else {
+
+        }
+        return true;
+    }
+    function SetTeamOwner() {
+        //
+        var assignedToDdl = $("#AssignedToTeamUserId").data("kendoDropDownList");
+
+        var link = "/cms/Team/GetTeamOwner?teamId=" + $("#AssignedToTeamId").val();
+            $.ajax({
+                url: link,
+                success: function (data) {
+                    assignedToDdl.enable(true);
+                    assignedToDdl.value(data);
+                }
+            });
+
+
+
+    }
+    function SetNextTeamOwner() {
+
+        var assignedToDdl = $("#NextTaskAssignedToTeamUserId").data("kendoDropDownList");
+
+        var link = "/cms/Team/GetTeamOwner?teamId=" + $("#NextTaskAssignedToTeamId").val();
+        $.ajax({
+            url: link,
+            success: function (data) {
+                assignedToDdl.value(data);
+            }
+        });
+
+
+
+    }
+
+    function onTag()
+    {
+          var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("TagCategoryByTemplateType", "TagCategory", new { @area = "Cms" })?templateId=@Model.TemplateId&Id=@Model.TaskId&TemplateType=Task';
+        win.OpenWindow({ Title: 'Tags', Width: 1200, Height: 600 });
+        return false;
+    }
+
+
+    function onLog()
+    {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("GetServiceLogsDetails", "NtsService", new { @area = "Cms" })?ServiceId=@Model.TaskId&templateCode=@Model.TemplateCode&UdfNoteId=@Model.UdfNoteId&TemplateType=Task';
+        win.OpenWindow({ Title: 'Logs', Width: 1200, Height: 600 });
+        return false;
+    }
+    function OnViewService(id, pageid, templateCode) {
+        var prms = encodeURIComponent('hideStpTaskDetails=true');
+        var portalId = "";
+        if (window.parent == "" || window.parent == undefined) {
+            portalId = $("#GlobalPortalId").val();
+        }
+        else {
+            portalId = window.parent.$("#GlobalPortalId").val();
+        }
+        var url = '/Cms/Page?lo=Popup&pageType=Service&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId +'&recordId=' + id  + '&prms=' + prms;
+        LoadCmsPartialView(url, 'Service', true, 1000, 600, 'Service');
+        return false;
+    }
+    function OnViewTask(id, pageid, tempCode) {
+        var portalId = "";
+        if (window.parent == "" || window.parent == undefined) {
+            portalId = $("#GlobalPortalId").val();
+        }
+        else {
+            portalId = window.parent.$("#GlobalPortalId").val();
+        }
+        var prms = encodeURIComponent('hideStpTaskDetails=true');
+        var url = '/Cms/Page?lo=Popup&pageType=Task&source=View&dataAction=View&templateCodes=' + tempCode + '&portalId=' + portalId + '&recordId=' + id + '&prms=' + prms;
+        LoadCmsPartialView(url, 'Task', true, 1000, 600, 'Task');
+        return false;
+    }
+    var actionName;
+    function htmlDecode(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+
+
+
+    function FillSharingCount() {
+         var openUrl = "/cms/GetTaskSharedCount?taskId=@Model.TaskId" ;
+        $.ajax({
+            url: openUrl,
+            type: 'GET',
+            cache: false,
+            success: function (data) {
+                $('#sharedCount').html(data);
+            },
+            error: function (errData) {
+                OnError(errData);
+            }
+        });
+    }
+    function FillCommentCount() {
+        var openUrl = "/cms/GetTaskCommentCount?taskId=@Model.TaskId" ;
+        $.ajax({
+            url: openUrl,
+            type: 'GET',
+            cache: false,
+            success: function (data) {
+                $('#commentCount').html(data);
+            },
+            error: function (errData) {
+                OnError(errData);
+            }
+        });
+    }
+     function FillAttachmentCount()
+    {
+        $.ajax({
+            type: "Get",
+            url: '/cms/GetTaskAttachmentCount?taskId=@Model.TaskId',
+            success: function (data) {
+                $("#attchmentCount").html(data);
+            },
+            dataType: "json",
+        });
+    }
+      function FillNotificationCount()
+    {
+        $.ajax({
+            type: "Get",
+            url: '/cms/GetTaskNotificationCount?taskId=@Model.TaskId',
+            success: function (data) {
+                $("#notificationCount").html(data);
+            },
+            dataType: "json",
+        });
+    }
+    function OpenRuntimeWorkflow() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/cms/processdesign/RunTimeWorkflow?templateId=@Model.TemplateId&serviceId=@Model.ParentServiceId&taskId=@Model.TaskId';
+        win.OpenWindow({ Title: 'Manage Workflow', Width: 1200, Height: 700 });
+        return false;
+    }
+    function SaveAsDraft() {
+        if ($("#AssignedToTypeCode").val() == "DIRECT_EMAIL") {
+            var testEmail = /^[A-Z0-9._%+-]+@@([A-Z0-9-]+\.)+[A-Z]{2,4}$/i;
+            if ($("#AssignedToEmail").val() == "") {
+                $("#validation-summary-manageform").html("Email Address is required");
+                $("#validation-summary-manageform").css("display", "block")
+                e.preventDefault();
+                return false;
+            }
+            if (!testEmail.test($("#AssignedToEmail").val())) {
+                $("#validation-summary-manageform").html("Assign to email is not valid");
+                $("#validation-summary-manageform").css("display", "block")
+                e.preventDefault();
+                return false;
+            }
+        }
+        $("#TaskStatusCode").val('TASK_STATUS_DRAFT');
+        console.log($("#TaskStatusCode"));
+        var json = $('#formio-container').html();
+        if (json === null || json === '' || json == undefined) {
+            $("#Json").val(JSON.stringify({}));
+        }
+        else {
+            $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+        }
+        return true;
+    }
+
+    function Reject() {
+        if ('@Model.IsRejectReasonRequired'=='True')
+        {
+            actionName = "SubmitReject";
+            var dialogue = $('#reason').data("kendoDialog");
+            dialogue.title('Reject Reason');
+            $("#commentReq").html('Reject Reason is required');
+            $("#commentReq").hide();
+            $("#CommentTemp").val(null);
+            dialogue.open();
+            return false;
+        }
+        else
+        {
+            $("#CommentTemp").val(null);
+            return SubmitReject();
+        }
+
+    }
+    function SubmitReject() {
+        $("#TaskStatusCode").val('TASK_STATUS_REJECT');
+        $("#RejectionReason").val($("#CommentTemp").val());
+        var json = $('#formio-container').html();
+        var isValid = json === null || json === '' || frm.checkValidity(frm.submission.data);
+        if (true) {
+            if (json === null || json === '' || json == undefined) {
+                $("#Json").val(JSON.stringify({}));
+            }
+            else {
+                $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+            }
+            return true;
+        }
+        else {
+            frm.submit();
+        }
+       // $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+
+        return false;
+    }
+    function SubmitReturn() {
+        $("#TaskStatusCode").val('TASK_STATUS_CANCEL');
+        $("#ReturnReason").val($("#CommentTemp").val());
+        $("#IsReturned").val(true);
+        var json = $('#formio-container').html();
+        var isValid = json === null || json === '' || frm.checkValidity(frm.submission.data);
+        if (isValid) {
+            if (json === null || json === '' || json == undefined) {
+                $("#Json").val(JSON.stringify({}));
+            }
+            else {
+                $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+            }
+            return true;
+        }
+        else {
+            frm.submit();
+        }
+        // $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+
+        return false;
+    }
+    function Return() {
+        actionName = "SubmitReturn";
+        var dialogue = $('#reason').data("kendoDialog");
+        dialogue.title('Return Reason');
+        $("#commentReq").html('Return Reason is required');
+        $("#commentReq").hide();
+        $("#CommentTemp").val(null);
+        dialogue.open();
+        return false;
+
+        //$("#TaskStatusCode").val('TASK_STATUS_CANCEL');
+        //$("#IsReturned").val(true);
+        //var json = $('#formio-container').html();
+        //var isValid = json === null || json === '' || frm.checkValidity(frm.submission.data);
+        //if (isValid) {
+        //    if (json === null || json === '' || json == undefined) {
+        //        $("#Json").val(JSON.stringify({}));
+        //    }
+        //    else {
+        //        $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+        //    }
+        //    return true;
+        //}
+        //else {
+        //    frm.submit();
+        //}
+        //return false;
+    }
+    function ReOpen() {
+        $("#TaskStatusCode").val('TASK_STATUS_INPROGRESS');
+        var version = $("#VersionNo").val()+1;
+        $("#VersionNo").val(version);
+        var json = $('#formio-container').html();
+        //var isValid = json === null || jsonModel=== '' || frm.checkValidity(frm.submission.data);
+
+            if (json === null || json === '' || json == undefined) {
+                $("#Json").val(JSON.stringify({}));
+            }
+            else {
+                $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+            }
+            return true;
+
+
+    }
+      function Complete() {
+        if ('@Model.IsCompleteReasonRequired'=='True')
+        {
+            actionName = "SubmitComplete";
+            var dialogue = $('#reason').data("kendoDialog");
+            dialogueTaskIdaskIdtitle('Comment');
+            $("#commentReq").html('Comment is required');
+            $("#commentReq").hide();
+            $("#CommentTemp").val(null);
+            dialogue.open();
+            return false;
+        }
+        else
+        {
+            $("#CommentTemp").val(null);
+            return SubmitComplete();
+        }
+
+    }
+    function SubmitComplete() {
+        $("#TaskStatusCode").val('TASK_STATUS_COMPLETE');
+        $("#CompleteReason").val($("#CommentTemp").val());
+        var json = $('#formio-container').html();
+        var isValid = json === null || json === '' || frm.checkValidity(frm.submission.data);
+        if (isValid) {
+            if ('@Model.EnableDynamicStepTaskSelection' == 'True') {
+                var win = GetMainWindow();
+                win.iframeOpenUrl = '@Url.Action("StepComponent", "Cms", new { @area = "" })?serviceId=@Model.ParentServiceId&taskId=@Model.TaskId';
+                win.OpenWindow({ Title: 'Service Step', Width: 800, Height: 500 });
+                return false;
+            }
+            else {
+                if (json === null || json === '' || json == undefined) {
+                    $("#Json").val(JSON.stringify({}));
+                }
+                else {
+                    $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+                }
+                return true;
+            }
+        }
+        else {
+            frm.submit();
+        }
+       // $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+
+        return false;
+    }
+     function SaveChanges() {
+         $("#TaskStatusCode").val('TASK_STATUS_SAVECHAGES');
+        var json = $('#formio-container').html();
+        //var isValid = json === null || json === '' || frm.checkValidity(frm.submission.data);
+        if (true) {
+
+                if (json === null || json === '' || json == undefined) {
+                    $("#Json").val(JSON.stringify({}));
+                }
+                else {
+                    $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+                }
+                return true;
+
+        }
+        else {
+            frm.submit();
+        }
+       // $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+
+        return false;
+    }
+    function FillNextStepId(id) {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        var json = $('#formio-container').html();
+
+        $("#NextStepTaskComponentId").val(id);
+        if (json === null || json === '' || json == undefined) {
+            $("#Json").val(JSON.stringify({}));
+        }
+        else {
+            $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+        }
+        $("#frmManageTask").submit();
+        return true;
+    }
+    function Submit(e) {
+
+        if ($("#AssignedToTypeCode").val() == "DIRECT_EMAIL")
+        {
+            var testEmail = /^[A-Z0-9._%+-]+@@([A-Z0-9-]+\.)+[A-Z]{2,4}$/i;
+            if ($("#AssignedToEmail").val() == "")
+            {
+                $("#validation-summary-manageform").html("Email Address is required");
+                $("#validation-summary-manageform").css("display", "block")
+                e.preventDefault();
+                return false;
+            }
+            if (!testEmail.test($("#AssignedToEmail").val()))
+            {
+                $("#validation-summary-manageform").html("Assign to email is not valid");
+                $("#validation-summary-manageform").css("display", "block")
+                e.preventDefault();
+                return false;
+            }
+        }
+        var json = $('#formio-container').html();
+        var isValid = json === null || json === '' || frm.checkValidity(frm.submission.data);
+        if (isValid || '@Model.ActiveUserType' == '@NtsActiveUserTypeEnum.Owner') {
+            if ('@Model.EnablePlanning' == 'True') {
+                $("#TaskStatusCode").val('TASK_STATUS_PLANNED');
+            }
+            else {
+                $("#TaskStatusCode").val('TASK_STATUS_INPROGRESS');
+            }
+            if (json === null || json === '' || json == undefined) {
+                $("#Json").val(JSON.stringify({}));
+            }
+            else {
+                $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+            }
+            return true;
+        }
+        else {
+            frm.submit();
+        }
+        //var isValid = frm.checkValidity(frm.submission.data);
+        //if (isValid) {
+        //    $("#TaskStatusCode").val('TASK_STATUS_INPROGRESS');
+        //    $("#Json").val(JSON.stringify(frm.submission.data, null, 4));
+        //    return Modelrue;
+        //}
+        //else {
+        //    frm.submit();
+        //}
+        return false;
+    }
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            ShowNotification(res.msg, 'success');
+            if (res.mode === 'Popup') {
+                var win = GetMainWindow();
+                var cb = null;
+                if (res.cbm !== null && res.cbm !== undefined && res.cbm !== '') {
+                    cb = { MethodName: res.cbm, Prms: res.vm };
+                }
+                win.CloseWindow(cb);
+                return false;
+            }
+            if (res.mode === 'Iframe') {
+                if (res.cbm !== null && res.cbm !== undefined && res.cbm !== '') {
+                    window.parent[res.cbm](res.vm);
+                    return false;
+                }
+            }
+            if (res.mode === 'Div') {
+                if (res.cbm !== null && res.cbm !== undefined && res.cbm !== '') {
+                    window[res.cbm](res.vm);
+                    return false;
+                }
+
+            }
+             if (res.reload) {
+                LoadPageById(res.pageId, res.pageType, res.source, res.dataAction, res.recordId);
+            }
+            else if (res.ru !== null && res.ru !== '' && res.ru !== undefined && res.ru !== 'undefined') {
+                window.location.href = res.ru;
+            }
+        }
+        else {
+            ResetDate();
+            ShowTaskError(res.error);
+        }
+    };
+    function ShowTaskError(error) {
+        $("#validation-summary-manageform").html(error);
+        $("#validation-summary-manageform").css("display", "block")
+    }
+
+
+    function myFunction() {
+        document.getElementById("myDropdown").classList.toggle("show");
+    }
+
+
+
+    function onchangetype() {
+        /*var assigneeType = $("#AssignedToTypeCode").data("kendoDropDownList").value();*/
+        var assigneeTypeDDL = $("#AssignedToTypeCode").data("kendoDropDownList");
+        var assigneeType = assigneeTypeDDL.value();
+        if (assigneeType == "DIRECT_EMAIL") {
+            /*assigneeTypeDDL.enable(false);*/
+            assigneeTypeDDL.readonly();
+        }
+        SetAssignee(assigneeType);
+
+    }
+    function onNextchangetype() {
+        try {
+            var assigneeType = $("#NextTaskAssignedToTypeCode").data("kendoDropDownList").value();
+            SetNextAssignee(assigneeType);
+
+        } catch (e) {
+
+        }
+
+
+    }
+    function SetAssignee(assigneeType) {
+        if (assigneeType == "TASK_ASSIGN_TO_USER") {
+            $("#users").show();
+            $("#teams").hide();
+            $("#teamusers").hide();
+            $("#hm").hide();
+            $("#hmlevel").hide();
+            $("#directEmail").hide();
+        }
+        else if (assigneeType == "TASK_ASSIGN_TO_TEAM") {
+            $("#users").hide();
+            $("#teams").show();
+            $("#teamusers").show();
+            $("#hm").hide();
+            $("#hmlevel").hide();
+            $("#directEmail").hide();
+        }
+        else if (assigneeType == "TASK_ASSIGN_TO_USER_HIERARCHY") {
+            $("#users").hide();
+            $("#teams").hide();
+            $("#teamusers").hide();
+            $("#hm").show();
+            $("#hmlevel").show();
+            $("#directEmail").hide();
+        }
+        else if (assigneeType == "DIRECT_EMAIL") {
+            $("#users").hide();
+            $("#teams").hide();
+            $("#teamusers").hide();
+            $("#hm").hide();
+            $("#hmlevel").hide();
+            $("#directEmail").show();
+        }
+        else {
+            $("#users").hide();
+            $("#teams").hide();
+            $("#teamusers").hide();
+            $("#hm").hide();
+            $("#hmlevel").hide();
+        }
+    }
+    function SetNextAssignee(assigneeType) {
+        if (assigneeType == "TASK_ASSIGN_TO_USER") {
+            $("#nextusers").show();
+            $("#nextteams").hide();
+            $("#nextteamusers").hide();
+            $("#nexthm").hide();
+            $("#nexthmlevel").hide();
+        }
+        else if (assigneeType == "TASK_ASSIGN_TO_TEAM") {
+            $("#nextusers").hide();
+            $("#nextteams").show();
+            $("#nextteamusers").show();
+            $("#nexthm").hide();
+            $("#nexthmlevel").hide();
+        }
+        else if (assigneeType == "TASK_ASSIGN_TO_USER_HIERARCHY") {
+            $("#nextusers").hide();
+            $("#nextteams").hide();
+            $("#nextteamusers").hide();
+            $("#nexthm").show();
+            $("#nexthmlevel").show();
+        }
+        else {
+            $("#nextusers").hide();
+            $("#nextteams").hide();
+            $("#nextteamusers").hide();
+            $("#nexthm").hide();
+            $("#nexthmlevel").hide();
+        }
+    }
+    function PostComment(e)
+    {
+        //
+        //alert($("#comment").val());
+        if ($("#comment").val() == "") {
+            alert("Please add any Comment ");
+        }
+        else {
+            $.ajax({
+                type: "POST",
+                url: "/cms/PostTaskComment",
+                data: {
+                    NtsTaskId: "@Model.TaskId",
+                    Comment: $("#comment").val(),
+                    CommentToUserId: $("#CommentToUserId").data("kendoDropDownList").value()
+                    // FileId: $("#FileId").val(),
+                },
+                success: function (data) {
+
+                    if (data.success) {
+                        ShowNotification("Commented successfully", "success");
+                        $(".action-section").hide();
+                        $("#action-add-comment").hide();
+                        //var editor = $("#comment").data("kendoEditor");
+                        //// set value
+                        //editor.value("");
+                        $(".richText-editor").text('');
+                        $("#CommentToUserId").data("kendoDropDownList").value('');
+                        $("#listViewMsg").data("kendoListView").dataSource.read();
+
+                        FillCommentCount();
+
+                    }
+                    else {
+                        ShowNotification("Please try again!", "error");
+                        ShowErrors(data.errors);
+                    }
+                },
+                error: function (err) {
+
+                }
+
+            });
+        }
+        e.preventDefault();
+    }
+    function OnActionChange(code) {
+        $("#action-add-comment").hide();
+       /* $("#action-complete-task").hide();*/
+        $("#action-change-sla").hide();
+        $("#action-close-task").hide();
+        $(".main-section").hide();
+        $(".action-section").show();
+
+        if (code == "ADD_COMMENT") {
+            $(".k-editor-toolbar-wrap").hide();
+            $("#action-add-comment").show();
+            $(".richText-editor").text('');
+        }
+        else if (code == "EDIT_TASK" || code == "REOPEN_TASK") {
+            ShowLoader();
+            $(".action-section").hide();
+            var portalId = "";
+            if (window.parent == "" || window.parent == undefined) {
+                portalId = $("#GlobalPortalId").val();
+            }
+            else {
+                portalId = window.parent.$("#GlobalPortalId").val();
+            }
+            var url = '/Cms/Page?lo=Popup&pageType=Task&source=Versioning&dataAction=Edit&templateCodes=@Model.TemplateCode&recordId=@Model.TaskId&portalId=' + portalId;
+            location.href = url;
+        }
+        else if (code == "COMPLETE_TASK") {
+            ShowLoader();
+            $(".action-section").hide();
+            var portalId = "";
+            if (window.parent == "" || window.parent == undefined) {
+                portalId = $("#GlobalPortalId").val();
+            }
+            else {
+                portalId = window.parent.$("#GlobalPortalId").val();
+            }
+            var url = '/Cms/Page?lo=Popup&pageType=Task&source=Edit&dataAction=Edit&templateCodes=@Model.TemplateCode&recordId=@Model.TaskId&portalId=' + portalId;
+            location.href = url;
+        }
+        else if (code == "CHANGE_SLA") {
+            $("#action-change-sla").show();
+        }
+        else if (code == "CLOSE_TASK") {
+            $("#action-close-task").show();
+        }
+        else {
+            $(".action-section").hide();
+        }
+    }
+
+    function Filter() {
+        var value = $("#AssignedToHierarchyMasterId").val();
+        return {
+            Id: value
+        }
+    }
+    function TeamFilter() {
+        var value = $("#AssignedToTeamId").val();
+        return {
+            Id: value
+        }
+    }
+    function NextTeamFilter() {
+        var value = $("#NextTaskAssignedToTeamId").val();
+        return {
+            Id: value
+        }
+    }
+
+    function OnStartDateDueDateChange() {
+
+        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        var ed = kendo.toString($("#DueDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+        if (new Date(ed) > new Date(sd)) {
+            var sec = GetSLAInSeconds(sd, ed);
+            $('#TaskSLASeconds').data('durationPicker').setValue(sec);
+        }
+    }
+
+    function GetSLAInSeconds(startDate, endDate) {
+        var query = "startDate=" + startDate + "&endDate=" + endDate;
+        var diff = UtilityAjax("GetSLAInSeconds", query);
+        return diff;
+    }
+    function GetAddSeconds(startDate, seconds) {
+        var query = "date=" + startDate + "&seconds=" + seconds;
+        var diff = UtilityAjax("AddSeconds", query);
+        return diff;
+    }
+   function onclickShare() {
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("NtsTaskShared", "Cms", new { @area = "" })?TaskId=@Model.TaskId&IsSharingEnabled=@Model.IsSharingEnabled';
+       win.OpenWindow({ Title: 'Share With', Width: 800, Height: 700 });
+        return false;
+    }
+     function onTimeEntry() {
+
+          var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("AddTaskTimeEntry", "Cms", new { @area = "" })?TaskId=@Model.TaskId&assignTo=@Model.AssignedToUserId&serviceId=@Model.ParentServiceId';
+         win.OpenWindow({ Title: 'Time Entries', Width: 1200, Height: 700 });
+        return false;
+    }
+    function onPredecessor() {
+
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("AddPredecessor", "Cms", new { @area = "" })?TaskId=@Model.TaskId';
+        win.OpenWindow({ Title: 'Relationship', Width: 1200, Height: 700 });
+        return false;
+
+    }
+      function onCommentClick()
+    {
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("TaskComments", "Cms", new { @area = "" })?taskId=@Model.TaskId&IsAddCommentEnabled=@Model.IsAddCommentEnabled';
+          win.OpenWindow({ Title: 'Task Comments', Width: 1200, Height: 800 });
+        return false;
+    }
+      function AddAttachment(e)
+{
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("AddTaskAttachment", "Cms", new { @area= "" })?TaskId=@Model.TaskId&IsAddAttachmentEnabled=@Model.IsAddAttachmentEnabled';
+          win.OpenWindow({ Title: 'Task Attachment', Width: 800, Height: 700 });
+        return false;
+    }
+
+    function ViewNotification()
+    {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/PortalAdmin/NotificationTemplate/NotificationIndex?lo=Popup&refTypeId=" + '@Model.TaskId';
+        win.OpenWindow({ Title: 'Notifications', Width: 1200, Height: 700 });
+        return false;
+    }
+    function closeNavMemberGroup()
+    {
+        if ('@Convert.ToString(Model.LayoutMode)' === 'Popup')
+        {
+            var win = GetMainWindow();
+            win.CloseWindow();
+            return false;
+        }
+        var id = '@Model.Page.Id';
+        var type = '@Model.Page.PageType.ToString()';
+        var source = '@RequestSourceEnum.Main.ToString()';
+        var action = '@DataActionEnum.None.ToString()';
+        LoadPageById(id, type, source, action,'','','','','');
+    }
+     function OnReply(e) {
+            var id = '@Model.Page.Id';
+            var portalId = '@Model.Page.PortalId';
+            var type = '@Model.Page.PageType.ToString()';
+            var source = '@RequestSourceEnum.Edit.ToString()';
+            var action = '@RequestSourceEnum.Edit.ToString()';
+         var templateCodes = '@Model.Page.TemplateCodes';
+         if ('@Convert.ToString(Model.ViewMode)' === '@NtsViewTypeEnum.Book.ToString()') {
+             var win = GetMainWindow();
+             win.iframeOpenUrl = '/Cms/Page?lo=Popup&pageType=' + type + '&source=' + source + '&dataAction=' + action + '&templateCodes=' + templateCodes + '&portalId=' + portalId + '&recordId=@Model.TaskId';
+             win.OpenWindow({ Title: 'Manage Task', Width: 1200, Height: 700 });
+             return false;
+         }
+         else {
+             LoadPageById(id, type, source, action, '@Model.TaskId', true, 1200, 700, 'Manage Task', '@Model.PopupCallbackMethod', true, templateCodes, portalId);
+             return false;
+         }
+         //LoadPageById(id, type, source, action, '@Model.TaskId', true, 1200, 600, 'Manage Task', '@Model.PopupCallbackMethod', true, templateCodes, portalId);
+            return false;
+    }
+
+    function OnReasonSave(e) {
+        var comment = $("#CommentTemp").val();
+        if (comment == null || comment == '') {
+            $("#commentReq").show();
+            return false;
+        }
+        else {
+
+            $("#Comment").val(comment);
+            var valid = window[actionName]();
+            if (valid) {
+                $("#frmManageTask").submit();
+            }
+            var dialogue = $('#reason').data("kendoDialog");
+            dialogue.close();
+
+        }
+    }
+    var tempOwnerId;
+    function OnChangeOwner() {
+        $('#from-display').hide('slow');
+        $('#from-edit').show('slow');
+        tempOwnerId=  $("#OwnerUserId").val();
+        $("#OwnerUserId").val(null);
+        return false;
+    }
+    function OnChangeOwnerCancel() {
+        $('#from-display').show('slow');
+        $('#from-edit').hide('slow');
+        $("#OwnerUserId").val(tempOwnerId);
+        return false;
+    }
+    function OnChangeOwnerSave() {
+        var owner = $("#owner").data("kendoDropDownList");
+        var dataItem = owner.dataItem();
+        $("#OwnerUserId").val(dataItem.Id);
+        $("#o-img").attr('src', '/Cms/document/getimagemongo/' + dataItem.PhotoId);
+        $("#o-name").html( dataItem.Name);
+        $("#o-email").html( dataItem.Email);
+        $('#from-display').show('slow');
+        $('#from-edit').hide('slow');
+        $('#user-popup-card').data('user-id', dataItem.Id);
+        SetOwnerAndRequesterVisibility();
+        return false;
+    }
+    function SetOwnerAndRequesterVisibility() {
+        var owner = $("#OwnerUserId").val();
+        var requester = $("#RequestedByUserId").val();
+        if (owner !== requester) {
+            $('#div-requested-by').show('slow');
+        }
+        else {
+            $('#div-requested-by').hide('slow');
+        }
+        return false;
+    }
+
+
+
+    function onEmail()
+    {
+        url = '@Url.Action("NtsEmail", "Cms", new { @area = "" })?refId=@Model.TaskId' + '&refType=@ReferenceTypeEnum.NTS_Task';
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Email', Width: 1200, Height: 600 });
+    }
+
+    function ViewVersionDetails() {
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("NtsVersion", "Cms", new { @area = "" })?recordId=@Model.TaskId&type=' + '@NtsTypeEnum.Task' + '&portalId=' + portalId;
+        win.OpenWindow({ Title: 'Version Details', Width: 1200, Height: 600 });
+        return false;
+    }
+
+     function OnTaskLock()
+    {
+        var result = "Success";
+        $.ajax({
+            type: "POST",
+            url: "/cms/LockTask?taskId=@Model.TaskId",
+             contentType: "application/json; charset=utf-8",
+             dataType: "json",
+            success: function (data) {
+                result = data;
+            },
+             error: function () { alert('Problem in Locking, Please Contact Administrator'); }
+        });
+        window.location.reload();
+        return false;
+    }
+
+    function OnReassignLock(userId)
+    {
+        var result = "Success";
+        $.ajax({
+             type: "POST",
+            url: "/cms/LockTask?taskId=@Model.TaskId&userId="+userId,
+             contentType: "application/json; charset=utf-8",
+             dataType: "json",
+            success: function (data) {
+                result = data;
+            },
+             error: function () { alert('Problem in Reassign, Please Contact Administrator'); }
+        });
+        window.location.reload();
+        return false;
+    }
+
+    function OnTaskRelease()
+    {
+        var result = "Success";
+        $.ajax({
+             type: "POST",
+            url: "/cms/ReleaseTask?taskId=@Model.TaskId",
+             contentType: "application/json; charset=utf-8",
+             dataType: "json",
+            success: function (data) {
+                result = data;
+            },
+             error: function () { alert('Problem in Reassign, Please Contact Administrator'); }
+        });
+        window.location.reload();
+        return false;
+    }
+    function StartTask()
+    {
+        $.ajax({
+            type: "POST",
+            url: "/cms/StartTask?taskId=@Model.TaskId",
+            success: function (data) {
+
+                ShowNotification("Task Started Successfully", "success");
+                window.location.href = window.location.href;
+                    //$("#btnStart").hide();
+                    //$("#drpDiv").show();
+
+            },
+            error: function (err) {
+
+            }
+
+        });
+        return false;
+    }
+</script>
+
+<div class="page">
+
+    @if (Model.ViewMode != NtsViewTypeEnum.Book)
+    {
+        <div class="row no-gutters">
+            <div class="col-sm-12 col-md-6 p-3 pt-4">
+                <h5 class="">@Model.TemplateDisplayName</h5>
+            </div>
+            <div class="col-sm-12 col-md-6 float-right text-right p-3">
+                <a href="#" class="tile bg-primary tile-circle more-action" title="Actions">
+                    <i class="icon-btn-icon fa fa-pencil">
+                    </i>
+                </a>
+                @if (!Model.HideAttachmentInHeader)
+                {
+                    <a href="#" class="tile bg-warning tile-circle" title="Attachment" onclick="AddAttachment();">
+                        <i class="icon-btn-icon fa fa-paperclip font-weight-bold">
+                        </i>
+                    </a>
+                }
+                @if (!Model.IsInEditMode && !Model.HideShareInHeader)
+                {
+                    <a href="#" class="tile bg-success tile-circle" title="Share" onclick="onclickShare();">
+                        <i class="icon-btn-icon fa fa-share-alt">
+                        </i>
+                    </a>
+                }
+                @if (!Model.IsInEditMode && !Model.HideCommentInHeader)
+                {
+                    <a href="#" class="tile bg-info tile-circle" title="Comment" onclick="onCommentClick();">
+                        <i class="icon-btn-icon fa fa-comment-alt">
+                        </i>
+                    </a>
+                }
+                <a href="#" class="tile bg-danger tile-circle more-option" title="More Options">
+                    <i class="icon-btn-icon fa fa-ellipsis-h">
+                    </i>
+                </a>
+                @if (Model.EnableBackButton && Model.LayoutMode != LayoutModeEnum.Iframe)
+                {
+                    <a href="#" class="tile bg-default tile-circle more-option" title="Close Window" onclick="closeNavMemberGroup();">
+                        <i class="icon-btn-icon fa fa-times">
+                        </i>
+                    </a>
+                }
+            </div>
+        </div>
+        <hr class="mt-0 ml-3" />
+    }
+    <div class="d-flex bg-light m-3">
+        <div class="flex-fill text-center nts-display-item" title="Task Assignee">
+            <div class="m-3">
+                <i class="fa fa-user text-primary"></i>
+                <span class="user-popup-card" data-user-id="@Model.AssignedToUserId">
+                    <span class="pl-2">@Model.AssignedToUserName</span>
+                    <span>&lt;<a>@Model.AssignedToUserEmail</a>&gt;</span>
+                </span>
+            </div>
+        </div>
+        <div class="flex-fill text-center nts-display-item" title="Task No">
+            <div class="m-3">
+                <i class="fa fa-hashtag mr-2 text-warning"></i>@Model.TaskNo
+            </div>
+        </div>
+        <div class="flex-fill text-center nts-display-item" title="Task Status">
+            <div class="m-3">
+                <i class="fa fa-check-double mr-2 text-success"></i>@Model.TaskStatusName
+            </div>
+        </div>
+        <div class="flex-fill text-center nts-display-item" title="Due Date">
+            <div class="m-3">
+                <i class="fa fa-calendar-clock mr-2 text-danger"></i>@Model.DueDate.Humanize()
+            </div>
+        </div>
+        <div class="flex-fill text-center nts-display-info" title="Task Version">
+            <div class="m-3">
+                <i class="fa fa-v mr-2 text-muted"></i>@Model.VersionNo
+            </div>
+        </div>
+    </div>
+    <div class="page-inner p-2 pl-3">
+        <form asp-controller="Cms" asp-action="ManageTask" asp-area="" method="post" class="form-parse-date form-horizontal"
+              data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+              data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess" onsubmit="ConvertDate()"
+              data-ajax="true" data-ajax-method="POST" id="frmManageTask">
+            <div>
+                <div class="row no-gutters">
+                    @Html.HiddenFor(x => x.TaskStatusCode)
+                    @Html.HiddenFor(x => x.IsReturned)
+                    @Html.HiddenFor(x => x.Json)
+                    @Html.HiddenFor(x => x.DataJson)
+                    @Html.HiddenFor(x => x.Id)
+                    @Html.HiddenFor(x => x.TaskId)
+                    @Html.HiddenFor(x => x.TaskTableId)
+                    @Html.HiddenFor(x => x.UdfNoteTableId)
+                    @Html.HiddenFor(x => x.TemplateId)
+                    @Html.HiddenFor(x => x.UdfTemplateId)
+                    @Html.HiddenFor(x => x.UdfTableMetadataId)
+                    @Html.HiddenFor(x => x.UdfNoteId)
+                    @Html.HiddenFor(x => x.TemplateCode)
+                    @Html.HiddenFor(x => x.PageId)
+                    @Html.HiddenFor(x => x.DataAction)
+                    @Html.HiddenFor(x => x.RecordId)
+                    @Html.HiddenFor(x => x.PortalName)
+                    @Html.HiddenFor(x => x.CreateReturnType)
+                    @Html.HiddenFor(x => x.EditReturnType)
+                    @Html.HiddenFor(x => x.RejectionReason)
+                    @Html.HiddenFor(x => x.ReturnReason)
+                    @Html.HiddenFor(x => x.CompleteReason)
+                    @Html.HiddenFor(x => x.CloseComment)
+                    @Html.HiddenFor(x => x.TaskSequenceOrder)
+                    @Html.HiddenFor(x => x.ParentServiceId)
+                    @Html.HiddenFor(x => x.ParentTaskId)
+                    @Html.HiddenFor(x => x.ActiveUserType)
+                    @Html.HiddenFor(x => x.ActiveUserId)
+                    @Html.HiddenFor(x => x.TableMetadataId)
+                    @Html.HiddenFor(x => x.RequestedByUserId)
+                    @Html.HiddenFor(x => x.OwnerUserId)
+                    @Html.HiddenFor(x => x.LayoutMode)
+                    @Html.HiddenFor(x => x.ReturnUrl)
+                    @Html.HiddenFor(x => x.CustomUrl)
+                    @Html.HiddenFor(x => x.PopupCallbackMethod)
+                    @Html.HiddenFor(x => x.IsSubjectMandatory)
+                    @Html.HiddenFor(x => x.IsSubjectUnique)
+                    @Html.HiddenFor(x => x.AllowPastStartDate)
+                    @Html.HiddenFor(x => x.TaskTemplateType)
+                    @Html.HiddenFor(x => x.StepTaskComponentId)
+                    @Html.HiddenFor(x => x.CreatedBy)
+                    @Html.HiddenFor(x => x.LastUpdatedBy)
+                    @Html.HiddenFor(x => x.PlanDate)
+                    @Html.HiddenFor(x => x.LegalEntityId)
+                    @Html.HiddenFor(x => x.CompanyId)
+                    @Html.HiddenFor(x => x.ReferenceType)
+                    @Html.HiddenFor(x => x.ReferenceId)
+                    @Html.HiddenFor(x => x.SequenceOrder)
+                    @Html.HiddenFor(x => x.ParentNoteId)
+                    @Html.HiddenFor(x => x.ServicePlusId)
+                    @Html.HiddenFor(x => x.NotePlusId)
+                    @Html.HiddenFor(x => x.TaskPlusId)
+                    @Html.HiddenFor(x => x.NextStepTaskComponentId)
+                    @Html.HiddenFor(x => x.TaskAssignedToTypeId)
+                    @Html.HiddenFor(x => x.TriggeredByReferenceType)
+                    @Html.HiddenFor(x => x.TriggeredByReferenceId)
+                    <div id="validation-summary-manageform" class="pt-2 pb-2 error-summary alert alert-danger" asp-validation-summary="All" style="display:none;"></div>
+                    <div class="col-xs-12 action-section mb-2" style="display:none;">
+                        <div id="action-add-comment" class="col-xs-12" style="display:none;">
+                            <div class="form-group">
+                                <label class="col-form-label">
+                                    Comment
+                                </label>
+                                <div>
+                                    <div class="page-wrapper box-content">
+                                        <textarea class="content1" id="comment"></textarea>
+                                    </div>
+                                </div>
+                                <div class="pt-2">
+                                    <input id="CommentToUserId" class="form-control" />
+                                    <script>
+                                                $(document).ready(function () {
+                                                    $("#CommentToUserId").kendoDropDownList({
+                                                        optionLabel: "All",
+                                                        dataTextField: "Name",
+                                                        dataValueField: "Id",
+                                                        filter: "contains",
+                                                        height: 400,
+                                                        autoBind: true,
+                                                        dataSource: {
+                                                            transport: {
+                                                                read: {
+                                                                    url: "/Cms/NtsTask/GetTaskSharedUsersIdNameList?taskId=@Model.TaskId",
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                });
+                                            $(".content1").richText();
+                                    </script>
+                                </div>
+                            </div>
+                            <button class="btn post-btn" onclick="PostComment(event)">Add Comment</button>
+                        </div>
+
+                        <div id="action-reopen-task" class="col-xs-12" style="display:none;">
+                            @if (Model.IsReOpenButtonVisible)
+                            {
+                                <button type="submit" class="btn btn-danger" onclick="return ReOpen();">Re-open</button>
+                            }
+                        </div>
+                        <div id="action-change-sla" class="col-xs-12" style="display:none;">
+                            Request SLA
+                        </div>
+                        <div id="action-close-task" class="col-xs-12" style="display:none;">
+                            <div class="form-group">
+                                <label class="col-form-label">
+                                    Rating
+                                </label>
+                                <div>
+
+
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-form-label">
+                                    Comments
+
+                                </label>
+
+                                <div>
+
+
+                                    <div class="page-wrapper box-content">
+                                        <textarea class="content" id="ratingComment"></textarea>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <button class="btn btn-dark">Close Task</button>
+                        </div>
+                    </div>
+                    <div class="row col-12 main-section no-gutters">
+                        <div class="row col-12 pb-2">
+                            @if (Model.IsInEditMode)
+                            {
+
+                                @if (Model.NumberGenerationType == NumberGenerationTypeEnum.UserEntry)
+                                {
+                                    <div class="form-group col-12 pt-1 pb-1">
+                                        <label class="col-form-label">
+                                            @Model.TaskNo.ToDefaultTaskNumberText()
+                                        </label>
+                                        <div>
+                                            <input asp-for="TaskNo" type="text" class="form-control" style="width:100%" />
+                                        </div>
+                                    </div>
+
+                                }
+                                @if (!Model.HideHeader)
+                                {
+                                    @if (!Model.HideSubject)
+                                    {
+                                        <div class="form-group col-12 pt-1 pb-1">
+                                            <label class="col-form-label">
+                                                @Model.SubjectText.Coalesce("Subject")
+                                            </label>
+                                            <div>
+                                                <input asp-for="TaskSubject" type="text" class="form-control" style="width:100%" />
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @Html.HiddenFor(x => x.TaskSubject)
+                                    }
+                                    @if (!Model.HideDescription)
+                                    {
+
+                                        <div class="form-group col-12 pt-1 pb-1">
+                                            <label class="col-form-label">
+                                                @Model.DescriptionText.Coalesce("Description")
+                                            </label>
+                                            <div>
+                                                <div class="page-wrapper box-content">
+                                                    <textarea class="content" asp-for="TaskDescription" id="TaskDescription"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    }
+                                    else
+                                    {
+                                        @Html.HiddenFor(x => x.TaskDescription)
+                                    }
+
+                                    <div class="form-group col-6">
+                                        <label class="col-form-label">
+                                            Assign To Type
+                                        </label>
+                                        <div>
+                                            <input asp-for="AssignedToTypeCode" id="AssignedToTypeCode" class="form-control" />
+                                            <script>
+                                                      $(document).ready(function(){
+                                                          $("#AssignedToTypeCode").kendoDropDownList({
+                                                            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                                  dataTextField: "Name",
+                                                                  dataValueField: "Code",
+                                                                  value: "@Model.AssignedToTypeCode",
+                                                                  autoBind: true,
+                                                              change: onchangetype,
+                                                              dataBound: function(e)
+                                                              {
+                      if ('@Model.EnableDirectEmailAssignee' != 'True' && '@Model.EnableDirectEmailAssignee' != 'true')
+                      {
+                          var ddl = $("#AssignedToTypeCode").data("kendoDropDownList");
+                          var oldData = ddl.dataSource.data();
+                          ddl.dataSource.remove(oldData[3]);
+                      }
+                      onchangetype();
+                  },
+                                                                  dataSource:
+                  {
+                  transport:
+                      {
+                      read:
+                          {
+                          url: "/Cms/LOV/GetLOVIdNameList?lovType=TASK_ASSIGN_TO_TYPE",
+                                                                         }
+                      }
+                  }
+              });
+          });
+                                            </script>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-12 pt-1 pb-1" id="directEmail" style="display:none">
+                                        <label class="col-form-label">
+                                            Assign To
+                                        </label>
+                                        <div>
+
+                                            <input asp-for="AssignedToEmail" id="AssignedToEmail" type="email" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-12 pt-2 pb-2" id="users" style="display:none">
+                                        <label class="col-form-label">
+                                            Assign To
+                                        </label>
+                                        <div>
+                                            <input asp-for="AssignedToUserId" id="AssignedToUserId" class="form-control" />
+                                            <script>
+                                        $(document).ready(function(){
+                                            $("#AssignedToUserId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.AssignedToUserId",
+                                                filter: "contains",
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/User/ReadUserData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                            </script>
+
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group col-12 pt-1 pb-1" id="teams" style="display:none">
+                                        <label class="col-form-label">
+                                            Assign To Team
+                                        </label>
+                                        <div>
+                                            <input asp-for="AssignedToTeamId" id="AssignedToTeamId" class="form-control" style="width:100%;" />
+                                            <script>
+                                        $(document).ready(function(){
+                                            $("#AssignedToTeamId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.AssignedToTeamId",
+                                                filter: "contains",
+                                                change: SetTeamOwner,
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/ProcessDesign/ReadTeamData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                            </script>
+
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group col-12 pt-1 pb-1" id="teamusers" style="display:none">
+                                        <label class="col-form-label">
+                                            Assign To Team User
+                                        </label>
+                                        <div>
+                                            <input asp-for="AssignedToTeamUserId" id="AssignedToTeamUserId" class="form-control" style="width:100%;" />
+                                            <script>
+                                            $("#AssignedToTeamUserId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.AssignedToTeamUserId",
+                                                filter: "contains",
+                                                autoBind: false,
+                                                enable: false,
+                                                cascadeFrom: "AssignedToTeamId",
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            dataType: "json",
+                                                            url: "/Cms/User/ReadUserTeamData",
+                                                            data: TeamFilter
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                            </script>
+
+
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group col-12 pt-1 pb-1" id="hm" style="display:none">
+                                        <label class="col-form-label">
+                                            Assign To Hierarchy
+                                        </label>
+                                        <div>
+                                            <input asp-for="AssignedToHierarchyMasterId" id="AssignedToHierarchyMasterId" class="form-control" style="width:100%;" />
+                                            <script>
+                                        $(document).ready(function(){
+                                        $("#AssignedToHierarchyMasterId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.AssignedToHierarchyMasterId",
+                                                filter: "contains",
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/ProcessDesign/ReadHierarchyMasterData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                            </script>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group col-12 pt-1 pb-1" id="hmlevel" style="display:none">
+                                        <label class="col-form-label">
+                                            Assign To Hierarchy Level
+                                        </label>
+                                        <div>
+                                            <input asp-for="AssignedToHierarchyMasterLevelId" id="AssignedToHierarchyMasterLevelId" class="form-control" style="width:100%;" />
+                                            <script>
+                                        $(document).ready(function(){
+                                        $("#AssignedToHierarchyMasterLevelId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.AssignedToHierarchyMasterLevelId",
+                                                filter: "contains",
+                                                autoBind: false,
+                                                enable: false,
+                                            cascadeFrom: "AssignedToHierarchyMasterId",
+                                            dataSource: {
+                                                serverFiltering: true,
+                                                    transport: {
+                                                        read: {
+                                                            dataType: "json",
+                                                            url: "/Cms/ProcessDesign/ReadHierarchyMasterLevelDataById",
+                                                            data: Filter
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                            </script>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-12 pt-1 pb-1" id="div-requested-by" style="display:none;">
+                                        <label class="col-form-label">
+                                            Requested By
+                                        </label>
+                                        <div class="alert-light">
+                                            <img class="user-photo rounded-circle" src="/Cms/document/getimagemongo/@Model.RequestedByUserPhotoId" onerror="OnPhotoError(this);">
+                                            <span class="user-popup-card" data-user-id="@Model.RequestedByUserId">
+                                                <span class="pl-2">@Model.RequestedByUserName</span>
+                                                <span>&lt;<a>@Model.RequestedByUserEmail</a>&gt;</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    @if (!Model.HideOwner)
+                                    {
+                                        <div class="col-12 pt-1 pb-1">
+                                            <div class="form-group">
+                                                <label class="col-form-label">
+                                                    From
+                                                </label>
+                                                <div class="alert-light" id="from-display">
+                                                    <img id="o-img" class="user-photo rounded-circle" src="/Cms/document/getimagemongo/@Model.OwnerUserPhotoId" onerror="OnPhotoError(this);">
+                                                    <span id="user-popup-card" class="user-popup-card" data-user-id="@Model.OwnerUserId">
+                                                        <span id="o-name" class="pl-2">@Model.OwnerUserName</span>
+                                                        <span>&lt;<a id="o-email">@Model.OwnerUserEmail</a>&gt;</span>
+                                                    </span>
+                                                    <i title="Change Owner" class="pl-2 fa fa-pencil pt-1" style="font-size:22px;cursor:pointer;" onclick="return OnChangeOwner()"></i>
+                                                </div>
+                                                <div id="from-edit" class="row no-gutters" style="display:none;">
+                                                    <div class="col-11">  @await Html.PartialAsync("~/Areas/Core/Views/Shared/_UserDropdown.cshtml", new Tuple<string, string, string, string>(Model.OwnerUserId, "owner", null, "form-control"))</div>
+                                                    <div class="1">
+                                                        <i class="fa fa-check-circle" style="font-size:30px;cursor:pointer;padding-left:5px;padding-top:7px;color:green;" title="Save" onclick="return OnChangeOwnerSave()"></i>
+                                                        <i class="fa fa-times-circle" style="font-size:30px;cursor:pointer;padding-left:5px;padding-top:7px;color:red;" title="Cancel" onclick="return OnChangeOwnerCancel()"></i>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @Html.HiddenFor(x => x.OwnerUserId)
+                                    }
+                                    <div class="form-group col-6 pt-1 pb-1">
+                                        <label class="col-form-label">
+                                            Priority
+                                        </label>
+                                        <div>
+                                            <input asp-for="TaskPriorityId" id="TaskPriorityId" class="form-control" style="width: 100%;" />
+                                            <script>
+                                                    $(document).ready(function(){
+                                                        $("#TaskPriorityId").kendoDropDownList({
+                                                                    optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                                    dataTextField: "Name",
+                                                                    dataValueField: "Id",
+			                                                        value: "@Model.TaskPriorityId",
+                                                                    autoBind: true,
+                                                                    dataSource: {
+                                                                        transport: {
+                                                                            read: {
+                                                                                url: "/Cms/LOV/GetLOVIdNameList?lovType=TASK_PRIORITY",
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+                                                    });
+                                            </script>
+
+                                        </div>
+                                    </div>
+
+                                    @if (!Model.HideStartDate)
+                                    {
+                                        <div class="form-group col-6 pt-1 pb-1">
+                                            <label class="col-form-label">
+                                                SLA
+                                            </label>
+                                            <div>
+                                                <input asp-for="TaskSLASeconds" type="text" class="form-control" style="width:100%" />
+
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-4 pt-1 pb-1">
+                                            <label class="col-form-label">
+                                                Plan Start Date
+                                            </label>
+                                            <div>
+                                                <input asp-for="StartDate" id="StartDate" style="width:100%" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-4 pt-1 pb-1">
+                                            <label class="col-form-label">
+                                                Plan End Date
+                                            </label>
+                                            <div>
+                                                <input asp-for="DueDate" id="DueDate" style="width:100%" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group col-4 pt-1 pb-1">
+                                            <label class="col-form-label">
+                                                Reminder Date
+                                            </label>
+                                            <div>
+                                                <input asp-for="ReminderDate" id="ReminderDate" style="width:100%" />
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @Html.HiddenFor(x => x.StartDate)
+                                        @Html.HiddenFor(x => x.DueDate)
+                                        @Html.HiddenFor(x => x.SLA)
+                                        @Html.HiddenFor(x => x.ReminderDate)
+                                    }
+                                }
+                                else
+                                {
+                                    @Html.HiddenFor(x => x.Subject)
+                                    @Html.HiddenFor(x => x.Description)
+                                    @Html.HiddenFor(x => x.OwnerUserId)
+                                    @Html.HiddenFor(x => x.AssignedToTypeCode)
+                                    @Html.HiddenFor(x => x.AssignedToEmail)
+                                    @Html.HiddenFor(x => x.AssignedToUserId)
+                                    @Html.HiddenFor(x => x.AssignedToTeamId)
+                                    @Html.HiddenFor(x => x.AssignedToTeamUserId)
+                                    @Html.HiddenFor(x => x.AssignedToHierarchyMasterId)
+                                    @Html.HiddenFor(x => x.AssignedToHierarchyMasterLevelId)
+                                    @Html.HiddenFor(x => x.TaskPriorityId)
+                                    @Html.HiddenFor(x => x.StartDate)
+                                    @Html.HiddenFor(x => x.DueDate)
+                                    @Html.HiddenFor(x => x.SLA)
+                                    @Html.HiddenFor(x => x.ReminderDate)
+                                }
+                                <div id="formio-container" class="col-12">
+                                </div>
+                                <div class="row col-12 pt-2">
+                                    @if (Model.IsRutimeWorkflowButtonVisible)
+                                    {
+                                        <button type="submit" class="btn btn-danger" onclick="return OpenRuntimeWorkflow();">@Model.RuntimeWorkflowButtonText.ToDefaultRuntimeWorkflowText()</button>
+                                    }
+                                    @if (Model.IsDraftButtonVisible)
+                                    {
+                                        <button type="submit" class="btn btn-info mr-2" onclick="return SaveAsDraft();">@Model.SaveAsDraftText.ToDefaultSaveAsDraftButtonText()</button>
+                                    }
+                                    @if (Model.IsSubmitButtonVisible)
+                                    {
+                                        <button type="submit" class="btn btn-primary mr-2" onclick="return Submit(event);">@Model.SubmitButtonText.ToDefaultSubmitButtonText()</button>}
+                                    @if (Model.IsVersioningButtonVisible)
+                                    {
+                                        <button type="submit" class="btn btn-primary mr-2" onclick="return Submit(event);">@Model.CompleteButtonText.ToDefaultSubmitButtonText()</button>}
+                                    @if (Model.IsLockVisible)
+                                    {
+                                        <button type="submit" class="btn btn-danger mr-2" onclick="return OnTaskLock();">Lock Team Task</button>
+                                    }
+                                    @if (Model.IsReleaseVisible)
+                                    {
+                                        <button type="submit" class="btn btn-primary mr-2" onclick="return OnTaskRelease();">Release Lock</button>
+                                    }
+                                    @if (Model.IsTaskTeamOwner)
+                                    {
+                                        <div class="btn-group" style="flex-wrap:nowrap;display:inline-block;margin-left:5px;">
+                                            <button type="button" class="btn btn-primary btn-task dropdown-toggle btn-card" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Reassign
+
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                @{
+                                                    if (Model.TeamMembers.Any())
+                                                    {
+                                                        foreach (var members in Model.TeamMembers)
+                                                        {
+                                                            <li onclick="OnReassignLock('@members.Id');"><a style="cursor:pointer; text-align:left;font-size:15px; font-family: Sans-Serif;">@members.Name</a></li>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <li><a style="cursor:pointer; text-align:left;font-size:15px; font-family: Sans-Serif;">No Team Members Found</a></li>
+                                                    }
+
+                                                }
+
+                                            </ul>
+                                        </div>
+
+                                    }
+                                    @if (Model.EnableChangingNextTaskAssignee)
+                                    {
+                                        <div class="col-xs-12 col-md-10">
+                                            <div class="form-group">
+                                                <label class="col-form-label">
+                                                    Assign To Type
+                                                </label>
+                                                <div>
+                                                    <input asp-for="NextTaskAssignedToTypeCode" id="NextTaskAssignedToTypeCode" class="form-control" />
+                                                    <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToTypeCode").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Code",
+                                                value: "@Model.NextTaskAssignedToTypeCode",
+                                                filter: "contains",
+                                                change: onNextchangetype,
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/LOV/GetLOVIdNameList?lovType=TASK_ASSIGN_TO_TYPE",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                    </script>
+
+                                                    @Html.HiddenFor(x => x.NextTaskAssignedToTypeId)
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group" id="nextusers" style="display:none">
+                                                <label class="col-form-label">
+                                                    Assign To
+                                                </label>
+                                                <div>
+
+
+                                                    <input asp-for="NextTaskAssignedToUserId" id="NextTaskAssignedToUserId" class="form-control" />
+                                                    <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToUserId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.NextTaskAssignedToUserId",
+                                                filter: "contains",
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/User/ReadUserData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                    </script>
+
+                                                </div>
+                                            </div>
+                                            <div class="form-group" id="nextteams" style="display:none">
+                                                <label class="col-form-label">
+                                                    Assign To Team
+                                                </label>
+                                                <div>
+
+
+                                                    <input asp-for="NextTaskAssignedToTeamId" id="NextTaskAssignedToTeamId" class="form-control" />
+                                                    <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToTeamId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.NextTaskAssignedToTeamId",
+                                                filter: "contains",
+                                                change: SetNextTeamOwner,
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/ProcessDesign/ReadTeamData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="form-group" id="nextteamusers" style="display:none">
+                                                <label class="col-form-label">
+                                                    Assign To Team User
+                                                </label>
+                                                <div>
+
+                                                    <input asp-for="NextTaskAssignedToTeamUserId" id="NextTaskAssignedToTeamUserId" class="form-control" />
+                                                    <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToTeamUserId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.NextTaskAssignedToTeamUserId",
+                                                filter: "contains",
+                                                autoBind: false,
+                                                enable: false,
+                                                cascadeFrom: "NextTaskAssignedToTeamId",
+                                                dataSource: {
+                                                    serverFiltering: true,
+                                                    transport: {
+                                                        read: {
+                                                            dataType: "json",
+                                                            url: "/Cms/User/ReadUserTeamData",
+                                                            data: NextTeamFilter
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="form-group" id="nexthm" style="display:none">
+                                                <label class="col-form-label">
+                                                    Assign To Hierarchy
+                                                </label>
+                                                <div>
+
+
+                                                    <input asp-for="NextTaskAssignedToHierarchyMasterId" id="NextTaskAssignedToHierarchyMasterId" class="form-control" />
+                                                    <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToHierarchyMasterId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.NextTaskAssignedToHierarchyMasterId",
+                                                filter: "contains",
+                                                dataSource: {
+                                                    serverFiltering: true,
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/ProcessDesign/ReadHierarchyMasterData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            <div class="form-group" id="nexthmlevel" style="display:none">
+                                                <label class="col-form-label">
+                                                    Assign To Hierarchy Level
+                                                </label>
+                                                <div>
+
+                                                    <input asp-for="NextTaskAssignedToHierarchyMasterLevelId" id="NextTaskAssignedToHierarchyMasterLevelId" class="form-control" />
+                                                    <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToHierarchyMasterLevelId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "ID",
+                                                value: "@Model.NextTaskAssignedToHierarchyMasterLevelId",
+                                                filter: "contains",
+                                                autoBind: false,
+                                                enable: false,
+                                                cascadeFrom: "NextTaskAssignedToHierarchyMasterId",
+                                                dataSource: {
+                                                    serverFiltering: true,
+                                                    transport: {
+                                                        read: {
+                                                            dataType: "json",
+                                                            url: "/Cms/ProcessDesign/ReadHierarchyMasterLevelDataById",
+                                                            data: Filter
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                    </script>
+                                                </div>
+                                            </div>
+                                            @if (Model.EnableNextTaskAttachment)
+                                            {
+                                                <div class="form-group">
+                                                    <label class="col-form-label">
+                                                        Supporting Document
+                                                    </label>
+                                                    <div>
+                                                        @{
+                                                            await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.NextTaskAttachmentId), Value = Model.NextTaskAttachmentId });
+                                                        }
+
+                                                        @Html.HiddenFor(x => x.NextTaskAttachmentId)
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    @if (Model.IsSaveChangesVisible)
+                                    {
+                                        <button type="submit" class="btn btn-success mr-2" onclick="return SaveChanges();">Save Changes</button>
+                                    }
+                                    @if (Model.IsCompleteButtonVisible)
+                                    {
+                                        <button type="submit" class="btn btn-success mr-2" onclick="return Complete();">@Model.CompleteButtonText.ToDefaultCompleteButtonText()</button>
+                                    }
+
+                                    @if (Model.IsRejectButtonVisible)
+                                    {
+                                        <button type="submit" class="btn btn-danger mr-2" onclick="return Reject();">@Model.RejectButtonText.ToDefaultRejectButtonText()</button>
+                                    }
+                                    @if (Model.IsReturnButtonVisible)
+                                    {
+                                        <button type="submit" class="btn btn-danger mr-2" onclick="return Return();">@Model.ReturnTaskButtonText.ToDefaultReturnButtonText()</button>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="col-12 pb-2">
+                                    <div class="col-12 pb-2">
+                                        <span class="text-muted">From:</span>
+                                        <span class="pl-1 user-popup-card" data-user-id="@Model.OwnerUserId">
+                                            <span>
+                                                @Model.OwnerUserName
+                                            </span>
+                                            <a>&lt;@Model.OwnerUserEmail&gt;</a>
+                                        </span>
+                                    </div>
+                                    <div class="col-12 pb-2">
+                                        <span class="text-muted">Sent:</span>
+                                        <span class="pl-1">
+                                            @Model.SubmittedDate.Humanize()
+                                        </span>
+                                    </div>
+                                    <div class="col-12 pb-2">
+                                        <span class="text-muted">To:</span>
+                                        <span class="pl-1 user-popup-card" data-user-id="@Model.AssignedToUserId">
+                                            <span>
+                                                @Model.AssignedToUserName
+                                            </span>
+                                            <a>&lt;@Model.AssignedToUserEmail&gt;</a>
+                                        </span>
+                                    </div>
+                                    @if (Model.TaskSubject.IsNotNullAndNotEmpty())
+                                    {
+                                        <div class="col-12 pb-2">
+                                            <span class="text-muted">Subject:</span>
+                                            <span class="pl-1">
+                                                @Model.TaskSubject
+                                            </span>
+                                        </div>
+                                    }
+                                    @if (Model.TaskDescription.IsNotNullAndNotEmpty())
+                                    {
+                                        <div class="col-12 pb-2">
+                                            <div class="p-0">
+                                                <p>@Html.Raw(Model.TaskDescription.HtmlDecode())</p>
+                                            </div>
+                                        </div>
+                                    }
+                                    <hr />
+                                    <div id="formio-container"></div>
+                                    <div class="row col-12 pt-2 pb-3">
+                                        @if (Model.IsRutimeWorkflowButtonVisible)
+                                        {
+                                            <button type="submit" class="btn btn-danger" onclick="return OpenRuntimeWorkflow();">@Model.RuntimeWorkflowButtonText.ToDefaultRuntimeWorkflowText()</button>
+                                        }
+                                        @if (Model.IsDraftButtonVisible)
+                                        {
+                                            <button type="submit" class="btn btn-info mr-2" onclick="return SaveAsDraft();">@Model.SaveAsDraftText.ToDefaultSaveAsDraftButtonText()</button>
+                                        }
+                                        @if (Model.IsSubmitButtonVisible)
+                                        {
+                                            <button type="submit" class="btn btn-primary mr-2" onclick="return Submit(event);">@Model.SubmitButtonText.ToDefaultSubmitButtonText()</button>
+                                        }
+                                        @if (Model.DataAction == DataActionEnum.Edit)
+                                        {
+                                            <button id="btnStart" class="btn btn-success mr-2" onclick="return StartTask();" style="display:none;">Start Task</button>
+                                        }
+                                        @if (Model.IsVersioningButtonVisible)
+                                        {
+                                            <button type="submit" class="btn btn-primary mr-2" onclick="return Submit(event);">@Model.CompleteButtonText.ToDefaultSubmitButtonText()</button>
+                                        }
+                                        @if (Model.IsLockVisible)
+                                        {
+                                            <button type="submit" class="btn btn-danger mr-2" onclick="return OnTaskLock();">Lock Team Task</button>
+                                        }
+                                        @if (Model.IsReleaseVisible)
+                                        {
+                                            <button type="submit" class="btn btn-primary mr-2" onclick="return OnTaskRelease();">Release Lock</button>
+                                        }
+
+                                        @if (Model.IsSaveChangesVisible)
+                                        {
+                                            <button type="submit" class="btn btn-success mr-2" onclick="return SaveChanges();">Save Changes</button>
+                                        }
+                                        @if (Model.IsCompleteButtonVisible)
+                                        {
+                                            <button type="submit" class="btn btn-success mr-2" onclick="return Complete();">@Model.CompleteButtonText.ToDefaultCompleteButtonText()</button>
+                                        }
+
+                                        @if (Model.IsRejectButtonVisible)
+                                        {
+                                            <button type="submit" class="btn btn-danger mr-2" onclick="return Reject();">@Model.RejectButtonText.ToDefaultRejectButtonText()</button>
+                                        }
+                                        @if (Model.IsReturnButtonVisible)
+                                        {
+                                            <button type="submit" class="btn btn-danger mr-2" onclick="return Return();">@Model.ReturnTaskButtonText.ToDefaultReturnButtonText()</button>
+                                        }
+                                        @if (Model.IsTaskTeamOwner)
+                                        {
+                                            <div class="btn-group" style="flex-wrap:nowrap;display:inline-block;margin-left:5px;">
+                                                <button type="button" class="btn btn-primary btn-task dropdown-toggle btn-card" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    Reassign
+
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    @{
+                                                        if (Model.TeamMembers.Any())
+                                                        {
+                                                            foreach (var members in Model.TeamMembers)
+                                                            {
+                                                                <li onclick="OnReassignLock('@members.Id');"><a style="cursor:pointer; text-align:left;font-size:15px; font-family: Sans-Serif;">@members.Name</a></li>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <li><a style="cursor:pointer; text-align:left;font-size:15px; font-family: Sans-Serif;">No Team Members Found</a></li>
+                                                        }
+
+                                                    }
+
+                                                </ul>
+                                            </div>
+
+                                        }
+                                        @if (Model.EnableChangingNextTaskAssignee)
+                                        {
+                                            <div class="col-xs-12 col-md-10">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">
+                                                        Assign To Type
+                                                    </label>
+                                                    <div>
+                                                        <input asp-for="NextTaskAssignedToTypeCode" id="NextTaskAssignedToTypeCode" class="form-control" />
+                                                        <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToTypeCode").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Code",
+                                                value: "@Model.NextTaskAssignedToTypeCode",
+                                                filter: "contains",
+                                                change: onNextchangetype,
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/LOV/GetLOVIdNameList?lovType=TASK_ASSIGN_TO_TYPE",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                        </script>
+
+                                                        @Html.HiddenFor(x => x.NextTaskAssignedToTypeId)
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group" id="nextusers" style="display:none">
+                                                    <label class="col-form-label">
+                                                        Assign To
+                                                    </label>
+                                                    <div>
+
+
+                                                        <input asp-for="NextTaskAssignedToUserId" id="NextTaskAssignedToUserId" class="form-control" />
+                                                        <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToUserId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.NextTaskAssignedToUserId",
+                                                filter: "contains",
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/User/ReadUserData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                        </script>
+
+                                                    </div>
+                                                </div>
+                                                <div class="form-group" id="nextteams" style="display:none">
+                                                    <label class="col-form-label">
+                                                        Assign To Team
+                                                    </label>
+                                                    <div>
+
+
+                                                        <input asp-for="NextTaskAssignedToTeamId" id="NextTaskAssignedToTeamId" class="form-control" />
+                                                        <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToTeamId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.NextTaskAssignedToTeamId",
+                                                filter: "contains",
+                                                change: SetNextTeamOwner,
+                                                dataSource: {
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/ProcessDesign/ReadTeamData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                        </script>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group" id="nextteamusers" style="display:none">
+                                                    <label class="col-form-label">
+                                                        Assign To Team User
+                                                    </label>
+                                                    <div>
+
+                                                        <input asp-for="NextTaskAssignedToTeamUserId" id="NextTaskAssignedToTeamUserId" class="form-control" />
+                                                        <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToTeamUserId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.NextTaskAssignedToTeamUserId",
+                                                filter: "contains",
+                                                autoBind: false,
+                                                enable: false,
+                                                cascadeFrom: "NextTaskAssignedToTeamId",
+                                                dataSource: {
+                                                    serverFiltering: true,
+                                                    transport: {
+                                                        read: {
+                                                            dataType: "json",
+                                                            url: "/Cms/User/ReadUserTeamData",
+                                                            data: NextTeamFilter
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                        </script>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group" id="nexthm" style="display:none">
+                                                    <label class="col-form-label">
+                                                        Assign To Hierarchy
+                                                    </label>
+                                                    <div>
+
+
+                                                        <input asp-for="NextTaskAssignedToHierarchyMasterId" id="NextTaskAssignedToHierarchyMasterId" class="form-control" />
+                                                        <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToHierarchyMasterId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                                value: "@Model.NextTaskAssignedToHierarchyMasterId",
+                                                filter: "contains",
+                                                dataSource: {
+                                                    serverFiltering: true,
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Cms/ProcessDesign/ReadHierarchyMasterData",
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                        </script>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group" id="nexthmlevel" style="display:none">
+                                                    <label class="col-form-label">
+                                                        Assign To Hierarchy Level
+                                                    </label>
+                                                    <div>
+
+                                                        <input asp-for="NextTaskAssignedToHierarchyMasterLevelId" id="NextTaskAssignedToHierarchyMasterLevelId" class="form-control" />
+                                                        <script>
+                                        $(document).ready(function(){
+                                            $("#NextTaskAssignedToHierarchyMasterLevelId").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "ID",
+                                                value: "@Model.NextTaskAssignedToHierarchyMasterLevelId",
+                                                filter: "contains",
+                                                autoBind: false,
+                                                enable: false,
+                                                cascadeFrom: "NextTaskAssignedToHierarchyMasterId",
+                                                dataSource: {
+                                                    serverFiltering: true,
+                                                    transport: {
+                                                        read: {
+                                                            dataType: "json",
+                                                            url: "/Cms/ProcessDesign/ReadHierarchyMasterLevelDataById",
+                                                            data: Filter
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        });
+                                                        </script>
+                                                    </div>
+                                                </div>
+                                                @if (Model.EnableNextTaskAttachment)
+                                                {
+                                                    <div class="form-group">
+                                                        <label class="col-form-label">
+                                                            Supporting Document
+                                                        </label>
+                                                        <div>
+                                                            @{
+                                                                await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.NextTaskAttachmentId), Value = Model.NextTaskAttachmentId });
+                                                            }
+
+                                                            @Html.HiddenFor(x => x.NextTaskAttachmentId)
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                @Html.HiddenFor(x => x.VersionNo)
+                                @Html.HiddenFor(x => x.TaskPriorityCode)
+                                @Html.HiddenFor(x => x.TaskSLA)
+                                @Html.HiddenFor(x => x.Subject)
+                                @Html.HiddenFor(x => x.Description)
+                                @Html.HiddenFor(x => x.AssignedToTypeCode)
+                                @Html.HiddenFor(x => x.AssignedToEmail)
+                                @Html.HiddenFor(x => x.AssignedToUserId)
+                                @Html.HiddenFor(x => x.AssignedToTeamId)
+                                @Html.HiddenFor(x => x.AssignedToTeamUserId)
+                                @Html.HiddenFor(x => x.AssignedToHierarchyMasterId)
+                                @Html.HiddenFor(x => x.AssignedToHierarchyMasterLevelId)
+                                @Html.HiddenFor(x => x.TaskPriorityId)
+                                @Html.HiddenFor(x => x.StartDate)
+                                @Html.HiddenFor(x => x.DueDate)
+                                @Html.HiddenFor(x => x.SLA)
+                                @Html.HiddenFor(x => x.ReminderDate)
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+        (function ($) {
+            $('#TaskSLASeconds').durationPicker({
+                showSeconds: false,
+                onChanged: function (newVal, init) {
+                    if (!init) {
+                        var sd = kendo.toString($("#StartDate").data("kendoDateTimePicker").value(), 'yyyy/MM/dd HH:mm');
+                        var ed = GetAddSeconds(sd, newVal);
+                        var f = new Date(ed);
+                        console.log(f);
+                        $("#DueDate").data("kendoDateTimePicker").value(f)
+                    }
+
+                }
+            });
+
+        })(jQuery);
+         $('.user-popup-card').webuiPopover('destroy').webuiPopover(userPopoverSettings);
+      $('.duedate-popup-card').webuiPopover('destroy').webuiPopover({
+        width: 350,
+        height: 320,
+        trigger: 'hover',
+        placement: 'auto',
+        delay: {
+            show: null,
+            hide: 300
+        },
+        content: '<div class="row pt-2 pb-2 pl-2"><div class="col-12 alert-light mb-3"><span class="text-label">Planned Start Date</span><span class="text-title">@Model.StartDate.ToDefaultDateTimeFormat()</span></div><div class="col-12 alert-light mb-3"><span class="text-label">Planned End Date:</span><span class="text-title">@Model.DueDate.ToDefaultDateTimeFormat()</span></div><div class="col-12 alert-light"><span class="text-label">Planned SLA:</span><span class="text-title">@Model.TaskSLA</span></div><div class="col-12 alert-light mb-3"><span class="text-label">Actual Start Date:</span><span class="text-title">@Model.ActualStartDate.ToDefaultDateTimeFormat()</span></div><div class="col-12 alert-light mb-3"><span class="text-label">Actual End Date:</span><span class="text-title">@Model.ActualEndDate.ToDefaultDateTimeFormat()</span></div><div class="col-12 alert-light"><span class="text-label">Actual SLA:</span><span class="text-title">@Model.ActualSLA</span></div></div>',
+      });
+        function OnMsgDatabound() {
+            $('.user-popup-card').webuiPopover('destroy').webuiPopover(userPopoverSettings);
+        }
+        function FillFormIo(json,datajson) {
+            var formio = $('#formio-container').html();
+            if (formio != undefined) {
+                var formio = document.getElementById('formio-container');
+                LoadFormIo({ uiJson: json, dataJson: datajson }, formio);
+            }
+            }
+
+
+
+            $(document).ready(function () {
+                $('#reason').kendoDialog({
+                    width: "450px",
+                    title: "Reason",
+                    closable: true,
+                    modal: true,
+                    visible:false,
+                    content: "<textarea id='CommentTemp' rows='5' class='form-control'></textarea><div style='display:none;color:red;' id='commentReq'></div>",
+                    actions: [
+                        { text: 'Cancel' },
+                        {
+                            text: 'Submit', primary: true,  action: function(e) {
+                                OnReasonSave(e);
+                                return false;
+                            }  }
+                    ],
+                });
+
+                if ('@Model.IsSubmitButtonVisible' == 'True' && '@Model.HideHeader' == 'False') {
+            $("#StartDate").kendoDateTimePicker({ value: '@Model.StartDate', format: '@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormat', change: OnStartDateDueDateChange});
+        $("#DueDate").kendoDateTimePicker({ value: '@Model.DueDate', format: '@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormat', change: OnStartDateDueDateChange});
+        $("#ReminderDate").kendoDateTimePicker({value:'@Model.ReminderDate',format:'@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormat'});
+
+        }
+
+
+               $('.content').richText();
+            var json = $('#Json').val();
+                var datajson = $('#DataJson').val();
+                FillFormIo(json, datajson);
+
+                $('[data-toggle="popover"]').popover();
+
+            FillAttachmentCount();
+            FillSharingCount();
+            FillNotificationCount();
+            FillCommentCount();
+                $(".k-editor-toolbar-wrap").hide();
+                onNextchangetype();
+                SetAssignee('TASK_ASSIGN_TO_USER');
+
+                SetOwnerAndRequesterVisibility();
+
+                if ('@Model.EnableStartButton' == 'True') {
+                    $("#btnStart").show();
+                    $("#drpDiv").hide();
+                }
+                else {
+                    $("#drpDiv").show();
+                }
+
+
+            $('#enable-btn').click(function () {
+                $('#del-table-btn').enable();
+                $('#del-page-btn').enable();
+                $('#save-btn').enable();
+                $('#other-btn-2').enable();
+
+                $('#enable-btn').hide();
+                $('#disable-btn').show();
+            });
+            $('#disable-btn').click(function () {
+                $('#del-table-btn').disable();
+                $('#del-page-btn').disable();
+                $('#save-btn').disable();
+                $('#other-btn-2').disable();
+
+                $('#disable-btn').hide();
+               $('#enable-btn').show();
+            });
+            $(".enableHtml").click(function () {
+                if (this.checked) {
+                    $(".k-editor-toolbar-wrap").show();
+                }
+                else {
+                    $(".k-editor-toolbar-wrap").hide();
+                }
+            });
+                   var items = {
+              @if (!Model.HideEmailInHeader)
+                  {
+                    @:  "email": { name: 'Email', icon: "fas fa-envelope" },
+                  }
+              @if (!Model.IsInEditMode && !Model.HideNotificationInHeader)
+                  {
+                      @: "notification": { name: 'Notification', icon: "fas fa-bell" },
+                  }
+               @if (!Model.HideTahsInHeader)
+                   {
+                      @: "tag": { name: 'Tag', icon: "fas fa-tag" },
+                   }
+               @if (!Model.HideLogInHeader)
+                   {
+                       @: "log": { name: 'Log', icon: "fas fa-history" },
+                   }
+               };
+        $.contextMenu({
+            selector: '.more-option',
+            trigger: 'left',
+            autoHide: true,
+            build: function ($trigger, e) {
+                return {
+                    callback: function (key, options) {
+                        switch (key) {
+                            case 'email':
+                                onEmail();
+                                break;
+                            case 'notification':
+                                ViewNotification();
+                                break;
+                            case 'tag':
+                                onTag();
+                                break;
+                            case 'log':
+                                onLog();
+                                break;
+                        }
+                    },
+                    items: items
+                };
+
+
+            }
+        });
+
+                  var actions = {
+             @if (Model.IsAddCommentEnabled)
+             {
+                @: "ADD_COMMENT": { name: 'Add Comment', icon: "fas fa-message" },
+             }
+             @if (Model.IsCloseButtonVisible)
+             {
+                @: "CLOSE_TASK": { name: 'Close Task', icon: "fas fa-times-circle" },
+             }
+             @if (Model.IsInEditMode)
+             {
+                @: "EDIT_TASK": { name: 'Edit Task', icon: "fas fa-check" },
+             }
+              @if (Model.CanComplete)
+             {
+                @: "COMPLETE_TASK": { name: 'Complete/Reject Task', icon: "fas fa-check" },
+             }
+             @if (Model.IsReOpenButtonVisible)
+             {
+                @: "REOPEN_TASK": { name: 'Re-open Task', icon: "fas fa-pen" },
+             }
+
+        };
+        $.contextMenu({
+            selector: '.more-action',
+            trigger: 'left',
+            delay: 200,
+            autoHide: true,
+            build: function ($trigger, e) {
+                return {
+                    callback: function (key, options) {
+
+                        OnActionChange(key);
+                    },
+                    items: actions
+                };
+
+
+            }
+        });
+                 if ('@Model.IsInEditMode' == 'True' && '@Model.HideHeader' == 'False' && '@Model.HideStartDate' == 'False') {
+$("#StartDate").kendoDateTimePicker({ value: '@Model.StartDate', format: '@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormat', change: OnStartDateDueDateChange});
+        $("#DueDate").kendoDateTimePicker({ value: '@Model.DueDate', format: '@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormat', change: OnStartDateDueDateChange});
+        $("#ReminderDate").kendoDateTimePicker({value:'@Model.ReminderDate',format:'@ApplicationConstant.DateAndTime.DefaultJqueryDateTimeFormat'});
+
+        }
+
+
+            });
+
+            function uploadFile() {
+                $("#iconFile").dmUploader({ //
+                    url: '/Cms/Document/SaveFile',
+                    multiple: false,
+                    extFilter: ["jpg", "jpeg", "png", "gif"],
+                    maxFileSize: 3000000, // 3 Megs
+                    onDragEnter: function () {
+                        // Happens when dragging something over the DnD area
+                        this.addClass('active');
+                    },
+                    onDragLeave: function () {
+                        this.removeClass('active');
+                    },
+                    onInit: function () {
+                    },
+                    onComplete: function () {
+                    },
+                    onNewFile: function (id, file) {
+                        ui_multi_add_file(id, file);
+                    },
+                    onBeforeUpload: function (id) {
+                        ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                        ui_multi_update_file_progress(id, 0, '', true);
+                    },
+                    onUploadCanceled: function (id) {
+                        ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                        ui_multi_update_file_progress(id, 0, 'warning', false);
+                    },
+                    onUploadProgress: function (id, percent) {
+                        ui_multi_update_file_progress(id, percent);
+                    },
+                    onUploadSuccess: function (id, data) {
+                        $("#NextTaskAttachmentId").val(data.fileId);
+
+                        ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                        ui_multi_update_file_progress(id, 100, 'success', false);
+                    },
+                    onUploadError: function (id, xhr, status, message) {
+                        ui_multi_update_file_status(id, 'danger', message);
+                        ui_multi_update_file_progress(id, 0, 'danger', false);
+                    },
+                    onFallbackMode: function () {
+                    },
+                    onFileSizeError: function (file) {
+                    }
+                });
+            }
+function allSynergyCharts() {
+        @Html.Raw(Model.ChartItems);
+    }
+        @Html.Raw(Model.ChartItems);
+@if (Model.FormClientScript.IsNotNullAndNotEmpty())
+    {
+         @Html.Raw(Model.FormClientScript);
+    }
+
+                </script>
+
+                <div id="reason">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+

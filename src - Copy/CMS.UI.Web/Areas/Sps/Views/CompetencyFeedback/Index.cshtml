@@ -1,0 +1,372 @@
+﻿
+@using Kendo.Mvc.UI;
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@model CompetencyFeedbackDetailsViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+
+
+<script>
+
+
+    $(document).ready(function () {
+
+        var data = "";
+        //alert('@ViewBag.PosId');
+
+        $("#Userid").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            change: OnsubordinateChange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/CHR/HRCore/GetReporteePersonList?userid=" + '@ViewBag.PosId',
+                    }
+                }
+            }
+        });
+
+    });
+
+
+
+
+
+    function OnsubordinateChange() {
+
+        var subordinateID = $("#Userid").val();
+        var url = "/Sps/CompetencyFeedback/Index?SubordinateId=" + subordinateID;
+        //window.location.href = url;
+        LoadPartailView(url, $('#cms-content'));
+    }
+
+
+
+    function OnService() {
+
+
+        var subordinateId = $("#Userid").val();
+
+        if (subordinateId != '') {
+            var portalId = $('#GlobalPortalId').val();
+            var roudfs = encodeURIComponent('SubordinateId=true');
+            var udfs = encodeURIComponent('SubordinateId=' + subordinateId);
+            var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=CompetencyFeedBackTask&portalId=' + portalId + '&roudfs=' + roudfs+ '&udfs=' + udfs;
+            //var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&templateCodes=PMS_REVIEW_TASK&portalId=' + portalId + '&prms=' + prms;
+
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: "Feed Back", Width: 1200, Height: 600 });
+            return false;
+        } else
+        {
+            kendo.alert("Please Select Subordinate");
+        }
+    }
+
+    function FilterByPositionId() {
+        return {
+            UserId: '@ViewBag.PosId',
+        };
+    }
+
+    function customPlaceholder(draggedItem) {
+        return draggedItem
+            .clone()
+            .addClass("custom-placeholder")
+            .removeClass("k-ghost");
+    }
+    function FilterBy() {
+        return {
+            subordinateId: '@Model.Userid',
+            searchParam: null
+        };
+    }
+</script>
+
+
+
+<style>
+
+
+    .h5 {
+        color: red !important;
+    }
+
+    #example .demo-section {
+        max-width: none;
+        width: 980px;
+        margin-left: 32px;
+    }
+
+    #example .k-listbox {
+        width: 400px;
+        height: 500px;
+    }
+
+        #example .k-listbox:first-child {
+            margin-right: 1px;
+            margin-left: 12px;
+        }
+
+    .k-ghost {
+        display: none !important;
+    }
+
+    .custom-placeholder {
+        opacity: 0.4;
+    }
+
+    #example .k-item {
+        line-height: 1em;
+    }
+
+    /* Material Theme padding adjustment*/
+
+    .k-material #example .k-item,
+    .k-material #example .k-item.k-state-hover,
+    .k-materialblack #example .k-item,
+    .k-materialblack #examplel .k-item.k-state-hover {
+        padding-left: 5px;
+        border-left: 0;
+    }
+
+    .k-item > span {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        display: inline-block;
+        vertical-align: top;
+        margin: 20px 10px 10px 5px;
+    }
+
+    #example .k-item > span:first-child,
+    .k-item.k-drag-clue > span:first-child {
+        -moz-box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+        -webkit-box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+        box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+        margin: 10px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-size: 100%;
+        background-repeat: no-repeat;
+    }
+
+    #example h3,
+    .k-item.k-drag-clue h3 {
+        font-size: 1.2em;
+        font-weight: normal;
+        margin: 0 0 1px 0;
+        padding: 0;
+    }
+
+    #example p {
+        margin-left: 17px;
+        padding: 0;
+        font-size: .8em;
+    }
+</style>
+
+<div class="">
+   
+
+    <div class="hr-pad-top-10">
+
+
+    </div>
+
+    <div class="">
+        <div class="col-md-12 d-flex" style="margin-bottom:5%">
+            <div class="col-md-8" style="background-color:#fff">
+                <div class="row justify-content-start" style="margin-top:10px">
+                    <div class="col-2" style="text-align:right;font-size:18px;">
+
+                        Subordinate
+                    </div>
+
+                    <div class="col-4">
+                        @*@(Html.Kendo().DropDownListFor(x => x.Userid)
+                                            .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                                        .DataSource(source =>
+                                                        {
+                                                            source.Read(read =>
+                                                            {
+                                                                //read.Action("GetPersonListByOrganization", "Person", new { area = "Hrs" }).Data("FilterByOrg");
+                                                                read.Action("GetReporteePersonList", "HRCore", new { area = "CHR" }).Data("FilterByPositionId");
+                                                            });
+                                                        })
+                                                        .DataTextField("Name")
+                                                        .DataValueField("Id")
+                                                        .Events(e => e.Change("OnsubordinateChange"))
+                                                        .Filter(FilterType.Contains)
+                                                        .HtmlAttributes(new { @class = "hr-x-large" }))*@
+
+                        <input asp-for="Userid" id="Userid" class="hr-x-large" />
+
+
+                    </div>
+                    <div>
+                        @*@Html.Kendo().Button().Name("btnSearch").Events(e => e.Click("OnService")).Content("Request Feed Back").HtmlAttributes(new { @class = "k-primary" })*@
+                        <button type="button" id="btnSearch" onclick="OnService();" class="btn btn-primary">Request Feed Back</button>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+                <br />
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            @if (Model.ToppositiveCompetency.IsNotNull())
+                            {
+                                foreach (var item in Model.ToppositiveCompetency)
+                                {
+                                    <span>Top Positive Competencies</span>
+
+                                    <h4>@item.CompetencyName</h4>
+
+
+                                    string critcalval = Convert.ToString((100 - item.Rating));
+                                    <div class="progress" style="height:50px">
+                                        <div class="progress-bar progress-bar-success" role="progressbar" style="width:@item.Rating%; background-color:lightgreen;color:black">
+                                            @item.Rating% <br />
+                                            Positive
+                                        </div>
+                                        <div class="progress-bar progress-bar-warning" role="progressbar" style="width:@critcalval%;color:black;">
+                                            @critcalval%<br />
+                                            Critical
+                                        </div>
+
+                                    </div>
+                                }
+                            }
+
+
+                            @if (Model.AreaofDevelopment.IsNotNull())
+                            {
+                                foreach (var item in Model.AreaofDevelopment)
+                                {
+                                    <span>Area Of Development</span>
+
+                                    <h4>@item.CompetencyName</h4>
+
+
+                                    string critcalval = Convert.ToString((100 - item.Rating));
+                                    <div class="progress" style="height:50px">
+                                        <div class="progress-bar progress-bar-success" role="progressbar" style="width:@item.Rating%; background-color:lightgreen;color:black">
+                                            @item.Rating% <br />
+                                            Positive
+                                        </div>
+                                        <div class="progress-bar progress-bar-warning" role="progressbar" style="width:@critcalval%;color:black;">
+                                            @critcalval%<br />
+                                            Critical
+                                        </div>
+
+                                    </div>
+                                }
+                            }
+
+                        </div>
+
+
+                        <div id="example">
+                            <div class="col-4">
+                                @(Html.Kendo().ListBox()
+                            .Name("exclude")
+                            .DataTextField("Name")
+                            .DataValueField("Id")
+                            .TemplateId("customer-item-template")
+
+                            .Draggable(draggable => draggable.Placeholder("customPlaceholder"))
+
+                            .DataSource(source => source
+                            .Read(read => read.Action("GetFeedbackUserList", "CompetencyFeedback", new { area = "Sps" }).Data("FilterBy"))
+                        )
+                  )
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="col-md-4" style="background-color:#fff;margin-left:1px;padding-top:3%">
+
+                <div class="row">
+
+                </div>
+                @(Html.Kendo().Chart<CompetencyFeedbackUserViewModel>
+    ()
+    .Name("chartByAge")
+    .Title("Feedback")
+    .Legend(legend => legend.Position(ChartLegendPosition.Bottom))
+    .DataSource(ds => ds.Read(read => read.Action("GetFeedbackChart", "CompetencyFeedback", new { area = "Sps" }).Data("FilterBy")))
+    .Series(series =>
+    {
+        series.Column(model=>model.SelfCount).Name("Self Count")/*.MaxSize(100)*/;
+        series.Column(model => model.OhersCount).Name("Others Count")/*.MaxSize(100)*/;
+
+        // series.Column(new double[] {  }).Name("Ages");
+    })
+    .CategoryAxis(axis => axis
+    //.Categories("0-20","20-30","30-40","40-50","50-60","60-70","70-80","80-90","90-100")/*.Min(10).Max(100)*/
+     .Categories(x=>x.CompetencyName)/*.Min(10).Max(100)*/
+    )
+
+    .ValueAxis(axis => axis
+    .Numeric().Labels(labels => labels.Format("{0}"))
+
+    )
+    .Tooltip(tooltip => tooltip
+    .Visible(true)
+    .Format("{0}")
+
+    )
+    )
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+    <script id="customer-item-template" type="text/x-kendo-template">
+
+         #if (data.PhotoName!=null){#
+         <span class="k-state-default" style="background-image: url('/Cms/document/getimagemongo?id=#:data.PhotoName#');height:50px;width:50px;"></span>
+        #
+        }
+        else {#
+        <span class="k-state-default" style="background-image: url('/images/profile.jpg');height:50px;width:50px;"></span>
+        #}
+        #
+
+
+
+        <span class="k-state-default">
+            <h3 style="color: black">#: data.Name #</h3>
+        </span>
+    </script>
+    <script type="text/javascript">
+
+
+
+
+
+
+
+        function OnPrint(e) {
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            window.location.href = "/nts/service/DownloadServiceRequest?serviceId=" + dataItem.ServiceId;
+            return false;
+        }
+
+    </script>

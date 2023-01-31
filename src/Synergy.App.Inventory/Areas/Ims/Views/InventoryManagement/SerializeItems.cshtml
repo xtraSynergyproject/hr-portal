@@ -1,0 +1,269 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+@*@using Kendo.Mvc.UI*@
+@model SerialNoViewModel
+@{
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    ViewData["Title"] = "Delivery Challan Details";
+
+}
+
+  @Html.HiddenFor(x=>x.SerialNosData)
+
+<div class="row pad-10 no-gutters">
+    <div class="col-6" style="margin-top: 5px;padding-right: 20px;width: 100%;">
+        <div class="text-danger"></div>
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Delivery Challan Items</legend>
+          
+                <div id="deliveryChallanItemList" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+       
+        </fieldset>
+    </div>
+    <div class="col-6" style="margin-top: 5px;padding-right: 20px;width: 100%;">
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Select serial Nos</legend>
+          
+                <div id="serialNoList" style="width: 100%;" class="ag-theme-alpine"></div>
+
+        </fieldset>
+    </div>
+        
+    <div class="row pad-10 no-gutters" style="text-align:right">
+       
+            <div>
+                <button class="btn btn-primary" style="margin:5px;color:white;" onclick="onSave(event);">Save</button>
+                <button class="btn btn-danger" style="margin:5px;color:white;float:right" onclick="AVIClose();">Close</button>
+            </div>
+        
+    </div>
+        
+
+
+    
+</div>
+
+<script>
+    $(function () {
+        $.contextMenu({
+            selector: '#tree-menuChallanItem',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var isserializable = $trigger.data('isserializable');
+                var items = {};
+                if (isserializable == "4")
+                {
+                    items={
+                        "serials": { name: "Serials", icon: "fas fa-edit" },
+                    }
+                }
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'serials':
+                                        onSerials(id);
+                                        break;
+                                    case 'receive':
+                                    //ReceiveNote(id, serno);
+                                    //break;
+                                    default:
+                                }
+                            },
+                            items: items
+                        };
+
+
+                }
+            }
+        });
+
+        $("#deliveryChallanItemList").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: false,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/IMS/InventoryManagement/GetDeliveryChallanItems?id=@ViewBag.Id",
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                onItemEditing: function (e) {
+                    /*debugger;*/
+                    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                        //
+                        e.grid.updateItem();
+                    }
+                },
+                updateItem: function (item) {
+                    /*debugger;*/
+                },
+                //deleteItem: function (item) {
+                //    onDeleteItem(item.NoteId);
+                //}
+            },
+            fields: [
+                {
+                    name: "ItemName",
+                    title: "Item Name",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "ItemQuantity",
+                    title: "Received Quantity",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    title: "Action",
+                    name: "Id",
+                    itemTemplate: function (value, item) {
+                        debugger
+                        if (item.IsSerializable == "4")
+                        {
+                            return "<div class='btn-group grid-menu' id='tree-menuChallanItem' data-idvalue='" + value + "' data-isserializable='" + item.IsSerializable + "' ><i class='fas fa-ellipsis-v'></i></div>"
+                        }
+                        return "";
+                    }
+                }
+            ]
+        });
+
+    });
+    function onSerials(id)
+    {
+        $("#serialNoList").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/IMS/InventoryManagement/GetSerialNos?referenceid="+id+"&referenceHeaderId=@ViewBag.Id",
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                onItemEditing: function (e) {
+                    /*debugger;*/
+                    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                        //
+                        e.grid.updateItem();
+                    }
+                },
+                updateItem: function (item) {
+                    /*debugger;*/
+                },
+                //deleteItem: function (item) {
+                //    onDeleteItem(item.NoteId);
+                //}
+            },
+            fields: [
+                {
+                    name: "Select",
+                    title: "Item Name",
+                    type: "checkbox",
+                    editing: true
+                },
+                {
+                    name: "SerialNo",
+                    title: "SerialNo",
+                    type: "text",
+                    editing: true
+                },
+                {
+                    name: "Specification",
+                    title: "Item Specification",
+                    type: "text",
+                    editing: true
+                },
+                {
+                    name: "ItemName",
+                    title: "Item Name",
+                    type: "text",
+                    editing: false
+                },
+            ]
+        });
+        //var url = "/IMS/InventoryManagement/ManageSerialNo?referenceId=" + id;
+        //var win = GetMainWindow();
+        //win.iframeOpenUrl = url;
+        //win.OpenWindow({ Title: 'Add Serial No', Width: 1000, Height: 600 });
+        //return false;
+    }
+    function onSave(e) {
+
+        var selectedDataItems = [];
+
+        var termsGrid = $("#serialNoList").data("JSGrid");
+
+        if (termsGrid._editingRow != null) {
+            termsGrid.updateItem();
+        }
+
+        for (var i = 0; i < termsGrid.data.length; i++) {
+
+            if (termsGrid.data[i].Select == true) {
+                selectedDataItems.push(termsGrid.data[i]);
+            }
+        }
+        $("#SerialNosData").val(JSON.stringify(selectedDataItems));
+
+        if (selectedDataItems.length == 0) {
+            kendo.alert('Please select atleast one item from the list');
+            e.preventDefault();
+            return false;
+        }
+        else {
+            ShowLoader($("#cms-content"));
+        }
+        $.ajax({
+            url: "/Ims/InventoryManagement/SaveSerialNo",
+            type: "POST",
+            data: { SerialNosData: $("#SerialNosData").val()},
+            dataType: "Json",
+            success: function (result)
+            {
+                if (result.success)
+                {
+                    ShowNotification("Saved successfully");
+                    AVIClose();
+                }
+            }
+        })
+            .done(function () {
+            ShowLoader($("#cms-content"));
+        });
+
+    }
+    function AVIClose() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+
+        return false;
+    }
+
+</script>

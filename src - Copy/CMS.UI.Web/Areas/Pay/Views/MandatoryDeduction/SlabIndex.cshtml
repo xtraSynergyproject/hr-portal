@@ -1,0 +1,215 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "Mandatory Deduction Slab";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+
+}
+<div>
+    @*<h4>@ViewBag.Title</h4>
+    <hr />*@
+    <div class="row">
+        <div class="col-12">
+            <button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Create Slab</button>
+            <br /><br />
+            <div id="kgrdMDE" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    var columnDefs = [
+
+        {
+            headerName: "Actions",
+            field: "Id",
+            maxWidth: 140,
+
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBin14' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+
+        //{
+        //    field: "MandatoryDeductionId",
+        //},
+        {
+            field: "SlabFrom",
+
+        },
+        {
+            field: "SlabTo",
+
+        },
+        {
+            field: "EmployeeDefaultValue",
+
+        },
+        {
+            field: "EmployerDefaultValue",
+
+        },
+        {
+            field: "EmployeeSeniorCitizenValue",
+
+        },
+        {
+            field: "EmployerSeniorCitizenValue",
+
+        },
+        {
+            field: "EmployeeWomanValue",
+
+        },
+        {
+            field: "EmployerWomanCitizenValue",
+
+        },
+        {
+            field: "ESD", headerName: "Execution Start Date",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+            },
+        {
+            field: "EED", headerName: "Execution End Date",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        }
+
+    ];
+
+    $(function () {
+
+        getSlabData();
+
+
+        $.contextMenu({
+            selector: '#tree-menuBin14',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        EditElement(id);
+                                        break;
+
+                                    case 'delete':
+                                        Delete(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+    function getSlabData() {
+        document.getElementById("kgrdMDE").innerHTML = "";
+        gridConfig(
+            "kgrdMDE",
+            "/Pay/MandatoryDeduction/GetSlabListData?Id=@ViewBag.MandatoryDeductionId" ,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+<script>
+
+    function OnCreate() {
+          var url = "/Pay/MandatoryDeduction/CreateSlab?Id=@ViewBag.MandatoryDeductionId";
+
+        //debugger;
+        //var udfs = encodeURIComponent('MandatoryDeductionId=@ViewBag.MandatoryDeductionId');
+        //var url = '/Cms/Page?lo=Popup&pageType=Form&cbm=OnAfterCreate&source=Create&dataAction=Create&templateCodes=MANDATORY_DEDUCTION _SLAB&portalId=' + window.parent.parent.$("#GlobalPortalId").val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Slab', Width: 600, Height: 600  });
+        return false;
+
+     }
+    function OnAfterCreate()
+    {
+        getSlabdata();
+    }
+
+    function Delete(id) {
+       // e.preventDefault();
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var flag = confirm('Do you really want to delete the entry?');
+
+        if (flag) {
+            $.ajax({
+                url: '@Url.Action("DeleteSlabData", "MandatoryDeduction", new { @area="Pay"})?Id=' + id,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    //
+                    if (result.success) {
+                        getSlabData();
+                     //   $("#kgrdMenuGroup").data("kendoGrid").dataSource.read();
+                        kendo.alert("Details Deleted Successfully");
+                    } else {
+                        getSlabData();
+                        var err = result.errors.BinderCountError.errors[0];
+                        kendo.alert(err);
+                    }
+                },
+                error: function (ert) {
+                    //
+                    getSlabData();
+                }
+            });
+            return false;
+        }
+    }
+
+    function EditElement(id) {
+
+        var win = GetMainWindow();
+        var url = "/Pay/MandatoryDeduction/EditSlab?Id=" + id;
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Manage Element', Width: 600, Height: 600 });
+        return false;
+    }
+
+
+
+</script>
+
+

@@ -1,0 +1,141 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@inject Synergy.App.Common.IUserContext _userContext;
+
+@{
+    ViewData["Title"] = "Community Hall";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model JSCCommunityHallViewModel
+
+<style>
+    #maindiv{
+        padding:20px;
+    }
+    
+    .divtext{
+        padding-left:5px;
+        padding-right:5px;
+        padding-top:10px;
+        padding-bottom:10px;
+        font-size:16px;
+        font-weight:600;
+    }
+    .img-hall{
+        height: 250px;
+        width: 450px;
+        border-radius: 5px;
+        /*display: block;*/
+        /*margin-left: auto;*/
+        /*margin-right: auto;*/
+    }
+
+    .divterms{
+        border-style: solid;
+        border-radius: 5px;
+        padding: 10px;
+        border-color: lightgrey;
+        height: 80px;
+        /* overflow: scroll; */
+        overflow-y: scroll;
+    }
+
+    #map {
+        height: 200px;
+        border-radius: 5px;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+
+        var lat = '@Model.Latitude';
+        var long = '@Model.Longitude';
+        var locname = '@Model.MapArea';
+        if (lat != '' && long != '') {
+            var map = L.map('map').setView([lat, long], 13);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            L.marker([lat, long]).addTo(map)
+                .bindPopup(locname)
+                .openPopup();
+
+        } else {
+            $('#divmap').hide();
+        }
+
+    });
+    function onMoreImage(hallId) {
+        var url = "/EGov/SmartCity/ViewJSCCommunityHallPhotos?communityHallId=" + hallId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Community Hall Photos', Width: 750, Height: 600 });
+        return false;
+    }
+
+</script>
+
+<div id="maindiv" >
+    <div class="row">
+        <div class="col-6">
+            <div class="row">
+                <div class="col-6 divtext"><span>Community Hall Name</span></div>
+                <div class="col-6 divtext"><span>@Model.Name</span></div>
+            </div>
+            <div class="row">
+                <div class="col-6 divtext"><span>Ward</span></div>
+                <div class="col-6 divtext"><span>@Model.WardName</span></div>
+            </div>
+            <div class="row">
+                <div class="col-6 divtext"><span>Community Type</span></div>
+                <div class="col-6 divtext"><span>@Model.CommunityTypeName</span></div>
+            </div>
+            @*<div class="row">
+                <div class="col-6 divtext"><span>Standard Rate</span></div>
+                <div class="col-6 divtext"><span><i class="fa fa-indian-rupee-sign"></i> @Model.StandardRate</span></div>
+            </div>
+            @if(Model.SpecialRate>0){
+                <div class="row">
+                    <div class="col-6 divtext"><span>Special Rate</span></div>
+                    <div class="col-6 divtext"><span><i class="fa fa-indian-rupee-sign"></i> @Model.SpecialRate</span></div>
+                </div>
+            }
+            <div class="row">
+                <div class="col-6 divtext"><span>Discount (For JMC Employee)</span></div>
+                <div class="col-6 divtext"><span>@Model.JMCDiscountPercentage &percnt;</span></div>
+            </div>*@
+            <div class="row">
+                <div class="col-6 divtext"><span>Details</span></div>
+                <div class="col-6 divtext"><span>@Model.Details</span></div>
+            </div>
+        </div>
+        <div class="col-6">
+            @if(Model.PhotoId != null){
+                <img class="img-hall" src="/cms/Document/GetImageMongo?id=@Model.PhotoId" onerror='OnImgError(this);' />
+            }else{
+                <img class="img-hall" src="/Cms/document/GetApplicationDocument?documentCode=COMMUNITY_HALL" onerror='OnImgError(this);' />
+            }
+            @if (Model.CommunityHallPhotoId.Count() > 0)
+            {
+                <a href="#" onclick="onMoreImage('@Model.CommunityHallId')"><h5 style="text-align:center;cursor: pointer;"><b>View More Images...&nbsp;</b></h5></a>
+            }
+        </div>
+    </div>
+
+    <div class="row" id="divmap">
+        <div class="col-12 divtext">
+            <div id="map"></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 divtext">
+            <span>Disclaimer/Terms & Conditions</span><br />
+            @*<textarea class="col-12 divtext" rows="3">@Model.Disclaimer_Terms_Conditions</textarea>*@
+        </div>
+        <div class="col-12 divtext divterms">
+            @Model.Disclaimer_Terms_Conditions
+        </div>
+    </div>
+</div>

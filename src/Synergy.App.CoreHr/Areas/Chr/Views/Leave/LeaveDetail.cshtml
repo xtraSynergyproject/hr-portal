@@ -1,0 +1,515 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.LeaveController> Resource
+@using Kendo.Mvc.UI;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@model LeaveDetailViewModel
+@{
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<style>
+    a:hover {
+        text-decoration: underline;
+        cursor: pointer
+    }
+
+    .buttonStyle {
+        position: absolute;
+        right: 0;
+        margin-right: 15px;
+        color: #fff;
+    }
+    .label-div{
+        font-size:16px;        
+    }
+    .mb{
+        margin-bottom:10px;
+    }
+    
+</style>
+<script>
+
+
+    var columnDefs = [
+
+           {
+            field: "ServiceNo",
+            headerName: "@SharedResource["ServiceNo"]",
+            cellRenderer: params => {
+                /*return "<a target='_self' style='text-decoration: underline;' onclick=\"goService('" + params.data.TemplateCode + "','" + params.data.NtsNoteId + "')\" >" + params.value + "</a>";*/
+                return "<a style='text-decoration: underline;' href='javascript: void(0);' onclick='goService(\"" + params.data.TemplateCode + "\",\"" + params.data.NtsNoteId + "\");'>" + params.value + "</a>";
+            }
+           },
+           {
+               field: "LeaveType",
+                headerName:"@Resource["LeaveType"]"
+
+           },
+           {
+               field: "DurationText",
+                headerName:"@Resource["DurationText"]"
+           },
+        {
+            field: "WorkingDuration",
+             headerName:"@Resource["WorkingDuration"]"
+        },
+        {
+            field: "LeaveStatus",
+             headerName:"@Resource["LeaveStatus"]"
+
+        },
+
+        @*{
+            field: "AppliedDate",
+             headerName:"@Resource["AppliedDate"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },*@
+        {
+            field: "AppliedDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            field: "CancelServiceId",
+            headerName: "@Resource["CancelServiceId"]",
+            cellRenderer: params =>
+            {
+                if (params.value != null) {
+                                    return "<a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnCancel(\"" + params.value + "\");'>" + params.data.CancelServiceNo + "</a>";
+                }
+                else if (params.data.LeaveStatus == "Complete" && (params.data.LeaveType != "Leave Adjustment" && params.data.LeaveType != "Leave Accrual" && params.data.LeaveType != "Leave Adjustment UAE" && params.data.LeaveType != "Leave Adjustment AH") && params.data.ReturnToWorkServiceId == null) {
+                    return "<a style='text-decoration: underline;' href='javascript: void(0);' onclick='OnRaiseCancel(\"" + params.data.NtsNoteId + "\");'>Raise Cancel Request</a>";
+                }
+                else {
+                    /*return "<a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnRaiseCancel(\"" + params.data.NtsNoteId + "\");'>Raise Cancel Request</a>";*/
+                    return " ";
+                }
+
+            }
+        },
+        @*{
+            field: "ReturnToWork",
+            headerName: "@Resource["LeaveDetails"]",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },*@
+        {
+            field: "HandoverServiceId",
+
+            cellRenderer: params => {
+                if (params.value != null) {
+                    return " <a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnHandoverService(\"" + params.value + "\");'>" + params.data.HandoverServiceNo + "</a>   ";
+                } else {
+                    return " ";
+                }
+
+            }
+        },
+        {
+            field: "ReturnToWorkServiceId",
+
+            cellRenderer: params => {
+                if (params.value != null) {
+                    return " <a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnReturnToWork(\"" + params.value + "\");'>" + params.data.ReturnServiceNo + "</a> ";
+                }
+                else if (params.data.LeaveStatus == "Complete" && (params.data.LeaveType != "Leave Adjustment" && params.data.LeaveType != "Leave Accrual" && params.data.LeaveType != "Leave Adjustment UAE" && params.data.LeaveType != "Leave Adjustment AH" && params.data.LeaveType != "Annual Leave Encashment KSA" && params.data.LeaveType != "Annual Leave Encashment UAE" && params.data.LeaveType != "Annual Leave Encashment AH") && params.data.CancelServiceId == null) {
+                    return "<a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnRaiseRequest(\"" + params.data.NtsNoteId + "\");'>Raise Return To Work Request</a>";
+                }
+                else {
+                    return " ";
+                }; //only for enum
+            }
+        },
+        {
+            field: "ServiceId",
+            headerName:"Download",
+            cellRenderer: params => {
+                return "<span style='cursor:pointer;' onclick='OnDownload(\"" + params.data.ServiceId + "\");' title='Download Leave Report'><i class='fa fas fa-arrow-to-bottom'></i></span>"; //only for enum
+            }
+        },
+    ];
+
+    $(function () {
+
+        getLeaveDetailData();
+
+
+
+    });
+
+    function getLeaveDetailData() {
+
+        document.getElementById("kgrdNote").innerHTML = "";
+        /*var search = FilterGrid();*/
+        gridConfig(
+            "kgrdNote",
+            "/Chr/Leave/ReadLeaveDetailData?userId=@Model.UserId",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function refreshGrid() {
+        getLeaveDetailData();
+        return false;
+    }
+
+    function createLeave() {
+
+         if ('@Model.UserId' == '' || '@Model.UserId' == null) {
+             @*alert("@Resource["PleaseMapUserToPersonFromManagePerson"]");*@
+             alert("@Resource["Please Map User From Manage Person"]");
+         }
+         else {
+             var win = GetMainWindow();
+             win.iframeOpenUrl = '@Url.Action("SelectServiceTemplate", "NtsService", new { area = "Cms" })?templateCode=&categoryCode=Leave&cbm=refreshGrid&userId=' + '@Model.UserId';
+             win.OpenWindow({ Title: '@Html.Raw(Resource["Create New Leave Request"])', Width: 1200, Height: 600 });
+             return false;
+         }
+    }
+
+</script>
+<body>
+
+    <section class="about">
+        <div class="panel panel-default">
+
+            @*<div class="panel-heading">
+                <b>@Resource["LeaveDetails"]</b>
+            </div>*@
+
+            <div class="row-12 no-gutter hr-pad-top-15" @*style="margin-left:10px;"*@>
+                <div class="row mb">
+                    <div class="col-lg-3 label-div">
+                        @Resource["YearlyEntitlement"] 
+                    </div>
+                    <div class="col">
+                        :  @Html.DisplayFor(m => m.YearlyEntitlement, new { @class = "form-control hr-xx-large" })
+                    </div>
+                </div>
+                <div class="row mb">
+                    <div class="col-lg-3 label-div">
+                        @Resource["LeaveBalance"] 
+                    </div>
+                    <div class="col">
+                        :  @Html.DisplayFor(m => m.LeaveBalance, new { @class = "form-control hr-xx-large" })
+                    </div>
+                </div>
+                <div class="row mb">
+                    <div class="col-lg-3 label-div">
+                        @Resource["AnnualLeaveBalanceProjections"]
+                    </div>
+                    <div class="col">
+                        <a href='javascript: void(0);' onclick='OnLeaveProjections();'>@Resource["ClicktoView"]</a>
+                    </div>
+                </div>
+
+                <!--<div class="form-group col-xs-12 col-sm-12">
+                    <div class="col-lg-3 label-div">
+                            @Resource["YearlyEntitlement"] :  @Html.DisplayFor(m => m.YearlyEntitlement, new { @class = "form-control hr-xx-large" })
+
+                    </div>-->
+                @*<div class="col-lg-9">
+                </div>*@
+                <!--</div>-->
+                <!--<div class="form-group col-xs-12 col-sm-12">
+                    <div class="col-lg-3 label-div">
+                        @Resource["LeaveBalance"] :  @Html.DisplayFor(m => m.LeaveBalance, new { @class = "form-control hr-xx-large" })
+                    </div>-->
+                    @*<div class="col-lg-9">
+                    </div>*@
+                <!--</div>-->
+                @*<div class="form-group col-xs-12 col-sm-12">
+                    <div class="col-lg-3 label-div">
+                        @Resource["AnnualLeaveBalanceProjections"]
+                    </div>
+                    <div class="col-lg-9">
+                        <a href='javascript: void(0);' onclick='OnLeaveProjections();'>@Resource["ClicktoView"]</a>
+                    </div>
+                </div>*@
+            </div>
+
+
+            <div class="row-12 no-gutter hr-pad-top-15" @*style="margin-left:0px; margin-bottom:5px; padding-top:15px;"*@>                
+                <div class="row" style="padding-bottom:10px;">
+                    <div class="col-6">
+                        <h4>@Resource["LeaveTransactionDetails"]</h4>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-primary buttonStyle" onclick="createLeave();" style="float:right;">New Leave Request</button>
+                    </div>
+                </div>
+                
+                @*<span class="buttonStyle">
+                    <a class="btn btn-primary" onclick="createLeave();">New Leave Request</a>
+                </span>*@
+            </div>
+
+            <div class="hr-pad-12">
+                <div id="kgrdNote" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                @*@(Html.Kendo().Grid<LeaveDetailViewModel>
+                ().Name("kgrdNote")
+                .Columns(col =>
+                {
+                    col.Bound(c => c.ServiceNo).Title(@SharedResource["ServiceNo"]).Width(100).ClientTemplate("<a target='_self' style='cursor:pointer' onclick=\"goService('#=TemplateCode#','#=NtsNoteId#')\" >#=ServiceNo#</a>");
+                    col.Bound(c => c.LeaveType).Title(@Resource["LeaveType"]).Width(100);
+                    col.Bound(c => c.DurationText).Title(@Resource["DurationText"]).Width(100).HtmlAttributes(new { style = "text-align:center;" });
+                    col.Bound(c => c.WorkingDuration).Title(@Resource["WorkingDuration"]).Width(100).HtmlAttributes(new { style = "text-align:center;" });
+                    col.Bound(c => c.LeaveStatus).Title(@Resource["LeaveStatus"]).Width(100);
+                    col.Bound(c => c.AppliedDate).Title(@Resource["AppliedDate"]).Width(100).Format("{0:dd/MM/yyyy}");
+
+                    col.Bound(c => c.CancelServiceId).Width(150).ClientTemplate(
+        "#if (CancelServiceId != null) {# <a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnCancel(\"#=CancelServiceId#\");'>#=CancelServiceNo#</a> #}"
+        + "else if(LeaveStatus == \"Complete\" && (LeaveType != \"Leave Adjustment\" && LeaveType != \"Leave Accrual\" && LeaveType != \"Leave Adjustment UAE\" && LeaveType != \"Leave Adjustment AH\") && ReturnToWorkServiceId == null){# <a style='text-decoration: underline;' href='javascript: void(0);' onclick='OnRaiseCancel(\"#=NtsNoteId#\");'>Cancel Leave</a> #}"
+        + "else {#  #}#");
+                    col.Bound(c => c.ReturnToWork).Title(@Resource["LeaveDetails"]).Width(100).Format("{0:dd/MM/yyyy}");
+                    col.Bound(c => c.HandoverServiceId).Width(100).ClientTemplate(
+                    "#if (HandoverServiceId != null) { # <a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnHandoverService(\"#=HandoverServiceId#\");'>#=HandoverServiceNo#</a> # } #");
+
+
+
+                    col.Bound(c => c.ReturnToWorkServiceId).Width(150).ClientTemplate(
+                     "#if (ReturnToWorkServiceId != null) {# <a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnReturnToWork(\"#=ReturnToWorkServiceId#\");'>#=ReturnServiceNo#</a> #}"
+                       + "else if(LeaveStatus == \"Complete\" && (LeaveType != \"Leave Adjustment\" && LeaveType != \"Leave Accrual\" && LeaveType != \"Leave Adjustment UAE\" && LeaveType != \"Leave Adjustment AH\" && LeaveType != \"Annual Leave Encashment KSA\" && LeaveType != \"Annual Leave Encashment UAE\" && LeaveType != \"Annual Leave Encashment AH\") && CancelServiceId == null){# <a Style='text-decoration: underline;' href='javascript: void(0);' onclick='OnRaiseRequest(\"#=NtsNoteId#\");'>Raise Return To Work Request</a> #}#");
+
+                    col.Bound(c => c.ServiceId).ClientTemplate("<span style='cursor:pointer;' onclick='OnDownload(\"#=ServiceId#\");' title='Download Leave Report'><i class='fa fas fa-arrow-to-bottom'></i></span>").Title("Download").Width(150);
+
+
+
+
+                })
+
+                //.Events(e => e.DataBound("OnDataBound"))
+                .Resizable(resizable => resizable.Columns(true))
+                .Scrollable(x => x.Enabled(true))
+                .Sortable(srt => srt.Enabled(true))
+                .Selectable(select => select.Enabled(false))
+                .Filterable(f => f.Extra(false)
+                .Operators(o => o.ForString(s => s.Clear()
+                .Contains("Contains")
+                .IsEqualTo("Is equal to")
+                )))
+                .Pageable(pageable => pageable
+                //.Refresh(true)
+
+                .PageSizes(true)
+                .ButtonCount(5))
+                .AutoBind(true)
+                .DataSource(
+                dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+
+                .Read(read => read.Action("ReadLeaveDetailData", "Leave", new { userId = Model.UserId }))
+
+                .Model(model => model.Id(p => p.Id))
+                )
+
+
+                    )*@
+            </div>
+        </div>
+    </section>
+</body>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".k-grid .k-grid-btnAdd span").addClass("k-icon k-add");
+    });
+    function OnDataBound(arg) {
+        $(".k-grid .k-grid-Edit span").addClass("k-icon k-edit");
+
+    }
+    function goService(TemplateCode,NoteId) {
+
+
+
+       var portalId = $('#GlobalPortalId').val();
+
+        // var url = '/Cms/Page?source=Edit&dataAction=Edit&pageName=Project&portalId=' + portalId + '&recordId=' + id ;
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Edit&dataAction=Edit&templateCodes=' + TemplateCode + '&portalId=' + portalId + '&recordId=' + NoteId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["Service"])', Width: 1200, Height: 600 });
+        return false;
+           // var ru = "/hrs/hrdirect/index?page=Detail";
+           // var u = window.parent.location.search;
+           // u = u.replace("?", "&");
+           // if (u != null)
+           //     ru += u;
+           //
+           // ru = encodeURIComponent(ru);
+           // var url = "/nts/service/serviceflow?serviceId=" + serviceId+"&ru="+ ru;
+           // window.parent.location.href = url;
+        }
+        function OnReturnToWork(serviceId) {
+            var portalId = $('#GlobalPortalId').val();
+
+
+            var url = '/Cms/Page?lo=Popup&popup=true&source=View&dataAction=View&templateCodes=RETURN_TO_WORK&portalId=' + portalId + '&recordId=' + serviceId;
+
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["ReturnToWork"])', Width: 1200, Height: 600 });
+        }
+        function OnHandoverService(serviceId) {
+            var portalId = $('#GlobalPortalId').val();
+
+
+            var url = '/Cms/Page?lo=Popup&popup=true&source=View&dataAction=View&templateCodes=LeaveHandoverService&portalId=' + portalId + '&recordId=' + serviceId;
+
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["LeaveHandover"])', Width: 1200, Height: 600 });
+    }
+
+        function OnRaiseRequest(serviceId) {
+        debugger;
+             var portalId = $('#GlobalPortalId').val();
+        var userid = '@Model.UserId';
+        var prms = encodeURIComponent('parentServiceId=' + serviceId + '&ownerUserId=' + userid);
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=RETURN_TO_WORK&portalId=' + portalId + '&prms=' + prms;
+
+        var parentserivceID = '@Model.ServiceId';
+        ;
+
+        //var url = "/CHR/Leave/LeaveCancel?UserId=" + userid + "&ParentServiceId=" + serviceId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: 'Return To Work', Width: 1200, Height: 600 });
+
+        }
+    function OnCancel(serviceId) {
+        debugger;
+         var portalId = $('#GlobalPortalId').val();
+
+        //var url = '/Cms/Page?lo=Popup&cbm=AfterCreateDependent&source=View&dataAction=View&templateCodes=LEAVE_CANCEL&portalId=' + portalId + '&recordId=' + serviceId;
+        var url = '/Cms/Page?lo=Popup&popup=true&source=View&dataAction=View&templateCodes=LEAVE_CANCEL&portalId=' + portalId + '&recordId=' + serviceId;
+
+        //var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Versioning&dataAction=Edit&templateCodes=LEAVE_CANCEL&portalId=' + portalId + '&recordId=' + serviceId;
+
+        //var url = '/Cms/Page?lo=Popup&pageType=Service&source=View&dataAction=View&templateCodes=LEAVE_CANCEL&portalId=' + portalId + '&recordId=9cebfe73-ebb9-46a4-81fb-a07dd548e1d9';
+
+       // var url = '/Cms/Page?lo=Iframe&cbm=OnAfterPHCreate&source=View&dataAction=View&templateCodes=LEAVE_CANCEL&portalId=' + portalId + '&recordId=' + serviceId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["LeaveCancel"])', Width: 1200, Height: 600 });
+        return false;
+        }
+    function OnRaiseCancel(serviceId, tempCode) {
+        debugger;
+        var portalId = $('#GlobalPortalId').val();
+        var userid = '@Model.UserId';
+        var prms = encodeURIComponent('parentServiceId=' + serviceId + '&ownerUserId=' + userid);
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=LEAVE_CANCEL&portalId=' + portalId + '&prms=' + prms;
+
+        var parentserivceID = '@Model.ServiceId';
+        ;
+
+        //var url = "/CHR/Leave/LeaveCancel?UserId=" + userid + "&ParentServiceId=" + serviceId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["LeaveCancel"])', Width: 1200, Height: 600 });
+           // var ru = "/hrs/hrdirect/index?page=Detail";
+           // var u = window.parent.location.search;
+           // u = u.replace("?", "&");
+           // if (u != null)
+           //     ru += u;
+           //
+           // ru = encodeURIComponent(ru);
+           //
+           // var url = "/nts/service/serviceflow?userId=@Model.UserId&templateMasterCode=" + tempCode +"&parentServiceType=LeaveCancel&ParentServiceId=" + serviceId + "&ru=" + ru;
+           // window.parent.location.href = url;
+    }
+
+
+
+    function OnAfterServiceCreate() {
+        var userid = '@Model.UserId';
+        $("#kgrdNote").data("kendoGrid").dataSource.read({ userId: userid  });
+    }
+
+        function OnPrint(e) {
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            window.parent.location.href = "/nts/service/DownloadServiceRequest?serviceId=" + dataItem.ServiceId;
+            return false;
+    }
+
+    function OnDeleteLeaveService(serviceId) {
+        
+
+        var flag = confirm("@SharedResource["Areyousurethatyouwanttoproceed?"]");
+        if (flag) {
+            $.ajax({
+                url: "/nts/service/DeleteLeaveService?serviceId=" + serviceId,
+                type: 'POST',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success)
+                    {
+                        $("#kgrdNote").data("kendoGrid").dataSource.read();
+                        alert("@SharedResource["DeletedSuccessfully"]");
+                        window.parent.location.href = window.parent.location.href ;
+                    }
+                    else {
+                        var msg = ExtractError(data.errors);
+                        ShowNotification(msg);
+                    }
+
+                },
+                error: function (ert) {
+                    alert('error');
+                }
+            });
+            return false;
+        }
+
+    }
+
+    function OnLeaveProjections()
+    {
+
+        var url = "/chr/leave/AnnualLeaveBalanceProjections?userId=@Model.UserId";
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["AnnualLeaveBalanceProjections"])', Width: 800, Height: 600 });
+    }
+
+    function OnClose()
+    {
+        
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+    function OnDownload(serviceId) {
+        
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        //console.log(dataItem);
+        url = '/Cms/Report?rptName=CHR/LeaveReport.trdp&rptUrl=chr/query/GetLeaveReport/' + serviceId + '&rptUrl2=chr/query/GetLeaveServiceStepTask/' + serviceId + '&lo=@LayoutModeEnum.Popup';
+        //url = '/Cms/FastReport?rptName=CHR_LeaveReport&rptUrl=chr/query/GetLeaveReport/' + serviceId + '&rptUrl2=chr/query/GetLeaveServiceStepTask/' + serviceId + '&lo=@LayoutModeEnum.Popup';
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Report', Width: 800, Height: 700 });
+
+    }
+</script>

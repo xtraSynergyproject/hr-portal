@@ -1,0 +1,168 @@
+﻿@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@model EGovCommunityHallViewModel
+@{
+    ViewData["Title"] = "Community Hall List";
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    Layout = null;
+
+}
+<style>
+
+    .product {
+        float: left;
+        position: relative;
+        width: 340px;
+        min-height: 300px;
+        margin: 0 5px 30px;
+    }
+
+    .listbox {
+        padding: 5px;
+        border: solid;
+        border-color: lightgray;
+        border-width: 2px;
+    }
+
+    #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+        /* Avoid cutout if font or line is bigger */
+        font: inherit;
+    }
+
+    .k-listview-content {
+        overflow: hidden;
+        margin-left: 35px;
+        margin-right: 30px;
+    }
+
+    .k-listview {
+        border-style: none;
+        margin-left: 100px;
+        margin-right: 70px;
+        border-left-width: 40px;
+        border-right-width: 20px;
+    }
+
+    .center {
+        height: 80px;
+        width: 150px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 5px;
+    }
+
+    .card-body {
+        min-height: 300px;
+    }
+</style>
+
+<script>
+
+                var dataSource;
+        function getCommunityHallData() {
+            debugger;
+            document.getElementById("listView").innerHTML = "";
+
+               dataSource = new kendo.data.DataSource({
+                transport: {
+                      read: {
+                          url: "/EGov/EGovernment/ReadCommunityHallData",
+                        dataType: "json"
+                    }
+                },
+            });
+
+            $("#listView").kendoListView({
+                dataSource: dataSource,
+                template: kendo.template($("#template").html()),
+                selectable: '@ListViewSelectionMode.Single',
+            });
+    }
+    $(document).ready(function () {
+            debugger;
+
+            getCommunityHallData();
+
+        });
+
+           $('#search-term').on('keyup', function () {
+            var search = $.trim($(this).val());
+            if (search != "")
+                dataSource.filter({ field: "CommunityHallName", operator: "contains", value: search });
+            else
+                dataSource.filter({});
+
+            return;
+           });
+    function OnBook() {
+
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("BookCommunityHall", "EGovernment", new { @area="EGov"})';
+        win.OpenWindow({ Title: 'Book Community Hall', Width: 700, Height: 550});
+        return false;
+    }
+</script>
+
+
+<div style="margin-top:3%">
+    <div class="row" style="background-color: white; padding: 10px; margin-left: 12px; width: 99%; ">
+        <div style="padding-left: 10px;">
+            <h4 style="color:#007bff">
+                Welcome to Srinagar Smart City Limited Online Community Hall Booking System.
+            </h4>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="OnBook();" style="margin-left:25px">
+            <span>Book Community Hall</span>
+        </button>
+        <div class="col-sm">
+            <div class="form-outline">
+                <input type="search" id="search-term" class="form-control" placeholder="Search" aria-label="Search" />
+            </div>
+        </div>
+    </div>
+    <div class="content" style="padding-left: 45px;">
+        <p>
+            SSCL provides facilities of community hall on rent basis to all the citizens of Srinagar and adjacent areas for organising marriage, party or other social functions.
+            SSCl Portal is  user friendly and robust online system to help citizens for booking of Community Hall and Redressal of community hall booking grievances.
+        </p>
+        <p style="margin-top:5px">
+            Note: In case of failure of booking and amount has been deducted, Refund will be initiated automatically. Incase refund is not made within stipulated period please Contact Chief revenue Officer of Srinagar municipal corporation on following numbers:
+        </p>
+    </div>
+
+
+    <div class="row"></div>
+    <div class="row k-listview" id="listView" @*style="height: 500px; overflow: scroll;"*@></div>
+    <script type="text/x-kendo-tmpl" id="template">
+
+                            <div class="card bg-light mb-3 product" style="max-width: 18rem;">
+          <div class="card-header">#:CommunityHallName#</div>
+          <div class="card-body">
+               <img class="center" src="/Cms/document/GetApplicationDocument?documentCode=COMMUNITY_HALL"
+                                        onerror='OnImgError(this);' />
+                                        <hr/>
+            <h5 class="card-title">
+                <i class="fa fa-indian-rupee-sign"></i>
+                #:ChargesLeviedPerDay#</h5>
+            <p class="card-text">#:WardName#.</p>
+          </div>
+        </div>
+
+    </script>
+
+
+</div>
+
+
+
+
+
+
+

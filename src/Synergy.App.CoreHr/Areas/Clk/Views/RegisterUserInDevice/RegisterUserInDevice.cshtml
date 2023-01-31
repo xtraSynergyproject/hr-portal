@@ -1,0 +1,381 @@
+﻿@using Synergy.App.ViewModel;
+@using Kendo.Mvc.UI;
+@using Synergy.App.Common;
+@using Kendo.Mvc.Extensions;
+@model UserInfoViewModel
+@{
+    ViewBag.Title = "Register User In Device";
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<script>
+    $(document).ready(function () {
+
+        $("#searchBox").on("input", function (e) {
+            var listBox = $("#include").getKendoListBox();
+            var listBox1 = $("#exclude").getKendoListBox();
+            //var sarchString = $(this).val();
+
+            var search = FilterBy();
+
+            listBox1.dataSource.read(search);
+            listBox.dataSource.read(search);
+            return false;
+            //listBox.dataSource.filter({ field: "Name", operator: "contains", value: sarchString });
+
+        });
+
+         $("#DeviceId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.DeviceId',
+            change: OnChange,
+            dataSource:
+            {
+            transport:
+                {
+                read:
+                    {
+                        url: "/Clk/RegisterUserInDevice/GetIdNameList",
+                    }
+                }
+            }
+         });
+
+    });
+    function OnClear() {
+        $('#searchBox').val('');
+        var listBox = $("#include").getKendoListBox();
+        var listBox1 = $("#exclude").getKendoListBox();
+
+        var search = FilterBy();
+
+        listBox1.dataSource.read(search);
+        listBox.dataSource.read(search);
+
+    }
+    function onDataBound(e) {
+        var grid = $("#include").data("kendoListBox").dataItems();
+        $('#in').text(grid.length);
+
+    }
+    function onDataBound1(e) {
+        var grid1 = $("#exclude").data("kendoListBox").dataItems();
+        $('#ex').text(grid1.length);
+
+    }
+    function onAdd(e) {
+        var device = $('#DeviceId').val();
+        var users = "";
+        for (var i = 0; i < e.dataItems.length; i++) {
+            users = users + e.dataItems[i].Id + ',';
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/clk/RegisterUserInDevice/IncludePerson",
+            data: { 'persons': users, 'deviceId': device },
+            success: function (data) {
+                OnChange();
+            },
+            dataType: "json",
+        });
+
+        return true;
+
+    }
+    function onRemove(e) {
+        var device = $('#DeviceId').val();
+        var users = "";
+        for (var i = 0; i < e.dataItems.length; i++) {
+            users = users + e.dataItems[i].Id + ',';
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/clk/RegisterUserInDevice/ExcludePerson",
+            data: { 'persons': users, 'deviceId': device },
+            success: function (data) {
+                OnChange();
+            },
+            dataType: "json",
+        });
+
+        return true;
+    };
+    function OnChange() {
+        var listBox = $("#include").getKendoListBox();
+        var listBox1 = $("#exclude").getKendoListBox();
+
+        var search = FilterBy();
+
+        listBox.dataSource.read(search);
+        listBox1.dataSource.read(search);
+    }
+    function customPlaceholder(draggedItem) {
+        return draggedItem
+            .clone()
+            .addClass("custom-placeholder")
+            .removeClass("k-ghost");
+    }
+    function FilterBy() {
+        return {
+            deviceId: $('#DeviceId').data("kendoDropDownList").value(),
+            searchParam: $('#searchBox').val()
+        };
+    }
+</script>
+
+<style>
+
+
+    .h5 {
+
+        color: red !important;
+    }
+        #example .demo-section {
+        max-width: none;
+        width: 980px;
+        margin-left: 32px;
+    }
+
+    #example .k-listbox {
+        width: 450px;
+        height: 500px;
+    }
+
+        #example .k-listbox:first-child {
+            width: 100%;
+            margin-right: 1px;
+            margin-left: 12px;
+        }
+
+    .k-ghost {
+        display: none !important;
+    }
+
+    .custom-placeholder {
+        opacity: 0.4;
+    }
+
+    #example .k-item {
+        line-height: 1em;
+    }
+
+    /* Material Theme padding adjustment*/
+
+    .k-material #example .k-item,
+    .k-material #example .k-item.k-state-hover,
+    .k-materialblack #example .k-item,
+    .k-materialblack #examplel .k-item.k-state-hover {
+        padding-left: 5px;
+        border-left: 0;
+    }
+
+    .k-item > span {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        display: inline-block;
+        vertical-align: top;
+        margin: 20px 10px 10px 5px;
+    }
+
+    #example .k-item > span:first-child,
+    .k-item.k-drag-clue > span:first-child {
+        -moz-box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+        -webkit-box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+        box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+        margin: 10px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-size: 100%;
+        background-repeat: no-repeat;
+    }
+
+    #example h3,
+    .k-item.k-drag-clue h3 {
+        font-size: 1.2em;
+        font-weight: normal;
+        margin: 0 0 1px 0;
+        padding: 0;
+    }
+
+    #example p {
+        margin-left: 17px;
+        padding: 0;
+        font-size: .8em;
+    }
+</style>
+<div id="example" role="application" style="margin-left:17px">
+    <div class="formHeader">
+        <h4>
+            @ViewBag.Title
+        </h4>
+    </div><br />
+
+    <div class="col-md-10 row d-flex justify-content-lg-start">
+        <div class="col-4">
+            <div class="col-lg-3 label-div">
+
+                @*@Html.Label("Department", new { @class = "control-label" })*@
+                Device
+            </div>
+            @*@(Html.Kendo().DropDownListFor(x => x.DeviceId)
+
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetIdNameList", "RegisterUserInDevice", new { area = "Clk" });
+            });
+        })
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+        .Filter(FilterType.Contains)
+        .Events(e => e.Change("OnChange"))
+        .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+            <input id="DeviceId" class="hr-xx-large" />
+
+        </div>
+
+        <div class="col-5">
+            <div class="col-lg-4 label-div">
+
+                @*@Html.Label("Date", new { @class = "control-label" })*@
+                Search
+            </div>
+            <input type="text" class='k-textbox hr-xxx-large' id="searchBox" placeholder="Search User..." />
+        </div>
+    </div>
+    <br />
+
+    <div class="col-md-10 row d-flex justify-content-lg-start">
+        <div class="col-5">
+
+        </div>
+
+    </div>
+
+    <div class="row d-flex justify-content-lg-start col-md-12" style="background-color:#fff;margin-left:10px">
+        <div class="col-6">
+            @(Html.Kendo().ListBox()
+                    .Name("include")
+                    .DataTextField("Name")
+                    .DataValueField("Id")
+                    .DataSource(source => source
+                        .Read(read => read.Action("GetIncludePersonList", "RegisterUserInDevice", new { area = "Clk" }).Data("FilterBy"))
+                    )
+                    .Events(events => events
+                        .Add("onAdd")
+                        .Remove("onRemove")
+                        .DataBound("onDataBound")
+                        )
+                    .TemplateId("customer-item-template")
+                    .Draggable(draggable => draggable.Placeholder("customPlaceholder"))
+                    .DropSources("exclude")
+                    .ConnectWith("exclude")
+
+
+                    .Toolbar(toolbar =>
+                    {
+                        toolbar.Position(ListBoxToolbarPosition.Right);
+                        toolbar.Tools(tools => tools
+                            //.MoveUp()
+                            //.MoveDown()
+                            .TransferTo()
+                            .TransferFrom()
+                            .TransferAllTo()
+                            .TransferAllFrom()
+                            //.Remove()
+                            );
+                    })
+                  )
+        </div>
+        <div class="col-6">
+            @(Html.Kendo().ListBox()
+                            .Name("exclude")
+                            .DataTextField("Name")
+                            .DataValueField("Id")
+                            .TemplateId("customer-item-template")
+                            .Events(events => events
+
+                        .DataBound("onDataBound1")
+                        )
+                            .Draggable(draggable => draggable.Placeholder("customPlaceholder"))
+                            .DropSources("include")
+                            .ConnectWith("include")
+                            .DataSource(source => source
+                            .Read(read => read.Action("GetExcludePersonList", "RegisterUserInDevice", new { area = "Clk" }).Data("FilterBy"))
+                        )
+                  )
+        </div>
+    </div>
+
+    <div class="row d-flex justify-content-lg-start col-md-12">         1                         
+        <div class="col-6">     
+            Number of users in the device :
+          
+            <label  id='in' readonly="readonly" style="font-weight:bold"></label>
+        </div>
+
+        <div class="col-6">
+            Number of users not in the device :
+            <label type='text' id='ex' readonly="readonly" style="font-weight:bold"></label>
+        </div>
+    </div>
+
+
+
+        <div class="row no-gutter hr-pad-top-15">
+
+
+
+            <div class="demo-section k-content wide">
+
+
+
+            </div>
+            <div class="col-md-6" style="width:665px;margin-left:20px">
+                
+                <br />
+                
+                <br />  <br />
+            </div>
+            <br />
+            @*<div class="col-md-6" style="width:600px;">
+                    Number of users not in the device :
+                    <input type='text' id='ex' readonly="readonly" />
+                </div>*@
+        </div>
+    </div>
+    <script id="customer-item-template" type="text/x-kendo-template">
+
+         #if (data.PhotoName!=null){#
+         <span class="k-state-default" style="background-image: url('/Cms/document/getimagemongo?id=#:data.PhotoName#');height:50px;width:50px;"></span>
+        #
+        }
+        else {#
+        <span class="k-state-default" style="background-image: url('/images/profile.jpg');height:50px;width:50px;"></span>
+        #}
+        #
+
+
+
+        <span class="k-state-default">
+            <h5 style="color: black">#: data.DisplayName #</h5>
+            <p>
+                #if (data.JobName!=null) {#  #: data.JobName  # <br/>#  } #
+                #if (data.OrganizationName!=null) {#  #: data.OrganizationName # <br/># } #
+                #if (data.RegisteredDevices!=null) {#  #: data.RegisteredDevices #<br/># } #
+            </p>
+        </span>
+    </script>
+
+

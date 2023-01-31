@@ -1,0 +1,1039 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.CHR.Controllers.HRDirectController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@using Kendo.Mvc.UI
+@using Synergy.App.Common
+@model PersonProfileViewModel
+
+@{
+    ViewBag.Title = @Resource["HRDirect"];
+    Layout = ViewBag.Layout ?? null;
+    //Layout = "~/Views/Shared/Themes/CareerPortal/_Layout.cshtml";
+    // Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+<style>
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+
+    #griddocumentpassport .k-pager-wrap {
+        min-width: 1523px;
+    }
+
+    #griddocumentpassport .k-grid-toolbar {
+        min-width: 1523px;
+    }
+
+    #griddocumentid .k-pager-wrap {
+        min-width: 1685px;
+    }
+
+    #griddocumentid .k-grid-toolbar {
+        min-width: 1685px;
+    }
+
+    #griddocumentvisa .k-grid-toolbar {
+        min-width: 1810px;
+    }
+
+    #griddocumentvisa .k-pager-wrap {
+        min-width: 1810px;
+    }
+
+    #griddocumenteducation .k-grid-toolbar {
+        min-width: 1378px;
+    }
+
+    #griddocumenteducation .k-pager-wrap {
+        min-width: 1378px;
+    }
+
+    #griddocumentexperience .k-grid-toolbar {
+        min-width: 1625px;
+    }
+
+    #griddocumentexperience .k-pager-wrap {
+        min-width: 1625px;
+    }
+
+    #griddocumenttraining .k-grid-toolbar {
+        min-width: 1184px;
+    }
+
+    #griddocumenttraining .k-pager-wrap {
+        min-width: 1184px;
+    }
+
+/* Accordian Styling*/
+    .card-header .title {
+        font-size: 17px;
+        color: #000;
+    }
+
+    .card-header .accicon {
+        float: right;
+        font-size: 20px;
+        width: 1.2em;
+    }
+
+    .card-header {
+        cursor: pointer;
+        border-bottom: none;
+    }
+
+    .card {
+        border: 1px solid #ddd;
+    }
+
+    .card-body {
+        border-top: 1px solid #ddd;
+    }
+
+    .card-header:not(.collapsed) .rotate-icon {
+        transform: rotate(180deg);
+    }
+
+    .card-header.collapsed .rotate-icon {
+        transform: rotate(0deg);
+    }
+</style>
+<script>
+    function OnDatabound_OwnerOrRequester(e) {
+        $("#kgrid_OwnerOrRequester tbody tr").each(function () {
+            var currentDataItem = $("#kgrid_OwnerOrRequester").data("kendoGrid").dataItem($(this));
+            if (currentDataItem.ServiceStatusCode !== 'NOTE_STATUS_DRAFT') {
+                var del = $(this).find(".action-delete");
+                del.hide();
+            }
+        });
+    }
+     function FilterCreatedByGrid() {
+        return {
+            indexPageTemplateId: "@Model.TemplateId",
+            ownerType: '@NtsActiveUserTypeEnum.Owner'
+        };
+    }
+    function OnDocument() {
+        if ('@Model.UserId' == '' || '@Model.UserId' == null) {
+            alert("@Resource["Pleasemappersontouserfrommanageperson"]");
+        }
+        else {
+            var url = '@Url.Action("SelectNoteTemplate", "NtsNote",new {area="Cms" })?templateCode=&categoryCode=PersonDocuments&userId='+ '@Model.UserId';//'/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=Project&portalId=' + portalId /*+ '&prms=' + prms*/;
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(Resource["UploadDocument"])', Width: 1000, Height: 600, Position: 'Right1' });
+
+            return false;
+        }
+    }
+     function OnCreate() {
+         if ('@Model.UserId' == '' || '@Model.UserId' == null) {
+             alert("@Resource["Pleasemappersontouserfrommanageperson"]");
+         }
+         else {
+             var win = GetMainWindow();
+             win.iframeOpenUrl = '@Url.Action("SelectServiceTemplate", "NtsService", new { area = "Cms" })?templateCode=&categoryCode=PersonDocuments&userId='+ '@Model.UserId';
+             win.OpenWindow({ Title: '@Html.Raw(Resource["DocumentTemplate"])', Width: 1200, Height: 600 });
+             return false;
+         }
+    }
+    function OnEdit(TemplateCode, NoteId) {
+          //  var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            @*var id = '@Model.Page.Id';*@
+     @*var type = 'Note';
+            var source = '@RequestSourceEnum.Versioning.ToString()';
+            var action = '@DataActionEnum.Edit.ToString()';
+         LoadPageById(id, type, source, action, dataItem.NoteId, true, 1200, 600, 'Manage Note', 'ReloadIndexPage');
+            return false;*@
+
+       //  var portalId = $('#GlobalPortalId').val();
+         var portalId = "";
+         if (window.parent == "" || window.parent == undefined) {
+             portalId = $("#GlobalPortalId").val();
+         }
+         else {
+             portalId = window.parent.$("#GlobalPortalId").val();
+         }
+         // var prms = encodeURIComponent('parentServiceId=' + Id);
+         var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterCreate&source=View&dataAction=View&templateCodes=' + TemplateCode+'&portalId=' + portalId + '&recordId=' + NoteId;
+
+         //LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Edit Task');
+         var win = GetMainWindow();
+         win.iframeOpenUrl = url;
+         win.OpenWindow({ Title: '@Html.Raw(Resource["EditDocument"])', Width: 1200, Height: 600 });
+         return false;
+    }
+    function OnService(serviceid,templateCode) {
+
+         //var portalId = $('#GlobalPortalId').val();
+        var portalId = "";
+        if (window.parent == "" || window.parent == undefined) {
+            portalId = $("#GlobalPortalId").val();
+        }
+        else {
+            portalId = window.parent.$("#GlobalPortalId").val();
+        }
+        var url = '/Cms/Page?lo=Popup&popup=true&cbm=OnAfterCreate&source=View&dataAction=View&templateCodes=' + templateCode +'&portalId=' + portalId + '&recordId=' + serviceid;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["DocumentRequest"])', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function OnAfterNoteCreate(note) {
+        
+        if ('@ViewBag.lo' == '@LayoutModeEnum.Popup') {
+            location.href = '/CHR/HRDirect/EmployeeDocument?userId=@Model.UserId&lo=@LayoutModeEnum.Popup';
+        }
+        else {
+            PersonDocument();
+        }
+
+    }
+
+</script>
+<body>
+    <section class="about">
+        @if (Model.UserRole == "HR")
+        {
+            <button class="btn btn-filter-reset" onclick="OnDocument()" title="@Resource["UploadDocument"]">@Resource["UploadDocument"]</button>
+        }
+        <div class="k-edit-form-container" style="width: 100%;">
+            <div class="k-edit-form-container" style="width: 100%;">
+                <!-- Person Passport -->
+                @{ var i = 1; }
+                @foreach (var item in Model.NoteTableRows)
+                {
+                    <br />
+                    <div class="card">
+                        @*<div class="panel panel-default">*@
+                            <div class="card-header" data-toggle="collapse" data-target="#collapse_@i" aria-expanded="true">
+                                <div>
+                                    @*<a data-toggle="collapse" href="#collapse1" style="text-decoration:none"><b>@item.TemplateName</b></a>*@
+                                    <span class="title">@item.TemplateName</span>
+                                    <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
+                                </div>
+                            </div>
+                            @*<div id="collapse_@i" class="panel-collapse in div-bg-color">*@
+                            <div id="collapse_@i" class="collapse show">
+                                <div class="card-body">
+                                    <script>
+
+
+
+    var columnDefs_@i = [
+
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+
+
+                return "<div class='btn-group grid-menu' id='tree-doc' data-idvalue='" + params.data.NoteId + "' data-status=\"0\" data-tempcode='" + params.data.TemplateCode + "' ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+         @foreach(var column in item.SelectedTableRows)
+         {
+
+             //columns.Bound(column.ColumnName).Title(column.HeaderName).Width(150);
+             if (column.ColumnName=="ExpireDate" || column.ColumnName == "ExpiryDate" || column.ColumnName == "DocumentExpiryDate" || column.ColumnName == "IssueDate" || column.ColumnName == "DateOfIssue" || column.ColumnName == "TrainingCompletionDate" || column.ColumnName == "StartDate" || column.ColumnName == "EndDate" || column.ColumnName == "DateOfBirth" || column.ColumnName == "CompletedDate")
+             {
+                                        @:{ field: '@column.ColumnName', headerName: '@column.HeaderName', width: 150, cellRenderer: params => { var date = new Date(params.value); return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();}},
+                    }
+                    else
+                    {
+                 @:{ field: "@column.ColumnName", headerName:"@column.HeaderName",width:150},
+                    }
+
+
+         }
+    ];
+
+    $(function () {
+
+        getDocData_@(i)();
+
+       // $.contextMenu('update');
+      //  $('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-doc',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+                var code = $trigger.data('tempcode');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEdit(code,id);
+                                        break;
+
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+
+    });
+
+    function getDocData_@(i)() {
+        document.getElementById("kgrid_Doc_@i").innerHTML = "";
+        gridConfig(
+            "kgrid_Doc_@i",
+            "/chr/HRDirect/LoadNoteIndexPageGrid?indexPageTemplateId=@item.Id&ownerType=@NtsActiveUserTypeEnum.Owner&userId=@Model.UserId",
+            columnDefs_@i,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+                                    </script>
+                                    <div id="kgrid_Doc_@i" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                                    @*@(Html.Kendo().Grid<dynamic>
+                                    ()
+                                    .Name($"kgrid_Doc"+i).Height(350)
+                                    .Columns(columns =>
+                                    {
+                                        columns.Bound("NoteId").Visible(false);
+                                        var c = columns.Command(command =>
+                                        {
+                                            command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("OnEdit").HtmlAttributes(new { @class = "action-icon", title = @SharedResource["Edit"] });
+                                            // command.Custom("Delete").Text("<i class='fa fas fa-trash'></i>").Click("OnDelete").HtmlAttributes(new { @class = "action-icon action-delete", title = "Delete" });
+
+                                        }).Width(120);
+                                        foreach (var column in item.SelectedTableRows)
+                                        {
+
+                                            columns.Bound(column.ColumnName).Title(column.HeaderName).Width(150);
+
+                                        }
+
+                                    })
+                                    .Resizable(resizable => resizable.Columns(true))
+                                    .Scrollable(x => x.Enabled(true))
+                                    .Sortable(srt => srt.Enabled(true))
+                                    .Selectable(select => select.Enabled(false))
+                                    .Filterable(f => f.Extra(false))
+                                    .Pageable(pageable => pageable
+                                    .Refresh(true)
+
+                                    .PageSizes(true)
+                                    .ButtonCount(5))
+                                    //.AutoBind(true)
+                                    .DataSource(
+                                    dataSource => dataSource
+                                    .Ajax()
+                                    .PageSize(10)
+
+                                    //.Events(events => events.Error("OnError"))
+                                    .Read(read => read.Action("LoadNoteIndexPageGrid", "HRDirect",new { indexPageTemplateId =item.Id, ownerType= NtsActiveUserTypeEnum.Owner,userId=Model.UserId}))
+                                    //.Model(model => model.Id(p => p.Id))
+
+                                    )
+
+                                            )*@
+                                    @*@(Html.Kendo().Grid<PersonPassportDocumentViewModel>
+                                                                                        ().Name("griddocumentpassport")
+                                                                                        .HtmlAttributes(new { style = "overflow-x: scroll;" })
+                                                                                        .Columns(col =>
+                                                                                        {
+                                                                                            col.Bound(c => c.NoteNo).Title("Document No").ClientTemplate("<a target='_self' href='javascript:OnNote(#=NoteId#);'>#=NoteNo#</a>");
+                                                                                            //col.Bound(c => c.DocumentType).Title("DocumentType");
+                                                                                            //col.Bound(c => c.DocumentCount).Title("Document");
+                                                                                            col.Bound(c => c.PassportNumber).Locked(true);
+                                                                                            col.Bound(c => c.PassIssueDate).Width(150);
+                                                                                            col.Bound(c => c.ExpiryDate).Title("Expiry Date");
+                                                                                            col.Bound(c => c.PlaceOfIssue);
+                                                                                            col.Bound(c => c.NationalityName);
+                                                                                            col.Bound(c => c.DateOfBirth);
+                                                                                            col.Bound(c => c.PlaceOfBirth);
+                                                                                            col.Bound(c => c.BirthCountryName);
+                                                                                            col.Bound(c => c.PassportAttachment).ClientTemplate("# if (PassportAttachment!=null) { #" +
+                                                                    "<a target='_self' href='javascript:OnFileClick(#=PassportAttachment#);'>Download Passport</a>" +
+                                                                "# }else {# #}#");
+                                                                                            col.Bound(c => c.DocumentCount).Title("Other Attachments").ClientTemplate("# if (DocumentCount>0) { #" +
+                                                                    "<a href='javascript:OnNoteAttachClick(#=NoteId#,#=NoteVersionNo#);'>Other Attachments</a>" +
+                                                                "# }else {# #}#");
+
+
+                                                                                        })
+                                                                                        .ToolBar(toolbar =>
+                                                                                        {
+                                                                                            //if (843.HasPermission() && 903.HasPermission() && 2098.HasPermission() && 2246.HasPermission() && 723.HasPermission() && 963.HasPermission())
+                                                                                            //{
+
+                                                                                                toolbar.Custom().Text("Upload Passport").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAdd('N_PASSPORT');" });
+                                                                                                toolbar.Custom().Text("Request Employee To Upload Passport").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAddService('"+@ViewBag.PassportTemplateCode+"');" });
+
+
+                                                                                            //}
+                                                                                        })
+                                                                                                //.Events(e => e.DataBound("OnDataBound"))
+                                                                                                .Scrollable(x => x.Enabled(false))
+                                                                                                .Sortable(srt => srt.Enabled(true))
+                                                                                                .Selectable(select => select.Enabled(false))
+                                                                                                .Filterable(f => f.Extra(false)
+                                                                                                .Operators(o => o.ForString(s => s.Clear()
+                                                                                                .Contains("Contains")
+                                                                                                .IsEqualTo("Is equal to")
+                                                                                                )))
+                                                                                                .Pageable(pageable => pageable
+                                                                                                .Refresh(true)
+
+                                                                                                                .PageSizes(true)
+                                                                                                                .ButtonCount(5))
+                                                                                                                .AutoBind(true)
+                                                                                                                .DataSource(
+                                                                                                                dataSource => dataSource
+                                                                                                                .Ajax()
+                                                                                                                .PageSize(5)
+
+                                                                                                                .Events(events => events.Error("OnError"))
+                                                                                                                .Read(read => read.Action("ReadPersonPassportDocuments", "Person", new { area = "Hrs", personId = Model.PersonId }))
+
+                                                                                                                )
+                                    )*@
+                                </div>
+                            </div>
+                        @*</div>*@
+                    </div>
+                    i++;
+                }
+                <!-- Person Passport Closing-->
+                <!-- Person ID -->
+                @*<div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" data-toggle="collapse" data-target="#collapse2">
+                            <div class="panel-title">
+                                <a data-toggle="collapse" href="#collapse2" style="text-decoration:none"><b>Employee ID</b></a>
+
+                            </div>
+                        </div>
+                        <div id="collapse2" class="panel-collapse in div-bg-color">
+                            <div class="panel-body">
+                                @(Html.Kendo().Grid<PersonIDDocumentViewModel>
+                                        ().Name("griddocumentid")
+                                        .HtmlAttributes(new { style = "overflow-x: scroll;" })
+                                        .Columns(col =>
+                                        {
+                                        col.Bound(c => c.NoteNo).Title("Document No").ClientTemplate("<a target='_self' href='javascript:OnNote(#=NoteId#);'>#=NoteNo#</a>");
+
+                                        col.Bound(c => c.IDType);
+                                        col.Bound(c => c.IDNumber);
+                                        col.Bound(c => c.IDIssueDate);
+                                        col.Bound(c => c.ExpiryDate).Title("Expiry Date");
+                                        col.Bound(c => c.IDHijiriIssueDate);
+                                        col.Bound(c => c.IDHijiriExpiryDate);
+                                        col.Bound(c => c.IDCardJobTitle);
+                                        col.Bound(c => c.PlaceOfIssue);
+                                        col.Bound(c => c.IDAttachmentFront).ClientTemplate("# if (IDAttachmentFront!=null) { #" +
+                                        "<a target='_self' href='javascript:OnFileClick(#=IDAttachmentFront#);'>Download ID Front</a>" +
+                                        "# }else {# #}#");
+                                        col.Bound(c => c.IDAttachmentBack).ClientTemplate("# if (IDAttachmentBack!=null) { #" +
+                                        "<a target='_self' href='javascript:OnFileClick(#=IDAttachmentBack#);'>Download ID Back</a>" +
+                                        "# }else {# #}#");
+                                        col.Bound(c => c.DocumentCount).Title("Other Attachments").ClientTemplate("# if (DocumentCount>0) { #" +
+                                        "<a href='javascript:OnNoteAttachClick(#=NoteId#,#=NoteVersionNo#);'>Other Attachments</a>" +
+                                        "# }else {# #}#");
+
+
+
+                                        })
+                                        .ToolBar(toolbar =>
+                                        {
+                                        // if (843.HasPermission() && 903.HasPermission() && 2098.HasPermission() && 2246.HasPermission() && 723.HasPermission() && 963.HasPermission())
+                                        // {
+                                        toolbar.Custom().Text("Upload ID").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAdd('N_ID');" });
+                                        toolbar.Custom().Text("Request Employee To Upload ID").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAddService('"+ @ViewBag.IDTemplateCode + "');" });
+
+                                        // }
+                                        })
+                                        //.Events(e => e.DataBound("OnDataBound"))
+                                        .Scrollable(x => x.Enabled(false))
+                                        .Sortable(srt => srt.Enabled(true))
+                                        .Selectable(select => select.Enabled(false))
+                                        .Filterable(f => f.Extra(false)
+                                        .Operators(o => o.ForString(s => s.Clear()
+                                        .Contains("Contains")
+                                        .IsEqualTo("Is equal to")
+                                        )))
+                                        .Pageable(pageable => pageable
+                                        .Refresh(true)
+
+                                        .PageSizes(true)
+                                        .ButtonCount(5))
+                                        .AutoBind(true)
+                                        .DataSource(
+                                        dataSource => dataSource
+                                        .Ajax()
+                                        .PageSize(5)
+
+                                        .Events(events => events.Error("OnError"))
+                                        .Read(read => read.Action("ReadPersonIDDocuments", "Person", new { area = "Hrs", personId = Model.PersonId }))
+
+                                        )
+                                        )
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+                <!-- Person ID Closed-->
+                <!-- Person Visa -->
+                @*<div class="panel-group">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading" data-toggle="collapse" data-target="#collapse3">
+                                            <div class="panel-title">
+                                                <a data-toggle="collapse" href="#collapse3" style="text-decoration:none"><b>Employee Visa</b></a>
+
+                                            </div>
+                                        </div>
+                                        <div id="collapse3" class="panel-collapse in div-bg-color">
+                                            <div class="panel-body">
+                                                @(Html.Kendo().Grid<PersonVisaDocumentViewModel>
+                                                        ().Name("griddocumentvisa")
+                                                        .HtmlAttributes(new { style = "overflow-x: scroll;" })
+                                                        .Columns(col =>
+                                                        {
+                                                            col.Bound(c => c.NoteNo).Title("Document No").ClientTemplate("<a target='_self' href='javascript:OnNote(#=NoteId#);'>#=NoteNo#</a>");
+                                                            //col.Bound(c => c.DocumentType).Title("DocumentType");
+                                                            //col.Bound(c => c.DocumentCount).Title("Document");
+                                                            col.Bound(c => c.VisaNumber);
+                                                            col.Bound(c => c.UIDNo);
+                                                            col.Bound(c => c.DurationOfStay);
+                                                            col.Bound(c => c.PlaceOfIssue);
+                                                            col.Bound(c => c.VisaType);
+                                                            col.Bound(c => c.EntryType);
+                                                            col.Bound(c => c.SponsorName);
+                                                            col.Bound(c => c.Purpose);
+                                                            col.Bound(c => c.VisaJobTitle);
+                                                            col.Bound(c => c.VisaIssueDate);
+                                                            col.Bound(c => c.ExpiryDate).Title("Expiry Date");
+                                                            col.Bound(c => c.VisaAttachment).ClientTemplate("# if (VisaAttachment!=null) { #" +
+                                                                        "<a target='_self' href='javascript:OnFileClick(#=VisaAttachment#);'>Download Visa</a>" +
+                                                                    "# }else {# #}#");
+                                                            col.Bound(c => c.DocumentCount).Title("Other Attachments").ClientTemplate("# if (DocumentCount>0) { #" +
+                                                                        "<a href='javascript:OnNoteAttachClick(#=NoteId#,#=NoteVersionNo#);'>Other Attachments</a>" +
+                                                                    "# }else {# #}#");
+
+
+
+                                                        })
+                                                        .ToolBar(toolbar =>
+                                                        {
+                                                            //if (843.HasPermission() && 903.HasPermission() && 2098.HasPermission() && 2246.HasPermission() && 723.HasPermission() && 963.HasPermission())
+                                                            //{
+                                                                toolbar.Custom().Text("Upload Visa").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAdd('N_VISA');" });
+                                                                toolbar.Custom().Text("Request Employee To Upload Visa").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAddService('"+ @ViewBag.VisaTemplateCode + "');" });
+
+                                                            // }
+                                                        })
+                                        //.Events(e => e.DataBound("OnDataBound"))
+                                        .Scrollable(x => x.Enabled(false))
+                                        .Sortable(srt => srt.Enabled(true))
+                                        .Selectable(select => select.Enabled(false))
+                                        .Filterable(f => f.Extra(false)
+                                        .Operators(o => o.ForString(s => s.Clear()
+                                        .Contains("Contains")
+                                        .IsEqualTo("Is equal to")
+                                        )))
+                                        .Pageable(pageable => pageable
+                                        .Refresh(true)
+
+                                                        .PageSizes(true)
+                                                        .ButtonCount(5))
+                                                        .AutoBind(true)
+                                                        .DataSource(
+                                                        dataSource => dataSource
+                                                        .Ajax()
+                                                        .PageSize(5)
+
+                                                        .Events(events => events.Error("OnError"))
+                                                        .Read(read => read.Action("ReadPersonVisaDocuments", "Person", new { area = "Hrs", personId = Model.PersonId }))
+
+                                                        )
+                )
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>*@
+                <!-- Person Visa Closed-->
+                <!-- Person Education -->
+                @*<div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" data-toggle="collapse" data-target="#collapse7">
+                            <div class="panel-title">
+                                <a data-toggle="collapse" href="#collapse7" style="text-decoration:none"><b>Employee Education Qualification</b></a>
+
+                            </div>
+                        </div>
+                        <div id="collapse7" class="panel-collapse in div-bg-color">
+                            <div class="panel-body">
+                                @(Html.Kendo().Grid<PersonEducationDocumentViewModel>
+                                ().Name("griddocumenteducation")
+                                .HtmlAttributes(new { style = "overflow-x: scroll;" })
+                                .Columns(col =>
+                                {
+                                    col.Bound(c => c.NoteNo).Title("Document No").ClientTemplate("<a target='_self' href='javascript:OnNote(#=NoteId#);'>#=NoteNo#</a>");
+                                    //col.Bound(c => c.DocumentType).Title("DocumentType");
+                                    //col.Bound(c => c.DocumentCount).Title("Document");
+                                    col.Bound(c => c.QualificationName);
+                                    col.Bound(c => c.StartDate);
+                                    col.Bound(c => c.EndDate);
+                                    col.Bound(c => c.University);
+                                    col.Bound(c => c.Location);
+                                    col.Bound(c => c.IsMOFA).ClientTemplate("#= IsMOFA=='true' ? 'YES' : 'NO' #");
+                                    col.Bound(c => c.Attachment).ClientTemplate("# if (Attachment!=null) { #" +
+                                                                                "<a target='_self' href='javascript:OnFileClick(#=Attachment#);'>Download</a>" +
+                                                                            "# }else {# #}#");
+                                    col.Bound(c => c.DocumentCount).Title("Other Attachments").ClientTemplate("# if (DocumentCount>0) { #" +
+                                                                                                                    "<a href='javascript:OnNoteAttachClick(#=NoteId#,#=NoteVersionNo#);'>Other Attachments</a>" +
+                                                                                                                "# }else {# #}#");
+
+
+
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    //if (843.HasPermission() && 903.HasPermission() && 2098.HasPermission() && 2246.HasPermission() && 723.HasPermission() && 963.HasPermission())
+                                    //{
+                                        toolbar.Custom().Text("Upload Education Qualification").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAdd('N_EDUCATION');" });
+                                        toolbar.Custom().Text("Request Employee To Upload Education Qualification").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAddService('"+ @ViewBag.EducationTemplateCode + "');" });
+
+                                    //}
+                                })
+                                //.Events(e => e.DataBound("OnDataBound"))
+                                .Scrollable(x => x.Enabled(false))
+                                .Sortable(srt => srt.Enabled(true))
+                                .Selectable(select => select.Enabled(false))
+                                .Filterable(f => f.Extra(false)
+                                .Operators(o => o.ForString(s => s.Clear()
+                                .Contains("Contains")
+                                .IsEqualTo("Is equal to")
+                                )))
+                                .Pageable(pageable => pageable
+                                .Refresh(true)
+
+                                .PageSizes(true)
+                                .ButtonCount(5))
+                                .AutoBind(true)
+                                .DataSource(
+                                dataSource => dataSource
+                                .Ajax()
+                                .PageSize(5)
+
+                                .Events(events => events.Error("OnError"))
+                                .Read(read => read.Action("ReadPersonEducationDocuments", "Person", new { area = "Hrs", personId = Model.PersonId }))
+
+                                )
+                                )
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+                <!-- Person Education Closed-->
+                <!-- Person Experience -->
+                @*<div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" data-toggle="collapse" data-target="#collapse8">
+                            <div class="panel-title">
+                                <a data-toggle="collapse" href="#collapse8" style="text-decoration:none"><b>Employee Work Experience</b></a>
+
+                            </div>
+                        </div>
+                        <div id="collapse8" class="panel-collapse in div-bg-color">
+                            <div class="panel-body">
+                                @(Html.Kendo().Grid<PersonExperienceDocumentViewModel>
+                            ().Name("griddocumentexperience")
+                            .HtmlAttributes(new { style = "overflow-x: scroll;" })
+                            .Columns(col =>
+                            {
+                                col.Bound(c => c.NoteNo).Title("Document No").ClientTemplate("<a target='_self' href='javascript:OnNote(#=NoteId#);'>#=NoteNo#</a>");
+                                //col.Bound(c => c.DocumentType).Title("DocumentType");
+                                //col.Bound(c => c.DocumentCount).Title("Document");
+                                col.Bound(c => c.EmployerName);
+                                col.Bound(c => c.EmployerAddress);
+                                col.Bound(c => c.CurrentEmployer).ClientTemplate("#= CurrentEmployer=='true' ? 'YES' : 'NO' #");
+                                col.Bound(c => c.StartDate);
+                                col.Bound(c => c.EndDate);
+                                col.Bound(c => c.EmployeeJobTitle);
+                                col.Bound(c => c.LastManagerName);
+                                //col.Bound(c => c.CompanyAddress);
+                                col.Bound(c => c.ReasonForLeaving);
+                                //col.Bound(c => c.RoleAndResponsibility);
+                                //col.Bound(c => c.ExpiryDate).Title("Expiry Date");
+                                col.Bound(c => c.Attachment).ClientTemplate("# if (Attachment!=null) { #" +
+                                                        "<a target='_self' href='javascript:OnFileClick(#=Attachment#);'>Download</a>" +
+                                                    "# }else {# #}#");
+                                col.Bound(c => c.DocumentCount).Title("Other Attachments").ClientTemplate("# if (DocumentCount>0) { #" +
+                                                                                                                            "<a href='javascript:OnNoteAttachClick(#=NoteId#,#=NoteVersionNo#);'>Other Attachments</a>" +
+                                                                                                                        "# }else {# #}#");
+
+
+                            })
+                            .ToolBar(toolbar =>
+                            {
+                                //if (843.HasPermission() && 903.HasPermission() && 2098.HasPermission() && 2246.HasPermission() && 723.HasPermission() && 963.HasPermission())
+                                //{
+                                    toolbar.Custom().Text("Upload Work Experience").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAdd('N_EXPERIENCE');" });
+                                    toolbar.Custom().Text("Request Employee To Upload Work Experience").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAddService('"+ @ViewBag.ExperienceTemplateCode + "');" });
+
+                                //}
+                            })
+                            //.Events(e => e.DataBound("OnDataBound"))
+                            .Scrollable(x => x.Enabled(false))
+                            .Sortable(srt => srt.Enabled(true))
+                            .Selectable(select => select.Enabled(false))
+                            .Filterable(f => f.Extra(false)
+                            .Operators(o => o.ForString(s => s.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            )))
+                            .Pageable(pageable => pageable
+                            .Refresh(true)
+
+                            .PageSizes(true)
+                            .ButtonCount(5))
+                            .AutoBind(true)
+                            .DataSource(
+                            dataSource => dataSource
+                            .Ajax()
+                            .PageSize(5)
+
+                            .Events(events => events.Error("OnError"))
+                            .Read(read => read.Action("ReadPersonExperienceDocuments", "Person", new { area = "Hrs", personId = Model.PersonId }))
+
+                            )
+                                )
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+                <!-- Person Experience Closed-->
+                <!-- Person Training -->
+                @*<div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" data-toggle="collapse" data-target="#collapse9">
+                            <div class="panel-title">
+                                <a data-toggle="collapse" href="#collapse9" style="text-decoration:none"><b>Employee Training Courses</b></a>
+
+                            </div>
+                        </div>
+                        <div id="collapse9" class="panel-collapse in div-bg-color">
+                            <div class="panel-body">
+                                @(Html.Kendo().Grid<PersonTrainingDocumentViewModel>
+                                ().Name("griddocumenttraining")
+                                .HtmlAttributes(new { style = "overflow-x: scroll;" })
+                                .Columns(col =>
+                                {
+                                    col.Bound(c => c.NoteNo).Title("Document No").ClientTemplate("<a target='_self' href='javascript:OnNote(#=NoteId#);'>#=NoteNo#</a>");
+                                    //col.Bound(c => c.DocumentType).Title("DocumentType");
+                                    //col.Bound(c => c.DocumentCount).Title("Document");
+                                    col.Bound(c => c.TrainingSubject);
+                                    col.Bound(c => c.InstituteUniversityName);
+                                    //col.Bound(c => c.StartDate);
+                                    col.Bound(c => c.EndDate);
+                                    col.Bound(c => c.Location);
+                                    //col.Bound(c => c.Description);
+                                    col.Bound(c => c.Attachment).ClientTemplate("# if (Attachment!=null) { #" +
+                                                "<a target='_self' href='javascript:OnFileClick(#=Attachment#);'>Download</a>" +
+                                            "# }else {# #}#");
+                                    col.Bound(c => c.DocumentCount).Title("Other Attachments").ClientTemplate("# if (DocumentCount>0) { #" +
+                                                                                                                    "<a href='javascript:OnNoteAttachClick(#=NoteId#,#=NoteVersionNo#);'>Other Attachments</a>" +
+                                                                                                                "# }else {# #}#");
+
+
+                                })
+                                .ToolBar(toolbar =>
+                                {
+                                    // if (843.HasPermission() && 903.HasPermission() && 2098.HasPermission() && 2246.HasPermission() && 723.HasPermission() && 963.HasPermission())
+                                    // {
+                                        toolbar.Custom().Text("Upload Training Courses").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAdd('N_TRAINING');" });
+                                        toolbar.Custom().Text("Request Employee To Upload Training Courses").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnAddService('"+ @ViewBag.TrainingTemplateCode + "');" });
+
+                                    //}
+                                })
+                                //.Events(e => e.DataBound("OnDataBound"))
+                                .Scrollable(x => x.Enabled(false))
+                                .Sortable(srt => srt.Enabled(true))
+                                .Selectable(select => select.Enabled(false))
+                                .Filterable(f => f.Extra(false)
+                                .Operators(o => o.ForString(s => s.Clear()
+                                .Contains("Contains")
+                                .IsEqualTo("Is equal to")
+                                )))
+                                .Pageable(pageable => pageable
+                                .Refresh(true)
+
+                                .PageSizes(true)
+                                .ButtonCount(5))
+                                .AutoBind(true)
+                                .DataSource(
+                                dataSource => dataSource
+                                .Ajax()
+                                .PageSize(5)
+
+                                .Events(events => events.Error("OnError"))
+                                .Read(read => read.Action("ReadPersonTrainingDocuments", "Person", new { area = "Hrs", personId = Model.PersonId }))
+
+                                )
+                                )
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+
+            </div>
+
+            <br />
+            <div class="k-edit-form-container" style="width: 100%;">
+                <div class="card">
+                    @*<div class="panel panel-default">*@
+                    <div class="card-header" data-toggle="collapse" data-target="#collapse4" aria-expanded="true">
+                        <div >
+                            <span class="title">@Resource["Documents Requested By HR"]</span>
+                            <span class="accicon"><i class="fas fa-angle-down rotate-icon"></i></span>
+                        </div>
+                    </div>
+                    @*<div id="collapse4" class="panel-collapse in div-bg-color">*@
+                        <div id="collapse4" class="collapse show">
+                            <div class="panel-body">
+                                @*@if (843.HasPermission() && 903.HasPermission() && 2098.HasPermission() && 2246.HasPermission() && 723.HasPermission() && 963.HasPermission())
+                {*@
+                                <div class="row no-gutter">
+                                    <div class="col-xs-12" style="padding-left: 20px;padding-top:5px;margin-left:15px;margin-top:5px;">
+                                        @if (Model.UserRole == "HR")
+                                        {
+                                            @*@Html.Kendo().Button().Name("btnTemplate").Content(@Resource["Requesttouploaddocument"]).HtmlAttributes(new { @class = "k-primary", @onclick = "OnCreate();" })*@
+                                            <button type="button" class="btn btn-primary" id="btnTemplate" onclick="OnCreate();">@Resource["Requesttouploaddocument"]</button>
+
+                                        }
+                                    </div>
+                                </div>
+                                <br />
+                                @*}*@
+                                <div class="col-12">
+                                    @*<button type='button' class='btn btn-primary' onclick='OnService();'><i class='fa fas fa-plus'></i>&nbsp;Create</button>
+                    <br /><br />*@
+                                    <div id="myGridDocument" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                                </div>
+
+                                @*@(Html.Kendo().Grid<PersonDocumentViewModel>
+                        ().Name("kgrdService")
+                        .Columns(col =>
+                        {
+                            col.Bound(c => c.ServiceNo).Title(@SharedResource["ServiceNo"]).ClientTemplate("<input type='button' class='btn btn-link' onclick='OnService(\"#= ServiceId #\",\"#= TemplateCode #\")' value='#=ServiceNo#'/>");
+                            col.Bound(c => c.DocumentType).Title(@Resource["DocumentType"]);
+                            col.Bound(c => c.Status).Title(@SharedResource["Status"]);
+                            col.Bound(c => c.IssueDate).Title(@SharedResource["IssueDate"]).Format(ApplicationConstant.DateAndTime.DefaultDateFormat);
+
+                        })
+
+                       // .Events(e => e.DataBound("OnDataBound"))
+                        .Scrollable(x => x.Enabled(false))
+                        .Sortable(srt => srt.Enabled(true))
+                        .Selectable(select => select.Enabled(false))
+                        .Filterable(f => f.Extra(false)
+                        .Operators(o => o.ForString(s => s.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        )))
+                        .Pageable(pageable => pageable
+                        .Refresh(true)
+
+                        .PageSizes(true)
+                        .ButtonCount(5))
+                        .AutoBind(true)
+                        .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .PageSize(30)
+
+                       // .Read(read => read.Action("ReadPersonDocumentRequestData", "HrDirect", new { userId = Model.UserId, code = "PERSON_DOCUMENT_UPLOAD" }))
+                         .Read(read => read.Action("ReadPersonDocumentRequestList", "HRDirect", new { @area = "CHR", userId = Model.UserId }))
+                        // .Model(model => model.Id(p => p.Id))
+                        )
+
+
+                )*@
+                            </div>
+                        </div>
+
+                        @*</div>*@
+                    </div>
+            </div>
+            <!-- Employee Request To Upload Document-->
+            @*<div class="k-edit-form-container" style="width: 100%;">
+                <div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <div class="panel-heading" data-toggle="collapse" data-target="#collapse5">
+                                <div class="panel-title">
+                                    <b>Employee Request To Upload Document</b>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="collapse5" class="panel-collapse in div-bg-color">
+                            <div class="panel-body">
+                                <div class="row no-gutter">
+                                    <div class="col-xs-12">
+                                        @(Html.Kendo().DropDownList()
+                                                                                                                        .Name("ServiceTemplateMasterId")
+                                                                                                                        .HtmlAttributes(new { @class = "hr-xx-large" })
+                                                                                                                        .Events(e => e.Change("OnServiceTemplateChange"))
+                                                                                                                        .OptionLabel("--Select Type--")
+                                                                                                                        .DataTextField("Name")
+                                                                                                                        .DataValueField("Id")
+
+                                                                                                                        .DataSource(source =>
+                                                                                                                        {
+                                                                                                                            source.Read(read =>
+                                                                                                                            {
+                                                                                                                                read.Action("GetIdNameList", "TemplateMaster", new { area = "Nts", templateCategoryCode = "EMPLOYEE_UPLOAD_DOCUMENT", type = NtsTypeEnum.Service });
+                                                                                                                            });
+                                                                                                                        })
+                                                                                                                        .AutoBind(true)
+                                                                                                                        .Filter(FilterType.Contains)
+                                        )
+                                        @Html.Kendo().Button().Enable(false).Name("btnServiceDoc").Content("Request To Upload Document").HtmlAttributes(new { @class = "k-primary", @onclick = "OnCreateService();", @type = "button" })
+                                    </div>
+                                </div>
+                                <br />
+
+                                @(Html.Kendo().Grid<PersonDocumentViewModel>
+                                                                                                                ().Name("kgrdEmpService")
+                                                                                                                .Columns(col =>
+                                                                                                                {
+                                                                                                                    col.Bound(c => c.ServiceNo).ClientTemplate("<a target='_self' href='javascript:OnService(#=ServiceId#);'>#=ServiceNo#</a>");
+                                                                                                                    col.Bound(c => c.DocumentType);
+                                                                                                                    col.Bound(c => c.Status);
+                                                                                                                    col.Bound(c => c.IssueDate).Format(ERP.Utility.Constant.Annotation.DefaultDateFormat);
+
+                                                                                                                })
+
+                                                                                                                .Events(e => e.DataBound("OnDataBound"))
+                                                                                                                .Scrollable(x => x.Enabled(false))
+                                                                                                                .Sortable(srt => srt.Enabled(true))
+                                                                                                                .Selectable(select => select.Enabled(false))
+                                                                                                                .Filterable(f => f.Extra(false)
+                                                                                                                .Operators(o => o.ForString(s => s.Clear()
+                                                                                                                .Contains("Contains")
+                                                                                                                .IsEqualTo("Is equal to")
+                                                                                                                )))
+                                                                                                                .Pageable(pageable => pageable
+                                                                                                                .Refresh(true)
+
+                                                                                                                .PageSizes(true)
+                                                                                                                .ButtonCount(5))
+                                                                                                                .AutoBind(true)
+                                                                                                                .DataSource(
+                                                                                                                dataSource => dataSource
+                                                                                                                .Ajax()
+                                                                                                                .PageSize(30)
+
+                                                                                                                .Read(read => read.Action("ReadPersonDocumentRequestData", "HrDirect", new { userId = Model.UserId, code = "EMPLOYEE_UPLOAD_DOCUMENT" }))
+
+                                                                                                                // .Model(model => model.Id(p => p.Id))
+                                                                                                                )
+
+                                )
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>*@
+            <!-- Employee Request To Upload Document Closed-->
+        </div>
+
+       
+
+
+    </section>
+</body>
+<br />
+<hr />
+<script>
+ var columnDefs = [
+        {
+            field: "ServiceNo",
+         cellRenderer: params => {
+             
+                
+             return "<a style='cursor:pointer;color:blue;' href='javascript:OnService(\"" + params.data.ServiceId + "\",\"" + params.data.TemplateCode + "\");'>" + params.value + " </a>";
+                //"<a target='_self' class='hover' style='cursor:pointer' onclick=\"OnEdit('# =ServiceId#')\">#=ServiceNo#</a>"
+
+            }
+        },
+     { field: "DocumentType", },
+     { field: "Status", },
+        {
+                 field: "IssueDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+
+           
+
+            ];
+
+
+            $(function () {
+
+            getDataDocument();
+
+
+            });
+
+    function getDataDocument() {
+        document.getElementById("myGridDocument").innerHTML = "";
+        //var templateId = $("#TemplateId").val();
+        //var projectNo = $("#ProjectNo").val();
+        //var noteNo = $("#NoteNo").val();
+        //var docDescription = $("#DocumentName").val();
+        gridConfig(
+            "myGridDocument",
+            "@Url.Action("ReadPersonDocumentRequestList", "HrDirect", new { userId = Model.UserId, code = "EMPLOYEE_UPLOAD_DOCUMENT" })",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+            </script>
+           
+
+         

@@ -1,0 +1,346 @@
+﻿@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+}
+@model UserPermissionViewModel
+
+<style>
+    .cms-manageportal-footer {
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+</style>
+
+<script>
+      var status = '@Html.Raw(EnumExtension.EnumToJson(typeof(LogicalOperationTypeEnum)))';
+    var statusObj = JSON.parse(status);
+    var columnDefs = [
+        {
+            field: "UserName",
+        },
+        {
+            field: "ColumnMetadataName",
+        },
+        {
+            field: "LogicalOperationType",
+            cellRenderer: params => {
+                return statusObj[params.value]; //only for enum
+            }
+        },
+        {
+            field: "ColumnMetadataName2",
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBin1' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+    var columnDefs1 = [
+        {
+            field: "UserRoleName",
+        },
+        {
+            field: "ColumnMetadataName",
+        },
+        {
+            field: "LogicalOperationType",
+            cellRenderer: params => {
+                return statusObj[params.value]; //only for enum
+            }
+        },
+        {
+            field: "ColumnMetadataName2",
+        },
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='tree-menuBin2' data-idvalue='" + params.value + "' data-status=\"0\" data-noteid=\"#:NoteId#\" ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        }
+    ];
+    $(document).ready(function () {
+
+        getData();
+        getData1()
+        //$.contextMenu('update');
+       // $('.context-menu-list').trigger('contextmenu:refresh');
+
+        $.contextMenu({
+            selector: '#tree-menuBin1',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        EditUserData(id);
+                                        break;
+
+                                    case 'delete':
+                                        DeleteUserDataPermission(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+        $.contextMenu({
+            selector: '#tree-menuBin2',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                //var portalName = $trigger.data('portal-name');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        EditUserRoleData(id);
+                                        break;
+
+                                    case 'delete':
+                                        DeleteUserRoleDataPermission(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "Edit", icon: "fas fa-edit" },
+                                "delete": { name: "Delete", icon: "fas fa-trash" },
+
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+   });
+
+    function getData() {
+        document.getElementById("UserDataPermissionGrid").innerHTML = "";
+        gridConfig(
+            "UserDataPermissionGrid",
+            "/cms/Content/ReadUserDataPermissionList?pageId=@Model.PageId&portalId=@Model.PortalId ",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+     function getData1() {
+         document.getElementById("UserRoleDataPermissionGrid").innerHTML = "";
+        gridConfig(
+            "UserRoleDataPermissionGrid",
+            "/cms/Content/ReadUserRoleDataPermission?pageId=@Model.PageId&portalId=@Model.PortalId ",
+            columnDefs1,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<script type="text/javascript">
+
+
+    function AddUserData() {
+        
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("ManageUserPermissionData", "Content", new { @area="CMS", pageId= Model.PageId,portalId=Model.PortalId})';
+        win.OpenWindow({ Title: 'Add User Data Permission', Width: 450, Height: 950, Position:'Right' });
+        return false;
+    }
+
+
+    function EditUserData(rowid) {
+         
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ManageUserPermissionData", "Content", new { @area="Cms"})?pageId=@Model.PageId&id=' + rowid +'&portalId=@Model.PortalId';
+        win.OpenWindow({ Title: 'Add User Data Permission', Width: 450, Height: 950, Position:'Right' });
+        return false;
+    }
+
+    function AddUserRoleData() {
+          
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("ManageUserRolePermissionData", "Content", new { @area="CMS", pageId= Model.PageId,portalId=Model.PortalId})';
+        win.OpenWindow({ Title: 'Add User Role Data Permission', Width: 450, Height: 950, Position:'Right' });
+        return false;
+    }
+
+    function EditUserRoleData(rowid) {
+           
+         var win = GetMainWindow();
+        win.iframeOpenUrl =  '@Url.Action("ManageUserRolePermissionData", "Content", new { @area="CMS"})?pageId=@Model.PageId&id='+rowid;
+        win.OpenWindow({ Title: 'Add User Role Data Permission', Width: 450, Height: 950, Position:'Right' });
+        return false;
+    }
+
+    function DeleteUserDataPermission(rowid) {
+        var flag = confirm('Do you really want to delete?');
+        if (flag) {
+            $.ajax({
+                type: "POST",
+                url: "/cms/content/DeleteUserDataPermission?id=" + rowid,
+                dataType: "json",
+                success: function (result) {
+                    getData();
+                  //  $("#UserDataPermissionGrid").data("kendoGrid").dataSource.read();
+                    kendo.alert("Deleted Successfully");
+                },
+                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                    alert(customErrorMessage);
+                }
+            });
+        }
+    }
+
+    function DeleteUserRoleDataPermission(rowid) {
+        var flag = confirm('Do you really want to delete?');
+        if (flag) {
+            $.ajax({
+                type: "POST",
+                url: "/cms/content/DeleteUserRolesDataPermission?id=" + rowid,
+                dataType: "json",
+                success: function (result) {
+                    getData1();
+                   // $("#UserRoleDataPermissionGrid").data("kendoGrid").dataSource.read();
+                    kendo.alert("Deleted Successfully");
+                },
+                error: function (xhr, httpStatusMessage, customErrorMessage) {
+                    alert(customErrorMessage);
+                }
+            });
+        }
+    }
+
+    function ClosePopup() {
+        getData();
+        getDAta1();
+       
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+</script>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+    <div>
+        <div>
+            <div class="row">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item"><a data-toggle="tab" href="#user" class="nav-link active" role="tab" aria-controls="user" aria-selected="true"><i class="fas fa-user" style="margin-left:15px;"></i><br />User Permission</a></li>
+                    <li class="nav-item"><a data-toggle="tab" href="#userrole" class="nav-link" aria-controls="userrole" aria-selected="false"><i class="fas fa-users" style="margin-left:18px;"></i><br />User Role Permission</a></li>
+                </ul>
+            </div>
+            <div class="row">
+                <div class="tab-content" style="width:100%">
+                    <div id="user" class="tab-pane  in active" role="tabpanel" aria-labelledby="user-tab">
+                        <br />
+                        <button class="btn btn-primary" onclick="AddUserData()">Add </button>
+                        <br />
+                        <div class="row">
+                            <div class="col-12">
+
+                                <div id="UserDataPermissionGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div id="userrole" class="tab-pane " role="tabpanel" aria-labelledby="userRole-tab">
+                        <br />
+                        <button class="btn btn-primary" onclick="AddUserRoleData()">Add </button>
+                        <br />
+                        <div class="row">
+                            <div class="col-12">
+
+                                <div id="UserRoleDataPermissionGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

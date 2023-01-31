@@ -1,0 +1,210 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+@using Newtonsoft.Json;
+@{
+    Layout = null;
+}
+
+<script>
+
+    $(document).ready(function () {
+        kgrid_Report();
+
+         $("#WardId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: '@ApplicationConstant.PlaceHolder_AllOption',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/SmartCity/GetWardList",
+                    }
+                }
+            }
+         });
+         $("#AssetTypeId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: '@ApplicationConstant.PlaceHolder_AllOption',
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/EGov/EGovernment/GetAssetTypeListForJammu",
+                    }
+                }
+            }
+         });
+
+         $("#FromDate").kendoDatePicker({ format: "@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat",});
+        $("#ToDate").kendoDatePicker({ format: "@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat",});
+
+    });
+
+
+    function OnFilter() {
+        var ward = $("#WardId").data("kendoDropDownList").value();
+        var ass = $("#AssetTypeId").data("kendoDropDownList").value();
+        var st = kendo.toString($("#FromDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+        var dt = kendo.toString($("#ToDate").data("kendoDatePicker").value(), 'yyyy/MM/dd');
+
+        var url = Url = "/EGov/EGovernment/GetRevenueReport?source=@ViewBag.Source&ward="+ward+"&assetType="+ass+"&From="+st+"&To="+dt;
+        kgrid_Report(url);
+    }
+
+    function OnResetFilter() {
+        $("#FromDate").data("kendoDatePicker").value("");
+        $("#ToDate").data("kendoDatePicker").value("");
+        $("#WardId").data("kendoDropDownList").value("");
+        $("#AssetTypeId").data("kendoDropDownList").value("");
+        var url = Url = "/EGov/EGovernment/GetRevenueReport?source=@ViewBag.Source";
+        kgrid_Report(url);
+    }
+
+</script>
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="page-section">
+                <div class="row no-gutters p-2">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        @if (ViewBag.Source == "REVENUE")
+                        {
+                            <h4>Revenue Report</h4>
+                        }
+                        else
+                        {
+                            <h4>Defaulters Report</h4>
+                        }
+                    </div>
+                </div>
+
+                <hr />
+                <div class="row no-gutters p-2">
+                    <div class="col-lg-3 col-md-3 col-sm-6">
+                        Asset Type
+                        <input id="AssetTypeId" style="width:90%;" />
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6">
+                        Ward
+                        <input id="WardId" style="width:90%;" />
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-6">
+                        From Due Date
+                        <input id="FromDate" style="width:90%;" />
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-6">
+                        To Due Date
+                        <input id="ToDate" style="width:90%;" />
+                    </div>
+
+                    <div class="col-lg-2 col-md-2 col-sm-6" style="padding-top:20px;">
+                        <button class="btn btn-primary mx-1" onclick="OnFilter()"><i class="fa fa-search" aria-hidden="true"></i></button>
+                        <button class="btn btn-secondary" onclick="OnResetFilter()"><i class="fa-solid fa-filter-circle-xmark"></i></button>
+                    </div>
+                </div>
+                <hr />
+                <br />
+                <div class="row no-gutters">
+                    @*<div class="col-12 pb-1 pt-3">
+                <h3>Service List</h3>
+            </div>*@
+
+                    <div class="container col-12">
+                        <script>
+                        var columnDefs = [
+
+                            {
+                                headerName: "Consumer Name",
+                                field: "Consumer",
+                            },
+                            {
+                                headerName: "Property Id",
+                                field: "PropertyId",
+                            },
+                            {
+                                headerName: "Asset Type",
+                                field: "AssetTypeName",
+                            },
+                            {
+                                headerName: "Ward",
+                                field: "WardName",
+                            },
+                            {
+                                headerName: "Due Date",
+                                field: "DueDate",
+                                cellRenderer: params => {
+                                    var date = new Date(params.value);
+                                    var d = new Date(date),
+                                        month = '' + (d.getMonth() + 1),
+                                        day = '' + d.getDate(),
+                                        year = d.getFullYear();
+
+                                    if (month.length < 2)
+                                        month = '0' + month;
+                                    if (day.length < 2)
+                                        day = '0' + day;
+
+                                    return [day, month, year].join('.');
+                                }
+                            },
+                            {
+                                headerName: "Bill Date",
+                                field: "BillDate",
+                                cellRenderer: params => {
+                                    var date = new Date(params.value);
+                                    var d = new Date(date),
+                                        month = '' + (d.getMonth() + 1),
+                                        day = '' + d.getDate(),
+                                        year = d.getFullYear();
+
+                                    if (month.length < 2)
+                                        month = '0' + month;
+                                    if (day.length < 2)
+                                        day = '0' + day;
+
+                                    return [day, month, year].join('.');
+                                }
+                            },
+                            {
+                                headerName: "Amount",
+                                field: "Amount",
+                            },
+
+                        ];
+
+
+            function kgrid_Report(url) {
+                            document.getElementById("kgrid_Report").innerHTML = "";
+                            var Url = "";
+                            if (url != null && url != "") {
+                                Url = url;
+                            } else {
+                                Url = "/EGov/EGovernment/GetRevenueReport?source=@ViewBag.Source";
+                            }
+
+                            gridConfig(
+                                "kgrid_Report",
+                                Url,
+                                columnDefs,
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+                        </script>
+
+                        <div id="kgrid_Report" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+

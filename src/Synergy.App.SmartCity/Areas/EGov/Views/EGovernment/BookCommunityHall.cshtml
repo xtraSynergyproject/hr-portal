@@ -1,0 +1,533 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@*@using Kendo.Mvc.UI;*@
+
+@{
+    ViewData["Title"] = "Book Community Hall";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .pad {
+        padding: 20px 20px 0px 20px;
+    }
+
+    .booknow {
+        text-align: center;
+    }
+
+    .searchdiv {
+        border: 1px solid grey;
+        border-radius: 10px;
+        margin: 15px 0px 15px 0px;
+        padding-bottom: 20px;
+        background:#fff;
+    }
+
+    tr:nth-child(even) {
+        background-color: #fff !important;
+    }
+
+    .k-calendar .k-content .k-link {
+        background-color: #87db87;
+    }
+
+    .k-calendar .k-content .k-state-disabled .k-link {
+        background-color: #fb5454;
+    }
+    .k-textbox-container{
+        width:12.75rem;
+    }
+    
+    td.k-state-disabled:hover::after {
+        background-color:aqua;
+    }
+    
+</style>
+
+<script type="text/javascript">
+
+    var dates = [];
+    $(document).ready(function () {
+        document.getElementById('global-overlay').style.display = "none";
+
+        $("#daterangepicker").kendoDateRangePicker({
+            format: "@ApplicationConstant.DateAndTime.DefaultJqueryDateFormat",
+            disableDates: disableDates,
+            min: new Date(),
+            change: onChange,
+            messages: { startLabel: "Start Date", endLabel: "End Date" },
+        });
+
+        $("#Ward").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            change: OnChangeWard,
+            dataSource:
+            {
+            transport:
+                {
+                read:
+                    {
+                        url: "/CMS/LOV/GetLOVIdNameList?lovType=EGOV_ELECTORAL_WARD",
+                    }
+                }
+            }
+        });
+
+        @*$("#CommunityHall").kendoDropDownList({
+            dataTextField: "CommunityHallName",
+            dataValueField: "Id",
+           // filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            change: OnChange,
+            cascadeFrom: "Ward",
+            dataSource:
+            { transport:
+                { read:
+                    {
+                        url: "/EGov/EGovernment/ReadCommunityHallList",
+                        data: filter
+                    }
+                }
+            }
+        });*@
+
+        $("#CommunityHall").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "CommunityHallName",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: false,
+            change: OnChange,
+            cascadeFrom: "Ward",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/EGov/EGovernment/ReadCommunityHallList",
+                        data: Filter
+                    }
+                }
+            }
+        });
+    });
+
+    function onChange() {
+
+        var range = this.range();
+        if (range.end != null) {
+            document.getElementById('chrgsdetails').style.display = "block";
+            var totaldays = range.end.getDate() - range.start.getDate();
+            document.getElementById('TotalDays').innerHTML = totaldays + 1;
+            var totcharges = (totaldays + 1) * $('#TotalChargesPerDay').val();
+            document.getElementById('TotalCharges').innerHTML = totcharges;
+            $('#totalCharges').val(totcharges);
+        }
+
+        //kendoConsole.log("Change :: start - " + kendo.toString(range.start, 'd') + " end - " + kendo.toString(range.end, 'd'));
+    }
+
+    function Filter() {
+        return {
+            wardId: $("#Ward").val()
+        }
+    }
+
+    //function Close() {
+    //
+    //    var win = GetMainWindow();
+    //    win.CloseWindow({ MethodName: 'CallBack' });
+    //    return false;
+    //}
+    function OnChangeWard() {
+        document.getElementById('cal').style.display = "none";
+        document.getElementById('bookNow').style.display = "none";
+        document.getElementById('chrgsdetails').style.display = "none";
+        document.getElementById('chrg').style.display = "none";
+    }
+
+    function OnChange(evt) {
+
+        document.getElementById('cal').style.display = "none";
+        document.getElementById('bookNow').style.display = "none";
+        document.getElementById('chrgsdetails').style.display = "none";
+        document.getElementById('chrg').style.display = "none";
+
+        var ch = $("#CommunityHall").val();
+        //var fd = $(document.getElementById("FromDate")).val();
+        //var td = $(document.getElementById("ToDate")).val();
+        //var fromdate = new Date(fd);
+        //var to = new Date(td);
+        //var from = fromdate.setDate(fromdate.getDate() + 1);
+        //from = new Date(from);
+
+        //if (ch == "" || ch == null) {
+        //    $(".text-danger").removeClass("validation-summary-valid");
+        //    $(".text-danger").addClass("validation-summary-errors");
+        //    $(".text-danger").html("Select Community Hall");
+        //    window.scrollTo(0, 0);
+        //    evt.preventDefault();
+        //    return false;
+        //}
+        //else {
+        //    $(".text-danger ul").html("");
+        //    $(".text-danger").removeClass("validation-summary-errors");
+        //    $(".text-danger").addClass("validation-summary-valid");
+        //}       
+        
+        
+        if (ch != "") {
+
+            ShowLoader($('#communityHall'));
+
+            $.ajax({
+                type: "POST",
+                url: "/EGov/EGovernment/GetAvailableStatus",
+                //data: { 'hallId': ch, 'from': fd,'to':td },
+                data: { 'hallId': ch },
+                success: function (res) {
+                    document.getElementById('global-overlay').style.display = "none";
+                    
+                    if (res.success) {
+                        document.getElementById('bookNow').style.display = "";
+                    }
+                    else {
+                        document.getElementById('bookNow').style.display = "none";
+                    }
+                    //multiviewcalendar
+
+                    for (var i = 0; i < res.disdates.length; i++) {
+                        dates[i] = new Date(res.disdates[i]);
+                    }
+                    document.getElementById('cal').style.display = "block";
+                    //document.getElementById('chrg').style.display = "block";
+                    //document.getElementById('ChargesLeviedPerDay').innerHTML = res.bcharges;
+                    $('#ChargesLevied').val(res.bscharges);                    
+                    //document.getElementById('ACChargesPerDay').innerHTML = res.ac;
+                    $('#ACCharges').val(res.ac);
+                    //document.getElementById('EleChargesPerDay').innerHTML = res.el;
+                    $('#EleCharges').val(res.el);
+                    //document.getElementById('CleChargesPerDay').innerHTML = res.cl;
+                    $('#CleCharges').val(res.cl);                    
+                    $('#TotalChargesPerDay').val(res.tcharges);
+                                        
+                    
+                    //var multiViewCalendar = $("#multiViewCalendar").data("kendoMultiViewCalendar");
+                    var daterangepicker = $("#daterangepicker").data("kendoDateRangePicker");
+
+                        daterangepicker.setOptions
+                            ({
+                                disableDates(date) {
+                                    for (var i = 0; i < dates.length; i++) {
+                                        //if (date.getDate() < new Date().getDate() && date.getMonth() === new Date().getMonth()) {
+                                        //    return true;
+                                        //}
+
+                                        if (date.getDate() == dates[i].getDate() && date.getMonth() == dates[i].getMonth() && date.getFullYear() == dates[i].getFullYear()) {
+                                            return true;
+                                        } 
+                                    }
+                                }
+                            });
+
+                   HideLoader($('#communityHall'));
+
+                    ///
+
+
+                    //multiViewCalendar.options.disableDates({
+                    //    dates: res.data,
+                    //        disableDates: function (date) {
+                    //            //var dates = $("#multiViewCalendar").data("kendoMultiViewCalendar").options.dates;
+
+                    //                if (date && compareDates(date, dates)) {
+                    //                    return true;
+                    //                } else {
+                    //                    return false;
+                    //                }
+                    //        }
+                    //});
+
+                    //multiViewCalendar.options({
+                    //        dates: res.data,
+                    //        disableDates: function (date) {
+                    //            //var dates = $("#multiViewCalendar").data("kendoMultiViewCalendar").options.dates;
+                    //            if (date < new Date()) {
+                    //                return true;
+                    //            }
+                    //                if (date && compareDates(date, dates)) {
+                    //                    return true;
+                    //                } else {
+                    //                    return false;
+                    //                }
+
+                    //        }
+                    //    });
+
+                    //function compareDates(date, dates) {
+                    //    
+                    //    for (var i = 0; i < dates.length; i++) {
+                    //        if (new Date(dates[i]).getDate() == date.getDate() &&
+                    //            new Date(dates[i]).getMonth() == date.getMonth() &&
+                    //            new Date(dates[i]).getYear() == date.getYear()) {
+                    //            return true
+                    //        }
+                    //    }
+                    //}
+                },
+                dataType: "json",
+            });
+        }
+        else {
+            evt.preventDefault();
+                return false;
+        }
+    }
+
+
+    function OnBooking(evt) {
+        
+        var base = $("#ChargesLevied").val();
+        var ac = $("#ACCharges").val();
+        var ele = $("#EleCharges").val();
+        var cl = $("#CleCharges").val();
+        var tot = $("#totalCharges").val();
+
+        var ch = $("#CommunityHall").val();
+        var wd = $("#Ward").val();
+        //var multiViewCalendar = $("#multiViewCalendar").data().kendoMultiViewCalendar;
+        //var range = multiViewCalendar.selectRange();
+        var daterangepicker = $("#daterangepicker").data("kendoDateRangePicker");
+        var range = daterangepicker.range();
+        if (range != null) {
+            var st = new Date(range.start);
+            var en = new Date(range.end);
+            debugger;
+            var from = new Date(range.start);
+            from = from.setDate(from.getDate() + 1);
+
+            if (st.getDate() != en.getDate() && new Date(from).getMonth() === en.getMonth() && new Date(from).getDate() != en.getDate()) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("Booking can be done maximum of consecutive 2 days at once");
+                window.scrollTo(0, 0);
+                evt.preventDefault();
+                return false;
+            }
+            else if (st > en) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("End date should be greater than start date");
+                window.scrollTo(0, 0);
+                evt.preventDefault();
+                return false;
+            }
+            else {
+                $(".text-danger").removeClass("validation-summary-errors");
+                $(".text-danger").addClass("validation-summary-valid");
+                $(".text-danger").html("");
+
+                var d = new Date(st),
+                    month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+
+                if (month.length < 2)
+                    month = '0' + month;
+                if (day.length < 2)
+                    day = '0' + day;
+
+                var fd = [year, month, day].join('-');
+                var fromdate = [day, month, year].join('-');
+                var d = new Date(en),
+                    day = '' + d.getDate();
+                if (day.length < 2)
+                    day = '0' + day;
+
+                var td = [year, month, day].join('-');
+                var todate = [day, month, year].join('-');
+                
+                var win = GetMainWindow();
+                portalId = win.parent.$("#GlobalPortalId").val();
+                var subject = 'Community Hall Booking from ' + fromdate + ' to ' + todate;
+                var prms = encodeURIComponent('subject=' +subject);
+                var udfs = encodeURIComponent('CommunityHallNameId=' + ch + '&BookingFromDate=' + fd + '&BookingToDate=' + td + '&WardNo=' + wd + '&BaseCharges=' + base + '&ACCharges=' + ac + '&ElectricityCharges=' + ele + '&CleaningCharges=' + cl + '&TotalCharges=' + tot);
+                var roudfs = encodeURIComponent('CommunityHallNameId=true&BookingFromDate=true&BookingToDate=true&WardNo=true');
+                var url = '/Cms/Page?lo=Popup&pageType=Service&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=CommunityHallBooking&portalId=' + portalId + '&udfs=' + udfs + '&roudfs=' + roudfs + '&prms=' + prms;
+
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Title: "Create Booking", Width: 1200, Height: 700, Reload:true });
+                return false;
+            }
+
+        } else {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Select booking dates");
+            window.scrollTo(0, 0);
+            evt.preventDefault();
+            return false;
+        }
+
+    }
+
+    function OnAfterServiceCreate() {
+        document.getElementById('global-overlay').style.display = "none";
+        var win = GetMainWindow();
+        win.CloseWindow();
+        win.parent.ShowNotification("Booking Completed Successfully", "success");
+        return false;
+    }
+
+    function disableDates(date) {
+
+        if (date < new Date()) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+
+
+</script>
+
+<div class="row-12" style="margin-left:15px;" id="communityHall">
+
+    <form asp-controller="Calendar" asp-action="ManageCalendarHoliday" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+
+        <div class="col-12">
+            <div class="row">
+                @*<div class="col-3"></div>*@
+                <div class="col-12">
+                    <div class="row searchdiv">
+                        <div class="col-12 pad">Ward <span class="required">*</span></div>
+                        <div class="col-12 pad">
+                            <div class="row">
+                                <div class="col-12">
+
+                                    <input id="Ward" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 pad">Community Hall <span class="required">*</span></div>
+                        <div class="col-12 pad">
+                            <div class="row">
+                                <div class="col-12">
+                                    @*@(Html.Kendo().DropDownList()
+                                .Name("CommunityHall")
+                                .DataTextField("CommunityHallName")
+                                .DataValueField("Id")
+                                .DataSource(source =>
+                                {
+                        source.Read(read =>
+                        {
+                            read.Action("ReadCommunityHallList", "EGovernment", new { @area = "EGov" });
+                        });
+                        })
+                                .Events(e=>e.Change("OnChange"))
+                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                        .HtmlAttributes(new { @class = "form-control" })
+                    )*@
+                                    <input id="CommunityHall" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="chrg" style="display:none;">
+                            <div class="col-12 pad">Charges Levied Per Day :  ₹ <span id="ChargesLeviedPerDay"></span> /- (inclusive of all taxes)</div>
+                            <input type="hidden" id="ChargesLevied" />
+
+                            <div class="col-12 pad">AC Charges Per Day :  ₹ <span id="ACChargesPerDay"></span> /- (inclusive of all taxes)</div>
+                            <input type="hidden" id="ACCharges" />
+
+                            <div class="col-12 pad">Electricity Charges Per Day :  ₹ <span id="EleChargesPerDay"></span> /- (inclusive of all taxes)</div>
+                            <input type="hidden" id="EleCharges" />
+
+                            <div class="col-12 pad">Cleaning Charges Per Day :  ₹ <span id="CleChargesPerDay"></span> /- (inclusive of all taxes)</div>
+                            <input type="hidden" id="CleCharges" />
+                            <input type="hidden" id="TotalChargesPerDay" />
+
+                            @*<div class="col-12 pad">
+            <div class="row">
+                <div class="col-12">
+                    <div id="ChargesLeviedPerDay"></div>
+                    <input type="hidden" id="ChargesLevied"/>
+                </div>
+            </div>
+        </div>*@
+                        </div>
+
+
+
+                        <div class="col-12 pad" id="cal" style="padding-bottom:20px;display:none;">
+                            @*@(Html.Kendo().MultiViewCalendar()
+                        .Name("multiViewCalendar")
+                        .Selectable("range")
+                        .DisableDates("disableDates")
+                        .ShowViewHeader()
+            )*@
+                            @*@(Html.Kendo().DateRangePicker()
+                .Name("daterangepicker")
+                .HtmlAttributes(new { style = "width: 100%", title = "daterangepicker" })
+                //.Events(e => e.Open("onOpen").Close("onClose").Change("onChange"))
+                .DisableDates("disableDates")
+                .Format(ApplicationConstant.DateAndTime.DefaultJqueryDateFormat)
+                .Messages(c=>c.StartLabel("Start Date").EndLabel("End Date"))
+
+            )*@
+
+                            <div id="daterangepicker" title="daterangepicker" style="width:100%"></div>
+                        </div>
+                        <div id="chrgsdetails" style="display:none;">
+                            <div class="col-12 pad">Total Days : <span id="TotalDays"></span></div>
+                            <div class="col-12 pad">Total Charges :  ₹ <span id="TotalCharges"></span> /- (inclusive of all taxes)</div>
+                            <input type="hidden" id="totalCharges" />
+                        </div>
+                        
+                        @*<div class="col-12 pad">
+            <div class="row">
+                <div class="col-12">
+                    <div id="TotalDays"></div>
+                </div>
+            </div>
+        </div>*@
+                        
+                        @*<div class="col-12 pad">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="TotalCharges"></div>
+                                    <input type="hidden" id="totalCharges" />
+                                </div>
+                            </div>
+                        </div>*@
+                        <div class="col-12 pad-15" style="text-align:center">
+                            <input type="submit" class="btn btn-primary" value="Book Now" id="bookNow" onclick="OnBooking(event);" style="display:none;" />
+                        </div>
+                    </div>
+                </div>
+                @*<div class="col-3"></div>*@
+            </div>
+
+        </div>
+        
+    </form>
+</div>
+
+

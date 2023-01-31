@@ -1,0 +1,263 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceDashboardController> Resource
+@using CMS.Data.Model
+@using CMS.UI.ViewModel
+@using Kendo.Mvc.UI
+@using CMS.Common
+
+@model PerformanceDashboardViewModel;
+
+@{
+    ViewBag.Title = "Project Dashboard";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+
+}
+
+<style>
+    .panel-heading {
+        font-size: 1.3em;
+        cursor: pointer;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
+    }
+
+    .k-listview {
+        border: none !important;
+    }
+
+    .project-property {
+        width: 100px;
+        padding: 3px;
+    }
+
+    .panel {
+        margin-top: 10px;
+        border-color: #ddd;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+        box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+    }
+
+    .panel-heading:hover {
+        background-color: #f1f1f1;
+    }
+
+    .panel-success {
+        border-color: #d6e9c6;
+    }
+
+        .panel-success > .panel-heading {
+            color: #468847;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+
+    .panel-info {
+        border-color: #bce8f1;
+    }
+
+        .panel-info > .panel-heading {
+            color: #3a87ad;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+    .panel-warning {
+        border-color: #fbeed5;
+    }
+
+        .panel-warning > .panel-heading {
+            color: #c09853;
+            background-color: #fcf8e3;
+            border-color: #fbeed5;
+        }
+
+    .panel-primary {
+        border-color: #428bca;
+    }
+
+        .panel-primary > .panel-heading {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .panel-filter {
+        border-color: #428bca;
+    }
+
+        .panel-filter > .panel-heading {
+            color: #1a3750;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+
+    .btn-filter-reset {
+        color: #fff;
+        background-color: #428bca;
+        border-color: #428bca;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        getPerformanceData();
+
+
+        HideLoader($("#global-overlay"));
+
+     });
+    function OpenService(id) {
+        var portalId = window.parent.$('#GlobalPortalId').val();
+        var url = '/Cms/Page?lo=Popup&pageType=Service&source=View&dataAction=View&templateCodes=PMS_PERFORMANCE_DOCUMENT_STAGE&portalId=' + portalId + '&recordId=' +id;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Stage', Width: 1200, Height: 600, Position: 'Right1' });
+    }
+
+</script>
+<script>
+    var columnDefs = [
+        {
+            field: "Id",
+            headerName: "View",
+            cellRenderer: params => {
+                return "<span class='fas fa-eye' onclick='OpenService(\"" + params.data.Id + "\",\"" + params.data.TemplateCode + "\")'></span>";
+            }
+        },
+        {
+            field: "ServiceNo",
+            headerName: "Service No"
+        },
+        {
+            field: "ServiceSubject",
+            headerName: "Service Subject"
+        },
+
+        {
+            field: "OwnerDisplayName",
+            headerName: "Owner",
+
+        },
+        {
+            field: "ServiceStatusName",
+             headerName: "Status",
+
+        },
+        {
+            field: "StartDate",
+            headerName: "Start Date",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+
+        },
+        {
+            field: "DueDate",
+            cellRenderer: params => {
+
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+
+        }
+    ];
+
+
+
+    function getPerformanceData(urlnew) {
+        var url = "/Pms/PerformanceDashboard/ReadPerformanceSummaryDetail?filter=@Model.FilterVal&status=@Model.Status&serviceId=@Model.Subject";
+       
+        document.getElementById("kgdProjectGridView").innerHTML = "";
+        gridConfig(
+            "kgdProjectGridView",
+            url,
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+
+<div class="row hr-pad-top-10">
+    <div class="col-md-6">
+        <h4>
+        </h4>
+    </div>
+</div>
+
+    <div id="appWrapper" class="hr-pad-top-15">
+      
+
+      
+        <div class="row">
+            <div class="col-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Performance Document Summary Detail</div>
+                    <div class="panel-body">
+                        <div id="kgdProjectGridView" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                        @*@(Html.Kendo().Grid<ProjectGanttTaskViewModel>()
+            .Name("kgdProjectGridView")
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.Id).Title("View").ClientTemplate("<span class='fas fa-eye' onclick='onView(\"#:Id#\")'></span>").Width(250);
+                columns.Bound(p => p.ServiceStage).Title(""+Resource["Objectives"]+"").Width(250);
+                columns.Bound(p => p.Title).Title("" + SharedResource["TaskName"] + "").Width(300);
+
+
+                columns.Bound(p => p.UserName).Title("" + SharedResource["UserName"] + "").Width(200);
+                columns.Bound(p => p.Priority).Title("" + SharedResource["Priority"] + "").Width(200);
+                columns.Bound(p => p.NtsStatus).Title("" + SharedResource["TaskStatus"] + "").Width(200);
+                columns.Bound(p => p.Start).Title("" + SharedResource["StartDate"] + "").Format("{0:dd MMM yyyy}").Width(150);
+                columns.Bound(p => p.End).Title("" + SharedResource["EndDate"] + "").Format("{0:dd MMM yyyy}").Width(150);
+            })
+            .ToolBar(toolbar =>
+            {
+
+                //toolbar.Pdf();
+                toolbar.Search();
+            })
+
+            .ColumnMenu(col=>col.Filterable(false))
+            .Height(700)
+            .Editable()
+            .Pageable()
+            .Sortable()
+            .Navigatable()
+            .Resizable(r=>r.Columns(true))
+            .Reorderable(r => r.Columns(true))
+            .Groupable(g=>g.ShowFooter(false))
+            .Filterable()
+            .Scrollable()
+
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .Batch(true)
+            .PageSize(20)
+            .AutoSync(true)
+            .ServerOperation(false)
+
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+
+            })
+
+            .Read("ReadPerformanceTaskGridViewData", "Performance", new { @area = "Pms", performanceId = Model.Id })
+
+        )
+        )*@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+

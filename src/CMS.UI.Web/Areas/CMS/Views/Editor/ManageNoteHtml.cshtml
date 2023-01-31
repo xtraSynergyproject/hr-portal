@@ -1,0 +1,118 @@
+﻿@using Syncfusion.EJ2
+@using Syncfusion.EJ2.Navigations
+@using CMS.Common;
+@using CMS.UI.ViewModel
+@using CMS.Business
+@{
+    ViewData["Title"] = "Manage Note";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+<div id="editorjs">
+
+</div>
+<input type="button" name="save" value="Save" onclick="OnSave()" />
+<script>
+    const ImageTool = window.ImageTool;
+    const editor = new EditorJS({ 
+  /** 
+   * Id of Element that should contain the Editor 
+   */ 
+  holder: 'editorjs', 
+
+  /** 
+   * Available Tools list. 
+   * Pass Tool's class or Settings object for each Tool you want to use 
+   */ 
+  tools: { 
+    header: {
+      class: Header, 
+      inlineToolbar: ['link'] 
+      }, 
+      checklist: {
+          class: Checklist,
+          inlineToolbar: true,
+      },
+      image: {
+          class: ImageTool,
+          config: {
+              endpoints: {
+                  byFile: 'http://localhost:8008/uploadFile', // Your backend file uploader endpoint
+                  byUrl: 'http://localhost:8008/fetchUrl', // Your endpoint that provides uploading by Url
+              }
+          }
+      },
+      linkTool: {
+          class: LinkTool,
+          config: {
+              endpoint: 'http://localhost:8008/fetchUrl', // Your backend endpoint for url data fetching
+          }
+      },
+    //list: { 
+    //    class: List, 
+    //    inlineToolbar: true 
+    //  },
+      Marker: {
+          class: Marker,
+          shortcut: 'CMD+SHIFT+M',
+      },
+      list: {
+          class: NestedList,
+          inlineToolbar: true,
+      },
+      quote: {
+          class: Quote,
+          inlineToolbar: true,
+          shortcut: 'CMD+SHIFT+O',
+          config: {
+              quotePlaceholder: 'Enter a quote',
+              captionPlaceholder: 'Quote\'s author',
+          },
+      },
+      raw: RawTool,
+      //image: SimpleImage,
+      table: {
+          class: Table,
+          inlineToolbar: true,
+          config: {
+              rows: 2,
+              cols: 3,
+          },
+      },
+      warning: {
+          class: Warning,
+          inlineToolbar: true,
+          shortcut: 'CMD+SHIFT+W',
+          config: {
+              titlePlaceholder: 'Title',
+              messagePlaceholder: 'Message',
+          },
+      },
+      embed: {
+          class: Embed,
+          config: {
+              services: {
+                  youtube: true,
+                  coub: true
+              }
+          }
+      },
+      delimiter: Delimiter,
+  }, 
+})
+    function OnSave() {
+        debugger;
+        const edjsParser = edjsHTML();
+        editor.save().then((outputData) => {
+            console.log('Article data: ', outputData)
+            const HTML = edjsParser.parse(outputData);
+            // returns array of html strings per block
+            console.log('HTML: ',HTML);
+        }).catch((error) => {
+            console.log('Saving failed: ', error)
+        });
+        
+        
+
+    }
+</script>

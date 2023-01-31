@@ -1,0 +1,1593 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+    Layout = ViewBag.Layout;
+    // Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@model TemplateViewModel
+<style>
+    .cms-footer {
+        bottom: 0px !important;
+    }
+</style>
+<script>
+    function OnLanguageClick()
+    {
+
+        var defaultValue = $("#DisplayName").val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/cms/ResourceLanguage/Create?lo=Popup&cbm=OnPortalPageTitleCallBack&templateType=@Model.TemplateType.ToString()&defaultValue=" + defaultValue + "&templateId=@Model.Id&code=DisplayName";
+        win.OpenWindow({ Title: 'Manage Language', Width: 500, Height: 400 });
+    }
+    function OnPortalPageTitleCallBack(Prms) {
+        var english = Prms.item.English;
+        $("#DisplayName").val(english)
+
+    }
+    $("#Name").on('input', function () {
+
+        var txt = $("#Name").val();
+            txt = txt.replace(/[^_A-Z0-9]/ig, "");
+        $("#Name").val(txt);
+        });
+    var groupId = 1;
+    var cellId = 1;
+    var componentId = 1;
+     function OnCreateView() {
+        var win = GetMainWindow();
+        iframeOpenUrl = '@Url.Action("Index", "AQB", new { @area="cms"})';
+        win.OpenWindow({ Title: 'Create View', Width: 1400, Height: 800 });
+        return false;
+    }
+    function OnPageTypechange(args) {
+        var pagetype = $("#PageType").data("kendoDropDownList").value();
+        if (pagetype == "Form") { $("#chkIndexPage").show(); }
+        else {
+            $("#chkIndexPage").hide();
+            $("#EnableIndexPage").val("false");
+        }
+    }
+    function ToggleNewGroup() {
+        $('#new-row-container').toggle('400');
+    }
+    function DiscardDeleteGroup(e) {
+        $(e).parent().hide('slide', { direction: 'right' }, 500);
+    }
+    function ConfirmDeleteGroup(e) {
+        console.log(e);
+        var contentId = e.parentNode.parentNode.parentNode.parentNode.id;
+        var type = e.parentNode.parentNode.parentNode.parentNode.getAttribute('data-page-content-type');
+        //$(e).parent().hide('slide', { direction: 'right' }, 500);
+        $.ajax({
+            type: "GET",
+            url: "/Cms/Content/DeleteContent?id=" + contentId + "&type=" + type,
+            dataType: "json",
+            success: function (response) {
+                $("#" + contentId).remove();
+            },
+        });
+    }
+    function DeleteGroup(e) {
+        var n = $(e).next();
+        if (n.is(':hidden')) {
+            n.show('slide', { direction: 'right' }, 500);
+        } else {
+            n.hide('slide', { direction: 'right' }, 500);
+        }
+    }
+    function OpenSettings(e) {
+        //
+        //var evt = e;
+        //var evt = e.target.id;
+        //console.log(evt);
+        var sid = e.parentNode.parentNode.id;
+        var stype = document.getElementById(sid).getAttribute('data-page-content-type');
+        var pid = document.getElementById(sid).getAttribute('data-page-id');
+        //alert('open settings');
+        //alert("source Id : " + sid + ", Type : " + stype + ", page Id : " + pid);
+        //openNavStyle(sid, stype);
+        editNavStyle(sid, stype,pid);
+    }
+    function OpenPageSettings(e) {
+        //var evt = e;
+        //console.log(evt);
+        var sid = e.parentNode.parentNode.id;
+        var stype = document.getElementById(sid).getAttribute('data-page-content-type');
+        var pid = document.getElementById(sid).getAttribute('id');
+        //alert("source Id : " + sid + ", Type : " + stype + ", page Id : " + pid);
+        //OpenManageSettings(sid, stype);
+        editNavStyle(sid, stype,pid);
+    }
+    function SetPageSettings(id) {
+        //alert(id);
+        var pagename = $('#PageName').val();
+        var pagetitle = $('#PageTitle').val();
+        var pagemenuname = $('#PageMenuName').val();
+        var pagehideinmenu = $('#PageHideInMenu').val();
+        var pageisrootpage = $('#PageIsRootPage').val();
+
+        document.getElementById(id).setAttribute("data-name", pagename);
+        document.getElementById(id).setAttribute("data-title", pagetitle);
+        document.getElementById(id).setAttribute("data-menu-name", pagemenuname);
+        document.getElementById(id).setAttribute("data-hide-menu", pagehideinmenu);
+        document.getElementByIModel(id).setAttribute("data-is-root", pageisrootpage);
+
+        //alert(pagename);
+        //alert(pagetitle);
+        //alert(pagemenuname);
+        //alert(pagehideinmenu);
+        //alert(pageisrootpage);
+    }
+    function openNav() {
+        document.getElementById("side-components").style.width = "350px";
+        //  $("#overlay").addClass("overlay");
+        //Model$('body').addClass('fadeMe');
+    }
+    function openNavEditor() {
+        document.getElementById("mySidenavEditor").style.width = "600px";
+        $("#overlay").addClass("overlay");
+        // $('body').addClass('fadeMe');
+   }
+    function openEditor() {
+        alert("Hello Editor... ");
+    }
+    function OnSelectEditor(id) {
+        alert("Under Development... ");
+   }
+    function OnChangeCustomValidation(e) {
+
+        var validation = this.dataItem(e.item);
+        if (validation.Id == "Email") {
+            $('#txtRegularExpresssion').show();
+            $('#txtCustomValidation').show();
+            $('#txtRegularExpresssion').val('[a-zA-Z0-9_.+-]+@@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+');
+            $('#txtCustomValidation').val('');
+
+        } else if (validation.Id == "Number") {
+            $('#txtRegularExpresssion').show();
+            $('#txtCustomValidation').show();
+            $('#txtRegularExpresssion').val('^[0-9]*$');
+            $('#txtCustomValidation').val('');
+
+        } else if (validation.Id == "Url") {
+            $('#txtRegularExpresssion').show();
+            $('#txtCustomValidation').show();
+            $('#txtRegularExpresssion').val('https?://[a-zA-Z0-9-.]+.[a-zA-Z]{2,}');
+            $('#txtCustomValidation').val('');
+
+        } else if (validation.Id == "Custom") {
+            $('#txtRegularExpresssion').show();
+            $('#txtCustomValidation').show();
+            $('#txtRegularExpresssion').val('');
+            $('#txtCustomValidation').val('');
+        } else {
+            $('#txtRegularExpresssion').val('');
+            $('#txtCustomValidation').val('');
+            $('#txtRegularExpresssion').hide();
+            $('#txtCustomValidation').hide();
+
+        }
+    }
+    /* Set the width of the side navigation to 0 */
+    function closeNav(sideNav) {
+        document.getElementById(sideNav).style.width = "0";
+        // $("#overlay").removeClass("overlay");
+    }
+
+    function closeNavEditor() {
+        document.getElementById("mySidenavEditor").style.width = "0";
+        $("#overlay").removeClass("overlay");
+        //$('body').removeClass('fadeMe');
+    }
+    var builder;
+    $(document).ready(function () {
+
+         @*$.ajax({
+            type: "GET",
+             url: "/Cms/Content/GetPageJsonForm?pageId=@Model.Id",
+            success: function (response) {
+
+                if (response != "" && response != null) {
+                    var obj = JSON.parse(response);
+                    builder = new Formio.FormBuilder(document.getElementById("builder"), obj);
+                }
+                else {
+                    builder = new Formio.FormBuilder(document.getElementById("builder"), {
+                        "display": "form",
+                        "components": []
+                    });
+                }
+
+            },
+            error: function (response) {
+                alert("error");
+            },
+        });*@
+        InitializeContePlaceHolder();
+
+        $("#PortalId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.PortalId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/Content/GetPortalList",
+                        data: FilterData
+                    }
+                }
+            }
+        });
+
+        $("#NtsType").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "EnumId",
+            value: "@(Model.NtsType.IsNotNull()?(int)((NtsTypeEnum)Enum.Parse(typeof(NtsTypeEnum), Model.NtsType.ToString())): Model.NtsType)",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=NtsTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#ModuleId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.ModuleId",
+            filter: "contains",
+            autoBind: true,
+                dataSource: {
+                    transport: {
+                        read: {
+                            dataType: "json",
+                            url: "/Cms/Module/GetModuleList",
+                            data: FilterData
+                        }
+                }
+            }
+        });
+
+        $("#TemplateStatus").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.TemplateStatus",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=TemplateStatusEnum",
+                    }
+                }
+            }
+        });
+
+        $("#TableMetadataId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.TableMetadataId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/Template/GetTableMetaDataList",
+                        data: FilterData
+                    }
+                }
+            }
+        });
+
+        $("#TableSelectionType").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.TableSelectionType",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=TableSelectionTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#TemplateStageId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.TemplateStageId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/TemplateStage/GetTemplateStageList",
+                        data: FilterData
+                    }
+                }
+            }
+        });
+
+        $("#TemplateStepId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.TemplateStepId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/TemplateStage/GetTemplateStepList",
+                        data: FilterData
+                    }
+                }
+            }
+        });
+
+        $("#UdfTemplateId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.UdfTemplateId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/Template/GetNoteTemplateList",
+                        data: FilterData
+                    }
+                }
+            }
+        });
+
+        $("#ViewType").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.ViewType",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=NtsViewTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#WorkFlowTemplateId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.WorkFlowTemplateId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/Template/GetWorkSpaceTemplate",
+                        data: FilterData
+                    }
+                }
+            }
+        });
+
+        $('#TemplateType').val('@ViewBag.TemplateType');
+        $('#txtMandatoryCustomValidation').hide();
+        $('#txtRegularExpresssion').hide();
+        $('#txtCustomValidation').hide();
+
+        //ca
+        if ('@ViewBag.EnableFormIndex'=="True") {
+            $('#liformindex').show();
+        } else {
+            $('#liformindex').hide();
+        }
+
+        if ('@ViewBag.EnableNoteIndex'=="True") {
+            $('#linoteindex').show();
+        } else {
+            $('#linoteindex').hide();
+        }
+
+        if ('@ViewBag.EnableTaskIndex'=="True") {
+            $('#litaskindex').show();
+        } else {
+            $('#litaskindex').hide();
+        }
+         if ('@ViewBag.EnableServiceIndex'=="True") {
+            $('#liserviceindex').show();
+        } else {
+             $('#liserviceindex').hide();
+        }
+         @*if ('@ViewBag.EnableProcessDesignIndex'=="True") {
+             $('#liprocessDesignindex').show();
+        } else {
+             $('#liprocessDesignindex').hide();
+        }*@
+        $('#chkFieldMandatory').on('change', function () {
+            // From the other examples
+            if (this.checked) {
+                //alert("checked");
+                $('#txtMandatoryCustomValidation').show();
+            } else {
+                //alert("not checked");
+                $('#txtMandatoryCustomValidation').hide();
+            }
+        });
+    });
+    function AddNewGroup(type) {
+        var gseq = groupId++;
+        var gid = GenerateGuid();
+        var groupRef = document.getElementById(type).firstElementChild;
+        var grp = groupRef.cloneNode(true);
+        var gn = $(grp).find('#group-name');
+        gn.html(type + ' ' + (gseq));
+        gn.attr("id", 'grp-name-' + gid);
+        grp.setAttribute("id", gid);
+        var seq = groupRef.getAttribute('data-sequence');
+        seq = eval(seq) + 1;
+        groupRef.setAttribute("data-sequence", seq);
+        grp.setAttribute("data-sequence", seq);
+        document.getElementById("groups").appendChild(grp);
+        $('.column', $('#' + gid)).each(function () {
+            $(this).attr("id", GenerateGuid());
+            $(this).attr("data-parent-id", gid);
+        });
+    }
+    function AddComponent(type, target) {
+        switch (type) {
+            case "RichText":
+                AddRichText(type, target);
+                break;
+            default:
+        }
+    }
+    function AddRichText(type, target) {
+        var t = $(target);
+        var cellId = GenerateGuid();
+        var cellRef = document.getElementById('dummy-' + type).firstElementChild;
+        var cell = cellRef.cloneNode(true);
+        var cn = $(cell).find('#comp-name');
+        cn.html('Rich Text Box ' + (componentId++));
+        cn.attr("id", 'comp-name-' + (cellId));
+
+        var seq = cellRef.getAttribute('data-sequence');
+        seq = eval(seq) + 1;
+        cellRef.setAttribute("data-sequence", seq);
+        cell.setAttribute("data-sequence", seq);
+        cell.setAttribute("data-parent-id", target.parentElement.id);
+        cell.setAttribute("id", cellId);
+
+        var compId = GenerateGuid();
+        var control = $(cell).find('#component');
+        control.attr("id", compId);
+        control.attr("data-component-type", "RichText");
+        control.attr("data-parent-id", cellId);
+        t.before(cell);
+        CreateRichTextBox($('#' + compId));
+    }
+    function CreateRichTextBox(id) {
+        id.kendoEditor({
+            stylesheets: [
+                "../content/shared/styles/editor.css",
+            ],
+            tools: [
+                "bold",
+                "italic",
+                "underline",
+                "justifyLeft",
+                "justifyCenter",
+                "justifyRight",
+                "insertUnorderedList",
+                "createLink",
+                "unlink",
+                "insertImage",
+                "tableWizard",
+                "createTable",
+                "addRowAbove",
+                "addRowBelow",
+                "addColumnLeft",
+                "addColumnRight",
+                "deleteRow",
+                "deleteColumn",
+                "mergeCellsHorizontally",
+                "mergeCellsVertically",
+                "splitCellHorizontally",
+                "splitCellVertically",
+                //"formatting",
+                //{
+                //    name: "fontName",
+                //    items: [
+                //        { text: "Andale Mono", value: "Andale Mono" },
+                //        { text: "Arial", value: "Arial" },
+                //        { text: "Arial Black", value: "Arial Black" },
+                //        { text: "Book Antiqua", value: "Book Antiqua" },
+                //        { text: "Comic Sans MS", value: "Comic Sans MS" },
+                //        { text: "Courier New", value: "Courier New" },
+                //        { text: "Georgia", value: "Georgia" },
+                //        { text: "Helvetica", value: "Helvetica" },
+                //        { text: "Impact", value: "Impact" },
+                //        { text: "Symbol", value: "Symbol" },
+                //        { text: "Tahoma", value: "Tahoma" },
+                //        { text: "Terminal", value: "Terminal" },
+                //        { text: "Times New Roman", value: "Times New Roman" },
+                //        { text: "Trebuchet MS", value: "Trebuchet MS" },
+                //        { text: "Verdana", value: "Verdana" },
+                //    ]
+                //},
+                "fontSize",
+                "foreColor",
+                "backColor",
+            ]
+        });
+    }
+    // $('.splitter-container').SplitterBar();
+    var splitter = $('.splitter-container').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '20%', // if there is no percentage it interpret it as pixels
+        onDrag: function (event) {
+            console.log(splitter.position());
+        }
+    });
+    function ReloadTab() {
+
+    }
+    function SetTabControls(index, select) {
+        var tabStrip = $("#tabstrip").data("kendoTabStrip");
+        if (select) {
+            tabStrip.select(index);
+        }
+    }
+    function onTabSelect1(e) {
+        SetTabControls($(e.item).index(), false);
+    }
+    function OnSelect(e) {
+        e.preventDefault();
+
+
+    }
+    function OpenIframeModal(url, title) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl =   url;
+        win.OpenWindow({ Title: title, Width: 700, Height: 350 });
+        return false;
+    }
+
+    function componentDrag(ev) {
+        //alert(ev.target.data('type'));
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+    function componentDrop(ev, el) {
+        ev.preventDefault();
+        var type = ev.dataTransfer.getData("text");
+        AddComponent(type, el);
+        //ev.target.appendChild(document.getElementById(data));
+    }
+    function componentDragOver(ev) {
+        ev.preventDefault();
+    }
+    //function RemovespecailChar()
+    //{
+    //    var txt = $("#pagetitle").val();
+    //    txt = txt.replace(/[^A-Z0-9]/ig, "");
+    //    $("#generatelbl").html(txt);
+    //}
+    $("#pagetitle").on('input', function () {
+        @*if ('@Model.DataAction' == '@DataActionEnum.Create')
+        {*@
+            var txt = $("#pagetitle").val();
+            txt = txt.replace(/[^A-Z0-9]/ig, "");
+            $("#generatelbl").html(txt);
+        //}
+    });
+
+    function OnRequestEnd_TopLinePriceGrid(e) {
+        if (e.type === "update") {
+            var grid = $('#kgrdUserPermission').data('kendoGrid');
+            grid.dataSource.read();
+        }
+    }
+    function OnError(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function FilterData() {
+        var portal = null;
+        if ('@ViewBag.Source' != null && '@ViewBag.Source' != "") {
+            portal = '@Model.PortalId';
+        }
+        return { portalId: portal };
+    }
+    function onFileUploadSuccess(e) {
+        //alert(e.response.fileId);
+        //
+        if (e.response.success) {
+            $("#OtherAttachmentId").val(e.response.fileId);
+        }
+        else {
+            //var msg = ExtractError(e.response.errors, true);
+            //alert(msg);
+        }
+        return true;
+    }
+    @*var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+
+                 window.parent.$("#documentTypeTreeView").data("kendoTreeView").dataSource.read();
+            var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("Template", "Template", new { @area = "Cms"})?templateId=' + TemplateId, $('#template-content'));
+
+           }
+        else {
+            showError(res.error);
+        }
+        HideLoader($('#template-content'));
+    };*@
+    //var showError = function (error) {
+    //    //#validation-summary-manageform
+    //    $("#validation-summary").html(error);
+    //    $("#validation-summary").css("display", "block")
+    //    HideLoader($('#template-content'));
+
+    //}
+</script>
+
+
+<div class="row  pad-10 no-gutters page-content">
+    <div class="container card-header" style="padding:10px;">
+        @*<div class="container col-sm-5">*@
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item"><a data-toggle="tab" href="#general" class="nav-link active" role="tab" aria-controls="general" aria-selected="true"><i class="fas fa-pencil-paintbrush" style="margin-left:15px;"></i><br />General</a></li>
+
+            @if (Model.DataAction == DataActionEnum.Edit)
+            {
+
+                if (ViewBag.TemplateType == TemplateTypeEnum.Page)
+                {
+                    <li class="nav-item"><a data-toggle="tab" href="#detailPage" class="nav-link" aria-controls="detailPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManagePage", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#detailPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />@ViewBag.TemplateType.ToString()</a></li>
+                }
+
+                else if (ViewBag.TemplateType == TemplateTypeEnum.Form)
+                {
+                    <li class="nav-item"><a data-toggle="tab" href="#detailPage" class="nav-link" aria-controls="detailPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageForm", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#detailPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />@ViewBag.TemplateType.ToString()</a></li>
+                    @if (ViewBag.EnableIndexPage == true)
+                    {
+                        <li class="nav-item" id="liformindex">
+
+                            <a data-toggle="tab" href="#index" class="nav-link" aria-controls="index" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageFormIndex", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#index'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Index</a>
+                        </li>
+                        @*<li class="nav-item" id="liformscriptpage">
+                        <a data-toggle="tab" href="#scriptPage" class="nav-link" aria-controls="scriptPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageActions", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#scriptPage'));"><i class="fas fa-scroll" style="margin-left:18px;"></i><br />Script</a>
+                    </li>*@
+                    }
+
+                }
+                else if (ViewBag.TemplateType == TemplateTypeEnum.Custom)
+                {
+                    <li class="nav-item"><a data-toggle="tab" href="#detailPage" class="nav-link" aria-controls="detailPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageCustom", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#detailPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />@ViewBag.TemplateType.ToString()</a></li>
+                    if (Model.NtsType.IsNotNull())
+                    {
+                        <li class="nav-item" id="licustomindex">
+
+                            <a data-toggle="tab" href="#index" class="nav-link" aria-controls="index" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageCustomIndex", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#index'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Custom Index</a>
+                        </li>
+                    }
+
+                }
+                else if (ViewBag.TemplateType == TemplateTypeEnum.Note)
+                {
+                    <li class="nav-item"><a data-toggle="tab" href="#detailPage" class="nav-link" aria-controls="detailPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageNote", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#detailPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />@ViewBag.TemplateType.ToString()</a></li>
+                    @if (ViewBag.EnableIndexPage == true)
+                    {
+
+                        <li class="nav-item" id="linoteindex">
+
+                            <a data-toggle="tab" href="#index" class="nav-link" aria-controls="index" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageNoteIndex", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#index'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Index</a>
+                        </li>
+                        @*<li class="nav-item" id="linotescriptpage">
+                        <a data-toggle="tab" href="#scriptPage" class="nav-link" aria-controls="scriptPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageActions", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#scriptPage'));"><i class="fas fa-scroll" style="margin-left:18px;"></i><br />Action</a>
+                    </li>*@
+                        <li class="nav-item" id="linotecommunication">
+
+                            <a data-toggle="tab" href="#notificationPage" class="nav-link" aria-controls="notificationPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageNotification", "Template", new { @area = "Cms" ,@templateId=Model.Id,@ntsType=ViewBag.TemplateType,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#notificationPage'));"><i class="fas fa-exchange-alt" style="margin-left:40px;"></i><br />Notification</a>
+                        </li>
+                    }
+                    <li class="nav-item" id="liNtslog">
+
+                        <a data-toggle="tab" href="#ntsLog" class="nav-link" aria-controls="ntsLog" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageNtsLog", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#ntsLog'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Nts Log</a>
+                    </li>
+                    <li class="nav-item"><a data-toggle="tab" href="#ocrTemplate" class="nav-link" aria-controls="ocrTemplate" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageOCRMapping", "Template", new { @area = "Cms", @templateId = Model.Id })', $('#ocrTemplate'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />DMS OCR Mapping</a></li>
+
+                }
+                else if (ViewBag.TemplateType == TemplateTypeEnum.Task)
+                {
+                    <li class="nav-item"><a data-toggle="tab" href="#detailPage" class="nav-link" aria-controls="detailPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageTask", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#detailPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />@ViewBag.TemplateType.ToString()</a></li>
+                    @if (ViewBag.EnableIndexPage == true)
+                    {
+                        <li class="nav-item" id="litaskindex">
+
+                            <a data-toggle="tab" href="#index" class="nav-link" aria-controls="index" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageTaskIndex", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#index'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Index</a>
+                        </li>
+                        @*<li class="nav-item" id="litaskscriptpage">
+                        <a data-toggle="tab" href="#scriptPage" class="nav-link" aria-controls="scriptPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageActions", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#scriptPage'));"><i class="fas fa-scroll" style="margin-left:18px;"></i><br />Action</a>
+                    </li>*@
+                        <li class="nav-item" id="litaskcommunication">
+
+                            <a data-toggle="tab" href="#notificationPage" class="nav-link" aria-controls="notificationPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageNotification", "Template", new { @area = "Cms" ,@templateId=Model.Id,@ntsType=ViewBag.TemplateType,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#notificationPage'));"><i class="fas fa-exchange-alt" style="margin-left:40px;"></i><br />Notification</a>
+                        </li>
+
+                    }
+                    <li class="nav-item" id="liNtslog">
+
+                        <a data-toggle="tab" href="#ntsLog" class="nav-link" aria-controls="ntsLog" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageNtsLog", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#ntsLog'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Nts Log</a>
+                    </li>
+
+                }
+                else if (ViewBag.TemplateType == TemplateTypeEnum.Service)
+                {
+                    <li class="nav-item"><a data-toggle="tab" href="#detailPage" class="nav-link" aria-controls="detailPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageService", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#detailPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />@ViewBag.TemplateType.ToString()</a></li>
+                    @*<li class="nav-item"><a data-toggle="tab" href="#processDesignPage" class="nav-link" aria-controls="processDesignPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageProcessDesign", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#processDesignPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />Process Design</a></li>*@
+                    @if (ViewBag.EnableIndexPage == true)
+                    {
+                        <li class="nav-item" id="liserviceindex">
+
+                            <a data-toggle="tab" href="#index" class="nav-link" aria-controls="index" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageServiceIndex", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#index'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Index</a>
+                        </li>
+
+                        @*<li class="nav-item" id="liservicescriptpage">
+                        <a data-toggle="tab" href="#scriptPage" class="nav-link" aria-controls="scriptPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageActions", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#scriptPage'));"><i class="fas fa-scroll" style="margin-left:18px;"></i><br />Action</a>
+                    </li>*@
+                        <li class="nav-item" id="liservicecommunication">
+
+                            <a data-toggle="tab" href="#notificationPage" class="nav-link" aria-controls="notificationPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageNotification", "Template", new { @area = "Cms" ,@templateId=Model.Id,@ntsType=ViewBag.TemplateType,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#notificationPage'));"><i class="fas fa-exchange-alt" style="margin-left:40px;"></i><br />Notification</a>
+                        </li>
+                    }
+                    <li class="nav-item" id="liNtslog">
+
+                        <a data-toggle="tab" href="#ntsLog" class="nav-link" aria-controls="ntsLog" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageNtsLog", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#ntsLog'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Nts Log</a>
+                    </li>
+
+                }
+                @* else if (ViewBag.TemplateType == TemplateTypeEnum.ProcessDesign)
+             {
+                 <li class="nav-item"><a data-toggle="tab" href="#detailPage" class="nav-link" aria-controls="detailPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageService", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#detailPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />Service</a></li>
+                 <li class="nav-item"><a data-toggle="tab" href="#processDesignPage" class="nav-link" aria-controls="processDesignPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageProcessDesign", "Template", new { @area="Cms",@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#processDesignPage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />@ViewBag.TemplateType.ToString()</a></li>
+                 @if (ViewBag.EnableIndexPage == true)
+                 {
+                     <li class="nav-item" id="liserviceindex">
+
+                         <a data-toggle="tab" href="#index" class="nav-link" aria-controls="index" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageServiceIndex", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#index'));"><i class="fas fa-cog" style="margin-left:18px;"></i><br />Index</a>
+                     </li>
+
+
+                 }
+                 <li class="nav-item" id="liservicecommunication">
+                     <a data-toggle="tab" href="#notificationPage" class="nav-link" aria-controls="notificationPage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageServiceNotification", "Template", new { @area = "Cms" ,@templateId=Model.Id,@lo=ViewBag.LayoutMode,cbm=ViewBag.CallbackMethod})', $('#notificationPage'));"><i class="fas fa-exchange-alt" style="margin-left:40px;"></i><br />Notification</a>
+                 </li>
+
+
+             }
+            <li class="nav-item"><a data-toggle="tab" href="#importExport" class="nav-link" role="tab" aria-controls="importExport" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageImportExport", "Template", new { @area="Cms",@templateId=Model.Id})', $('#importExport'));"><i class="fas fa-pencil-paintbrush" style="margin-left:15px;"></i><br />Export</a></li>*@
+                <li class="nav-item"><a data-toggle="tab" href="#detailPageLanguage" class="nav-link" aria-controls="detailPageLanguage" aria-selected="false" onclick=" LoadPartailView('@Url.Action("ManageLanguage", "Template", new { @area = "Cms", @templateId = Model.Id })', $('#detailPageLanguage'));"><i class="fab fa-css3" style="margin-left:3px;"></i><br />Language</a></li>
+
+            }
+
+
+
+        </ul>
+        <div class="tab-content">
+            <div id="general" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+
+                @*@{
+                await Html.RenderPartialAsync("ManageGeneralTab",Model);
+
+            }*@
+                <div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+                    <form asp-controller="Template" asp-action="ManageTemplateGeneralTabData" class="form-horizontal"
+                          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+                          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+                          data-ajax="true" data-ajax-method="POST">
+                        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+
+
+
+                        <div class="row" style="padding:10px;">
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label>Template Category</label>
+                                </div>
+                                <div class="col-9">
+                                    @Model.TemplateCategoryName
+
+                                </div>
+                            </div>
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Name">Name<span class="required" style="color:red;">*</span></label>
+                                </div>
+                                <div class="col-9">
+                                    @if (Model.DataAction == DataActionEnum.Create)
+                                    {
+                                        <input asp-for="Name" type="text" class="form-control" placeholder="Name" autocomplete="off" />
+                                    }
+                                    else
+                                    {
+                                        <input asp-for="Name" type="text" class="form-control" placeholder="Name" autocomplete="off" readonly />
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Name">Display Name<span class="required" style="color:red;">*</span></label>
+                                </div>
+                                <div class="col-9">
+                                    <input asp-for="DisplayName" type="text" class="form-control" placeholder="DisplayName" autocomplete="off" />
+                                    <span class="fa fal fa-2x fa-language  language-icon" onclick="OnLanguageClick();"></span>
+                                </div>
+                            </div>
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Code">Code<span class="required" style="color:red;">*</span></label>
+                                </div>
+                                <div class="col-9 ">
+
+                                    <input asp-for="Code" type="text" class="form-control" placeholder="Code" autocomplete="off" />
+                                </div>
+                            </div>
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="SequenceOrder">Sequence Order@*<span class="required" style="color:red;">*</span>*@</label>
+                                </div>
+                                <div class="col-9 ">
+                                    <input asp-for="SequenceOrder" type="text" class="form-control" placeholder="Sequence Order" autocomplete="off" />
+                                </div>
+                            </div>
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Description">Description</label>
+                                </div>
+                                <div class="col-9">
+
+                                    <textarea asp-for="Description" placeholder="Description" rows="3" class="form-control"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="row col-12  pad-10" style="margin-bottom:50px;">
+                                <div class="col-3">
+                                    <label for="PortalId">Portal<span class="required" style="color:red;">*</span></label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.PortalId)
+                                                .DataTextField("Name")
+                                                .DataValueField("Id")
+                                   // .Events(e => e.Change("change"))
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetPortalList", "Content", new { @area = "Cms"}).Data("FilterData");
+                                       });
+                                   })
+                                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+                                    <input asp-for="PortalId" id="PortalId" style="width: 100%;" />
+
+                                </div>
+                            </div>
+
+                            <div class="row col-12  pad-10" style="margin-bottom:50px;">
+                                <div class="col-3">
+                                    <label for="NtsType">NtsType</label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.NtsType)
+                                                .DataTextField("Name")
+                                                .DataValueField("EnumId")
+                                   // .Events(e => e.Change("change"))
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "NtsTypeEnum" });
+                                       });
+                                   })
+                                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+                                    <input asp-for="NtsType" id="NtsType" style="width: 100%;" />
+
+                                </div>
+                            </div>
+
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Module">Module</label>
+
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.ModuleId)
+                                      .DataTextField("Name")
+                                                .DataValueField("Id")
+                                   // .Events(e => e.Change("change"))
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetModuleList", "Module", new { @area = "Cms" }).Data("FilterData");
+                                       });
+                                   })
+                                   .Value(Model.ModuleId)
+                                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+                                    <input asp-for="ModuleId" id="ModuleId" style="width: 100%;" />
+
+                                </div>
+                            </div>
+
+
+                            <div class="row col-12 pad-10" style="display:none">
+                                <div class="col-3">
+                                    <label for="TemplateStatus">Status</label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.TemplateStatus)
+                                   .DataTextField("Name")
+                                                .DataValueField("Id")
+                                   //  .Events(e => e.Change("OnPageTypechange"))
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "TemplateStatusEnum" });
+                                        });
+                                    })
+                                    .Value(Model.TemplateStatus.ToString())
+                                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+                                    <input asp-for="TemplateStatus" id="TemplateStatus" style="width: 100%;" />
+
+                                </div>
+
+
+                            </div>
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Module">Table Meta Data</label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.TableMetadataId)
+                                   .DataTextField("Name")
+                                                .DataValueField("Id")
+                                    // .Events(e => e.Change("change"))
+                                    .DataSource(source =>
+                                    {
+                                        source.Read(read =>
+                                        {
+                                            read.Action("GetTableMetaDataList", "Template", new { @area = "Cms"}).Data("FilterData");
+                                        });
+                                    })
+                                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 95%" })
+                                )*@
+                                    <input asp-for="TableMetadataId" id="TableMetadataId" style="width: 95%;" />
+
+                                    <i class="fas fa-plus" onclick="OnCreateView();"></i>
+                                    @*<input asp-for="MenuName" type="text" class="form-control" placeholder="Enter Menu Name" autocomplete="off" />*@
+                                </div>
+                            </div>
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="TableSelectionType">Table Type</label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.TableSelectionType)
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "TableSelectionTypeEnum" });
+                                            });
+                                        })
+                                        .Value(Model.TableSelectionType.ToString())
+                                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                        .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+
+                                    <input asp-for="TableSelectionType" id="TableSelectionType" style="width: 100%;" />
+
+                                </div>
+                            </div>
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Module">Template Stage</label>
+
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.TemplateStageId)
+                                      .DataTextField("Name")
+                                                .DataValueField("Id")
+                                   // .Events(e => e.Change("change"))
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetTemplateStageList", "TemplateStage", new { @area = "Cms" }).Data("FilterData");
+                                       });
+                                   })
+                                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+                                    <input asp-for="TemplateStageId" id="TemplateStageId" style="width: 100%;" />
+
+                                </div>
+                            </div>
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Module">Template Step</label>
+
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.TemplateStepId)
+                                      .DataTextField("Name")
+                                                .DataValueField("Id")
+                                   // .Events(e => e.Change("change"))
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetTemplateStepList", "TemplateStage", new { @area = "Cms" }).Data("FilterData");
+                                       });
+                                   })
+                                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+                                    <input asp-for="TemplateStepId" id="TemplateStepId" style="width: 100%;" />
+
+                                </div>
+                            </div>
+
+                            @if (Model.TemplateType == TemplateTypeEnum.Task || Model.TemplateType == TemplateTypeEnum.Service)
+                            {
+                                <div class="row col-12 pad-10">
+                                    <div class="col-3">
+                                        <label for="TemplateStatus">Template</label>
+                                    </div>
+                                    <div class="col-9">
+                                        @*@(Html.Kendo().DropDownListFor(x=>x.UdfTemplateId)
+                                            .DataTextField("Name")
+                                            .DataValueField("Id")
+                                            .DataSource(source=>
+                                            {
+                                                source.Read(read => read.Action("GetNoteTemplateList", "Template", new { @area = "Cms"}).Data("FilterData"));
+
+                                            })
+                                            .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                            .HtmlAttributes(new { style = "width: 100%" })
+                                    )*@
+                                        <input asp-for="UdfTemplateId" id="UdfTemplateId" style="width: 100%;" />
+
+                                    </div>
+                                </div>
+                            }
+
+
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="Module">Allowed Tag Categories</label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().MultiSelectFor(x=>x.AllowedTagCategories)
+                                   .DataTextField("Name")
+                                                .DataValueField("Id")
+
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetTagCategoryList", "TagCategory", new { @area = "Cms"}).Data("FilterData");
+                                       });
+                                   })
+                                   .Placeholder(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+
+                                    <select asp-for="AllowedTagCategories" id="AllowedTagCategories" data-placeholder="Select Allow Tag Categories..." style="width:80%"></select>
+
+
+                                </div>
+                            </div>
+                            <div class="row col-12 pad-10">
+                                <div class="col-3">
+                                    <label for="ViewType">View Type</label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.ViewType)
+                                        .DataTextField("Name")
+                                        .DataValueField("Id")
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read =>
+                                            {
+                                                read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "NtsViewTypeEnum" });
+                                            });
+                                        })
+                                        .Value(Model.ViewType.ToString())
+                                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                        .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+                                    <input asp-for="ViewType" id="ViewType" style="width: 100%;" />
+
+                                </div>
+                            </div>
+                            <div class="row col-12  pad-10" style="margin-bottom:50px;">
+                                <div class="col-3">
+                                    <label for="Module">Work Flow Template</label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().DropDownListFor(x=>x.WorkFlowTemplateId)
+                                                .DataTextField("Name")
+                                                .DataValueField("Id")
+                                   // .Events(e => e.Change("change"))
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetWorkSpaceTemplate", "Template", new { @area = "Cms"}).Data("FilterData");
+                                       });
+                                   })
+                                   .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                      .HtmlAttributes(new { style = "width: 100%" })
+                                )*@
+                                    <input asp-for="WorkFlowTemplateId" id="WorkFlowTemplateId" style="width: 100%;" />
+
+                                </div>
+                            </div>
+                            <div class="row col-12  pad-10" style="margin-bottom:50px;">
+                                <div class="col-3">
+                                    <label for="Module">Attachment</label>
+                                </div>
+                                <div class="col-9">
+                                    @*@(Html.Kendo().Upload().Multiple(false)
+                                    .Name("files")
+                                    .Async(a => a
+                                    .Save("SaveFile", "Document", new { @area = "cms" })
+                                    .AutoUpload(true)
+                                    )
+                                    .Events(e => e.Success("onFileUploadSuccess")
+                                    )
+                                       // .Validation(validation => validation.AllowedExtensions(new string[] { ".gif", ".jpg", ".jpeg", ".png",".pdf",".doc",".docx" }).MaxFileSize(2097152))
+                                        .HtmlAttributes(new { @class = "hr-xx-large" })
+                                )*@
+
+                                    @*<div class="row">
+                                <div class="col">
+                                    <div id="iconFile" class="dm-uploader">
+                                        <h6 class=" text-muted">Drag &amp; drop files here</h6>
+
+                                        <div class="btn btn-primary btn-block ">
+                                            <span>Open the file Browser</span>
+                                            <input type="file" title='Click to add Files' />
+                                        </div>
+                                    </div>
+
+                                </div>*@
+                                    @*if multiple use this*@
+
+                                    @*<div class="col">
+                                    <div class="card h-100">
+                                        <div class="card-header">
+                                            File List
+                                        </div>
+                                        <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                                            <li id="nofiles" class="text-muted text-center empty">No files uploaded.</li>
+                                        </ul>
+                                    </div>
+                                </div>*@
+                                    @*if multiple use this*@
+                                    @*</div>*@
+
+                                    @{
+                                        await Html.RenderPartialAsync("~/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.OtherAttachmentId), Value = Model.OtherAttachmentId });
+                                    }
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <div class="cms-footer">
+                            @*<input type="submit" class="btn btn-link" value="Save and Preview" onclick="OnSave('Preview',event)" />
+                        <input type="submit" class="btn btn-success" value="Save and Publish" onclick="OnSave('Publish',event)" />*@
+                            <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave('',event)" />
+                            @if (ViewBag.LayoutMode == LayoutModeEnum.Popup.ToString())
+                            {
+                                <input type="button" class="btn btn-light" value="Close" onclick="return OnClose('@Model.Id');" />
+                            }
+                        </div>
+                        @Html.HiddenFor(x => x.Id)
+                        @Html.HiddenFor(x => x.DataAction)
+                        @Html.HiddenFor(x => x.TemplateCategoryId)
+                        @Html.HiddenFor(x => x.TemplateType)
+                        @Html.HiddenFor(x => x.UdfTableMetadataId)
+                        @Html.HiddenFor(x => x.UdfTemplateId)
+                        @Html.HiddenFor(x => x.TableSelectionType)
+                        @Html.HiddenFor(x => x.OtherAttachmentId)
+                        @*@Html.HiddenFor(x => x.PortalId)*@
+                    </form>
+                </div>
+            </div>
+            <div id="templateindex" class="tab-pane " role="tabpanel" aria-labelledby="settings-tab">
+
+
+            </div>
+            <div id="scriptPage" class="tab-pane " role="tabpanel" aria-labelledby="settings-tab">
+
+
+            </div>
+            <div id="index" class="tab-pane " role="tabpanel" aria-labelledby="settings-tab">
+
+
+            </div>
+            <div id="ntsLog" class="tab-pane " role="tabpanel" aria-labelledby="settings-tab">
+
+
+            </div>
+            <div id="detailPage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+
+
+
+            </div>
+            <div id="detailPageLanguage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+
+
+
+            </div>
+            <div id="processDesignPage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+
+
+
+            </div>
+            <div id="notificationPage" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+
+
+
+            </div>
+            <div id="permissions" class="tab-pane " role="tabpanel" aria-labelledby="permissions-tab">
+
+            </div>
+            <div id="ocrTemplate" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+                
+
+            </div>
+            @*<div id="importExport" class="tab-pane " role="tabpanel" aria-labelledby="pageCss-tab">
+
+
+
+        </div>*@
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<div id="page-icon-div">
+    <div id="mySidenavPageIcon" class="sidenav">
+        <h1 class="cms-panel-header-name">Page Icon</h1>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNavIcon()" title="Close">&times;</a>
+        <hr />
+        <div id="page-icon" class="row pad-20 slidenav-flow">
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            var url = '@Url.Action("Template", "Template", new { @area = "Cms"})?cbm=@ViewBag.CallbackMethod&lo=@ViewBag.LayoutMode&templateId=' + res.templateId;
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+            if ('@ViewBag.LayoutMode' == "@LayoutModeEnum.Popup.ToString()") {
+                win = GetMainWindow();
+                win.iframeOpenUrl = url;
+                win.OpenWindow({ Width: 1200, Height: 650, Title:"Edit Template",Reload:true});
+            }
+            else {
+                //window.parent.$("#documentTypeTreeView").data("kendoTreeView").dataSource.read();
+                window.parent.$('#documentTypeTreeView').jstree(true).refresh();
+                LoadPartailView(url, $('#template-content'));
+
+            }
+         }
+        else {
+            showError1(res.error);
+        }
+        HideLoader($('.page-content'));
+    };
+    var showError1 = function (error) {
+        //#validation-summary-manageform
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block");
+        HideLoader($('.page-content'));
+    }
+    function OnClose(templateId) {
+        win = GetMainWindow();
+        var cb = null;
+        if ('@ViewBag.CallbackMethod'!='null' && '@ViewBag.CallbackMethod'!='') {
+            cb = {
+                MethodName: '@ViewBag.CallbackMethod', Prms: {TemplateId: templateId}
+            };
+        }
+        win.CloseWindow(cb);
+        return false;
+    }
+    function OnSave(Statetype, evt) {
+
+        ShowLoader($('.page-content'));
+        if (Statetype == "Publish")
+        {
+             $("#TemplateStatus").data("kendoDropDownList").value('@TemplateStatusEnum.Published');
+        }
+        if ($("#Name").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Name is required");
+            evt.preventDefault();
+            HideLoader($('.page-content'));
+            return false;
+
+        }
+        else if ($("#Code").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Code is required");
+            evt.preventDefault();
+            HideLoader($('.page-content'));
+            return false;
+
+        }
+        else if ($("#DisplayName").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Display Name is required");
+            evt.preventDefault();
+            HideLoader($('.page-content'));
+            return false;
+        }
+        else if ($("#PortalId").val() == "") {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Portal is required");
+            evt.preventDefault();
+            HideLoader($('.page-content'));
+            return false;
+        }
+       // HideLoader($('.page-content'));
+    }
+
+    function openNavForIcon() {
+        document.getElementById("mySidenavPageIcon").style.width = "450px";
+        LoadPartailView('@Url.Action("SelectPageIcon", "Content", new { @area="Cms"})?iconCss=' + $("#pageicon").attr("data-type") + "&iconColor=" + $("#pageicon").css("color"), $('#page-icon'));
+        $("#overlay").addClass("overlay");
+
+    }
+    function closeNavIcon() {
+        document.getElementById("mySidenavPageIcon").style.width = "0";
+        $("#overlay").removeClass("overlay");
+    }
+    function OnIconPropertySubmit(iconname,iconcolor) {
+        $("#IconCss").val(iconname);
+        $("#IconColor").val(iconcolor);
+        $("#pageicon").attr("data-type", iconname);
+        $("#pageicon").removeAttr("class");
+        $("#pageicon").addClass(iconname);
+        $("#pageicon").css("color", iconcolor);
+        document.getElementById("mySidenavPageIcon").style.width = "0";
+        $("#overlay").removeClass("overlay");
+    }
+    function Permission() {
+
+    }
+     // function that gathers IDs of checked nodes
+    function checkedNodeIds(nodes, checkedNodes) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].checked) {
+                checkedNodes.push(nodes[i].id);
+            }
+
+            if (nodes[i].hasChildren) {
+                checkedNodeIds(nodes[i].children.view(), checkedNodes);
+            }
+        }
+    }
+
+    // show checked node IDs on datasource change
+    function onCheck() {
+        var checkedNodes = [],
+            treeView = $("#treeview").data("kendoTreeView"),
+            message;
+
+        checkedNodeIds(treeView.dataSource.view(), checkedNodes);
+
+        if (checkedNodes.length > 0) {
+            message = "IDs of checked nodes: " + checkedNodes.join(",");
+        } else {
+            message = "No nodes checked.";
+        }
+        $("#result").html(message);
+    }
+
+    function ExtractError(err, exludeLi) {
+        var msg = "";
+        $.each(err, function (key, value) {
+
+            $.each(value, function (key1, value1) {
+                $.each(value1, function (key2, value2) {
+                    if (exludeLi) {
+                        msg += value2 + "\n";
+                    }
+                    else {
+                        msg += "<li>" + value2 + "</li>";
+                    }
+
+                });
+
+            });
+        });
+        return msg;
+    }
+    $(document).ready(function () {
+        if ('@Model.PortalId' != '' && '@Model.PortalId' != null && '@Model.PortalId' != undefined) {
+          //  $("#PortalId").data("kendoDropDownList").enable(false);
+        }
+        portal = "";
+         if ('@ViewBag.Source' != null && '@ViewBag.Source' != "") {
+            portal = '@Model.PortalId';
+        }
+
+        $("#AllowedTagCategories").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/cms/TagCategory/GetTagCategoryList?portalId="+ portal,
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select Allow Tag Categories...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.AllowedTagCategories)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });
+       // uploadFile();
+    });
+
+    function uploadFile() {
+        $("#iconFile").dmUploader({ //
+            url: '/Cms/Document/SaveFile',
+            multiple: false,
+            extFilter: ["jpg", "jpeg", "png", "gif"],
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                // Happens when dragging something over the DnD area
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#OtherAttachmentId").val(data.fileId);
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }
+   
+</script>
+
+
+
+
+

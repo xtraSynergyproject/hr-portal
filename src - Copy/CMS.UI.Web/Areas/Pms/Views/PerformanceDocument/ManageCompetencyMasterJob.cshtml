@@ -1,0 +1,399 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceDocumentController> Resource
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@using Newtonsoft.Json;
+
+
+@{
+    ViewData["Title"] = "Manage Performance Document Stage";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model CompetencyCategoryViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+
+
+
+<div class="row" style="margin-left:15px;" id="perDocStage">
+
+    <form asp-controller="PerformanceDocument" asp-action="ManageCompetencyMasterJob" class="form-horizontal" id="myForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12">@Resource["ComptencyMaster"] <span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @if (Model.DataAction == DataActionEnum.Edit)
+                {
+                    @*@(Html.Kendo().MultiSelectFor(x=>x.MasterId)
+            .DataTextField("CompetencyName")
+            .ItemTemplateId("user1-template1")
+            .DataValueField("MasterId")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("ReadCompetencyMaster", "PerformanceDocument", new { @area = "Pms" });
+                });
+            })
+            .Placeholder(ApplicationConstant.PlaceHolder_SelectOption)
+            // .Value(Model.MasterId.ToString())
+            .HtmlAttributes(new { @class = "form-control", @style = "width:80%;", disabled = "disabled" })
+            )*@
+
+                    <select asp-for="MasterId" id="MasterId" style="width:80%" disabled="disabled"></select>
+
+                }
+                else
+                {
+                    @*@(Html.Kendo().MultiSelectFor(x=>x.MasterIds)
+             .DataTextField("CompetencyName")
+             .ItemTemplateId("user1-template1")
+             .DataValueField("MasterId")
+             .DataSource(source =>
+             {
+                 source.Read(read =>
+                 {
+                     read.Action("ReadCompetencyMaster", "PerformanceDocument", new { @area = "Pms" });
+                 });
+             })
+             .Placeholder(ApplicationConstant.PlaceHolder_SelectOption)
+            // .Value(Model.MasterId.ToString())
+            .Events(events => events.Filtering(
+             @<text>
+                 function(e) {
+                    var filterValue = e.filter != undefined ? e.filter.value : "";
+                         e.preventDefault();
+
+                       this.dataSource.filter({
+                         logic: "or",
+                         filters: [
+                           {
+                             field: "CompetencyName",
+                             operator: "contains",
+                             value: filterValue
+                           },
+                           {
+                             field: "CategoryName",
+                             operator: "contains",
+                             value: filterValue
+                           },
+
+                         ]
+                       });
+                 }
+                 </text>
+                 ))
+             .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+             )*@
+                    <select asp-for="MasterIds" id="MasterIds" style="width:80%"></select>
+
+                }
+
+                <script type="text/x-kendo-tmpl" id="user1-template1">
+                      <div class="row no-gutter pb-1 pt-1">
+
+
+                    <div style="width:150px">
+                      <span style="color:gray"> #:CategoryName#</span>
+                     </div>
+                       <div style="width:150px">
+                     <span> - #:CompetencyName#</span>
+                    </div>
+
+                    </div>
+                </script>
+            </div>
+            <div class="col-12">@Resource["Job"] <span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @if (Model.DataAction == DataActionEnum.Edit)
+                {
+                    @*@(Html.Kendo().MultiSelectFor(x=>x.JobId)
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                            {
+                                read.Action("ReadJobs", "PerformanceDocument", new { @area = "Pms" });
+                            });
+                        })
+                        .Placeholder("" + Resource["Select"] + "")
+                        .HtmlAttributes(new { @class = "form-control", @style = "width:80%", disabled = "disabled" })
+                        )*@
+                    <select id="JobId" data-placeholder="@Resource["Select"]" class="form-control" style="width:80%" disabled="disabled"></select>
+                }
+                else
+                {
+
+                    @*@(Html.Kendo().MultiSelectFor(x=>x.JobIds)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("ReadJobs", "PerformanceDocument", new { @area = "Pms" });
+                });
+            })
+            .Placeholder("" + Resource["Select"] + "")
+            .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+            )*@
+
+                    <select asp-for="JobIds" id="JobIds" style="width:80%"></select>
+
+
+                }
+
+            </div>
+
+            <div class="col-12">@Resource["ProficiencyLevel"] <span class="required">*</span></div>
+            <div class="col-12 pad-15">
+                @*@(Html.Kendo().DropDownListFor(x=>x.ProficiencyLevelId)
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetListOfValueList", "LOV", new { Type = "COMPETENCY_PROFICIENCY_LEVEL", @area = "Cms" });
+            });
+        })
+        .OptionLabel("" + Resource["Select"] + "")
+        .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+        )*@
+
+                <input asp-for="ProficiencyLevelId" id="ProficiencyLevelId" class="form-control" style="width:80%!important" />
+            </div>
+
+
+
+            <div class="col-12 pad-10" style="text-align:right;padding-right:40px;">
+                <button type="button" class="btn btn-light" onclick="Close();">@SharedResource["Close"]</button>
+                <input type="submit" class="btn btn-primary" value="@SharedResource["Save"]" id="submitBtn" onclick="OnSave(event);" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.ParentNoteId)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.Json)
+        @Html.HiddenFor(x => x.DataJson)
+        @Html.HiddenFor(x => x.CompanyId)
+        @Html.HiddenFor(x => x.CreatedBy)
+        @Html.HiddenFor(x => x.CreatedDate)
+        @Html.HiddenFor(x => x.LastUpdatedBy)
+        @Html.HiddenFor(x => x.LastUpdatedDate)
+        @Html.HiddenFor(x => x.MasterId)
+        @Html.HiddenFor(x => x.JobId)
+    </form>
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        HideLoader($("#global-overlay"));
+         $("#ProficiencyLevelId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+	        optionLabel:'@Resource["Select"]',
+            value:'@Model.ProficiencyLevelId',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/CMS/LOV/GetListOfValueList?Type=COMPETENCY_PROFICIENCY_LEVEL",
+                    }
+                }
+            }
+        });
+
+
+
+        $("#MasterId").kendoMultiSelect({
+            dataTextField: "CompetencyName",
+            dataValueField: "MasterId",
+            itemTemplateId: "user1-template1",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/pms/PerformanceDocument/ReadCompetencyMaster",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select..",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.MasterId)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+           // htmlAttributes: new { disabled = "disabled" }
+        });
+
+
+        $("#MasterIds").kendoMultiSelect({
+            dataTextField: "CompetencyName",
+            dataValueField: "MasterId",
+            itemTemplateId: "user1-template1",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/pms/PerformanceDocument/ReadCompetencyMaster",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select..",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.MasterIds)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+          //  htmlAttributes: new { disabled = "disabled" },
+            filtering: function (e) {
+                var filterValue = e.filter != undefined ? e.filter.value : "";
+                e.preventDefault();
+
+                this.dataSource.filter({
+                    logic: "or",
+                    filters: [
+                        {
+                            field: "CompetencyName",
+                            operator: "contains",
+                            value: filterValue
+                        },
+                        {
+                            field: "CategoryName",
+                            operator: "contains",
+                            value: filterValue
+                        },
+
+                    ]
+                });
+            }
+        });
+
+        $("#JobIds").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: "/pms/PerformanceDocument/ReadJobs",
+                        dataType: "json"
+                    }
+                },
+            }),
+            autoClose: false,
+            placeholder: "Select Jobs...",
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.JobIds)),
+            valuePrimitive: true,
+            serverFiltering: true,
+            filter: '@FilterType.Contains',
+        });
+
+        $("#JobId").kendoMultiSelect({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            autoBind: true,
+            autoClose: false,
+            value: @Html.Raw(JsonConvert.SerializeObject(Model.JobId)),
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("ReadJobs", "PerformanceDocument", new { @area = "Pms" })",
+                    }
+                }
+            }
+        });
+
+
+    });
+
+    function Close() {
+
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnSave(evt) {
+
+        var master = $(document.getElementById("MasterIds")).val();
+        var job = $(document.getElementById("JobIds")).val();
+        var ProficiencyLevelId = $(document.getElementById("ProficiencyLevelId")).val();
+        if (master == "") {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("@Resource["CompetencyisRequired"]");
+                evt.preventDefault();
+                return false;
+        }
+        else if (job == "") {
+             $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("@Resource["JobisRequired"]");
+                evt.preventDefault();
+                return false;
+        }
+        else if (ProficiencyLevelId == "") {
+             $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("@Resource["ProficiencyLevelisRequired"]");
+                evt.preventDefault();
+                return false;
+        }
+            else {
+                $(".text-danger").removeClass("validation-summary-errors");
+                $(".text-danger").addClass("validation-summary-valid");
+                ShowLoader($('#perDocStage'));
+            }
+
+    }
+
+
+
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                window.parent.ShowNotification("@SharedResource["CreatedSuccessfully"]", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                window.parent.ShowNotification("@SharedResource["EditedSuccessfully"]", "success");
+            }
+            HideLoader($('#perDocStage'));
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName: 'RefreshGrid' });
+            return false;
+
+        }
+        else {
+          //  $(".text-danger").removeClass("validation-summary-valid");
+           // $(".text-danger").addClass("validation-summary-errors");
+            // $(".text-danger").html(res.error);
+            var arr = res.error.toArray();
+            alert(arr);
+            HideLoader($('#perDocStage'));
+        }
+    };
+
+
+</script>

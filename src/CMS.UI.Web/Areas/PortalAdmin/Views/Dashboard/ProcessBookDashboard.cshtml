@@ -1,0 +1,880 @@
+﻿@using Synergy.App.ViewModel;
+@using Kendo.Mvc.UI;
+@using Synergy.App.Common;
+@using Kendo.Mvc.Extensions;
+@model WorklistDashboardSummaryViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    // Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+
+}
+<link href="~/css/TECProcess/DashBoardStyles.css" rel="stylesheet" asp-append-version="true" />
+<link href="~/css/TECProcess/Dashboard-Navigation-with-Button.css" rel="stylesheet" asp-append-version="true"/>
+<style>
+    .create-new {
+    }
+
+        .create-new:hover {
+        }
+
+    .box-title {
+        font-weight: 500;
+    }
+
+    .blue {
+        color: #007bff !important;
+        text-decoration: none;
+    }
+
+    .circle {
+        width: 130px;
+        height: 130px;
+        line-height: 50px;
+        border-radius: 50%;
+        font-size: 50px;
+        color: #000;
+        text-align: center;
+        border: 10px solid gray;
+        font-size: 30px;
+        display: table-cell;
+        vertical-align: middle;
+    }
+
+
+
+    .k-listview {
+        border-style: none !important;
+    }
+
+    .k-listview-content {
+        /*overflow:hidden;*/
+        display: flex;
+    }
+
+    .scrollbtn {
+        background-color: #4E4D4D;
+        color: white;
+        border: 1px solid #FFFFFF;
+        box-shadow: 0px 2px 2px rgb(0 0 0 / 25%);
+        border-radius: 2px;
+    }
+
+    .quickaccess {
+        height: 150px;
+        width: 300px;
+        cursor: pointer;
+    }
+
+    .box {
+        margin-top: 10px;
+        float: left;
+        flex-direction: unset;
+    }
+
+    .indiv-block-bg {
+        width: 432px;
+        height: 140px;
+    }
+</style>
+<style>
+    th {
+        background-color: #006699 !important;
+        color: #f2f2f2 !important;
+    }
+
+    .notification-title {
+        background-color: #c1972a;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        height: 40px;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        display: flex;
+        align-content: center;
+        text-align: center;
+    }
+
+    .k-listview-content {
+        height: auto !important;
+    }
+</style>
+<style>
+    .arrow_box {
+        position: relative;
+        background: #f2f2f2;
+        border: 1px solid #808080;
+    }
+
+        .arrow_box:after, .arrow_box:before {
+            bottom: 100%;
+            left: 50%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .arrow_box:after {
+            border-color: rgba(242, 242, 242, 0);
+            border-bottom-color: #f2f2f2;
+            border-width: 15px;
+            margin-left: -15px;
+        }
+
+        .arrow_box:before {
+            border-color: rgba(128, 128, 128, 0);
+            border-bottom-color: #808080;
+            border-width: 16px;
+            margin-left: -16px;
+        }
+
+    .notification-item {
+        padding: 0px;
+        border: 1px solid silver;
+        margin-bottom: 10px !important;
+    }
+
+    .notification-heading {
+        padding: 0px !important;
+        /* height: 75px;*/
+        border-left-style: solid;
+        border-left-width: 20px;
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+    }
+
+    .notification-user {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: default;
+    }
+
+
+
+    #content_popup {
+        font-family: "Segoe UI",Verdana,Helvetica,Sans-Serif;
+    }
+
+    .panel {
+        margin-top: 0px !important;
+    }
+
+        .panel .panel-heading {
+            line-height: unset !important;
+        }
+
+    .card-body-bg {
+        background-color: #F5EBBC !important;
+    }
+
+    .card-header-bg {
+        background-color: #E66C80 !important;
+    }
+
+    .k-checkbox-label {
+        font-size: 20px;
+        color: black;
+    }
+
+    .filter-hover:hover {
+        background-color: #ebd67a;
+        border-radius: 6px;
+    }
+
+    .afterfilter {
+        background-color: #ebd67a;
+        border-radius: 6px;
+    }
+
+    .filter-hover {
+        cursor: pointer;
+    }
+</style>
+<script type="text/javascript">
+    function htmlDecode(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+
+     function OnTakeAction(id, refType, refId, templateCode)
+    {
+         var portalId = $('#GlobalPortalId').val();
+         var flag = false;
+         if (refType === 'NTS_Note' || refType === '0') {
+             var Type = "Note";
+             flag = true;
+         }
+         else if (refType === 'NTS_Task' || refType === '1') {
+             Type = "Task";
+             flag = true;
+         }
+         else if (refType === 'NTS_Service' || refType === '2') {
+             Type = "Service";
+             flag = true;
+         }
+         MarkNotificationAsRead(id);
+         if (flag) {
+             var url = '/Cms/Page?lo=Popup&popup=true&source=View&dataAction=View&templateCodes=' + templateCode + '&portalId=' + portalId+'&recordId=' + refId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Manage ' + Type, Width: 1200, Height: 600  });
+        return false;
+        }
+        else {
+            var win = GetMainWindow();
+            // var portalId = $('#GlobalPortalId').val();
+            // var url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=Create&dataAction=Create&pageName=SalaryInfo&portalId=' + portalId /*+ '&prms=' + prms*/;
+            win.iframeOpenUrl = "/Cms/NotificationDetails?notificationId="+id;
+            win.OpenWindow({ Title: 'Notification Details', Width: 450, Height: 700 });
+            return false;
+        }
+
+    }
+      function MarkNotificationAsRead(id) {
+
+        $.ajax({
+            url: "/cms/MarkNotificationAsRead?id=" + id,
+            contentType: "application/json",
+            type: "POST",
+            cache: false,
+            success: function (result) {
+                @*$("#NotificationlistView").data("kendoListView").dataSource.read({ date: '@Model.WeekDate', refType: '@ViewBag.Type', read: valueR, archive: valueA, refTypeId:'@Model.ReferenceTypeId' });
+                $("#kgrdNotification").data("kendoGrid").dataSource.read({ date: '@Model.WeekDate', refType: '@ViewBag.Type', read: valueR1, archive: valueA1, refTypeId:'@Model.ReferenceTypeId'});*@
+
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // alert(errorThrown);
+            }
+        });
+    }
+
+    function MarkNotificationAsNotRead(id) {
+
+        $.ajax({
+            url: "/PortalAdmin/NotificationTemplate/MarkNotificationAsNotRead?id=" + id,
+            contentType: "application/json",
+            type: "POST",
+            cache: false,
+            success: function (result) {
+                @*$("#NotificationlistView").data("kendoListView").dataSource.read({ date: '@Model.WeekDate', refType: '@ViewBag.Type', read: valueR, archive: valueA, refTypeId:'@Model.ReferenceTypeId' });
+                $("#kgrdNotification").data("kendoGrid").dataSource.read({ date: '@Model.WeekDate', refType: '@ViewBag.Type', read: valueR1, archive: valueA1, refTypeId:'@Model.ReferenceTypeId' });*@
+
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // alert(errorThrown);
+            }
+        });
+    }
+
+    function ArchiveNotification(id) {
+
+        $.ajax({
+            url: "/PortalAdmin/NotificationTemplate/ArchiveNotification?id=" + id,
+            contentType: "application/json",
+            type: "POST",
+            cache: false,
+            success: function (result) {
+                @*$("#NotificationlistView").data("kendoListView").dataSource.read({ date: '@Model.WeekDate', refType: '@ViewBag.Type', read: valueR, archive: valueA, refTypeId:'@Model.ReferenceTypeId' });
+                $("#kgrdNotification").data("kendoGrid").dataSource.read({ date: '@Model.WeekDate', refType: '@ViewBag.Type', read: valueR1, archive: valueA1, refTypeId:'@Model.ReferenceTypeId' });*@
+
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // alert(errorThrown);
+            }
+        });
+    }
+
+    function UnArchiveNotification(id) {
+
+
+        $.ajax({
+            url: "/PortalAdmin/NotificationTemplate/UnArchiveNotification?id=" + id,
+            contentType: "application/json",
+            type: "POST",
+            cache: false,
+            success: function (result) {
+                @*$("#NotificationlistView").data("kendoListView").dataSource.read({ date: '@Model.WeekDate', refType: '@ViewBag.Type', read: valueR, archive: valueA, refTypeId:'@Model.ReferenceTypeId' });
+                $("#kgrdNotification").data("kendoGrid").dataSource.read({ date: '@Model.WeekDate', refType: '@ViewBag.Type', read: valueR1, archive: valueA1, refTypeId:'@Model.ReferenceTypeId' });*@
+
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // alert(errorThrown);
+            }
+        });
+    }
+    function OnBook(id,type,templateCode)
+    {
+        
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&pageType=' + type+'&source=View&dataAction=View&templateCodes=' + templateCode + '&recordId=' + id + '&portalId=' + portalId ;
+
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(SharedResource["Edit"])', Width: 1200, Height: 650 });
+            return false;
+    }
+      function OnTask(id,type,templateCode)
+      {
+          
+        var portalId = $('#GlobalPortalId').val();
+
+          var url = '/Cms/Page?lo=Popup&pageType=Task&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=' + templateCode + '&recordId=' + id + '&portalId=' + portalId ;
+
+
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: '@Html.Raw(SharedResource["Edit"])', Width: 1200, Height: 650 });
+            return false;
+    }
+
+    function CreateService(templatecode) {
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=' + templatecode + '&portalId=' + portalId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Create Request', Width: 1200, Height: 700 });
+        return false;
+    }
+    function LoadMyBooks(status,divId)
+    {
+        
+        $("#MyBooksHead").html("PROCESS BOOKS");
+        $("#EmpBook").show();
+        $("#MyTasks").hide();
+        $("#MyNotifications").hide();
+        $("#Stage").hide();
+        $("#kgrid_MyBooks").data("kendoTreeList").dataSource.read({ statusFilter: status });
+        appliedfilter(divId);
+    }
+
+    function LoadStages(status, divId) {
+        $("#MyBooksHead").html("PROCESS STAGES");
+        $("#Stage").show();
+        $("#EmpBook").hide();
+        $("#MyTasks").hide();
+        $("#MyNotifications").hide();
+        $("#kgrid_MyStage").data("kendoGrid").dataSource.read({ statusFilter: status });
+        appliedfilter(divId);
+    }
+
+    function LoadMyTasks(status, divId) {
+        $("#MyTaskHead").html("PROCESS TASKS");
+        $("#EmpBook").hide();
+        $("#MyTasks").show();
+        $("#MyNotifications").hide();
+        $("#Stage").hide();
+        $("#kgrid_MyTasks").data("kendoGrid").dataSource.read({ statusFilter: status });
+        appliedfilter(divId);
+    }
+    function LoadNotifications(status, divId)
+    {
+        $("#NotificationHead").html("PROCESS NOTIFICATIONS");
+        $("#EmpBook").hide();
+        $("#MyTasks").hide();
+        $("#MyNotifications").show();
+        $("#Stage").hide();
+        $("#kgrid_MyNotifications").data("kendoGrid").dataSource.read({ statusFilter: status });
+        appliedfilter(divId);
+    }
+
+    $(document).ready(function () {
+        $("#MyBooksHead").html("PROCESS BOOKS");
+        $("#EmpBook").show();
+        $("#MyTasks").hide();
+        $("#MyNotifications").hide();
+        $("#Stage").hide();
+    });
+
+   function OnCreate() {
+
+        var url = '@Url.Action("SelectServiceTemplate", "NtsService", new { @area = "Cms"})?allBooks=true';
+            win = GetMainWindow();
+            win.iframeOpenUrl = url;
+       win.OpenWindow({ Width: 1200, Height: 650, Title: "Add Book"  });
+    }
+
+
+    function CreateBook(Id, templateCode, booktype,seq) {
+        var prms = "";
+        if (booktype == "Service") {
+            prms = encodeURIComponent('parentServiceId=' + Id + '&servicePlusId=' + Id + '&sequenceOrder=' + seq );
+        }
+        else if (booktype == "Note"){
+            prms = encodeURIComponent('parentNoteId=' + Id + '&notePlusId=' + Id + '&sequenceOrder=' + seq );
+        }
+
+        var url = '@Url.Action("SelectServiceTemplate", "NtsService", new { @area = "Cms"})?allBooks=true&prms=' + prms;
+            win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Width: 1200, Height: 650, Title: "Add Book"  });
+    }
+
+      function ManageBook(Id, templateCode) {
+
+        var portalId = $('#GlobalPortalId').val();
+          var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=View&dataAction=View&templateCodes=' + templateCode +'&portalId=' + portalId + '&recordId=' + Id;
+        LoadCmsPartialView(url, 'Service', true, 1200, 650, "Manage " + '@ViewBag.PageName');
+        return false;
+    }
+
+     function EditBook(Id, templateCode) {
+        var portalId = $('#GlobalPortalId').val();
+         var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Edit&dataAction=Edit&templateCodes=' + templateCode +'&portalId=' + portalId + '&recordId=' + Id;
+        LoadCmsPartialView(url, 'Service', true, 1200, 650, "Manage " + '@ViewBag.PageName');
+        return false;
+    }
+
+    function OnDelete(id, booktype) {
+
+
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            confirmDelete(id, booktype);
+        }, function () {
+
+        });
+
+    }
+    function confirmDelete(id, booktype) {
+
+        var url = "";
+        if (booktype == "Service") {
+            url= '/cms/NtsService/DeleteServiceBook?serviceId=' + id;
+        }
+        else if (booktype == "Note") {
+            url = '/cms/NtsService/DeleteNoteBook?noteId=' + id;
+        }
+
+        $.ajax({
+
+            url: url,
+            type: "POST",
+            contentType: "application/json",
+            dataType: "JSON",
+            success: function (response) {
+
+                ShowNotification("Deleted Successfully", "success");
+                OnAfterServiceCreate();
+
+            }
+        });
+
+
+    }
+
+
+    function OnAfterServiceCreate() {
+
+        window.location.reload(true);
+
+    }
+
+    function appliedfilter(divId) {
+        var element1 = document.getElementsByClassName("afterfilter");
+        element1[0].classList.remove("afterfilter");
+
+        var element = document.getElementById(divId);
+        element.classList.add("afterfilter");
+    }
+
+
+      $(function () {
+        $.contextMenu({
+            selector: '#tree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                
+                var id = $trigger.data('idvalue');
+                var code = $trigger.data('type');
+                var booktype = $trigger.data('bktype');
+                var seq = $trigger.data('seq');
+                  return {
+                    callback: function (key, options) {
+                        switch (key) {
+                            case 'Create':
+                                CreateBook(id, code, booktype,seq);
+                                break;
+                            case 'Edit':
+                                EditBook(id, code);
+                                break;
+                            case 'Manage':
+                                ManageBook(id, code);
+                                break;
+                            case 'Delete':
+                                OnDelete(id, booktype);
+
+                            //    //return false;
+                            //    break;
+                            default:
+                        }
+                    },
+                    items: {
+                        "Create": { name: "Add Book", icon: "fas fa-plus" },
+                        "Edit": { name: "Edit Book" , icon: "fas fa-pencil" },
+                        "Manage": { name: "Manage Book" , icon: "fas fa-cog" },
+                        "Delete": { name: "Delete Book" , icon: "fas fa-trash" }
+                    }
+                };
+
+
+
+
+            }
+        });
+    });
+</script>
+
+
+
+<div style="padding:10px;margin-top:20px;">
+
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="card text-center">
+                <div class="card-header card-header-bg text-white">
+                    Process Books
+                </div>
+                <div class="card-body card-body-bg" style="padding-top:7px !important">
+                    <div class="row">
+                        <div class="col-4  filter-hover afterfilter" onclick="LoadMyBooks('All', this.id)" id="allbook">
+                            <div class="bill-date"><label class="sub-lable ">All</label><div class="field-value">@Model.N_CreatedByMeAll</div></div>
+                        </div>
+                        <div class="col-4 filter-hover" onclick="LoadMyBooks('Draft', this.id)" id="Draftbook">
+                            <div class="bill-date"><label class="sub-lable">Draft</label><div class="field-value">@Model.N_CreatedByMeDraft<br></div></div>
+                        </div>
+                        <div class="col-4 filter-hover" id="Pendingbook" onclick="LoadMyBooks('Active', this.id)">
+                            <div class="bill-date"><label class="sub-lable">Pending</label><div class="field-value">@Model.N_CreatedByMeActive</div></div>
+                        </div>
+
+                        <div class="col-4 filter-hover" style="margin-top:10px" onclick="LoadMyBooks('OverDue', this.id)" id="Expiredbook">
+                            <div class="bill-date"><label class="sub-lable">OverDue</label><div class="field-value">@Model.N_CreatedByMeOverdue<br></div></div>
+                        </div>
+                        <div class="col-4 filter-hover" style="margin-top:10px" onclick="LoadMyBooks('Cancelled', this.id)" id="Cancelledbook">
+                            <div class="bill-date"><label class="sub-lable">Cancelled</label><div class="field-value">@Model.N_CreatedByMeExpired<br></div></div>
+                        </div>
+                        <div class="col-4 filter-hover" style="margin-top:10px" onclick="LoadMyBooks('Completed', this.id)" id="Completedbook">
+                            <div class="bill-date"><label class="sub-lable">Completed</label><div class="field-value">@Model.N_CreatedByMeCompleted<br></div></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        @*<div class="col-sm-3">
+                <div class="card text-center">
+                    <div class="card-header card-header-bg text-white">
+                        Process Stages
+                    </div>
+                    <div class="card-body card-body-bg" style="padding-top:7px !important">
+                        <div class="row">
+                            <div class="col-4  filter-hover" onclick="LoadStages('All', this.id)" id="allstage">
+                                <div class="bill-date"><label class="sub-lable ">All</label><div class="field-value">@Model.PS_CreatedByMeAll</div></div>
+                            </div>
+                            <div class="col-4 filter-hover" onclick="LoadStages('Draft', this.id)" id="Draftstage">
+                                <div class="bill-date"><label class="sub-lable">Draft</label><div class="field-value">@Model.PS_CreatedByMeDraft<br></div></div>
+                            </div>
+                            <div class="col-4 filter-hover" id="Pendingstage" onclick="LoadStages('Active', this.id)">
+                                <div class="bill-date"><label class="sub-lable">Pending</label><div class="field-value">@Model.PS_CreatedByMeActive</div></div>
+                            </div>
+
+                            <div class="col-4 filter-hover" style="margin-top:10px" onclick="LoadStages('OverDue', this.id)" id="Expiredstage">
+                                <div class="bill-date"><label class="sub-lable">OverDue</label><div class="field-value">@Model.PS_CreatedByMeOverdue<br></div></div>
+                            </div>
+                            <div class="col-4 filter-hover" style="margin-top:10px" onclick="LoadStages('Expired', this.id)" id="Cancelledstage">
+                                <div class="bill-date"><label class="sub-lable">Cancelled</label><div class="field-value">@Model.PS_CreatedByMeExpired<br></div></div>
+                            </div>
+                            <div class="col-4 filter-hover" style="margin-top:10px" onclick="LoadStages('Completed', this.id)" id="Completedstage">
+                                <div class="bill-date"><label class="sub-lable">Completed</label><div class="field-value">@Model.PS_CreatedByMeCompleted<br></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>*@
+
+
+        <div class="col-sm-4">
+            <div class="card text-center">
+                <div class="card-header card-header-bg text-white">
+                    Process Tasks
+                </div>
+                <div class="card-body card-body-bg" style="padding-top:7px !important">
+                    <div class="row">
+                        <div class="col-4 filter-hover" id="alltask" onclick="LoadMyTasks('All', this.id)">
+                            <div class="bill-date"><label class="sub-lable">All</label><div class="field-value">@Model.T_AssignAll<br></div></div>
+                        </div>
+                        <div class="col-4 filter-hover" id="PendingOverduetask" onclick="LoadMyTasks('PendingOverdue', this.id)">
+                            <div class="bill-date"><label class="sub-lable">Pending</label><div class="field-value">@Model.T_AssignPendingOverdue</div></div>
+                        </div>
+                        <div class="col-4 filter-hover" id="Completetask" onclick="LoadMyTasks('Complete', this.id)">
+                            <div class="bill-date"><label class="sub-lable">Completed</label><div class="field-value">@Model.T_AssignCompleted<br></div></div>
+                        </div>
+
+                        <div class="col-4 filter-hover" style="margin-top:10px" id="Rejectedtask" onclick="LoadMyTasks('Rejected', this.id)">
+                            <div class="bill-date"><label class="sub-lable">Rejected</label><div class="field-value">@Model.T_AssignReject<br></div></div>
+                        </div>
+                        <div class="col-4 filter-hover" style="margin-top:10px" id="Cancelledtask" onclick="LoadMyTasks('Cancelled', this.id)">
+                            <div class="bill-date"><label class="sub-lable">Cancelled</label><div class="field-value">@Model.T_AssignReject<br></div></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card text-center">
+                <div class="card-header card-header-bg text-white">
+                    Notifications
+                </div>
+                <div class="card-body card-body-bg" style="padding-top:7px !important">
+                    <div class="row">
+                        <div class="col-4 filter-hover" id="allnoti" onclick="LoadNotifications('All', this.id)">
+                            <div class="bill-date"><label class="sub-lable">All</label><div class="field-value">@Model.AllCount</div></div>
+                        </div>
+                        <div class="col-4 filter-hover" id="Readnoti" onclick="LoadNotifications('Read', this.id)">
+                            <div class="bill-date"><label class="sub-lable">Read</label><div class="field-value">@Model.ReadCount</div></div>
+                        </div>
+                        <div class="col-4 filter-hover" id="UnReadnoti" onclick="LoadNotifications('UnRead', this.id)">
+                            <div class="bill-date"><label class="sub-lable">UnRead</label><div class="field-value">@Model.UnReadCount<br></div></div>
+                        </div>
+                        <div class="col-4 filter-hover" style="margin-top:10px" id="Archivednoti" onclick="LoadNotifications('Archived', this.id)">
+                            <div class="bill-date"><label class="sub-lable">Archived</label><div class="field-value">@Model.ArchivedCount<br></div></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row" style="margin-top:50px;display:none;" id="EmpBook">
+        <div class="col-12">
+            <div class="row no-gutters" style="width:100%;max-width:500px;">
+                <div class="col-5"><h4 style="font-weight:500;" id="MyBooksHead">PROCESS BOOKS</h4></div>
+                <div class="col-7"><button class="btn btn-primary btn-sm" onclick="OnCreate();">Create New Book</button></div>
+            </div>
+
+            @(Html.Kendo().TreeList<NoteViewModel>()
+            .Name("kgrid_MyBooks")
+                    .Columns(columns =>
+                    {
+                        columns.Add().Field(e => e.NoteId).Title("Action").Template("<div class='btn-group grid-menu' id='tree-menu' data-idvalue=\"#:Id#\" data-type=\"#:TemplateCode#\" data-bktype=\"#:BookType#\" data-seq=\"#:NextSequenceNo#\"><i class='fas fa-ellipsis-v'></i></div>").Width(150);
+                        columns.Add().Field(e => e.NoteNo).Title("Process Book No").Template("<a class='blue' href='\\#' onClick=\"OnBook('#:Id#','#:BookType#','#:TemplateCode#')\">#:NoteNo#</a>").Width(250);
+                        columns.Add().Field(e => e.NoteSubject).Title("Process Book Name").Width(250);
+                        columns.Add().Field(e => e.NoteDescription).Title("Process Book Description").Width(250);
+                        columns.Add().Field(e => e.NoteStatusName).Title("Process Book Status").Width(250);
+                        //columns.Add().Field(e => e.SubModuleName).Width(160);
+                    })
+                    .Editable(e => e.Mode("popup"))
+                .Filterable()
+                .Sortable()
+                .DataSource(dataSource => dataSource
+                .Read(read => read.Action("LoadProcessBooks", "Dashboard", new { area = "PortalAdmin" }))
+        .ServerOperation(false)
+        .Model(m => {
+            m.Id(f => f.Id);
+            m.ParentId(f => f.ParentId);
+            m.Expanded(true);
+            m.Field(f => f.NoteNo);
+            // m.Field(f => f.SubModuleName);
+        })
+    )
+    .Height(540)
+    .Pageable(p => p.PageSize(15)
+                    .PageSizes(true)
+    )
+)
+
+
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:50px;display:none;" id="Stage">
+        <div class="col-12">
+            <div class="row no-gutters" style="width:100%;max-width:400px;">
+                <div class="col-6"><h4 style="font-weight:500;" id="MyStageHead">PROCESS STAGE</h4></div>
+                @*<div class="col-6"><button class="btn btn-primary btn-sm" onclick="OnCreate();">Create New Book</button></div>*@
+            </div>
+
+            @(Html.Kendo().Grid<NoteViewModel>
+                    ()
+                    .Name("kgrid_MyStage").Height(350)
+                    .Columns(columns =>
+                    {
+                        columns.Bound(x=>x.NoteId).Visible(false);
+                        columns.Bound(x => x.ParentNo).Title("Process Book No").ClientTemplate("<a class='blue' href='\\#' onClick=\"ManageBook('#:ParentId#','#:ParentTemplateCode#')\">#:ParentNo#</a>");
+                        columns.Bound(x => x.ParentSubject).Title("Process Book Name");
+                        columns.Bound(x => x.NoteNo).Title("Stage No").ClientTemplate("<a class='blue' href='\\#' onClick=\"ManageBook('#:Id#','#:TemplateCode#')\">#:NoteNo#</a>");
+                        columns.Bound(x => x.NoteSubject).Title("Stage Name");
+                        columns.Bound(x => x.NoteDescription).Title("Stage Description");
+                        columns.Bound(x => x.NoteStatusName).Title("Stage Status");
+                    })
+
+                    .Resizable(resizable => resizable.Columns(true))
+                    .Scrollable(x => x.Enabled(true))
+                    .Sortable(srt => srt.Enabled(true))
+                    .Selectable(select => select.Enabled(false))
+                    .Filterable(f => f.Extra(false))
+                    .Pageable(pageable => pageable
+                    .Refresh(true)
+
+                    .PageSizes(true)
+                    .ButtonCount(5))
+                    .AutoBind(false)
+                    .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .PageSize(10)
+
+                    //.Events(events => events.Error("OnError"))
+                    .Read(read => read.Action("LoadProcessStage", "Dashboard",new {area="PortalAdmin" }))
+                    //.Model(model => model.Id(p => p.Id))
+
+                    )
+                )
+
+
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:50px;display:none;" id="MyTasks">
+        <div class="col-12">
+            <h4 style="font-weight:500;" id="MyTaskHead"></h4>
+            @(Html.Kendo().Grid<TaskViewModel>
+                        ()
+                        .Name("kgrid_MyTasks").Height(350)
+                        .Columns(columns =>
+                        {
+                            columns.Bound(x => x.NoteNo).Title("Process Book No").ClientTemplate("<a class='blue' href='\\#' onClick=\"OnBook('#:BookId#','#:BookType#','#:BookTemplateCode#')\">#:NoteNo#</a>");
+                            columns.Bound(x => x.NoteSubject).Title("Process Book Name");
+                            columns.Bound(x=>x.Id).Visible(false);
+                            columns.Bound(x => x.TaskNo).ClientTemplate("<a class='blue' href='\\#' onClick=\"OnTask('#:Id#','Task','#:TemplateCode#')\">#:TaskNo#</a>"); ;
+                            columns.Bound(x => x.TaskSubject);
+                            columns.Bound(x => x.TaskDescription);
+                            columns.Bound(x => x.TaskStatusName);
+
+                        })
+
+                        .Resizable(resizable => resizable.Columns(true))
+                        .Scrollable(x => x.Enabled(true))
+                        .Sortable(srt => srt.Enabled(true))
+                        .Selectable(select => select.Enabled(false))
+                        .Filterable(f => f.Extra(false))
+                        .Pageable(pageable => pageable
+                        .Refresh(true)
+
+                        .PageSizes(true)
+                        .ButtonCount(5))
+                        .AutoBind(false)
+                        .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .PageSize(10)
+
+                        //.Events(events => events.Error("OnError"))
+                        .Read(read => read.Action("LoadBookTask", "Dashboard",new {area="PortalAdmin"}))
+
+
+                        )
+                    )
+
+        </div>
+    </div>
+    <div class="row" style="margin-top:50px;display:none;" id="MyNotifications">
+        <div class="col-12">
+            <h4 style="font-weight:500;" id="NotificationHead"></h4>
+            @(Html.Kendo().Grid<NotificationViewModel>
+                        ()
+                        .Name("kgrid_MyNotifications").Height(350)
+                        .Columns(columns =>
+                        {
+
+                            columns.Bound(x => x.BookNo).Title("Process Book No").ClientTemplate("<a class='blue' href='\\#' onClick=\"OnBook('#:BookId#','#:PageType#','#:BookTemplateCode#')\">#:BookNo#</a>");
+                            columns.Bound(x => x.BookName).Title("Process Book Name");
+                            columns.Bound(x => x.Subject).ClientTemplate("<a class='blue' href='\\#' onClick=\"OnTakeAction('#:Id#','#:ReferenceType#','#:ReferenceTypeId#','#:ReferenceTemplateCode#')\">#:Subject#</a>");
+                            columns.Bound(x => x.From);
+                            columns.Bound(x => x.To);
+                            columns.Bound(x => x.ReadStatus);
+                            //columns.Bound(x => x.Id).Title(" ").ClientTemplateId("NotificationTemplate1").Width(200);
+
+                        })
+
+                        .Resizable(resizable => resizable.Columns(true))
+                        .Scrollable(x => x.Enabled(true))
+                        .Sortable(srt => srt.Enabled(true))
+                        .Selectable(select => select.Enabled(false))
+                        .Filterable(f => f.Extra(false))
+                        .Pageable(pageable => pageable
+                        .Refresh(true)
+
+                        .PageSizes(true)
+                        .ButtonCount(5))
+                        .AutoBind(false)
+                        .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .PageSize(10)
+
+                        //.Events(events => events.Error("OnError"))
+                        .Read(read => read.Action("LoadNotifications", "Dashboard",new {area="PortalAdmin"}))
+
+
+                        )
+                    )
+            <script id="NotificationTemplate1" type="text/x-kendo-template">
+
+
+                                <div class="panel notification-item">
+                        <div data-toggle="collapse" data-target="\\#collapse-#=Id#" id="dynbutton-#=Id#" class="panel-heading notification-heading row no-gutters" style="border-left:8px solid #=ReadStatusString# == "NotRead" ? "\\#0066ff" : "\\#008000" ">
+                            <div class="col-xs-2 p-1" style="text-align:center">
+                                <img class="notification-user" src="/cms/Document/GetImageMongo?id=#=PhotoId#" onerror='OnPhotoError(this,"#=From#");' />
+                <div class="" style="font-size: .7eM;color:\\#004d99;"> #=From#</div>
+                            </div>
+                            <div class="col-7 row p-1">
+
+                                @*<div class="col-12" style="font-size: .9eM;color:\\#004d99;">From : #=value.From#</div>*@
+                                <div class="col-12" style="font-size: .7eM;color:\\#004d99;"> #=Subject# </div>
+                                <div class="col-12" style="font-size: .7eM;color:\\#004d99;"> #=DisplayCreatedDate# </div>
+                <div class="col-12" style="font-size:.7eM;color:\\#004d99;"> #=ReferenceTypeNo#</div>
+                            </div>
+
+                           <div class="col-3  p-1">
+                                     #if(IsArchived!=true){# <span style="float:right;cursor:pointer"><i style="font-size:20px" class="fas fa-archive" title="Archive Notification" onclick='ArchiveNotification("#:Id#")'></i></span> #}
+                                     else if(IsArchived==true){# <span style="float:right;cursor:pointer"><i style="font-size:20px" class="fas fa-trash-undo" title="UnArchive Notification" onclick='UnArchiveNotification("#:Id#")'></i></span> #}#
+                     <br/> <br/>
+                                     #if(ReadStatus==0){# <span style="float:right;cursor:pointer"><i style="font-size:20px" class="fas fa-book-alt" title="Mark Notification as Read" onclick='MarkNotificationAsRead("#:Id#")'></i></span> #}
+                                     else if(ReadStatus==1){# <span style="float:right;cursor:pointer" onclick='MarkNotificationAsNotRead("#:Id#")'><i style="font-size:20px" class="fas fa-book-open" title="Mark Notification as Unread" ></i></span> #}#
+                        </div>
+                        </div>
+                        <div id="collapse-#=Id#" class="panel-collapse collapse" style="border-left:8px solid #=ReadStatusString# == "NotRead" ? "\\#0066ff" : "\\#008000" ">
+                            <div class="panel-body p-2" style="font-size:0.85em;">
+                                <p> From : #=From#</p>
+                                <p> Date : #=DisplayCreatedDate#</p>
+                                <p> Subject : #=Subject#</p>
+                                <p> Description : #if(Body!= null){#  #=htmlDecode(Body)# #}#</p>
+                       <a style="color:blue;" href="javascript:OnTakeAction('#:Id#','#:ReferenceType#','#:ReferenceTypeId#','#:TemplateCode#');">Click here to know more</a>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+            </script>
+        </div>
+    </div>
+
+
+
+
+</div>
+

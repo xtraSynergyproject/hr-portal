@@ -1,0 +1,348 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pms.Controllers.PerformanceController> Resource
+@using Synergy.App.DataModel
+@using Synergy.App.ViewModel
+@*@using Kendo.Mvc.UI*@
+@using Synergy.App.Common
+@model GoalViewModel;
+@{
+    Layout = ViewBag.Layout == "popup" ? "~/Areas/Core/Views/Shared/_PopupLayout.cshtml" : null;
+}
+
+
+<br />
+<div class="row">
+    <div class="col-md-6">
+        <h4>Department Goals</h4>
+    </div>
+
+    <div class="col-md-6" style="text-align:end">
+        @if (ViewBag.EnableCreateButton == true)
+        {
+            <button class="btn btn-primary" onclick="createDepartmentGoal()">Create Department Goal</button>
+        }
+    </div>
+</div>
+<br />
+
+
+<div style="width:100%;height:100px;color:#FFFFFF;background: #17a2b8;padding-left: 5px;">
+    <div class="row" style="padding-top:10px;">
+        <div class=" col-md-3">
+            <div style="font-size:.8em;padding-top:0px;">
+                Department
+                <div class="project-dropdown" id="dropdown" title="Department">
+                    <input id="Department" class="form-control" style="width:80%" />
+                </div>
+            </div>
+        </div>
+
+        <div class=" col-md-3">
+            <div style="font-size:.8em;padding-top:0px;">
+                @Resource["PerformanceYear"]
+                <div class="project-dropdown" id="dropdown" title="@Resource["PerformanceYear"]">
+                    <input id="PerformanceYear" class="form-control" style="width:80%" />
+                </div>
+            </div>
+        </div>
+        <div class=" col-md-3">
+            <div style="font-size:.8em;padding-top:0px;">
+                @Resource["PerformanceDocument"]
+                <div class="project-dropdown" id="dropdown" title="@Resource["PerformanceDocument"]">
+                    <input id="PerDocId" class="form-control" style="width:80%" />
+                </div>
+            </div>
+        </div>
+        
+        <div class=" col-md-3">
+            <br />
+                 <button class="btn btn-primary" onclick="onFilterClicked()"> Filter</button>
+        </div>
+    </div>
+</div>
+
+<div id="dataGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+
+<style>
+    a:hover {
+        color: blue;
+        text-decoration: underline;
+    }
+
+    a {
+        color: blue;
+    }
+</style>
+
+
+<script>
+
+    function createDepartmentGoal() {
+        
+        //var url = '/cms/page?lo=popup&cbm=OnAfterServiceCreate&source=Versioning&dataAction=create&pageName=PerformanceDocument&portalId=' + portalId /*+ '&prms=' + prms*/;
+        var portalId = $('#GlobalPortalId').val();
+        if ('@ViewBag.Layout' == "popup") {
+            portalId = '@ViewBag.PortalId';
+        }
+
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=PMS_DEPARTMENT_GOAL&portalId=' + portalId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Service', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function PerYearFilter() {
+        return {
+            departmentId: $("#Department").data("kendoDropDownList").value(),
+            year: $("#PerformanceYear").data("kendoDropDownList").value(),
+        }
+    }
+
+
+    function OnChangePYear() {
+        //var search = PerYearFilter();
+        //$("#PerDocId").data("kendoDropDownList").dataSource.read(search);
+        //$("#PerformanceYear").data("kendoDropDownList").value("")
+        $("#PerDocId").data("kendoDropDownList").value("")
+    }
+
+ 
+
+    function onFilterClicked() {
+        getGridData();
+    }
+
+    function depFilter() {
+        return {
+            departmentId: $("#Department").data("kendoDropDownList").value(),
+        }
+    }
+
+    $(document).ready(function () {
+        //HideLoader($("#global-overlay"));
+
+
+
+        @*$("#Department").kendoDropDownList({
+            optionLabel: "All",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "startswith",
+           // change: OnChangePYear,
+            dataBound: onDataBound,
+            value: '@Model.Department',
+            dataSource: {
+                type: "json",
+                serverFiltering: true,
+                transport: {
+                    read:
+                    {
+                        url: "/chr/HRCore/GetAllOrganisation",
+                    }
+                }
+            },
+        });*@
+
+        $("#Department").kendoDropDownList({
+            optionLabel: "All Department",
+            filter: "startswith",
+            dataTextField: "Name",
+            dataValueField: "Id",
+           // dataBound: onDataBound,
+            change: OnChangePYear,
+            value: '@Model.Department',
+            dataSource: {
+               // type: "json",
+                serverFiltering: false,
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/chr/HRCore/GetAllOrganisation",
+                    }
+                }
+            }
+        });
+
+        var currentYear = new Date().getFullYear();
+
+        $("#PerformanceYear").kendoDropDownList({
+            optionLabel: "All Years",
+            dataTextField: "Name",
+            dataValueField: "Id",
+          //  filter: "contains",
+            change: OnChangePYear,
+            cascadeFrom: "Department",
+            value: currentYear,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read:
+                    {
+                        dataType: "json",
+                        url: "/PMS/Performance/GetAllYearFromPerformanceMaster",
+                        data: depFilter
+
+                    }
+                }
+            },
+
+        });
+
+
+        $("#PerDocId").kendoDropDownList({
+            optionLabel: "All Performance Master",
+            dataTextField: "Name",
+            dataValueField: "Id",
+           // filter: "contains",
+         //   change: OnDocumentMasterChange,
+            cascadeFrom: "PerformanceYear",
+            dataSource:
+            {
+                serverFiltering: true,
+                transport:
+                {
+                    read:
+                    {
+                        dataType: "json",
+                        url: "/PMS/performance/GetPerformanceMasterByDepartment",
+                        data: PerYearFilter
+                    }
+                }
+            },
+        });
+        getGridData();
+    });
+
+    function onDataBound() {
+        if ('@Model.Department' != null) {
+            var dropdownlist = $("#Department").data("kendoDropDownList");
+            dropdownlist.value('@Model.Department');
+        }
+
+    }
+
+    var columnLinkDefs = [
+        {
+            field: "Id",
+            headerName: "Action",
+            cellRenderer: params => {
+                return "<a style='color: #007bff;text-decoration:underline;cursor:pointer' onclick='onView(\"" + params.data.Id + "\")'>View</a>";
+            }
+        },
+        {
+            headerName: "Department", field: "Department",
+        },
+        {
+            headerName: "PerformanceMaster", field: "PerformanceMaster",
+        },
+        {
+            headerName: "Year", field: "Year",
+        },
+        //{
+        //    headerName: "Link",
+        //    field: "Link",
+        //},
+        //{
+        //    headerName: "From",
+        //    field: "From"
+        //},
+        //{
+        //    headerName: "To", field: "To",
+        //},
+        //{
+        //    headerName: "Id", field: "Id",
+        //  },
+          {
+              headerName: "GoalName", field: "GoalName",
+          },
+          {
+              headerName: "Weightage", field: "Weightage",
+          },
+          {
+              headerName: "StartDate", field: "StartDate", cellRenderer: params => {
+                  var date = new Date(params.value);
+                  var d = new Date(date),
+                      month = '' + (d.getMonth() + 1),
+                      day = '' + d.getDate(),
+                      year = d.getFullYear();
+
+                  if (month.length < 2)
+                      month = '0' + month;
+                  if (day.length < 2)
+                      day = '0' + day;
+
+                  return [day, month, year].join('.');
+              }
+          },
+
+          {
+              headerName: "DueDate", field: "DueDate",
+              cellRenderer: params => {
+                  var date = new Date(params.value);
+                  var d = new Date(date),
+                      month = '' + (d.getMonth() + 1),
+                      day = '' + d.getDate(),
+                      year = d.getFullYear();
+
+                  if (month.length < 2)
+                      month = '0' + month;
+                  if (day.length < 2)
+                      day = '0' + day;
+
+                  return [day, month, year].join('.');
+              }
+          },
+
+          {
+              headerName: "GoalStatus", field: "GoalStatus",
+          },
+
+          {
+              headerName: "SuccessCriteria", field: "SuccessCriteria",
+          },
+
+          {
+              headerName: "ParentGoal", field: "ParentGoal",
+          },
+
+
+    ];
+
+    function getGridData() {
+        document.getElementById("dataGrid").innerHTML = "";
+        var departmentId = $("#Department").data("kendoDropDownList").value();
+        var documentMaster = $("#PerDocId").data("kendoDropDownList").value();
+        gridConfig(
+            "dataGrid",
+            "/pms/Performance/GetDepartmentGoalByDepartment?departmentId=" + departmentId + "&documentMasterId=" + documentMaster,
+            columnLinkDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function onView(id) {
+        var portalId = $('#GlobalPortalId').val();
+        if ('@ViewBag.Layout' == "popup") {
+            portalId = '@ViewBag.PortalId';
+        }
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Versioning&dataAction=Edit&templateCodes=PMS_DEPARTMENT_GOAL&portalId=' + portalId + '&recordId=' + id;
+
+        //url = '/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&templateCodes=PMS_DEPARTMENT_GOAL&portalId=' + portalId;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: 'Service', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function OnAfterServiceCreate() {
+        getGridData();
+    }
+
+</script>

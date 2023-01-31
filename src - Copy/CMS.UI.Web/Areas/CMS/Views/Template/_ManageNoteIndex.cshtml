@@ -1,0 +1,675 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+}
+
+@model NoteIndexPageTemplateViewModel
+
+<style>
+    .cms-footer {
+        position: fixed;
+        bottom: 0px;
+    }
+
+    .form-label-group {
+        position: relative;
+        margin-bottom: 0px;
+    }
+
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+    /*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+
+</style>
+
+<script type="text/javascript">
+    var selectedDataItems = [];
+    function DataBound(e) {
+        //$(".selectcheckbox").bind("click", function (e) {
+        //    e.stopPropagation();
+        //    $(e.target).closest("tr").toggleClass("k-state-selected");
+        //});
+        var rows = e.sender.items();
+        //var rows = e.sender.element.find("tr");
+        //rows.each(function (e1) {
+        rows.each(function (idx, row) {
+            $(this).children().first().on("click", onFirstTDClick);
+            var selectedItem = e.sender.dataItem(row);
+            for (var j = 0; j < selectedDataItems.length; j++) {
+                if (selectedDataItems[j] == selectedItem.Id) {
+                    $("#selectcheckbox_" + selectedItem.Id).closest("tr").toggleClass("k-state-selected");
+                    if (document.getElementById('selectcheckbox_' + selectedItem.Id/* + '/'*/) != undefined && document.getElementById('selectcheckbox_' + selectedItem.Id/* + '/'*/) != null) {
+                        document.getElementById('selectcheckbox_' + selectedItem.Id/* + '/'*/).checked = true;
+                    }
+                }
+            }
+        })
+        var abc = "@ViewBag.RowData";
+        var arr = JSON.parse(abc.replace(/&quot;/g, '"'));
+
+            for (var i = 0; i < arr.length; i++)
+            {
+
+
+                $("#selectcheckbox_" + arr[i].Id).closest("tr").toggleClass("k-state-selected");
+                // document.getElementById('selectcheckbox_' + arr[i].Id /*+ '/'*/).closest('tr').classList.add("k-state-selected");
+                if (document.getElementById('selectcheckbox_' + arr[i].Id/* + '/'*/) != undefined && document.getElementById('selectcheckbox_' + arr[i].Id/* + '/'*/) != null)
+                {
+                    document.getElementById('selectcheckbox_' + arr[i].Id/* + '/'*/).checked = true;
+                }
+
+
+
+
+        }
+
+
+
+    }
+    function onFirstTDClick(e) {
+        e.stopPropagation();
+        var tr = $(e.target).closest("tr");
+        var entityGrid = $("#grid").data("kendoGrid");
+        var selectedItem = entityGrid.dataItem(tr);
+        tr.find('[type=checkbox]').prop('checked', !tr.hasClass("k-state-selected"));
+        tr.toggleClass("k-state-selected");
+        if (!tr.hasClass("k-state-selected")) {
+            var index = selectedDataItems.indexOf(selectedItem.Id);
+            if (index >= 0) {
+                selectedDataItems.splice(index, 1);
+            }
+        }
+        else
+        {
+            selectedDataItems.push(selectedItem.Id);
+        }
+    }
+
+    function ongridChange(arg) {
+        var selectedRows = this.select();
+        this.editRow(this.select());
+
+
+        $('tr').find('[type=checkbox]').prop('checked', false);
+        $('tr.k-state-selected').find('[type=checkbox]').prop('checked', true);
+
+        var selectedRows = this.select();
+
+        for (var i = 0; i < selectedRows.length; i++) {
+            var dataItem = this.dataItem(selectedRows[i]);
+            selectedDataItems.push(dataItem);
+        }
+        selectedRows = selectedDataItems;
+    }
+    function pushPopinArray(arr) {
+
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].Select == true) {
+                selectedDataItems.push(arr[i]);
+
+            }
+
+        }
+
+    }
+    function SaveData(e) {
+        debugger;
+        var selectedRows = [];
+        var entityGrid = $("#jsGrid").data("JSGrid");
+        if (entityGrid._editingRow != null)
+        {
+            entityGrid.updateItem();
+        }       
+        //pushPopinArray(entityGrid.data);
+        for (var i = 0; i < entityGrid.data.length; i++) {
+            if (entityGrid.data[i].Select == true) {
+                selectedDataItems.push(entityGrid.data[i]);
+
+            }
+
+        }
+        console.log(selectedDataItems);
+        /*e.preventDefault();*/
+        $("#RowData").val(JSON.stringify(selectedDataItems));
+        selectedRows = selectedDataItems;
+        if (selectedRows.length == 0) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("select at leaset one column");
+            e.preventDefault();
+            return false;
+        }
+    }
+    //function SaveData(e) {
+    //    debugger
+    //    var selectedRows = [];
+    //    var entityGrid = $("#grid").data("kendoGrid");
+    //    var rows = entityGrid.select();
+    //    rows.each(function (index, row) {
+    //        var selectedItem = entityGrid.dataItem(row);
+    //        selectedRows.push(selectedItem);
+    //    });
+    //    console.log(selectedRows);
+    //    $("#RowData").val(JSON.stringify(selectedRows));
+    //    if (selectedRows.length==0)
+    //    {
+    //        $(".text-danger").removeClass("validation-summary-valid");
+    //        $(".text-danger").addClass("validation-summary-errors");
+    //        $(".text-danger").html("select at leaset one column");
+    //        e.preventDefault();
+    //        return false;
+    //    }
+    //}
+
+    function OnCancel(args) {
+
+    }
+    $(document).ready(function () {
+        $("#IndexRenderingType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=IndexRenderingTypeEnum",
+                    }
+                }
+            }
+        });
+
+        $("#OrderByColumnId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.OrderByColumnId',
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Cms/Template/GetColumnMetadata?tableMetadataId=" + '@Model.TableMetadataId' + "&templateType="+'@TemplateTypeEnum.Note',
+                    }
+                }
+            }
+        });
+
+        $("#OrderBy").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            value: '@Model.OrderBy.ToString()',
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=OrderByEnum",
+                    }
+                }
+            }
+        });
+
+        //alert($('#EnableDeletebtn').val());
+        $('#EnableDeletebtn').change(function () {
+            debugger
+            if (this.checked) {
+
+                $('#confirmationdel').show();
+            }
+            else {
+                $('#confirmationdel').hide();
+            }
+
+        });
+        if ($('#EnableDeletebtn').val() == 'true')
+        {
+            $('#confirmationdel').show();
+        }
+    });
+
+    function closeNavPortal() {
+     
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+           // window.parent.parent.$("#documentTypeTreeView").data("kendoTreeView").dataSource.read();
+            var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("ManageNoteIndex", "Template", new { @area = "Cms"})?templateId=' + TemplateId + '&lo=@(ViewBag.LayoutMode??"")&cbm=@(ViewBag.CallbackMethod??"")', $('#index'));
+        }
+        else {
+            alert(res)
+            showError(res.error);
+        }
+    };
+
+
+
+</script>
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+
+    <form asp-controller="Template" asp-action="ManageNoteTempltaeIndexPageData" class="form-horizontal"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        @Html.HiddenFor(x => x.RowData)
+        @Html.HiddenFor(x => x.TemplateId)
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.IndexPageTemplateType)
+        @Html.HiddenFor(x => x.ParentReferenceId)
+
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+
+        <div class="row no-gutters pad-10">
+            <div class="col-3">
+                <label for="MenuName">Rendering Type</label>
+            </div>
+            <div class="col-3">
+                @*@(Html.Kendo().DropDownListFor(x => x.IndexRenderingType)
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "IndexRenderingTypeEnum" });
+                                       });
+                                   })
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                                  .HtmlAttributes(new { @class = "hr-x-large" })
+               )*@
+
+                <input asp-for="IndexRenderingType" id="IndexRenderingType" class="hr-x-large" />
+            </div>
+            <div class="col-4">
+                <input asp-for="HideSummaryTabs" type="checkbox" class="k-checkbox" style="margin-right:5px;" />
+                <label>Hide Summary Tabs</label>
+            </div>
+        </div>
+
+        <div class="row no-gutters pad-10">
+            <div class="col-3">
+                <input asp-for="EnableCreateButton" type="checkbox" class="k-checkbox" style="margin-right:5px;" />
+                <label>Enable Create Button</label>
+            </div>
+            <div class="col-3" style="margin-right:5px;">
+                <div class="form-label-group">
+                    <input asp-for="CreateButtonText" type="text" placeholder="Create Button Text" class="form-control" />
+                    <label for="CreateButtonText">Create Button Text</label>
+                </div>
+
+            </div>
+            <div class="col-3">
+                <div class="form-label-group">
+                    <input asp-for="CreateButtonCss" type="text" placeholder="Create Button Css" class="form-control" />
+                    <label for="CreateButtonCss">Create Button Css</label>
+                </div>
+
+            </div>
+            @*<div class="col-3" style="margin-right:5px;">
+                    <input asp-for="CreateButtonText" type="text" placeholder="Create Button Text" class="form-control" />
+                </div>
+                <div class="col-3" style="margin-right:5px;">
+                    <input asp-for="CreateButtonCss" type="text" placeholder="Create Button Css" class="form-control" />
+                </div>*@
+
+            @*<div class="col-3">
+
+                            @(Html.Kendo().DropDownListFor(x=>x.CreateStyle)
+                   // .Name("Style")
+                      .DataTextField("Text")
+                      .DataValueField("Value")
+                      .BindTo(new List<SelectListItem>() {
+                          new SelectListItem() {
+                              Text = "Popup-Centre",
+                              Value = "1"
+                          },
+                          new SelectListItem() {
+                              Text = "Popup-left",
+                              Value = "2"
+                          },
+                             new SelectListItem() {
+                              Text = "Popup-right",
+                              Value = "3"
+                          },
+                               new SelectListItem() {
+                              Text = "New Page",
+                              Value = "4"
+                          },
+
+                      })
+                      .Value("1")
+                     // .HtmlAttributes(new { style = "width: 100%" })
+                )
+                        </div>*@
+
+
+        </div>
+        <div class="row no-gutters pad-10">
+            <div class="col-3">
+                <input asp-for="EnableEditButton" type="checkbox" class="k-checkbox" style="margin-right:5px;" />
+                <label>Enable Edit Button</label>
+            </div>
+            <div class="col-3" style="margin-right:5px;">
+                <div class="form-label-group">
+                    <input asp-for="EditButtonText" type="text" placeholder="Edit Button Text" class="form-control" />
+                    <label for="EditButtonText">Edit Button Text</label>
+                </div>
+
+            </div>
+            <div class="col-3">
+                <div class="form-label-group">
+                    <input asp-for="EditButtonCss" type="text" placeholder="Edit Button Css" class="form-control" />
+                    <label for="EditButtonCss">Edit Button Css</label>
+                </div>
+
+            </div>
+            @*<div class="col-3" style="margin-right:5px;">
+                    <input asp-for="EditButtonText" type="text" placeholder="Edit Button Text" class="form-control" />
+                </div>
+                <div class="col-3">
+                    <input asp-for="EditButtonCss" type="text" placeholder="Edit Button Css" class="form-control" />
+                </div>*@
+        </div>
+
+
+
+        <div class="row no-gutters pad-10">
+            <div class="col-3">
+                <input asp-for="EnableDeleteButton" type="checkbox" id="EnableDeletebtn" class="k-checkbox" style="margin-right:5px;" />
+                <label>Enable Delete Button</label>
+            </div>
+            <div class="col-3" style="margin-right:5px;">
+                <div class="form-label-group">
+                    <input asp-for="DeleteButtonText" type="text" placeholder="Delete Button Text" class="form-control" />
+                    <label for="DeleteButtonText">Delete Button Text</label>
+                </div>
+
+            </div>
+            <div class="col-3">
+                <div class="form-label-group">
+                    <input asp-for="DeleteButtonCss" type="text" placeholder="Delete Button Css" class="form-control" />
+                    <label for="DeleteButtonCss">Delete Button Css</label>
+                </div>
+
+            </div>
+            @*<div class="col-3" style="margin-right:5px;">
+                    <input asp-for="DeleteButtonText" type="text" placeholder="Delete Button Text" class="form-control" />
+                </div>
+                <div class="col-3">
+
+                    <input asp-for="DeleteButtonCss" type="text" placeholder="Delete Button Css" class="form-control" />
+                </div>*@
+
+        </div>
+        <div class="row no-gutters pad-10" id="confirmationdel" style="display:none;">
+            <div class="col-3 ">
+                <input asp-for="EnableDeleteConfirmation" type="checkbox" class="k-checkbox" style="margin-right:5px;" />
+                <label>Enable Delete Confirmation</label>
+            </div>
+            <div class="col-9">
+                <div class="form-label-group">
+                    <input asp-for="DeleteConfirmationMessage" type="text" placeholder="Delete Confirmation Message" class="form-control" />
+                    <label for="DeleteConfirmationMessage">Delete Confirmation Message</label>
+                </div>
+
+            </div>
+            @*<div class="col-9">
+                    <input asp-for="DeleteConfirmationMessage" type="text" placeholder="Delete Confirmation Message" class="form-control" />
+                </div>*@
+
+        </div>
+        <div class="row no-gutters pad-10">
+            <div class="col-2">
+                <label for="OrderByColumn">Order By Column</label>
+            </div>
+            <div class="col-9">
+                @*@(Html.Kendo().DropDownListFor(x => x.OrderByColumnId)
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetColumnMetadata", "Template", new { @tableMetadataId = Model.TableMetadataId,templateType=TemplateTypeEnum.Note });
+                                       });
+                                   })
+                        .DataTextField("Alias")
+                        .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                        .DataValueField("Id")
+                          .Value(Model.OrderByColumnId)
+                                  .HtmlAttributes(new { @class = "hr-x-large" })
+               )*@
+
+                <input asp-for="OrderByColumnId" id="OrderByColumnId" class="hr-x-large" />
+            </div>
+        </div>
+        <div class="row no-gutters pad-10">
+            <div class="col-2">
+                <label for="OrderBy">Order By</label>
+            </div>
+            <div class="col-9">
+                @*@(Html.Kendo().DropDownListFor(x => x.OrderBy)
+                                   .DataSource(source =>
+                                   {
+                                       source.Read(read =>
+                                       {
+                                           read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "OrderByEnum" });
+                                       });
+                                   })
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .Value(Model.OrderBy.ToString())
+                                  .HtmlAttributes(new { @class = "hr-x-large" })
+               )*@
+
+                <input asp-for="OrderBy" id="OrderBy" class="hr-x-large" />
+            </div>
+        </div>
+        <div class="row pad-10">
+            <div id="jsGrid"></div>
+            @*@(Html.Kendo().Grid<NoteIndexPageColumnViewModel>
+        ()
+        .Name("grid")
+        .Columns(columns =>
+        {
+            columns.Template("<input class='selectcheckbox' type='checkbox' id='selectcheckbox_#:Id#'/>").Title("Select").Width(50);
+            // columns.Select().Width(50);
+            columns.Bound(p => p.TableName);
+            columns.Bound(p => p.ColumnName);
+            columns.Bound(p => p.HeaderName);
+            columns.Bound(p => p.EnableSorting).Width(100);
+            columns.Bound(p => p.EnableFiltering).Width(100);
+            columns.Bound(p => p.SequenceOrder).Width(100);
+            //columns.Bound(p => p.AdvanceSetting).Width(120);
+        })
+
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        //.Pageable()
+        .Sortable(srt => srt.Enabled(true))
+
+         .Filterable(f => f.Extra(false)
+                                                        .Operators(o => o.ForString(s => s.Clear()
+                                                        .Contains("Contains")
+                                                        .IsEqualTo("Is equal to")
+
+                                                    )))
+        .Scrollable()
+         .Events(ev => ev
+         .DataBound("DataBound")
+        )
+        .HtmlAttributes(new { style = "height:550px;" })
+        .DataSource(dataSource => dataSource
+        .Ajax()
+         .Batch(true)
+         .ServerOperation(false)
+        .Read(read => read.Action("ReadNoteTableProperties", "Template",new { @templateId = Model.TemplateId, @indexPageTemplateId=Model.Id}))
+         .Model(model =>
+         {
+             model.Id(p => p.Id);
+             model.Field(p => p.Id).Editable(false);
+             model.Field(p => p.ColumnName).Editable(false);
+             model.Field(p => p.AdvanceSetting).Editable(false);
+         })
+        .PageSize(1000)
+
+        )
+
+        )*@
+        </div>
+        <div class="cms-footer">
+            <div class="col-sm-12" style="text-align:right;">
+                <input type="submit" class="btn btn-success" onclick="SaveData(event)" value="Save" />
+                @if (ViewBag.LayoutMode == LayoutModeEnum.Popup.ToString())
+                {
+                    <input type="button" class="btn btn-light" value="Close" onclick="return OnClose('@Model.TemplateId');" />
+                }
+            </div>
+            @*<input type="button" class="btn btn-link" value="Save and Preview" onclick="OnSave('Preview')" />
+                <input type="button" class="btn btn-success" value="Save and Publish" onclick="OnSave('Publish')" />
+                <input type="button" class="btn btn-primary" value="Save" onclick="OnSave()" />*@
+        </div>
+    </form>
+
+</div>
+<script>
+    
+
+    $("#jsGrid").jsGrid({
+        width: "100%",
+        height: "600px",
+
+        inserting: false,
+        editing: true,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+        deleteConfirm: "Do you really want to delete client?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                return $.ajax({
+                    type: "GET",
+                    url: "/cms/Template/ReadNoteTableProperties?templateId=@Model.TemplateId&indexPageTemplateId=@Model.Id",
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+            //insertItem: function (item) {
+            //    return $.ajax({
+            //        type: "POST",
+            //        url: "/api/data",
+            //        data: item,
+            //        dataType: "json"
+            //    });
+            //},
+            updateItem: function (item) {
+                //return $.ajax({
+                //    type: "POST",
+                //    url: "/cms/Template/UpdateNoteIndexPage",
+                //    data: item,
+                //    //dataType: "json",
+                //    //success: function (result) {
+                //    //    alert("Success", "updated successfully");
+                //    //},
+                //    //error: function (err) {
+                //    //    alert(err, "Error updating");
+                //    //}
+                //});
+            },
+            //deleteItem: function (item) {
+            //    return $.ajax({
+            //        type: "DELETE",
+            //        url: "/api/data/" + item.ID,
+            //        dataType: "json"
+            //    });
+            //}
+        },
+        onItemEditing: function (e) {
+            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                //  debugger;
+                e.grid.updateItem();
+            }
+        },    
+        fields: [
+            { name: "Select", type: "checkbox", width: 60 },
+            { name: "TableName", type: "text", width: 150, validate: "required", editing: false },
+            { name: "ColumnName", type: "text", width: 200, readOnly: true, editing: false},
+            { name: "HeaderName", type: "text", width: 200 },
+            { name: "EnableSorting", type: "checkbox", width: 100 },
+            { name: "EnableFiltering", type: "checkbox", width: 100 },
+            { name: "SequenceOrder", type: "text", width: 50 },
+            //{ type: "control" }
+
+        ]
+    });
+</script>
+

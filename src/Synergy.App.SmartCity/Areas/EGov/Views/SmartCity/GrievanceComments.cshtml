@@ -1,0 +1,529 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model NtsServiceCommentViewModel
+
+<style>
+
+    .dm-uploader {
+        border: 0.1rem dashed #a5a5c7;
+        text-align: center;
+        height: 135px;
+        padding: 5px;
+    }
+
+
+    .avatar-drp-profile {
+        border-radius: 50%;
+        height: 45px;
+        width: 45px;
+    }
+
+    .drp-user {
+        width: 100%;
+    }
+
+    .k-editable-area {
+        height: 107px;
+        background-color: #fff;
+    }
+
+    img {
+        border-radius: 5px;
+    }
+
+    .cms-manageportal-footer {
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+
+    .pad-5 {
+        padding-top: 10px;
+    }
+
+    .k-upload {
+        width: 60%;
+    }
+
+    .k-in {
+        width: 100%;
+    }
+
+    .k-treeview .k-item .k-group {
+        margin-left: 63px;
+    }
+</style>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;" id="servicecmnt">
+    @*    @if (Model.IsAddCommentEnabled)
+    {*@
+    <div class="row">
+        @if (Model.IsLevelUser == true)
+        {
+            <div class="col">
+                <div class="form-group">
+                    <label for="Comment"> Remarks </label>
+                    <textarea class="form-control" id="Comment" rows="2" placeholder="Enter Remarks"></textarea>
+                </div>
+
+
+                <div style="padding:15px">
+                    <span style="margin-right:6px">Add Attachment </span>
+                    <span class="attachment-icon far fa-paperclip"></span>
+                </div>
+
+                @{
+                    await Html.RenderPartialAsync("~/Areas/Core/Views/Shared/_FileUpload.cshtml", new FileUploadViewModel { Property = nameof(Model.AttachmentId), Value = Model.AttachmentId,IsExtMessageVisible = true });
+                }
+                <br>
+                <br>
+                <button type="button" id="btnComment" class="btn btn-primary" onclick="OnPost()" title="Submit">Submit</button>
+
+            </div>
+        }
+        <div class="col" id="commentDiv" style="display:none">
+            <div>
+                <h6>Remarks</h6>
+                <div id="commentList" style="height: 400px;overflow: scroll;"></div>
+            </div>
+        </div>
+    </div>
+    @* }
+    }*@
+    @Html.HiddenFor(x => x.NtsServiceId)
+    @Html.HiddenFor(x => x.ParentCommentId)
+    @Html.HiddenFor(x => x.AttachmentId)
+</div>
+
+<script type="text/javascript">
+
+    function chkChange() {
+        if ($('#enableCommentHtml').is(":checked")) {
+            $(".richText-toolbar").show();
+        }
+        else {
+            $(".richText-toolbar").hide();
+        }
+    }
+
+    function onFileUploadSuccess1(e) {
+
+        if (e.response.success) {
+            $("#AttachmentId").val(e.response.fileId);
+
+        }
+        else {
+
+        }
+        return true;
+    }
+
+
+    function htmlDecode(value) {
+        return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    }
+
+    function onDownload(id) {
+
+        url = '/cms/Document/GetFileMongo?fileId=' + id;
+        window.open(url, '_blank');
+        return false;
+    }
+
+
+
+    function FillCommentCount() {
+        var win = GetMainWindow().GetParentWindow();
+        win.FillCommentCount();
+    }
+
+
+    function refresh() {
+        readCommentData();
+        FillCommentCount();
+    }
+
+    function onReplyClick(id) {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ReplyServiceComments", "Cms", new { @area = "" })?parentId=' + id;
+        win.OpenWindow({ Title: 'Service Comments', Width: 1200, Height: 600 });
+        return false;
+    }
+
+    function OnPost() {
+        if ($("#Comment").val() != "") {
+            ShowLoader($('#servicecmnt'));
+            $.ajax({
+                type: "POST",
+                url: "/cms/PostServiceComment",
+                data: {
+                    NtsServiceId: "@Model.NtsServiceId",
+                    Comment: $("#Comment").val(),
+                    AttachmentId: $("#AttachmentId").val(),
+                    ParentCommentId: $("#ParentCommentId").val(),
+                    CommentToUserIds: "All"//$("#CommentToUserId").data("kendoMultiSelect").value()
+                },
+                success: function (data) {
+                    $("#Comment").val("");
+                    if (data.success) {
+                        if ('@ViewBag.Mode' == "Reply") {
+                            var win = GetMainWindow();
+                            win.CloseWindow({ MethodName: 'refresh' });
+                        }
+                        else {
+                            HideLoader($('#servicecmnt'));
+                            $(".richText-editor").text('');
+
+                            //$("#CommentToUserId").data("kendoMultiSelect").value('');
+                            $("#AttachmentId").val('');
+                            readCommentData();
+                            //   Delete();
+                            // FillCommentCount();
+                        }
+                        document.getElementById("img_AttachmentId").src = "/images/nofile.png";
+                        //myalert("Complaint Update Successfully");
+                    }
+                    else {
+                        ShowErrors(data.errors);
+                    }
+                },
+                error: function (err) {
+                    $(".hr-v-summary").removeClass("validation-summary-valid");
+                    $(".hr-v-summary").addClass("validation-summary-errors");
+                    $(".hr-v-summary ul").html(msg);
+                }
+
+            });
+        }
+        else {
+                    HideLoader($('#maindiv'));
+            //kendo.alert("Please enter comment");
+        }
+        postResolverInput();
+
+    }
+    function myalert(content) {
+        HideLoader($('#maindiv'));
+        $("<div></div>").kendoAlert({
+            title: "Message",
+            content: content
+        }).data("kendoAlert").open();
+    }
+
+    function Delete() {
+        $("#AttachmentId").val('');
+        $("#iconFile").dmUploader("reset");
+    }
+
+
+    $(document).ready(function () {
+        $('.content').richText();
+
+        $(".richText-toolbar").hide();
+
+        if ('@ViewBag.Mode' == "Reply") {
+            var editor = $('#ParentMessage').richText();
+        }
+
+
+        readCommentData();
+    });
+
+    function uploadFile() {
+        $("#iconFile").dmUploader({ //
+            url: '/Cms/Document/SaveFile',
+            multiple: false,
+            maxFileSize: 3000000, // 3 Megs
+            onDragEnter: function () {
+                this.addClass('active');
+            },
+            onDragLeave: function () {
+                this.removeClass('active');
+            },
+            onInit: function () {
+            },
+            onComplete: function () {
+            },
+            onNewFile: function (id, file) {
+                ui_multi_add_file(id, file);
+            },
+            onBeforeUpload: function (id) {
+                ui_multi_update_file_status(id, 'uploading', 'Uploading...');
+                ui_multi_update_file_progress(id, 0, '', true);
+            },
+            onUploadCanceled: function (id) {
+                ui_multi_update_file_status(id, 'warning', 'Canceled by User');
+                ui_multi_update_file_progress(id, 0, 'warning', false);
+            },
+            onUploadProgress: function (id, percent) {
+                ui_multi_update_file_progress(id, percent);
+            },
+            onUploadSuccess: function (id, data) {
+                $("#AttachmentId").val(data.fileId);
+
+                ui_multi_update_file_status(id, 'success', 'Upload Complete');
+                ui_multi_update_file_progress(id, 100, 'success', false);
+            },
+            onUploadError: function (id, xhr, status, message) {
+                ui_multi_update_file_status(id, 'danger', message);
+                ui_multi_update_file_progress(id, 0, 'danger', false);
+            },
+            onFallbackMode: function () {
+            },
+            onFileSizeError: function (file) {
+            }
+        });
+    }
+
+
+    function readCommentData() {
+        document.getElementById('commentList').innerHTML = "";
+        ShowLoader($('#servicecmnt'));
+        $.ajax({
+            url: '/EGov/SmartCity/ReadGrievanceCommentDataList?serviceId=@Model.NtsServiceId&isLevelUser=@Model.IsLevelUser',
+            dataType: "json",
+            success: function (result) {
+
+                if (result.length > 0 && result != null) {
+                    document.getElementById("commentDiv").style.display = "";
+                } else {
+                    document.getElementById("commentDiv").style.display = "none";
+                }
+
+
+                var root = document.getElementById('commentList');
+                var parent = result.filter(x => x.id != null);
+                for (var i = 0; i <= parent.length - 1; i++) {
+                    var data = parent[i];
+                    createTreeList(data, root, result, null);
+                }
+
+                var toggler = document.getElementsByClassName("caret");
+                var i;
+
+                for (i = 0; i < toggler.length; i++) {
+                    toggler[i].addEventListener("click", function () {
+                        this.parentElement.querySelector(".nested").classList.toggle("active");
+                        this.classList.toggle("caret-down");
+                    });
+                }
+                HideLoader($('#servicecmnt'));
+
+            }
+        });
+    }
+
+    function createTreeList(data, root, result, ul) {
+        debugger;
+        var child = [];
+        if (data.id != null) {
+            child = searchChild(data.id, result, root);
+        } else {
+            chid = [];
+        }
+        if (ul == null) {
+            ul = document.createElement('ul');
+        }
+        var li = document.createElement('li');
+        if (child.length > 0) {
+            li.classList.add("caret");
+        }
+        var p1 = "";
+        var p2 = "";
+        var p3 = "";
+        var p4 = "";
+        var p5 = "";
+
+        if (data.PhotoId != null) {
+            p1 = '<img width="60" height="60" src="/cms/document/GetImageMongo?id=' + data.PhotoId + '"\/>';
+        } else {
+            p1 = '<img width="60" height="60" style="background-color:gray;" src="~/images/profile.jpg" />';
+        }
+        if (data.CommentedToUserName != null) {
+            p2 = data.CommentedToUserName;
+        }
+
+        if (data.AttachmentId != null) {
+
+            p3 = " <div class='col-12' style='padding: 5px; font-size: 12px; '><p>" + data.FileName +
+                "<span onclick='ViewAttachment(\"" + data.AttachmentId + "\")' class= 'attach - icon' title='View' >" +
+                "<i style='margin-left:2%;cursor:pointer' class='fas fa-eye fa-lg' ></i ></span >" +
+                "<span onclick='onDownload(\"" + data.AttachmentId + "\")' class='attach-icon' title='Download'>" +
+                " <i style='margin-left:2%;cursor:pointer' class='fas fa-download fa-lg' ></i ></span ></p > " +
+                " </div >";
+        }
+
+        //if (data.CommentedByUserId == '@_userContext.UserId') {
+        //    p5 = "<a id='delete' class='k-icon k-i-delete pull-right' style='font-size:20px' title='Click to delete' href = 'javascript:onDeleteClick(\"" + data.id + "\");' ></a >";
+        //}
+        if (data.Comment == null) {
+            data.Comment = "";
+        }
+        var date = kendo.toString(kendo.parseDate(data.CommentedDate), 'dd.MM.yyyy HH:mm')
+        li.innerHTML = "<div style='margin-top: 18px; width: 100 %'>" +
+            " <div class=''>" +
+            " <div style='padding-left: 10px;' >" +
+            " <div class='iconwithtextan'>" +
+            " <div class='row' style='width:100%;margin-bottom: 10px;margin:0px'>" +
+            " <div class='col'>" +
+            p1 + "</div>" +
+            "<div class='col-7'>" +
+            //"<div class='' style = 'padding-left:0px;' > <span style='padding:5px;font-size:12px;'>To :" +
+            //p2 +
+            //"   </span > </div >" +
+
+            "   <div class='' style='padding:0;font-size:16px;'><p> " +
+            htmlDecode(data.Comment) +
+            "   </p></div>" +
+            "<div class='' style='padding-left:0px;' ><span style='font-size: 12px; padding:5px;'>From : " + data.CommentedByUserName + " ("+ data.JobTitle+")" + "</span></div > " +
+        "   <div class='' style='padding-left:0px;'> <span  style='padding:5px;font-size:12px;'>" +
+            "Commented Date: " + date + "</span> </div>" +
+            p3 +
+            " </div >" +
+            " <div class='col' style='margin-top: 4px; '>" +
+            p4 +
+            p5 +
+            "  </div></div ></div ></div ></div ></div ></div ><hr />";
+        ul.appendChild(li);
+        root.appendChild(ul);
+
+        if (child != []) {
+            var ul = document.createElement('ul');
+            ul.classList.add("nested");
+            for (var x = 0; x <= child.length - 1; x++) {
+                createTreeList(child[x], li, result, ul);
+            }
+        }
+    }
+
+    function searchChild(nameKey, myArray) {
+        var newArray = [];
+        for (var i = 0; i < myArray.length; i++) {
+            if (myArray[i].ParentCommentId === nameKey) {
+                newArray.push(myArray[i]);
+            }
+        }
+        return newArray;
+    }
+    function onFileUploadSuccess(e) {
+        if (e.response.success) {
+            $("#AttachmentlistView").data("kendoListView").dataSource.read();
+            window.parent.FillAttachmentCount();
+        }
+        else {
+            var msg = ExtractError(e.response.errors, true);
+        }
+        return true;
+
+    }
+
+    var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+
+            ShowNotification("Saved Successfully", "success");
+        }
+        else {
+            showError(res.error);
+        }
+    };
+    var showError = function (error) {
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    function onDownload(id) {
+        url = '/cms/Document/GetFileMongo?fileId=' + id;
+        window.open(url, '_blank');
+        return false;
+    }
+
+    function ViewAttachment(id) {
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ViewAttachment", "Cms", new { @area=""})?fileId=' + id;
+        win.OpenWindow({ Title: 'View Attachment', Width: 800, Height: 950 });
+        return false;
+    }
+    function onDeleteClick(fileId) {
+        if (confirm('Are you sure you want to delete the selected comment?')) {
+            $.ajax({
+                type: "POST",
+                url: '/cms/DeleteServiceComment',
+                data: { id: fileId },
+                success: function (data) {
+                    readCommentData();
+                    FillCommentCount();
+                },
+                dataType: "json",
+            });
+        }
+
+        return false;
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        //$("#CommentToUserId").kendoMultiSelect({
+        //    dataTextField: "Name",
+        //    dataValueField: "Id",
+        //    filter: "contains",
+        //    autoBind: true,
+        //    autoClose: false,
+        //    height: 300,
+        //    valuePrimitive: true,
+        //    dataSource: new kendo.data.DataSource({
+        //        transport: {
+        //            read: {
+        //                url: "@Url.Action("GetServiceUsersIdNameList", "NtsService", new { @area = "Cms", serviceId = Model.NtsServiceId })",
+        //            }
+        //        },
+        //    }),
+        //});
+    });
+</script>

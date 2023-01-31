@@ -1,0 +1,878 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Vendor PO";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model StockTransferViewModel
+
+<style>
+    .required{
+        color:red;
+    }
+    .text-danger1 {
+       color: #dc3545 !important
+    }
+</style>
+
+<script>
+
+    $(document).ready(function () {
+
+        $("#WareHouseLegalEntityId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/cms/LegalEntity/GetIdNameList",
+                    }
+                }
+            }
+        });
+
+        $("#FromWarehouseId").kendoDropDownList({
+            dataTextField: "WarehouseName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataBound: OnDataBound,
+            cascadeFrom: "WareHouseLegalEntityId",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetWarehouseList",
+                        data: filterwarehouse
+                    }
+                }
+            }
+        });
+
+        $("#ToWarehouseId").kendoDropDownList({
+            dataTextField: "WarehouseName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataBound: OnDataBound,
+            cascadeFrom: "WareHouseLegalEntityId",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetWarehouseList",
+                        data: filterwarehouse
+                    }
+                }
+            }
+        });
+
+        $("#ItemHead").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            optionLabel: "--Select--",
+            filter: "contains",
+            change: function (e)
+            {
+                $("#CategoryId").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Cms/LOV/GetListOfValueList?type=IMS_ITEM_TYPE",
+                    }
+                }
+            }
+        });
+
+        $("#CategoryId").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: false,
+           // cascadeFrom: "ItemHead",
+            change: function (e) {
+                $("#SubCategoryId").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+              //  serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetItemCategoryList",
+                        data: filtercat
+                    }
+                }
+            }
+        });
+
+        $("#SubCategoryId").kendoDropDownList({
+            optionLabel: "--All--",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: false,
+           // cascadeFrom: "CategoryId",
+            change: function (e) {
+                $("#ItemId").data("kendoDropDownList").dataSource.read();
+            },
+            dataSource: {
+                //serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetItemSubCategoryListByItemCategory",
+                        data: filtersubcat
+                    }
+                }
+            }
+        });
+
+        $("#ItemId").kendoDropDownList({
+            dataTextField: "ItemName",
+            dataValueField: "ItemId",
+            optionLabel: "--All--",
+            filter: "contains",
+            autoBind:false,
+           // cascadeFrom: "SubCategoryId",
+            change: onChangeItem,
+            dataSource: {
+               // serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/ReadItemListByStock",
+                        data: filtertype
+                    }
+                }
+            }
+        });
+
+        function filtertype() {
+            return {
+                itemTypeId: $("#ItemHead").val(),
+                itemCategory: $("#CategoryId").val(),
+                itemSubCategory: $("#SubCategoryId").val(),
+                warehouseId: $("#WarehouseId").val()
+            }
+        }
+        function filtercat() {
+            return {
+                itemTypeId: $("#ItemHead").val()
+            }
+        }
+        function filtersubcat() {
+            return {
+                itemCategoryId: $("#CategoryId").val()
+            }
+        }
+        function filterwarehouse() {
+            return {
+                legalEntityId: $("#WareHouseLegalEntityId").val()
+            }
+        }
+
+        $("#TransferDate").kendoDatePicker({
+            //value: new Date(),
+            format: 'yyyy-MM-dd'
+        });
+
+        //jsgrid
+        //$("#ItemsListGrid").jsGrid({
+        //    width: "100%",
+        //    inserting: false,
+        //    editing: true,
+        //    sorting: false,
+        //    paging: true,
+        //    autoload: false,
+        //    pageSize: 14,
+        //    pageButtonCount: 5,
+        //    controller: {
+        //        loadData: function (filter) {
+
+        //            return data;
+        //        },
+        //        onItemEditing: function (e) {
+        //            debugger;
+        //            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+        //                //
+        //                e.grid.updateItem();
+        //            }
+        //        },
+        //        updateItem: function (item) {
+        //            debugger;
+        //        },
+        //        deleteItem: function (item) {
+
+        //            e.grid.deleteItem(item.ItemId);
+        //            e.grid.updateItem();
+        //        }
+        //    },
+        //    fields: [
+        //        { name: "ItemName", title: "Item Name", type: "text", editing: false },
+        //        {
+        //            name: "TransferQuantity",
+        //            title: "Transfer Quantity",
+        //            type: "text",
+        //            editing: false
+        //        },
+        //        {
+        //            name: "ItemId",
+        //            title: "ItemId",
+        //            type: "text",
+        //            editing: false,
+        //            visible: false
+        //        },
+        //        {
+        //            type: "control", deleteButton: true,editButton:false,
+        //        },
+        //    ]
+        //})
+
+        if ("@Model.ServiceStatusCode" != null && "@Model.ServiceStatusCode" != "") {
+
+            document.getElementById('ItemDetails').style.display = "block";
+            document.getElementById('itemslist').style.display = "block";
+
+            var whle = $("#WareHouseLegalEntityId").data("kendoDropDownList");
+            whle.enable(false);
+            if ("@Model.ServiceStatusCode" == "SERVICE_STATUS_COMPLETE") {
+                var datepicker = $("#TransferDate").data("kendoDatePicker");
+                datepicker.enable(false);
+                document.getElementById("ChallanNo").disabled = true;
+                document.getElementById("TransferReason").disabled = true;
+                document.getElementById('ItemDetails').style.display = "none";
+            }
+
+
+
+
+            GetTransferItemsList();
+        }
+
+    });
+
+    function OnDataBound() {
+        if ("@Model.ServiceStatusCode" != null && "@Model.ServiceStatusCode" != "")
+        {
+            var fwh = $("#FromWarehouseId").data("kendoDropDownList");
+            var twh = $("#ToWarehouseId").data("kendoDropDownList");
+            fwh.enable(false);
+            twh.enable(false);
+        }
+    }
+
+    var columnDefs = [
+        { field: "ItemName", },
+        { field: "TransferQuantity" },
+        {
+            headerName: "Actions",
+            field: "NtsNoteId",
+            cellRenderer: params => {
+                if ('@Model.ServiceStatusCode' != "SERVICE_STATUS_INPROGRESS" && '@Model.ServiceStatusCode' != "SERVICE_STATUS_COMPLETE") {
+                    return "<div class='btn-group grid-menu' id='tree-menutrans' data-idval='" + params.value + "' ><i class='fas fa-ellipsis-v'></i></div>"
+                }
+            }
+        }
+    ];
+
+    function GetTransferItemsList() {
+        document.getElementById("ItemsListGrid").innerHTML = "";
+        gridConfig(
+            "ItemsListGrid",
+            "/Ims/InventoryManagement/ReadTransferItemsList?stockTransferId=" + $("#UdfNoteTableId").val(),
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    $(function () {
+
+        $.contextMenu({
+            selector: '#tree-menutrans',
+            trigger: 'left',
+            build: function ($trigger, e) {
+                debugger;
+                var nid = $trigger.data('idval');
+
+                switch (0) {
+                    case 0:
+                        var Items;
+
+                        Items = {
+                            "delete": { name: "Delete", icon: "fas fa-trash" },
+                        };
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'delete':
+                                        onDeleteItem(nid);
+                                        break;
+                                    default:
+                                }
+                            },
+                            items: Items
+                        };
+                }
+            }
+        });
+
+    });
+    function onDeleteItem(nId) {
+
+        kendo.confirm("Are you sure that you want to proceed?").then(function () {
+            $.ajax({
+                url: '/IMS/InventoryManagement/DeleteStockTransferItem?itemNoteId=' + nId,
+                type: 'POST',
+                data: {},
+                dataType: 'json',
+                success: function (res) {
+                    debugger;
+                    if (res.success) {
+                        HideLoader($("#draft"));
+                        ShowNotification("Item Deleted Successfully", "success");
+                        GetTransferItemsList();
+                    } else {
+                        HideLoader($("#draft"));
+                        ShowNotification(res.error, "error");
+                    }
+                },
+                error: function (ert) {
+                    GetTransferItemsList();
+                }
+            });
+
+        }, function () {
+
+        });
+    }
+
+
+    function OnAddItem() {
+        debugger;
+        var ItemHead = $("#ItemHead").val();
+        var WarehouseId = $("#FromWarehouseId").data("kendoDropDownList").value();
+        var Category = $("#CategoryId").data("kendoDropDownList").value();
+        var SubCategory = $("#SubCategoryId").data("kendoDropDownList").value();
+        var Item = $("#ItemId").data("kendoDropDownList").value();
+        var quan = $("#TransferQuantity").val();
+        var closingqty = $("#ClosingQuantity").val();
+
+        if (ItemHead == null || ItemHead == '' || ItemHead == undefined) {
+            $(".text-danger1").removeClass("validation-summary-valid");
+            $(".text-danger1").addClass("validation-summary-errors");
+            $(".text-danger1").html("Select Item Head");
+            e.preventDefault();
+            return false;
+        }
+        else if (Category == null || Category == '' || Category == undefined) {
+            $(".text-danger1").removeClass("validation-summary-valid");
+            $(".text-danger1").addClass("validation-summary-errors");
+            $(".text-danger1").html("Select Category");
+            e.preventDefault();
+            return false;
+        }
+        else if (SubCategory == null || SubCategory == '' || SubCategory == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Select Sub Category");
+            e.preventDefault();
+            return false;
+        }
+        else if (Item == null || Item == '' || Item == undefined) {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Select Item");
+            e.preventDefault();
+            return false;
+        }
+        else if (Item == null || Item == '' || Item == undefined) {
+            $(".text-danger1").removeClass("validation-summary-valid");
+            $(".text-danger1").addClass("validation-summary-errors");
+            $(".text-danger1").html("Select Item");
+            e.preventDefault();
+            return false;
+        }
+        else if (quan == null || quan == '' || quan == undefined || quan == '0') {
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Enter Requested Quantity");
+            e.preventDefault();
+            return false;
+        }
+        else if (parseInt(closingqty) < parseInt(quan)) {
+            debugger;
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html("Requested Quantity should not exceed current quantity");
+            e.preventDefault();
+            return false;
+        }
+        else {
+            $(".text-danger").removeClass("validation-summary-errors");
+            $(".text-danger").addClass("validation-summary-valid");
+            $(".text-danger").html("");
+
+            debugger;
+            //var itemId = $("#ItemId").val();
+            //var transQuan = $("#TransferQuantity").val();
+            //var itemName = $("#ItemId").data("kendoDropDownList").text();
+
+            //$("#ItemsListGrid").jsGrid("insertItem", { ItemId: itemId, ItemName: itemName, TransferQuantity: transQuan }).done(function () {
+            //    ShowNotification("Item Added Successfully", "success");
+            //});
+            ShowLoader($("#draft"));
+
+            $.ajax({
+                url: '/IMS/InventoryManagement/ValidateStockTransferItem?stId=' + $("#UdfNoteTableId").val() + '&itemId=' + Item,
+                type: 'GET',
+                data: {},
+                dataType: 'json',
+                success: function (result) {
+                    debugger;
+                    if (result.success) {
+                        HideLoader($("#draft"));
+                        ShowNotification("Item Already Added", "error");
+
+                    } else {
+                        $.ajax({
+                            url: '/IMS/InventoryManagement/CreateTransferItems?stId=' + $("#UdfNoteTableId").val() + '&itemId=' + Item + '&transQty=' + quan,
+                            type: 'POST',
+                            data: {},
+                            dataType: 'json',
+                            success: function (result) {
+
+                                if (result.success) {
+                                    HideLoader($("#draft"));
+                                    ShowNotification("Item Added Successfully", "success");
+                                    document.getElementById('itemslist').style.display = "block";
+                                    $('#TransferQuantity').val('');
+                                    GetTransferItemsList();
+                                } else {
+                                    HideLoader($("#draft"));
+                                    ShowNotification(result.error, "error");
+                                }
+                            },
+                            error: function (ert) {
+                                GetTransferItemsList();
+                            }
+                        });
+                    }
+                },
+                error: function (ert) {
+                    GetTransferItemsList();
+                }
+            });
+
+        }
+    }
+
+
+    function OnAfterUpdate() {
+        GetTransferItemsList();
+    }
+
+    function onChangeItem() {
+        var id = $("#ItemId").val();
+        debugger;
+        $.ajax({
+            url: '/IMS/InventoryMaster/GetItemDeatils?Id=' + id + '&warehouseId=' + $("#FromWarehouseId").data("kendoDropDownList").value(),
+            type: 'GET',
+            data: {},
+            dataType: 'json',
+            success: function (result) {
+                debugger;
+                if (result != null) {
+                    document.getElementById("CurQuantity").innerHTML = result.ClosingQuantity + "  " + result.ItemUnit;
+                    $("#ClosingQuantity").val(result.ClosingQuantity);
+                } else {
+
+                }
+            },
+            error: function (ert) {
+
+            }
+        });
+    }
+
+    //var selectedDataItems = [];
+
+    //function SaveData(e) {
+    //    debugger;
+    //    var entityGrid = $("#ItemsListGrid").data("JSGrid");
+    //    if (entityGrid._editingRow != null) {
+    //        entityGrid.updateItem();
+    //    }
+
+    //    for (var i = 0; i < entityGrid.data.length; i++) {
+    //            selectedDataItems.push(entityGrid.data[i]);
+    //    }
+
+    //    $("#TransferItemsData").val(JSON.stringify(selectedDataItems));
+    //}
+
+    var onAjaxSuccess = function (res) {
+        if (res.success) {
+            if ('@Model.DataAction' == '@DataActionEnum.Create') {
+                $("#UdfNoteTableId").val(res.data);
+                document.getElementById('ItemDetails').style.display = "block";
+                document.getElementById('submitST').style.display = "none";
+            }
+            else {
+                ShowNotification("Updated Successfully", "success");
+            }
+        }
+        else {
+            ShowNotification(res.error,"error");
+        }
+    };
+
+
+    function closeNav(res) {
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "OnAfterUpdate"});
+        if (res.success) {
+            win.parent.ShowNotification("Items added successfully for stock transfer ", "success");
+        }
+        return false;
+    }
+
+    function OnProceed(e) {
+        debugger;
+        var leId = $("#WareHouseLegalEntityId").data("kendoDropDownList").value();
+        var WarehouseId = $("#FromWarehouseId").data("kendoDropDownList").value();
+        var toWarehouseId = $("#ToWarehouseId").data("kendoDropDownList").value();
+        var chNo = $("#ChallanNo").val();
+        var tdate = kendo.toString($("#TransferDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var reason = $("#TransferReason").val();
+
+        if (leId == null || leId == '') {
+            $("text-danger").removeClass("validation-summary-valid");
+            $("text-danger").addClass("validation-summary-errors");
+            $("text-danger").html("Select Unit");
+            e.preventDefault();
+            return false;
+        }
+        else if (WarehouseId == null || WarehouseId == '') {
+            $("text-danger").removeClass("validation-summary-valid");
+            $("text-danger").addClass("validation-summary-errors");
+            $("text-danger").html("Select From Warehouse");
+            e.preventDefault();
+            return false;
+        }
+        else if (toWarehouseId == null || toWarehouseId == '') {
+            $("text-danger").removeClass("validation-summary-valid");
+            $("text-danger").addClass("validation-summary-errors");
+            $("text-danger").html("Select To Warehouse");
+            e.preventDefault();
+            return false;
+        }
+        else if (WarehouseId == toWarehouseId) {
+            $("text-danger").removeClass("validation-summary-valid");
+            $("text-danger").addClass("validation-summary-errors");
+            $("text-danger").html("Cannot transfer to same warehouse");
+            e.preventDefault();
+            return false;
+        }
+        else if (chNo == null || chNo == '' || chNo == 0) {
+            $("text-danger").removeClass("validation-summary-valid");
+            $("text-danger").addClass("validation-summary-errors");
+            $("text-danger").html("Enter Challan No");
+            e.preventDefault();
+            return false;
+        }
+        else if (tdate == null || tdate == '') {
+            $("text-danger1").removeClass("validation-summary-valid");
+            $("text-danger1").addClass("validation-summary-errors");
+            $("text-danger1").html("Select Trasnfer Date");
+            e.preventDefault();
+            return false;
+        }
+        else if (reason == null || reason == '') {
+            $("text-danger1").removeClass("validation-summary-valid");
+            $("text-danger1").addClass("validation-summary-errors");
+            $("text-danger1").html("Enter Transfer Reason");
+            e.preventDefault();
+            return false;
+        }
+        else {
+            $("text-danger1").removeClass("validation-summary-errors");
+            $("text-danger1").addClass("validation-summary-valid");
+            $("text-danger1").html("");
+        }
+    }
+
+    function OnSaveSerDetail(e) {
+        debugger;
+        var chNo = $("#ChallanNo").val();
+        var tdate = kendo.toString($("#TransferDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var reason = $("#TransferReason").val();
+
+        var data = {
+            ChallanNo: $('#ChallanNo').val(),
+            TransferDate: kendo.toString($("#TransferDate").data("kendoDatePicker").value(), 'yyyy-MM-dd'),
+            TransferReason: $('#TransferReason').val(),
+            ServiceId: "@Model.ServiceId"
+        };
+
+        if (chNo == null || chNo == '' || chNo == 0) {
+            ShowNotification("Enter Challan No","error");
+            e.preventDefault();
+            return false;
+        }
+        else if (tdate == null || tdate == '') {
+            ShowNotification("Select Trasnfer Date", "error");
+            e.preventDefault();
+            return false;
+        }
+        else if (reason == null || reason == '') {
+            ShowNotification("Enter Transfer Reason", "error");
+            e.preventDefault();
+            return false;
+        }
+        else {
+            $("text-danger1").removeClass("validation-summary-errors");
+            $("text-danger1").addClass("validation-summary-valid");
+            $("text-danger1").html("");
+        }
+    }
+
+</script>
+
+<div class="row pad-10 no-gutters page-content">
+    <div class="container" style="padding:10px;max-width:100%">        
+        <div class="tab-content">
+            <div id="draft" class="tab-pane  in active" role="tabpanel" aria-labelledby="design-tab">
+                <form asp-controller="InventoryManagement" asp-action="ManageTransferItems" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+                      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+                      data-ajax="true" data-ajax-method="POST">
+                    <div style="width: 100%;"> 
+             <div class="text-danger1" asp-validation-summary="All"></div>
+             <fieldset class="fieldset">
+            <legend class="fs-legend">Transfer Unit/Warehouse To</legend>
+            <div class="row">
+                <div class="col-3 form-group">
+                    <div class="col-form-label required ">
+                        <label>Unit</label>
+                    </div>
+                    <input type="text" asp-for="WareHouseLegalEntityId" id="WareHouseLegalEntityId" class="form-control" required />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required ">
+                        <label>From Warehouse</label>
+                    </div>
+                    <input type="text" asp-for="FromWarehouseId" id="FromWarehouseId" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>To Warehouse</label>
+                    </div>
+                    <input type="text" asp-for="ToWarehouseId" id="ToWarehouseId" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Challan No</label>
+                    </div>
+                    <input type="text" asp-for="ChallanNo" id="ChallanNo" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required">
+                        <label>Transfer Date</label>
+                    </div>
+                    <input id="TransferDate" asp-for="TransferDate" class="form-control" required />
+                </div>
+                <div class="col-6 form-group">
+                    <div class="col-form-label required">
+                        <label>Transfer Reason</label>
+                    </div>
+                    <textarea asp-for="TransferReason" class="form-control" required></textarea>
+                </div>
+                @if (Model.ServiceStatusCode.IsNullOrEmpty())
+                {
+                    <div class="col-3 form-group">
+                        <div class="col-form-label">
+                            &nbsp;
+                        </div>
+                        <input type="submit" id="submitST" class="btn btn-primary btn-control" value="Proceed" style="color:white" onclick="OnProceed(event);" />
+                    </div>
+                }
+                @if (Model.ServiceStatusCode == "SERVICE_STATUS_DRAFT")
+                {
+                    <div class="col-3 form-group">
+                        <div class="col-form-label">
+                            &nbsp;
+                        </div>
+                        <input type="submit" class="btn btn-primary btn-control" value="Save" style="color:white" onclick="OnSaveSerDetail(event);" />
+                    </div>
+                }
+
+
+            </div>
+        </fieldset>
+        <fieldset class="fieldset" id="ItemDetails" style="display:none;">
+            <legend class="fs-legend">Transfer Item Details</legend>
+            <div class="row">
+                    <div class="col-3 form-group">
+                    <div class="col-form-label required ">
+                        <label>Item Head</label>
+                    </div>
+                     <input type="text" id="ItemHead" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required ">
+                        <label>Category</label>
+                    </div>
+                     <input type="text" id="CategoryId" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required ">
+                        <label>Sub Category </label>
+                    </div>
+                     <input type="text" id="SubCategoryId" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required ">
+                        <label>Item Name</label>
+                    </div>
+                     <input type="text" id="ItemId" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required ">
+                        <label>Current Quantity</label>
+                    </div>
+                     <p id="CurQuantity" style="font-weight:bold;color:#333;"></p>
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label required ">
+                        <label>Requested Qty</label>
+                    </div>
+                     <input type="text" asp-for="TransferQuantity" id="TransferQuantity" class="form-control" />
+                </div>
+                <div class="col-3 form-group">
+                    <div class="col-form-label">
+                        &nbsp;
+                    </div>
+                    @if (Model.ServiceStatusCode.IsNullOrEmpty() || Model.ServiceStatusCode == "SERVICE_STATUS_DRAFT")
+                    {
+                        <input type="button" class="btn btn-primary btn-control" value="+ Add Item" style="color:white" onclick="OnAddItem();" />
+                    }
+                        
+                </div>
+                                    
+                </div>
+        </fieldset>
+              <fieldset class="fieldset" id="itemslist" style="display:none;">
+                <legend class="fs-legend">Item List</legend>
+                <div id="ItemsListGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            </fieldset>
+@*                        <legend>Transfer Unit/Warehouse To</legend>
+                        <div class="card">
+                            <div class="text-danger1" style="padding:5px;" asp-validation-summary="All"></div>
+                            <div class="row col-12" style="padding:10px;">
+                                <div class="col-4" style="padding-bottom:10px;">
+                                    <label style="float:left;">Unit <span class="required"> *</span></label>
+                                    <input asp-for="WareHouseLegalEntityId" id="WareHouseLegalEntityId" class="form-control" style="float:right;width:65%;" />
+                                </div>
+                                <div class="col-4" style="padding-bottom:10px;">
+                                    <label style="float:left;">From Warehouse<span class="required"> *</span></label>
+                                    <input type="text" asp-for="FromWarehouseId" id="FromWarehouseId" class="form-control" style="float:right;width:65%;" />
+                                </div>
+                                <div class="col-4" style="padding-bottom:10px;">
+                                    <label style="float:left;">To Warehouse<span class="required"> *</span></label>
+                                    <input type="text" asp-for="ToWarehouseId" id="ToWarehouseId" class="form-control" style="float:right;width:65%;" />
+                                </div>
+                                <div class="col-4" style="padding-bottom:10px;">
+                                    <label style="float:left;">Challan No<span class="required"> *</span></label>
+                                    <input type="text" asp-for="ChallanNo" id="ChallanNo" class="form-control" style="float:right;width:65%;" />
+                                </div>
+                                <div class="col-8">
+                                    <input type="submit" class="btn btn-primary" style="float:right;" value="Proceed" onclick="OnProceed(event);" />
+                                </div>
+                            </div>
+                        </div>*@
+
+@*                        <br />
+                        <div class="row-12" id="ItemDetails" style="display:none;">
+                            <legend>Transfer Item Details</legend>
+                            <div class="card">
+                                <div class="text-danger" style="padding:5px;" asp-validation-summary="All"></div>
+                                <div class="row col-12" style="padding:5px;">
+
+                                    <div class="col-2" style="padding-bottom:10px;">
+                                        <label>Item Head <span class="required"> *</span></label>
+                                    </div>
+                                    <div class="col-4" style="padding-bottom:10px;">
+                                        <input type="text" id="ItemHead" class="form-control" />
+                                    </div>
+                                    <div class="col-2" style="padding-bottom:10px;">
+                                        <label>Category <span class="required"> *</span></label>
+                                    </div>
+                                    <div class="col-4" style="padding-bottom:10px;">
+                                        <input type="text" id="CategoryId" class="form-control" />
+                                    </div>
+                                    <div class="col-2" style="padding-bottom:10px;">
+                                        <label>Sub Category <span class="required"> *</span></label>
+                                    </div>
+                                    <div class="col-4" style="padding-bottom:10px;">
+                                        <input type="text" id="SubCategoryId" class="form-control" />
+                                    </div>
+                                    <div class="col-2" style="padding-bottom:10px;">
+                                        <label>Item Name <span class="required"> *</span></label>
+                                    </div>
+                                    <div class="col-4" style="padding-bottom:10px;">
+                                        <input type="text" id="ItemId" class="form-control" />
+                                    </div>
+                                    <div class="col-2" style="padding-bottom:10px;">
+                                        <label>Current Quantity</label>
+                                    </div>
+                                    <div class="col-4" style="padding-bottom:10px;">
+                                        <p id="CurQuantity" style="font-weight:bold;color:#333;"></p>
+                                    </div>
+                                    <div class="col-2" style="padding-bottom:10px;">
+                                        <label>Requested Qty<span class="required"> *</span></label>
+                                    </div>
+                                    <div class="col-4" style="padding-bottom:10px;">
+                                        <input type="text" asp-for="TransferQuantity" id="TransferQuantity" class="form-control" />
+                                    </div>
+
+                                    <div class="col-12" style="padding-bottom:10px;">
+                                        <input type="button" class="btn btn-primary" style="float:right;" value="+ Add Item" onclick="OnAddItem();" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                        <br />
+
+                        <div class="row-12" id="itemslist" style="display:none;">
+                            <legend>Item List</legend>
+                            <div class="col-12">
+                                <div id="ItemsListGrid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+                            </div>
+                            <br />
+
+                        </div>*@
+
+                        @Html.HiddenFor(x => x.TransferItemsData)
+                        @Html.HiddenFor(x => x.DataAction)
+                        @Html.HiddenFor(x => x.ClosingQuantity)
+                        @Html.HiddenFor(x => x.UdfNoteTableId)
+                        @Html.HiddenFor(x => x.ServiceId)
+                    </div>
+                </form>
+            </div>                        
+
+        </div>
+    </div>
+</div>

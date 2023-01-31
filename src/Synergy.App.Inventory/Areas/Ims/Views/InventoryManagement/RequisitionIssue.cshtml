@@ -1,0 +1,362 @@
+﻿@using Synergy.App.ViewModel
+@using Synergy.App.Common
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Manage Direct Sales";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model IssueRequisitionViewModel
+
+
+<script src="~/js/IMS/InventoryManagement/RequisitionIssue.js" asp-append-version="true"></script>
+<div style="width: 100%;" class="p-3">
+
+    <form asp-controller="InventoryManagement" asp-action="ManageRequisitionIssue" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div class="text-danger" asp-validation-summary="All"></div>
+
+
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Issue Details</legend>
+
+            <div class="row col-12" style="padding:10px;">
+                <div class="col-2" style="padding-bottom:10px;">
+                    <label>Issue Type</label>
+                </div>
+                <div class="col-2" style="padding-bottom:10px;">
+                    <input type="text" asp-for="IssueType" id="IssueType" class="form-control" />
+                </div>
+                @*<div class="col-2" style="padding-bottom:10px;">
+                        <label>Department</label>
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <input type="text" asp-for="Department" id="Department" class="form-control" />
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <label>Employee</label>
+                    </div>
+                    <div class="col-2" style="padding-bottom:10px;">
+                        <input type="text" asp-for="Employee" id="Employee" class="form-control" />
+                    </div>*@
+                <div class="col-2" style="padding-bottom:10px;">
+                    <label>Issue To</label>
+                </div>
+                <div class="col-6" style="padding-bottom:10px;">
+                    <input type="text" asp-for="IssueTo" id="IssueTo" class="form-control" />
+                </div>
+                <div class="col-2" style="padding-bottom:10px;">
+                    <label>Issue On</label>
+                </div>
+                <div class="col-2" style="padding-bottom:10px;">
+                    <input type="text" asp-for="IssuedOn" id="IssuedOn" class="form-control" />
+                </div>
+                <div class="col-2" style="padding-bottom:10px;">
+                    <label>Remarks</label>
+                </div>
+                <div class="col-6" style="padding-bottom:10px;">
+                    <textarea asp-for="Remarks" class="form-control">Remarks</textarea>
+                </div>
+            </div>
+
+        </fieldset>
+
+
+
+        <fieldset class="fieldset">
+            <legend class="fs-legend">Select Items To Issue</legend>
+
+            <div class="row col-12">
+                <label>Item Name </label><input type="text" asp-for="RequisitionItemId" class="form-control" />
+            </div>
+
+            <div class="row col-12" style="padding:10px;display:none;" id="ItemsArea">
+                <div class="col-12">
+                    <label> Requested Qunatity: </label><span id="reqQty"></span>
+
+                </div>
+                <div class="col-12">
+                    <label> Approved Quantity: </label><span id="appQty"></span>
+
+                </div>
+                <div class="col-12">
+                    <label>  Issued Quantity: </label><span id="issueQty"></span>
+
+                </div>
+                <div class="row col-12">
+                    <div id="itemsGrid" class="col-8"></div>
+                    <div id="SerialNoGrid" class="col-4"></div>
+
+                </div>
+            </div>
+
+
+
+        </fieldset>
+       
+            <div class="row pad-10" style="float:right;">
+                <input type="submit" class="btn btn-primary" value="Add" style="margin:5px;" onclick="SaveData(event)" />
+                <input type="button" class="btn btn-primary" value="Close" style="margin:5px;" onclick="closeNav()" />
+            </div>
+   
+
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.ServiceId)
+        @Html.HiddenFor(x => x.IssueReferenceId)
+        @Html.HiddenFor(x => x.IssueReferenceType)
+        @Html.HiddenFor(x => x.Items)
+        @Html.HiddenFor(x => x.WarehouseId)
+        @Html.HiddenFor(x => x.ItemId)
+        @Html.HiddenFor(x => x.SerialNoIds)
+    </form>
+</div>
+
+<script>
+    var IsSerializable;
+    var ItemQuantity, ApprovedQuantity, IssuedQuantity = 0.0;
+    $(document).ready(function () {
+
+        $("#RequisitionItemId").kendoDropDownList({
+            dataTextField: "ItemName",
+            dataValueField: "Id",
+            optionLabel: "--Select--",
+            change:onReqchange,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Ims/InventoryManagement/ReadRequisitionItemsData?requisitionId=@Model.IssueReferenceId",
+                    }
+                }
+            }
+        });
+    });
+    function onReqchange(e)
+    {
+        //var entityGrid = $("#itemsGrid").data("JSGrid");
+        //entityGrid.render();
+        var dataItem = $("#RequisitionItemId").data("kendoDropDownList").dataItem();
+        if (dataItem != undefined && dataItem != null) {
+            $("#ItemsArea").show();
+            ItemQuantity = dataItem.ItemQuantity;
+            ApprovedQuantity = dataItem.ApprovedQuantity;
+            IssuedQuantity = dataItem.IssuedQuantity;
+            $("#reqQty").html(dataItem.ItemQuantity);
+            $("#appQty").html(dataItem.ApprovedQuantity);
+            $("#issueQty").html(dataItem.IssuedQuantity);
+            $("#itemsGrid").jsGrid({
+                width: "100%",
+                //height: "600px",
+
+                inserting: false,
+                editing: true,
+                sorting: true,
+                paging: true,
+                autoload: true,
+                pageSize: 14,
+                pageButtonCount: 5,
+                deleteConfirm: "Do you really want to delete client?",
+
+                //data: clients,
+                controller: {
+                    loadData: function (filter) {
+                       // debugger
+                        return $.ajax({
+                            type: "GET",
+                            url: "/IMS/InventoryManagement/ReadGoodReceiptItemsToIssue?requisitionItemId=" + dataItem.Id + "&itemId=" + dataItem.Item + "&warehouseId=" + $("#WarehouseId").val() + "&receiptType=0",
+                            data: filter,
+                            dataType: "json",
+                            success: function (result)
+                            {
+                                debugger;
+                                if (result==null || result.length == 0)
+                                {
+                                    kendo.alert("There is no item available in the stock to issue.Please purchase items first");
+                                }
+                            }
+                        });
+                    },
+                    updateItem: function (item) {
+
+                    },
+                    deleteItem: function (item) {
+                        onDeleteItem(item.NoteId);
+                    }
+                },
+                onItemEditing: function (e) {
+                     IsSerializable = e.item.IsSerializable;
+                    debugger
+                    if (e.item.IsSerializable == "4")
+                    {
+                        if (e.item.AdditionalInfo == "Opening Balance") {
+                            renderSerialNos(e.item.Id, e.item.Id);
+                        }
+                        else {
+                            renderSerialNos(e.item.Id, e.item.ReferenceHeaderId);
+                        }
+                    }
+
+                    //if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+
+
+                    //}
+                },
+                fields: [
+                    {
+                        name: "Select",
+                        title: "Select",
+                        type: "checkbox",
+                        editing: true
+                    },
+                    {
+                        name: "AdditionalInfo",
+                        title: "Description",
+                        type: "text",
+                        editing: false
+                    },
+                    {
+                        name: "TransactionQuantity",
+                        title: "Transaction Quantity",
+                        type: "number",
+                        editing: false
+                    },
+
+
+                    {
+                        name: "AlreadyIssuedQuantity",
+                        title: "Issued Quantity",
+                        type: "number",
+                        editing: false
+
+                    },
+                    {
+                        name: "BalanceQuantity",
+                        title: "Balance Quantity",
+                        type: "number", editcss: "team-edit",
+                        editing: false,
+                        //itemTemplate: function (val, item)
+                        //{
+                        //    return item.ApprovedQuantity - item.IssuedQuantity;
+                        //}
+
+                    },
+                    {
+                        name: "IssuedQuantity",
+                        title: "Current Issue Quantity",
+                        type: "number",
+                        editing: true,
+                        //editTemplate: function (value) {
+                        //
+                        //    var balance = this._grid.fields[7].valueOf();
+                        //    var inventory = this._grid.fields[3].valueOf();
+
+                        //    var $editControl = jsGrid.fields.number.prototype.editTemplate.call(this, value);
+
+                        //    var changeCriteria = function () {
+                        //        var BalanceQuantity = balance.editValue();
+                        //        var InventoryQuantity = inventory.editValue();
+                        //        var CurrentQuantity = this.value;
+                        //        if (BalanceQuantity < InventoryQuantity) {
+                        //            if (CurrentQuantity > BalanceQuantity) {
+                        //                alert("Current Quantity cannot exceed Balance Quantity");
+                        //                this.value = 0;
+                        //                $editControl.val('0');
+                        //            }
+                        //        }
+                        //        else
+                        //        {
+                        //            if (CurrentQuantity > InventoryQuantity) {
+                        //                alert("Current Quantity cannot exceed available stock Quantity");
+                        //                this.value = 0;
+                        //                $editControl.val('0');
+                        //            }
+                        //        }
+
+                        //    };
+
+                        //    $editControl.on("change", changeCriteria);
+                        //    changeCriteria();
+
+                        //    return $editControl;
+                        //}
+                    },
+                    //{
+
+                    //    type: "control", deleteButton: false,
+
+                    //},
+
+                ]
+            });
+        }
+        else
+        {
+            $("#ItemsArea").hide();
+            $("#itemsGrid").html("");
+        }
+    }
+
+    function renderSerialNos(id,referenceHeaderId)
+    {
+        $("#SerialNoGrid").jsGrid({
+            width: "100%",
+            inserting: false,
+            editing: true,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 14,
+            pageButtonCount: 5,
+            controller: {
+                loadData: function (filter) {
+
+                    return $.ajax({
+                        type: "GET",
+                        url: "/IMS/InventoryManagement/GetSerialNos?referenceid=" + id + "&referenceHeaderId=" + referenceHeaderId,
+                        data: filter,
+                        dataType: "json"
+                    });
+                },
+                onItemEditing: function (e) {
+                    debugger;
+                    if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                        //
+                        e.grid.updateItem();
+                    }
+                },
+                updateItem: function (item) {
+                    /*debugger;*/
+                },
+                //deleteItem: function (item) {
+                //    onDeleteItem(item.NoteId);
+                //}
+            },
+            fields: [
+                {
+                    name: "Select",
+                    title: "Item Name",
+                    type: "checkbox",
+                    editing: true
+                },
+                {
+                    name: "SerialNo",
+                    title: "SerialNo",
+                    type: "text",
+                    editing: false
+                },
+                {
+                    name: "Specification",
+                    title: "Item Specification",
+                    type: "text",
+                    editing: false
+                },
+                {
+
+                        type: "control", deleteButton: false,
+
+                    },
+            ]
+        });
+    }
+</script>

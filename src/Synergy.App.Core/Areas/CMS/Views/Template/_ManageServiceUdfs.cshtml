@@ -1,0 +1,350 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+@{
+    ViewData["Title"] = "Portal";
+    //Layout = null;
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model ServiceTemplateViewModel
+
+<style>
+
+    .style-myiconimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybgimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .jdp-input {
+        width: 100% !important;
+    }
+
+    .k-textbox {
+        border: none !important;
+    }
+
+    .form-label-group {
+        position: relative;
+        margin-bottom: 0px;
+    }
+
+    .cms-manageportal-footer {
+        /*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+    /*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+    .richText .richText-editor {
+        height: 150px;
+    }
+</style>
+
+<script>
+
+    function formTypeChange() {
+        
+        var data = $("#FormType").data("kendoDropDownList").value();
+
+        jsonObj = JSON.parse(JSON.stringify(builder.instance.schema, null, 4));
+        console.log(data);
+        if (data == "Form") {
+            //form
+            jsonObj.display = "form";
+        } else if (data == "Wizard") {
+            //Wizard
+            jsonObj.display = "wizard";
+        }
+
+        builder = new Formio.FormBuilder(document.getElementById("builder"), jsonObj, {
+            builder: {
+                custom: {
+                    title: 'Chart',
+                    weight: 10,
+                    components: {
+                        chartjs: {
+                            title: 'Chart',
+                            key: 'chartJS',
+                            icon: 'terminal',
+                            schema: {
+                                label: 'Chart JS',
+                                type: 'htmlelement',
+                                key: 'chartJs',
+                                input: true
+                            }
+                        },
+                    }
+                },
+
+            }
+        });
+    }
+
+</script>
+
+
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <form asp-controller="Template" asp-action="ManageServiceUdfs" method="post" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary-managepageserviceudfs" class="text-danger" asp-validation-summary="All"></div>
+
+        <div class="row pad-10">
+            <div class="pad-15 no-gutters" style="width: 100%;">
+                <div class="pad-b-15 card col-12 page" data-mode="@Model.DataAction" id="@Model.Id" data-page-content-type="Page"
+                     data-sequence="@Model.SequenceOrder">
+                    <div class="card-header page-header bg-info">
+
+                        <span class="cms-settings-box" onclick="OpenPageSettings(this)">
+                            <i class="cursor-p fa fa-cog" title="Settings"></i>
+                        </span>
+
+                    </div>
+                    <div class="card-body" id="component-container">
+                        @Html.HiddenFor(m => m.Id)
+                        @Html.HiddenFor(m => m.DataAction)
+                        @Html.HiddenFor(m => m.Json)
+                        @Html.HiddenFor(m => m.TemplateId)
+                        @Html.HiddenFor(m => m.UdfTemplateId)
+                        @Html.HiddenFor(m => m.UdfTableMetadataId)
+                        @Html.HiddenFor(m => m.IconFileId)
+                        @Html.HiddenFor(m => m.BannerFileId)
+                        @Html.HiddenFor(m => m.BackgroundFileId)
+                        @Html.HiddenFor(x => x.ServiceIndexPageTemplateId)
+
+                        <input asp-for="FormType" id="FormType" class="form-control" style="width:80%" />
+                        <br />
+                        <br />
+                        <div id="builder"></div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class="cms-footer">
+            <div class="col-sm-12" style="text-align:right;">
+                <button type="submit" class="btn btn-success" onclick="OnSave()">Save</button>
+                @if (ViewBag.LayoutMode == LayoutModeEnum.Popup.ToString())
+                {
+                    <input type="button" class="btn btn-light" value="Close" onclick="return OnClose('@Model.TemplateId');" />
+                }
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $("#FormType").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            value: '@Model.FormType.ToString()',
+            change: formTypeChange,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=FormTypeEnum",
+                    }
+                }
+            }
+        });
+
+        if ('@ViewBag.Success' == "True") {
+            //alert("1");
+            closeNavPortal();
+            var tree = window.parent.$("#contentTreeView").data("kendoTreeView");
+            tree.dataSource.read();
+            //alert("2");
+        }
+
+         $.ajax({
+             type: "GET",
+             url: "/Cms/Template/GetTemplateJson?templateId=@Model.TemplateId",
+            success: function (response) {
+                if (response != "" && response != null) {
+                    var obj = JSON.parse(response);
+                    builder = new Formio.FormBuilder(document.getElementById("builder"), obj, {
+                        builder: {
+                            custom: {
+                                title: 'Chart',
+                                weight: 10,
+                                components: {
+                                    chartjs: {
+                                        title: 'Chart',
+                                        key: 'chartJS',
+                                        icon: 'terminal',
+                                        schema: {
+                                            label: 'Chart JS',
+                                            type: 'htmlelement',
+                                            key: 'chartJs',
+                                            input: true
+                                        }
+                                    },
+                                }
+                            },
+
+                        }
+                        , noDefaultSubmitButton: true
+                    } );
+                }
+                else {
+                    var obj = {
+                        "synergyTableMapId": '@ViewBag.SynergyTableMapId'
+                    }
+                    builder = new Formio.FormBuilder(document.getElementById("builder"), obj, {
+                        builder: {
+                            custom: {
+                                title: 'Chart',
+                                weight: 10,
+                                components: {
+                                    chartjs: {
+                                        title: 'Chart',
+                                        key: 'chartJS',
+                                        icon: 'terminal',
+                                        schema: {
+                                            label: 'Chart JS',
+                                            type: 'htmlelement',
+                                            key: 'chartJs',
+                                            input: true
+                                        }
+                                    },
+                                }
+                            },
+
+                        }
+                        , noDefaultSubmitButton: true
+                    }
+                    );
+                }
+
+            },
+            error: function (response) {
+                alert("error");
+            },
+         });
+
+    });
+
+
+    function OnSave() {
+        $("#Json").val(JSON.stringify(builder.instance.schema, null, 4));
+        return true;
+    }
+
+     var onAjaxSuccess = function (res) {
+        if (res.success) {
+            ShowNotification("Saved Successfully", "success");
+            var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("ManageServiceUdfs", "Template", new { @area = "Cms" })?templateId='+ TemplateId+'&lo=@(ViewBag.LayoutMode??"")&cbm=@(ViewBag.CallbackMethod??"")', $('#detailPageUdfs'));
+        }
+        else {
+            showError(res.error);
+        }
+    };
+    var showError = function (error) {
+
+        //#validation-summary-manageform
+        $("#validation-summary-managepageserviceudfs").html(error);
+        $("#validation-summary-managepageserviceudfs").css("display", "block")
+    }
+
+    function hideServiceHeader() {
+        if ($('#HideHeader').is(':checked')) {
+            $('#HideSubject').prop("checked", false);
+            $('#hideSubject').hide();
+            $('#HideDescription').prop("checked", false);
+            $('#hideDescription').hide();
+            $('#HideStartDate').prop("checked", false);
+            $('#hideStartDate').hide();
+            $('#HideOwner').prop("checked", false);
+            $('#HideOwner').hide();
+            $('#HideExpiryDate').prop("checked", false);
+            $('#hideExpiryDate').hide();
+            $('#HidePriority').prop("checked", false);
+            $('#hidePriority').hide();
+            $('#HideToolbar').prop("checked", false);
+            $('#hideToolbar').hide();
+            $('#HideBanner').prop("checked", false);
+            $('#hideBanner').hide();
+        } else {
+            $('#hideSubject').show();
+            $('#hideDescription').show();
+            $('#hideStartDate').show();
+            $('#hideExpiryDate').show();
+            $('#hidePriority').show();
+            $('#hideToolbar').show();
+            $('#hideBanner').show();
+            $('#HideOwner').show();
+        }
+    }
+
+
+</script>

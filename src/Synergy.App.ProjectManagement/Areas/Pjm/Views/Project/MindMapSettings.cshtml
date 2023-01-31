@@ -1,0 +1,291 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.PJM.Controllers.ProjectController> Resource
+@using Synergy.App.WebUtility;
+@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Settings";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+<style>
+    .fieldlist {
+        margin: 0 0 -1em;
+        padding: 0;
+    }
+
+        .fieldlist li {
+            list-style: none;
+            padding-bottom: 1em;
+        }
+</style>
+<br />
+<div style="text-align:center">
+    @*@(Html.Kendo().ButtonGroup()
+       .Name("player")
+       .Items(t =>
+       {
+           t.Add().Text(@Resource["AddService"]);
+           t.Add().Text(@Resource["AddTask"]);
+       })
+       .Index(0)
+       .Events(ev => ev.Select("onSelect"))
+)*@
+</div>
+<br />
+<div style="text-align:center">
+    <span>@Resource["SelectTypeofNode"]</span>
+    @*@(Html.Kendo().RadioGroup()
+            .Name("type")
+            .Layout("horizontal")
+            .Items(i =>
+            {
+                i.Add().Label(@Resource["AsParent"]).Value("1");
+                i.Add().Label(@Resource["AsChild"]).Value("2");
+                i.Add().Label(@Resource["AsIndividual"]).Value("3");
+            })
+            .Value("1")
+        )*@
+
+<section class="section-preview">
+    <div class="custom-control custom-radio custom-control-inline">
+        <input type="radio" class="custom-control-input" id="1" name="type" value="1" checked>
+        <label class="custom-control-label" for="1">@Resource["AsParent"]</label>
+    </div>
+    <div class="custom-control custom-radio custom-control-inline">
+        <input type="radio" class="custom-control-input" id="2" name="type" value="2">
+        <label class="custom-control-label" for="2">@Resource["AsChild"]</label>
+    </div>
+    <div class="custom-control custom-radio custom-control-inline">
+        <input type="radio" class="custom-control-input" id="3" name="type" value="3" >
+        <label class="custom-control-label" for="3">@Resource["AsIndividual"]</label>
+    </div>
+</section>
+</div>
+<br />
+<div id="serviceTemplate" style="padding: 8px;">
+    @*@(Html.Kendo().DropDownList().Name("TemplateService")
+            //.Name("TemplateId")
+           .DataTextField("DisplayName")
+           .DataValueField("Id")
+           .DataSource(source =>
+           {
+               source.Read(read =>
+               {
+                   read.Action("GetTemplateByType", "Template", new { @area = "Cms" }).Data("filterTemplatesService");
+               })
+               .ServerFiltering(true);
+           })
+            .Events(e =>
+                {
+                    e.Select("onSelectDrop");
+                })
+           .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+              .HtmlAttributes(new { style = "width: 100%" })
+        )*@
+    <input id="TemplateService" style = "width: 100%" />
+</div>
+<div id="taskTemplate" style="display:none;padding: 8px;">
+    @*@(Html.Kendo().DropDownList().Name("TemplateTask")
+        //.Name("TemplateId")
+       .DataTextField("DisplayName")
+       .DataValueField("Id")
+       .DataSource(source =>
+       {
+           source.Read(read =>
+           {
+               read.Action("GetTemplateByType", "Template", new { @area = "Cms" }).Data("filterTemplatesTask");
+           })
+           .ServerFiltering(true);
+       })
+        .Events(e =>
+            {
+                e.Select("onSelectDrop");
+            })
+       .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+          .HtmlAttributes(new { style = "width: 100%" })
+    )*@
+
+    <input id="TemplateTask" style="width: 100%" />
+</div>
+
+
+
+<div style="text-align:center;padding: 8px;">
+
+    <input id="level" style="width:100%" />
+
+    @*@(Html.Kendo().DropDownList()
+              .Name("level")
+              .DataTextField("Text")
+              .DataValueField("Value")
+              .BindTo(new List<SelectListItem>() {
+                  new SelectListItem() {
+                      Text = "Default",
+                      Value = "0"
+                  },
+                  new SelectListItem() {
+                      Text = "Level 1",
+                      Value = "1"
+                  },
+                  new SelectListItem() {
+                      Text = "Level 2",
+                      Value = "2"
+                  },
+                  new SelectListItem() {
+                      Text = "Level 3",
+                      Value = "3"
+                  },
+                  new SelectListItem() {
+                      Text = "Level 4",
+                      Value = "4"
+                  },new SelectListItem() {
+                      Text = "Level 5",
+                      Value = "5"
+                  },new SelectListItem() {
+                      Text = "Level 6",
+                      Value = "6"
+                  },new SelectListItem() {
+                      Text = "Level 7",
+                      Value = "7"
+                  },new SelectListItem() {
+                      Text = "Level 8",
+                      Value = "8"
+                  },new SelectListItem() {
+                      Text = "Level 9",
+                      Value = "9"
+                  },new SelectListItem() {
+                      Text = "Level 10",
+                      Value = "10"
+                  },
+              })
+              .Value("0")
+              .HtmlAttributes(new { style = "width: 100%" })
+        )*@
+</div>
+
+
+<div style="text-align:center">
+    <button class="btn btn-primary" onclick="onSave()">@SharedResource["Save"]</button>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        $("#TemplateService").kendoDropDownList({
+            dataTextField: "DisplayName",
+            dataValueField: "Id",
+           // filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            select: onSelectDrop,
+            dataSource:
+            {
+                serverFiltering:true,
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Cms/Template/GetTemplateByType?type=Service",
+                    }
+                }
+            }
+        });
+
+        $("#TemplateTask").kendoDropDownList({
+            dataTextField: "DisplayName",
+            dataValueField: "Id",
+           // filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            select: onSelectDrop,
+            dataSource:
+            {
+                serverFiltering:true,
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Cms/Template/GetTemplateByType?type=Task",
+                    }
+                }
+            }
+        });
+
+        $("#level").kendoDropDownList({
+                                    //optionLabel: "Select a response",                                   
+                                    dataTextField: "Text",
+                                    dataValueField: "Value",
+                                    value: "0",
+                                    dataSource: [
+                                        { Text: "Default", Value: "0" },
+                                        { Text = "Level 1", Value = "1" },
+                                        { Text = "Level 2", Value = "2"},
+                                        { Text = "Level 3", Value = "3"},
+                                        { Text = "Level 4", Value = "4"},
+                                        { Text = "Level 5", Value = "5"},
+                                        { Text = "Level 6", Value = "6"},
+                                        { Text = "Level 7", Value = "7"},
+                                        { Text = "Level 8", Value = "8"},
+                                        { Text = "Level 9", Value = "9"},
+                                        { Text = "Level 10", Value = "10"},
+
+                                        ],
+
+                                 });
+
+    });
+
+
+    var index;
+    var tempId;
+    var tempName;
+
+    function onSave() {
+        var type = $("#type").data("kendoRadioGroup").value();
+        var level = parseInt($("#level").data("kendoDropDownList").value());
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        window.parent.OnCloseSetting({ type: index, tempId: tempId, tempName: tempName, type: type, level: level });
+    }
+
+    function onSelect(e) {
+        console.log("selected index:" + e.indices);
+        if (e.indices == 0) {
+            $("#serviceTemplate").show();
+            $("#taskTemplate").hide();
+            index = "service";
+        } else if (e.indices == 1) {
+            $("#serviceTemplate").hide();
+            $("#taskTemplate").show();
+            index = "task";
+        }
+    }
+
+    function filterTemplatesService() {
+        return {
+            type: "Service"
+        };
+    }
+
+    function filterTemplatesTask() {
+        return {
+            type: "Task"
+        };
+    }
+
+    function onSelectDrop(e) {
+        if (e.item) {
+            var dataItem = this.dataItem(e.item);
+            console.log(dataItem.Id);
+            console.log(dataItem.DisplayName);
+            tempId = dataItem.Id;
+            tempName = dataItem.DisplayName;
+        }
+    }
+</script>
+
+<style>
+    .demo-section {
+        text-align: center;
+    }
+</style>

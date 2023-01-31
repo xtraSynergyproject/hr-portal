@@ -1,0 +1,1394 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+<link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css">
+
+<script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
+
+
+@{
+    ViewData["Title"] = "Sanitation Dashboard";
+    Layout = null;
+}
+<style>
+    .gallery {
+        background: #EEE;
+    }
+
+    .gallery-cell {
+        width: 30%;
+        height: 250px;
+        margin-right: 10px;
+        background: #3a3d55;
+        counter-increment: gallery-cell;
+    }
+
+        /* cell number */
+        .gallery-cell:before {
+            display: block;
+            text-align: center;
+            /*content: counter(gallery-cell);*/
+            line-height: 250px;
+            font-size: 80px;
+            color: white;
+        }
+
+    body {
+        background: #343E59;
+        color: #777;
+        font-family: Montserrat, Arial, sans-serif;
+    }
+
+    .body-bg {
+        background: #F3F4FA !important;
+    }
+
+    h1, h2, h3, h4, h5, h6, strong {
+        font-weight: 600;
+    }
+
+    .content-area {
+        max-width: 1280px;
+        margin: 0 auto;
+    }
+
+    .box {
+        background-color: #2B2D3E;
+        padding: 25px 20px;
+        color: white !important;
+        font-weight: bold;
+    }
+
+    .shadow {
+        box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+    }
+
+    .sparkboxes .box {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        text-shadow: 0 1px 1px 1px #666;
+        box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+        position: relative;
+        border-radius: 5px;
+    }
+
+        .sparkboxes .box .details {
+            position: absolute;
+            color: #fff;
+            transform: scale(0.7) translate(-22px, 20px);
+        }
+
+    .sparkboxes strong {
+        position: relative;
+        z-index: 3;
+        top: -8px;
+        color: #fff;
+    }
+
+
+    .sparkboxes .box1 {
+        background-image: linear-gradient( 135deg, #ABDCFF 10%, #0396FF 100%);
+    }
+
+    .sparkboxes .box6 {
+        background-image: linear-gradient( 135deg, #ABDCFF 10%, #624F82 100%);
+    }
+
+    .sparkboxes .box2 {
+        background-image: linear-gradient( 135deg, #2AFADF 10%, #82CD47 100%);
+    }
+
+    .sparkboxes .box3 {
+        background-image: linear-gradient( 135deg, #FFD3A5 10%, #FD6585 100%);
+    }
+
+    .sparkboxes .box4 {
+        background-image: linear-gradient( 135deg, #EE9AE5 10%, #5961F9 100%);
+    }
+
+    .sparkboxes .box7 {
+        background-image: linear-gradient( 135deg, #EE9AE5 10%, #FFADBC 100%);
+    }
+
+    #main-content {
+        background-color: #3a3d54;
+    }
+
+    .flickity-viewport {
+        height: 250px;
+        touch-action: pan-y;
+        background-color: #3a3d55;
+    }
+
+    .flickity-page-dots .dot {
+        background: #fff;
+    }
+
+    .flickity-page-dots {
+        bottom: 0px !important
+    }
+
+    .flickity-slider {
+        left: -29% !important;
+    }
+
+    .card {
+        background-color: #3a3d55;
+    }
+</style>
+
+<script>
+
+    function showTab(id) {
+        var elems = document.querySelectorAll(".step");
+
+        [].forEach.call(elems, function (el) {
+            el.classList.remove("active");
+        });
+
+        document.getElementById("step" + id).classList.add("active");
+
+        if (id == 1) {
+            document.getElementById("rcb").style.display = "";
+            document.getElementById("cnc").style.display = "none";
+            document.getElementById("dww").style.display = "none";
+            document.getElementById("pie").style.display = "none";
+        } else if (id == 2) {
+            document.getElementById("cnc").style.display = "";
+            document.getElementById("dww").style.display = "none";
+            document.getElementById("pie").style.display = "none";
+            document.getElementById("rcb").style.display = "none";
+
+        } else if (id == 3) {
+            document.getElementById("dww").style.display = "";
+            document.getElementById("cnc").style.display = "none";
+            document.getElementById("pie").style.display = "none";
+            document.getElementById("rcb").style.display = "none";
+
+
+        } else if (id == 4) {
+            document.getElementById("pie").style.display = "";
+            document.getElementById("cnc").style.display = "none";
+            document.getElementById("dww").style.display = "none";
+            document.getElementById("rcb").style.display = "none";
+        }
+    }
+    //    var elem = document.querySelector('.gallery');
+    //var flkty = new Flickity( elem, {
+    //  // options
+    //  cellAlign: 'left',
+    //  contain: true
+    //});
+
+    //// element argument can be a selector string
+    ////   for an individual element
+    //    var flkty = new Flickity('.gallery', {
+    //  // options
+    //});
+
+    var date = new Date();
+    $("#selectedDate").kendoDatePicker({
+        format: "dd-MM-yyyy",
+        value: date,
+        dateInput: true,
+        change: onChangeDate
+    });
+
+    function onChangeDate() {
+        var date = $("#selectedDate").data("kendoDatePicker").value();
+        var fdate = dateFormat(date);
+        topHeader(fdate);
+        areaChart(fdate);
+    }
+
+    function dateFormat(date) {
+        var dateArray = date;
+        var day = dateArray.getDate();
+        var month = dateArray.getMonth() + 1;
+        var year = dateArray.getFullYear();
+        return year + "-" + month + "-" + day;
+    }
+
+
+    window.Apex = {
+        chart: {
+            foreColor: '#ccc',
+            toolbar: {
+                show: false
+            },
+        },
+        stroke: {
+            width: 3
+        },
+        dataLabels: {
+            enabled: false
+        },
+        tooltip: {
+            theme: 'dark'
+        },
+        grid: {
+            borderColor: "#535A6C",
+            xaxis: {
+                lines: {
+                    show: true
+                }
+            }
+        }
+    };
+
+
+    function topHeader(date) {
+        document.querySelector("#spark1").innerHTML = "";
+        document.querySelector("#spark2").innerHTML = "";
+        document.querySelector("#spark3").innerHTML = "";
+        document.querySelector("#spark4").innerHTML = "";
+        document.querySelector("#spark21").innerHTML = "";
+        document.querySelector("#spark7").innerHTML = "";
+        document.querySelector("#spark31").innerHTML = "";
+        document.querySelector("#spark41").innerHTML = "";
+
+        document.getElementById("collected").innerHTML = "";
+        document.getElementById("notCollected").innerHTML = "";
+        document.getElementById("odry").innerHTML = "";
+        document.getElementById("owet").innerHTML = "";
+        document.getElementById("idry").innerHTML = "";
+        document.getElementById("iwet").innerHTML = "";
+        document.getElementById("res").innerHTML = "";
+        document.getElementById("comm").innerHTML = "";
+        debugger;
+        if (date == null || date == undefined) {
+            date = dateFormat(new Date());
+        }
+        $.ajax({
+            type: 'GET',
+            url: '/EGov/SmartCity/GetGarbageCollection10DaysCount?date=' + date,
+            success: function (res) {
+
+                var spark1 = {
+                    chart: {
+                        id: 'spark1',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.collectedCountList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    colors: ['#fff'],
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+                var spark2 = {
+                    chart: {
+                        id: 'spark2',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.dryCountList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    colors: ['#fff'],
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+                var spark3 = {
+                    chart: {
+                        id: 'spark3',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.wetCountList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    colors: ['#fff'],
+                    xaxis: {
+                        crosshairs: {
+                            width: 1
+                        },
+                    },
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+                var spark4 = {
+                    chart: {
+                        id: 'spark4',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.residentialCountList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    colors: ['#fff'],
+                    xaxis: {
+                        crosshairs: {
+                            width: 1
+                        },
+                    },
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+                var spark6 = {
+                    chart: {
+                        id: 'spark6',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.notCollectedCountList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    colors: ['#fff'],
+                    xaxis: {
+                        crosshairs: {
+                            width: 1
+                        },
+                    },
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+                var spark7 = {
+                    chart: {
+                        id: 'spark7',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.commercialCountList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    colors: ['#fff'],
+                    xaxis: {
+                        crosshairs: {
+                            width: 1
+                        },
+                    },
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+                var spark31 = {
+                    chart: {
+                        id: 'spark31',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.wetCountiList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    colors: ['#fff'],
+                    xaxis: {
+                        crosshairs: {
+                            width: 1
+                        },
+                    },
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+                var spark21 = {
+                    chart: {
+                        id: 'spark21',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.notCollectedCountList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    colors: ['#fff'],
+                    xaxis: {
+                        crosshairs: {
+                            width: 1
+                        },
+                    },
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+                var spark41 = {
+                    chart: {
+                        id: 'spark41',
+                        group: 'sparks',
+                        type: 'line',
+                        height: 80,
+                        sparkline: {
+                            enabled: true
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            opacity: 0.2,
+                        }
+                    },
+                    series: [{
+                        data: res.dryCountiList
+                    }],
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    grid: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 110
+                        }
+                    },
+                    colors: ['#fff'],
+                    xaxis: {
+                        crosshairs: {
+                            width: 1
+                        },
+                    },
+                    tooltip: {
+                        x: {
+                            show: false
+                        },
+                        y: {
+                            title: {
+                                formatter: function formatter(val) {
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+
+                new ApexCharts(document.querySelector("#spark1"), spark1).render(); //collected
+                new ApexCharts(document.querySelector("#spark2"), spark2).render(); //ts dry
+                new ApexCharts(document.querySelector("#spark3"), spark3).render(); //ts wet
+                new ApexCharts(document.querySelector("#spark4"), spark4).render(); //residential
+                new ApexCharts(document.querySelector("#spark21"), spark6).render(); //not collected
+                new ApexCharts(document.querySelector("#spark7"), spark7).render(); //commercial
+                new ApexCharts(document.querySelector("#spark31"), spark31).render(); //wtp wet
+                new ApexCharts(document.querySelector("#spark41"), spark41).render(); //wtp dry
+
+
+                document.getElementById("collected").innerHTML = res.collectedCount;
+                document.getElementById("notCollected").innerHTML = res.notCollectedCount;
+                document.getElementById("odry").innerHTML = res.dryCount;
+                document.getElementById("owet").innerHTML = res.wetCount;
+                document.getElementById("idry").innerHTML = res.dryCounti;
+                document.getElementById("iwet").innerHTML = res.wetCounti;
+                document.getElementById("res").innerHTML = res.residentialCount;
+                document.getElementById("comm").innerHTML = res.commercialCount;
+
+            }
+        });
+    }
+
+
+    $(document).ready(function () {
+        var todayDate = kendo.toString(kendo.parseDate(new Date()), 'dd-MM-yyyy');
+        $("#selectedDate").data("kendoDatePicker").value(todayDate);
+
+        ShowLoader($('#mainarea'));
+        topHeader();
+
+        $.ajax({
+            type: 'GET',
+            url: '/EGov/SmartCity/GetGarbageCollectionMonthCount',
+            success: function (res) {
+                debugger;
+                var optionsLine = {
+                    chart: {
+                        height: 328,
+                        type: 'line',
+                        zoom: {
+                            enabled: false
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 3,
+                            left: 2,
+                            blur: 4,
+                            opacity: 1,
+                        }
+                    },
+                    stroke: {
+                        curve: 'smooth',
+                        width: 2
+                    },
+                    //colors: ["#3F51B5", '#2196F3'],
+                    series: [{
+                        name: "Wet",
+                        data: res.wet
+                    },
+                    {
+                        name: "Dry",
+                        data: res.dry
+                    },
+
+                    ],
+                    title: {
+                        text: 'Garbage Collected Dry/Wet In Kgs. For This Month',
+                        align: 'left',
+                        offsetY: 25,
+                        offsetX: 20
+                    },
+                    subtitle: {
+                        text: 'Statistics',
+                        offsetY: 55,
+                        offsetX: 20
+                    },
+                    markers: {
+                        size: 6,
+                        strokeWidth: 0,
+                        hover: {
+                            size: 9
+                        }
+                    },
+                    grid: {
+                        show: true,
+                        padding: {
+                            bottom: 0
+                        }
+                    },
+                    labels: res.dates,
+                    xaxis: {
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                        horizontalAlign: 'right',
+                        offsetY: -20
+                    }
+                }
+
+                var chartLine = new ApexCharts(document.querySelector('#line-adwords'), optionsLine);
+                chartLine.render();
+
+
+            }
+        });
+
+        areaChart(dateFormat(new Date));
+
+        ShowLoader($('#mainarea'));
+        var pieurl = "/Egov/SmartCity/GetGarbageCollectionInNoInPie";
+        pieChart(pieurl, "garbageCollectionInNoPie", '@ViewBag.ReportTitle', ['#00D84D', '#FF4560']);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionInNoInBar", "garbageCollectionInNoBar", "Collection Ward wise in No.", ['#00D84D', '#FF4560']);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionDateByPropertyType", "garbageCollectionInResNoPie", "Garbage Collection", ['#00D84D', '#FF4560']);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionDateByPropertyTypeAndWard", "garbageCollectionInResNoBar", "", ['#00D84D', '#FF4560']);
+
+        var pieurl = "/Egov/SmartCity/GetGarbageCollectionInNoInPieinKgs";
+        pieChart(pieurl, "garbageCollectionInNoPieInKgs", '@ViewBag.ReportTitle', ["#00FF96", "#008FFB"]);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionInNoInBarinKgs", "garbageCollectionInNoBarInKgs", "Garbage Collection Ward wise Dry/Wet in Kgs", ["#00FF96", "#008FFB"]);
+        var pieurl = "/Egov/SmartCity/GetGarbageCollectionDateByPropertyTypeinKgs";
+        pieChart(pieurl, "garbageCollectionInResNoPieInKgs", '@ViewBag.ReportTitle', ["#17a2b8", "#FED919"]);
+        stackBarChart("/Egov/SmartCity/GetGarbageCollectionDateByPropertyTypeAndWardinKgs", "garbageCollectionInResNoBarInKgs", "Garbage Collection Ward wise Residential/Commercial in No.", ["#17a2b8", "#FED919"]);
+
+        //var pieurl = "/Egov/SmartCity/GetBWGCollection";
+        //pieChart(pieurl, "BWGCollection", '@ViewBag.ReportTitle', ["#00FF96", "#008FFB"]);
+    });
+
+    function areaChart(date) {
+        $.ajax({
+            type: 'GET',
+            url: '/EGov/SmartCity/GetGarbageCollectionAreaCount?date=' + date,
+            success: function (res) {
+                debugger;
+
+                var optionsArea = {
+                    chart: {
+                        height: 380,
+                        type: 'area',
+                        stacked: false,
+                    },
+                    stroke: {
+                        curve: 'straight'
+                    },
+                    series: [{
+                        name: "Residential",
+                        data: res.residential
+                    },
+                    {
+                        name: "Commercial",
+                        data: res.commercial
+                    },
+                    {
+                        name: "BWG",
+                        data: res.bwg
+                    },
+                    ],
+                    xaxis: {
+                        categories: res.wardList,
+                    },
+                    tooltip: {
+                        followCursor: true
+                    },
+                    fill: {
+                        opacity: 1,
+                    },
+                }
+
+                var chartArea = new ApexCharts(
+                    document.querySelector("#areachart"),
+                    optionsArea
+                );
+
+                chartArea.render();
+
+            }
+        });
+
+    }
+
+    setTimeout(function () {
+        HideLoader($('#mainarea'));
+    }, 5000);
+
+
+
+    var animation = {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800,
+        animateGradually: {
+            enabled: true,
+            delay: 150
+        },
+        dynamicAnimation: {
+            enabled: true,
+            speed: 350
+        }
+    };
+
+    var theme = {
+        mode: 'light',
+        palette: 'palette1',
+        monochrome: {
+            enabled: false,
+            color: '#255aee',
+            shadeTo: 'light',
+            shadeIntensity: 0.65
+        },
+    };
+
+    var noData = {
+        text: undefined,
+        align: 'center',
+        verticalAlign: 'middle',
+        offsetX: 0,
+        offsetY: 0,
+        style: {
+            color: undefined,
+            fontSize: '14px',
+            fontFamily: undefined
+        }
+    };
+
+
+    window.addEventListener('load', function () {
+        //alert("It's loaded!")
+    })
+
+
+
+    function pieChart(url, chartId, chartTitle, color) {
+        ShowLoader($('#mainarea'));
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    debugger;
+                    var vals = res.ItemValueSeries;
+                    var barvals = res.BarItemValueSeries;
+                    var itcode = res.Code;
+                    //var barcolors = res.Colors;
+                    var chart = "#" + chartId;
+                    var options;
+                    options = {
+                        animations: animation,
+                        noData: noData,
+                        theme: theme,
+                        series: vals,
+                        title: {
+                            text: ""
+                        },
+                        chart: {
+                            id: chartId,
+                            width: 300,
+                            height: 300,
+                            type: 'pie',
+                            events: {
+                                dataPointSelection: function (event, chartContext, config) {
+                                    debugger;
+                                    var name = config.w.globals.labels[config.dataPointIndex];
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'bottom'
+                        },
+
+                        labels: res.ItemValueLabel,
+                        colors: color,
+                        dataLabels: {
+                            formatter: function (val, opts) {
+                                return opts.w.config.series[opts.seriesIndex] + " (" + val.toFixed(2) + "%)"
+                            },
+                        },
+                    };
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                }
+            }
+        });
+    }
+
+    function stackBarChart(url, chartId, chartTitle, color) {
+        ShowLoader($('#mainarea'));
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    debugger;
+                    var vals = res.StackBarItemValueSeries;
+                    var cats = res.StackBarCategories;
+                    itcode = res.Code;
+                    var chart = "#" + chartId;
+                    var options = {
+                        series: vals,
+                        chart: {
+                            type: 'bar',
+                            height: 300,
+                            stacked: true,
+                            zoom: {
+                                enabled: true
+                            },
+                            events: {
+                                click: function (event, chartContext, config) {
+                                    debugger;
+                                    var wardname = config.globals.labels[config.dataPointIndex];
+                                    var status = config.globals.initialSeries[config.seriesIndex].name;
+                                }
+                            }
+                        },
+                        animations: animation,
+                        noData: noData,
+                        theme: theme,
+                        colors: color,
+                        plotOptions: {
+                            bar: {
+                                horizontal: false,
+                                dataLabels: {
+                                    total: {
+                                        enabled: true,
+                                        offsetX: 0,
+                                        style: {
+                                            fontSize: '13px',
+                                            fontWeight: 900
+                                        }
+                                    }
+                                }
+                            },
+                        },
+                        stroke: {
+                            width: 1,
+                            colors: ['#fff']
+                        },
+                        title: {
+                            text: ""
+                        },
+                        xaxis: {
+                            show: true,
+                            title: {
+                                text: chartTitle
+                            },
+                            categories: cats,
+                            labels: {
+
+                                formatter: function (val) {
+                                    return val
+                                }
+                            }
+                        },
+                        yaxis: {
+                            show: true,
+                            title: {
+                                //text: chartTitle
+                            },
+                        },
+                        tooltip: {
+                            y: {
+                                formatter: function (val) {
+                                    return val
+                                }
+                            }
+                        },
+                        fill: {
+                            opacity: 1
+                        },
+                        legend: {
+                            position: 'top',
+                            horizontalAlign: 'center',
+                            offsetX: 40
+                        }
+                    };
+
+                    document.getElementById(chartId).innerHTML = "";
+                    var chart = new ApexCharts(document.querySelector(chart), options);
+                    chart.render();
+                }
+            }
+        });
+    }
+
+    function barChart(url, chartId, chartTitle, color) {
+        ShowLoader($('#mainarea'));
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (res) {
+                if (res) {
+                    debugger;
+                    var cat = res.StackBarCategories;
+                    var series = res.StackBarItemValueSeries;
+                    var chart1 = "#" + chartId;
+                    var options = {
+                        animations: animation,
+                        noData: noData,
+                        theme: theme,
+                        series: series,
+                        chart: {
+                            type: 'bar',
+                            height: 430
+                        },
+                        colors: color,
+                        plotOptions: {
+                            bar: {
+                                horizontal: true,
+                                dataLabels: {
+                                    position: 'top',
+                                },
+                            }
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            offsetX: -6,
+                            style: {
+                                fontSize: '12px',
+                                colors: ['#fff']
+                            }
+                        },
+                        stroke: {
+                            show: true,
+                            width: 1,
+                            colors: ['#fff']
+                        },
+                        tooltip: {
+                            shared: true,
+                            intersect: false
+                        },
+                        xaxis: {
+                            categories: cat,
+                        },
+                    };
+
+                    var chart = new ApexCharts(document.querySelector(chart1), options);
+                    chart.render();
+                }
+            }
+        });
+    }
+
+
+     var month = new Date().getMonth() + 1;
+
+
+     $("#month").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "EnumId",
+            value: month,
+            height: 350,
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                        transport: {
+                            read: {
+                                url: "/Home/GetEnumIdNameList?enumType=MonthEnum",
+                            }
+                        }
+                    },
+        });
+
+</script>
+
+<body>
+    <div id="wrapper">
+        <div class="content-area" id="mainarea">
+            <div class="container-fluid">
+                <br />
+                <div class="row">
+                    <div class="col"></div>
+                    <div class="col" style="text-align: end;"><span style="color:#CCCCCC;font-weight:bold;"> Collection For Date</span><input style="margin-left: 2%;" id="selectedDate" /></div>
+                </div>
+                <!-- Flickity HTML init -->
+                <div class="gallery js-flickity">
+                    <div class="gallery-cell">
+                        <div class="row sparkboxes mt-4">
+                            <div class="col" style="margin-top:-20px;height: 200px !important;">
+                                <div class="box box1" style="height: 200px !important;width:378px">
+                                    <span> Garbage</span>
+                                    <span>Collection</span>
+                                    <span>In No.</span>
+                                    <div class="details">
+                                        <h3 id="collected"></h3>
+                                        <h4>Collected</h4>
+                                    </div>
+                                    <div id="spark1"></div>
+                                    <div class="details" style="margin-left: -4%;">
+                                        <h3 id="notCollected"></h3>
+                                        <h4>Not Collected</h4>
+                                    </div>
+                                    <div id="spark21"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gallery-cell is-selected">
+                        <div class="row sparkboxes mt-4">
+                            <div class="col" style="height: 250px !important;width:400px">
+                                <div class="box box4">
+                                    <span>Garbage Collection In No.</span>
+                                    <div class="details">
+                                        <h3 id="res">22</h3>
+                                        <h4>Residential</h4>
+                                    </div>
+                                    <div id="spark4"></div>
+                                    <div class="details">
+                                        <h3 id="comm">22</h3>
+                                        <h4>Commercial</h4>
+                                    </div>
+                                    <div id="spark7"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="gallery-cell">
+                        <div class="row sparkboxes mt-4">
+                            <div class="col" style="height: 250px !important;width:400px">
+                                <div class="box box2">
+                                    <span> Transfer Station</span>
+                                    <span>Collection In Kgs</span>
+                                    <div class="details">
+                                        <h3 id="odry"></h3>
+                                        <h4> Dry</h4>
+                                    </div>
+                                    <div id="spark2"></div>
+                                    <div class="details">
+                                        <h3 id="owet"></h3>
+                                        <h4> Wet</h4>
+                                    </div>
+                                    <div id="spark3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gallery-cell">
+                        <div class="row sparkboxes mt-4">
+                            <div class="col" style="height: 250px !important;width:400px">
+                                <div class="box box3">
+                                    <span>WTP </span>
+                                    <span>Collection In Kgs</span>
+                                    <div class="details">
+                                        <h3 id="idry"></h3>
+                                        <h4>Dry</h4>
+                                    </div>
+                                    <div id="spark41"></div>
+                                    <div class="details">
+                                        <h3 id="iwet"></h3>
+                                        <h4>Wet</h4>
+                                    </div>
+                                    <div id="spark31"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gallery-cell"></div>
+                </div>
+
+
+                <span style="color:#CCCCCC;font-weight:bold;">Ward Wise For Selected Date</span>
+                <div class="section-block">
+                    <div id="stepper" class="bs-stepper">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="steps steps-" role="tablist">
+                                    <ul>
+                                        <li id="step1" onclick="showTab(1)" class="step  active" data-target="#test-l-1" data-validate="fieldset01">
+                                            <a href="#" class="step-trigger" tabindex="-1" aria-selected="false">
+                                                <span class="step-indicator step-indicator-icon">
+                                                    <i class="oi oi-account-login"></i>
+                                                </span> <span class="d-none d-sm-inline"> Residential/Commercial/BWG Waste In No.</span>
+                                            </a>
+                                        </li>
+                                        <li id="step2" class="step " onclick="showTab(2)" data-target="#test-l-2" data-validate="fieldset02">
+                                            <a href="#" class="step-trigger" tabindex="-1" aria-selected="false">
+                                                <span class="step-indicator step-indicator-icon"><i class="oi oi-person"></i></span>
+                                                <span class="d-none d-sm-inline">Collected/Not Collected Waste In No.</span>
+                                            </a>
+                                        </li>
+                                        <li id="step3" class="step " onclick="showTab(3)" data-target="#test-l-3" data-validate="fieldset03">
+                                            <a href="#" class="step-trigger" tabindex="-1" aria-selected="false">
+                                                <span class="step-indicator step-indicator-icon">
+                                                    <i class="oi oi-credit-card"></i>
+                                                </span> <span class="d-none d-sm-inline">Dry/Wet Waste In Kgs</span>
+                                            </a>
+                                        </li>
+                                        <li id="step4" class="step " onclick="showTab(4)" data-target="#test-l-4" data-validate="agreement">
+                                            <a href="#" class="step-trigger" tabindex="-1" aria-selected="true">
+                                                <span class="step-indicator step-indicator-icon"><i class="oi oi-check"></i></span>
+                                                <span class="d-none d-sm-inline">Waste Collection In Pie Charts</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="main">
+                    <div class="row mt-4" id="rcb">
+                        <div class="col">
+                            <span style="color:#CCCCCC;font-weight:bold">Garbage Collection By Catgeories and Ward In No. for selected date</span>
+                            <div class="box shadow mt-4" style="width:100%">
+                                <div id="areachart"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" id="cnc" style="display:none">
+                        <div class="col">
+                            <div class="box shadow mt-4" style="width:100%">
+                                <div id="garbageCollectionInNoBar"></div>
+
+                            </div>
+                        </div>
+                        @* <div class="col">
+                        <div class="box shadow mt-4" style="width:100%">
+                        <div id="garbageCollectionInResNoBar"></div>
+                        </div>
+                        </div>*@
+                    </div>
+
+                      <div class="row" id="pie" style="display:none">
+                        <div class="col">
+                            <div class="box shadow mt-4" style="width:100%">
+                                <span style="color:#CCCCCC;font-weight:bold">Collected/Not Collected Waste in No.</span>
+                                <div id="garbageCollectionInNoPie"></div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="box shadow mt-4" style="width:100%">
+                                <span style="color:#CCCCCC;font-weight:bold"> Dry/Wet Waste in Kgs</span>
+                                <div id="garbageCollectionInNoPieInKgs" class="bg"></div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="box shadow mt-4" style="width:100%">
+                                <span style="color:#CCCCCC;font-weight:bold"> Commercial/Residential Waste in No.</span>
+                                <div id="garbageCollectionInResNoPieInKgs" class="bg"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" id="dww" style="display:none">
+                        <div class="col">
+                            <div class="box shadow mt-4" style="width:100%">
+                                <div id="garbageCollectionInNoBarInKgs" class="bg"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div> <span style="color:#CCCCCC;font-weight:bold">Month</span>
+                        <input id="month"/></div>
+                    <div class="row mt-4" >
+                        <div class="box shadow mt-4" style="width:100%">
+                            <div id="line-adwords" class=""></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

@@ -1,0 +1,590 @@
+﻿@*@using Syncfusion.EJ2.Navigations*@
+
+@{
+    ViewData["Title"] = "Business Flow Diagram";
+    //Layout = null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@model CMS.UI.ViewModel.BusinessRuleNodeViewModel
+
+<div style="width:100%">
+    <ejs-button id="btnSave" content="Save Diagram"></ejs-button>
+    @*<ejs-button id="btnTest" content="Test Business Rule"></ejs-button>*@
+    <div id="diagram-space">
+        <ejs-diagram id="container" width="100%" height="700px" created="diagramCreated" getNodeDefaults="@ViewBag.getNodeDefaults" getConnectorDefaults="@ViewBag.getConnectorDefaults" contextMenuClick="contextMenuClick" contextMenuOpen="contextMenuOpen" >
+            <e-diagram-commandmanager commands="@ViewBag.commands"></e-diagram-commandmanager>
+            <e-diagram-contextmenusettings show="true" showCustomMenuOnly="true" items="@ViewBag.contextMenuItems"></e-diagram-contextmenusettings>
+        </ejs-diagram>
+    </div>
+</div>
+
+<div class="modal" id="CreateNodeDialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+
+            <div class="modal-header">
+                <h4 class="modal-title">Title</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>           
+            <div class="modal-body">
+                <div class="form-label-group">
+                    <input type="text" id="txtNodeLable" class="form-control" placeholder="Node label" required="required" autofocus="">
+                    <label for="inputName">Node Label</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="OnCreateNode()">Ok</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="OnClose()">Close</button>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+@Html.HiddenFor(x => x.BusinessRuleId)
+@Html.HiddenFor(x => x.TemplateId)
+@Html.HiddenFor(x => x.Id)
+<script type="text/javascript">
+    // methods to restrict deletion of node from keyboard
+    function canExecuteDelete() {
+        return false;
+    }
+    function executeDelete() {
+    }
+
+                function OnClose()
+                {
+                    $('#CreateNodeDialog').modal('hide');
+                }
+
+                $(document).ready(function () {
+                    if ('@ViewBag.DiagramData' == null || '@ViewBag.DiagramData' == "") {
+                        var nodes = [];
+                        $.ajax({
+                            url: "/bre/BusinessRuleDiagram/GetRandomId",
+                            type: "GET",
+                            contentType: "application/json",
+                            dataType: "JSON",
+                            success: function (response) {
+                                nodeId = response;
+                                nodes.push({
+                                    id: nodeId,
+                                    offsetY: 50,
+                                    offsetX: 400,
+                                    //constraints:"Default & ~Selection",
+                                    annotations: [{
+                                        content: 'Start',
+                                        style: { textOverflow: 'Wrap', textWrapping: 'WrapWithOverflow', color: "white" }
+                                    }],
+                                    shape: { type: 'Flow', shape: 'Terminator' },
+                                    style: { fill: 'green', strokeColor: "white" },
+                                    data: '0',
+                                    addInfo: { "parentId": "", "isDecisionChild": "","childId":""}
+                                });
+                                var diagram = document.getElementById("container").ej2_instances[0];
+                                diagram.nodes = nodes;
+                            }
+                        });
+                    }
+                    else
+                    {
+
+                        $.ajax({
+                            url: "/bre/BusinessRuleDiagram/GetDiagramData?ruleId=" + $("#BusinessRuleId").val(),
+                            type: "GET",
+                            contentType: "application/json",
+                            dataType: "JSON",
+                            success: function (response) {
+                                var diagram = document.getElementById("container").ej2_instances[0];
+                                //console.log(response.DiagramData);
+                                diagram.loadDiagram(response.DiagramData);
+                            }
+                        });
+
+                    }
+
+                });
+
+
+                function OnCreateNode() {
+                    var YOffeset = 0;
+                    var XOffeset = 0;
+                    var diagram = document.getElementById("container").ej2_instances[0];
+                    var nodeId;
+                    $.ajax({
+                        url: "/bre/BusinessRuleDiagram/GetRandomId",
+                        type: "GET",
+                        contentType: "application/json",
+                        dataType: "JSON",
+                        success: function (response) {
+                            nodeId = response;
+                            var parent = diagram.selectedItems.nodes[0];
+                            //var NodeLabel = $("#txtNodeLable").val();
+                            if (parent != null) {
+                                YOffeset = diagram.selectedItems.nodes[0].offsetY;
+                                XOffeset = diagram.selectedItems.nodes[0].offsetX;
+                            }
+
+                            if (selectedDiagramNode == "Decision1") {
+                                CreateNode(nodeId, YOffeset, 'Decision', "Decision", XOffeset, false, parent.id, "");
+                                CreateConnector(parent.id, nodeId);
+                               // document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                            else if (selectedDiagramNode == "Decision2") {
+                                CreateNode(nodeId, YOffeset, 'Decision', "Decision", XOffeset, false, parent.id, true);
+                                CreateConnector(parent.id, nodeId, "Yes");
+                                //document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                            else if (selectedDiagramNode == "Decision3") {
+                                CreateNode(nodeId, YOffeset, 'Decision', "Decision", XOffeset, false, parent.id, false);
+                                CreateConnector(parent.id, nodeId, "No");
+                               // document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                            else if (selectedDiagramNode == "Process1") {
+                                CreateNode(nodeId, YOffeset, 'Process', "Process", XOffeset, false, parent.id, "");
+                                CreateConnector(parent.id, nodeId);
+                               // document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                            else if (selectedDiagramNode == "Process2") {
+                                CreateNode(nodeId, YOffeset, 'Process', "Process", XOffeset, false, parent.id, true);
+                                CreateConnector(parent.id, nodeId, "Yes");
+                                //document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                            else if (selectedDiagramNode == "Process3") {
+                                CreateNode(nodeId, YOffeset, 'Process', "Process", XOffeset, false, parent.id, false);
+                                CreateConnector(parent.id, nodeId, "No");
+                               // document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                            else if (selectedDiagramNode == "Terminator1") {
+                                CreateNode(nodeId, YOffeset, 'Terminator', 'Terminator', XOffeset, false, parent.id, "");
+                                CreateConnector(parent.id, nodeId);
+                                //document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                            else if (selectedDiagramNode == "Terminator2") {
+                                CreateNode(nodeId, YOffeset, 'Terminator', 'Terminator', XOffeset, false, parent.id, true);
+                                CreateConnector(parent.id, nodeId, "Yes");
+                                //document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                            else if (selectedDiagramNode == "Terminator3") {
+                                CreateNode(nodeId, YOffeset, 'Terminator', 'Terminator', XOffeset, false, parent.id, false);
+                                CreateConnector(parent.id, nodeId, "No");
+                                //document.getElementById('CreateNodeDialog').style.display = "none";
+                                $('#CreateNodeDialog').modal('hide');
+                            }
+                           // $("#txtNodeLable").val('');
+                        }
+                    });
+
+                }
+                function CreateConnector(sourceId, targetId, label) {
+                    var diagram = document.getElementById("container").ej2_instances[0];
+                    var id;
+                    $.ajax({
+                        url: "/bre/BusinessRuleDiagram/GetRandomId",
+                        type: "GET",
+                        contentType: "application/json",
+                        dataType: "JSON",
+                        success: function (response) {
+                            id = response;
+                            var diagramConnector =
+                            {
+                                id: id,
+                                sourceID: sourceId,
+                                targetID: targetId,
+                            };
+                            if (label != "" && label != undefined && label != null) {
+                                var annotation =
+                                {
+                                    content: label,
+                                    style: { fill: "white" },
+                                    margin: { bottom: 20 }
+                                };
+                                diagramConnector.annotations = [annotation];
+                            }
+                            diagram.add(diagramConnector);
+                        }
+                    });
+                    ///id= makeid(20);
+
+                }
+                function CreateNode(id, y, shape, label, x, positionLabel, parentId, isDecisionChildNode) {
+                    var diagram = document.getElementById("container").ej2_instances[0];
+                    var annotation = { content: label, style: { textOverflow: 'Wrap', textWrapping: 'WrapWithOverflow', color: "white" } };
+                    if (label == "Start") {
+                        var diagramNode =
+                        {
+                            id: id,
+                            offsetY: 50,
+                            shape: { type: 'Flow', shape: shape},
+                            style: { fill: 'green', strokeColor: 'white' },
+                            annotations: [annotation],
+                            data: "0"
+                        };
+                        diagram.nodes.push(diagramNode);
+                    }
+                    else {
+                        if (x != null) {
+
+                            if (isDecisionChildNode != "") {
+                                if (isDecisionChildNode == true) {
+                                    x = x + 200;
+                                }
+                                else if (isDecisionChildNode == false) {
+                                    x = x - 200;
+                                }
+                            }
+
+                            else {
+                                y = y + 125;
+                            }
+                        }
+                        if (positionLabel) {
+                            annotation.margin = { Left: 25, Right: 25 };
+                        };
+                        if ('Process' == shape) {
+                            var diagramNode =
+                            {
+                                id: id,
+                                offsetY: y,
+                                offsetX: x,
+                                shape: { type: 'Flow', shape: shape },
+                                style: { fill: 'orange', strokeColor: "white" },
+                                annotations: [annotation],
+                                data: '0',
+                                //parentId: parentId,
+                                addInfo: { "parentId": parentId, "isDecisionChildNode": isDecisionChildNode, "childId":""},
+                            };
+
+                            diagram.add(diagramNode);
+                        }
+                        else if ('Terminator' == shape) {
+                            var diagramNode =
+                            {
+                                id: id,
+                                offsetY: y,
+                                offsetX: x,
+                                shape: { type: 'Flow', shape: shape },
+                                style: { fill: '#f13a3a', strokeColor: "white" },
+                                annotations: [annotation],
+                                data: "0",
+                                //parentId: parentId
+                                addInfo: { "parentId": parentId, "isDecisionChildNode": isDecisionChildNode,"childId": ""},
+                            };
+                            diagram.add(diagramNode);
+                        }
+                        else {
+                            var diagramNode =
+                            {
+                                id: id,
+                                offsetY: y,
+                                offsetX: x,
+                                shape: { type: 'Flow', shape: shape },
+                                style: { fill: '#357BD2', strokeColor: "white" },
+                                annotations: [annotation],
+                                data: "0,0",
+                               // parentId: parentId
+                                addInfo: { "parentId": parentId, "isDecisionChildNode": isDecisionChildNode, "childId": ""},
+                            };
+                            diagram.add(diagramNode);
+                        }
+                    }
+                    if (parentId != null) {
+                        var parent;
+                        for (var i = 0; i < diagram.nodes.length; i++) {
+                            if (diagram.nodes[i].id == parentId) {
+                                parent = diagram.nodes[i];
+                            }
+                        }
+                        if (parent.shape.shape == 'Decision') {
+                            console.log(parent.data);
+                            if (isDecisionChildNode == true) {
+                                var ifthen = parent.data.split(',')[1];
+                                var elsethen = parent.data.split(',')[0];
+                                if (elsethen == "0") {
+                                    parent.data = "0,1";
+                                }
+                                else {
+                                    parent.data = "1,1";
+                                }
+                            }
+                            else if (isDecisionChildNode == false) {
+                                var ifthen = parent.data.split(',')[1];
+                                var elsethen = parent.data.split(',')[0];
+                                if (ifthen == "0") {
+                                    parent.data = "1,0";
+                                }
+                                else {
+                                    parent.data = "1,1";
+                                }
+                            }
+                        }
+                        else {
+                            parent.data = "1";
+                        }
+                        if (parent.annotations[0].content == "Start") {
+                            parent.addInfo.childId = id;
+                        }
+                        else
+                        {
+                            parent.addInfo.childId = parent.addInfo.childId + "," + id;
+                        }
+                    }
+                }
+
+                function getNodeDefaults(obj, diagram) {
+                    var defaultAnnotation = {style :{  color : "white", fill : "transparent" }};
+                    var NodeDefaults =
+                    {
+                        width :150,
+                            height: 100,
+                            offsetX: 300,
+                        annotations :[defaultAnnotation]  ,
+                        style : { fill : "#357BD2", strokeColor : "white" }
+                    };
+                    //if (obj.width === undefined) {
+                    //    obj.width = 145;
+                    //} else {
+                    //    //var ratio = 100 / obj.width;
+                    //    obj.width = 100;
+                    //}
+                    //obj.style = { fill: '#357BD2', strokeColor: 'white' };
+
+                    ////Set ports
+                    //obj.ports = getPorts(obj)
+                    //return obj;
+                }
+                function getPorts(obj) {
+                    var ports = [
+                        { id: 'port1', shape: 'Circle', offset: { x: 0, y: 0.5 } },
+                        { id: 'port2', shape: 'Circle', offset: { x: 0.5, y: 1 } },
+                        { id: 'port3', shape: 'Circle', offset: { x: 1, y: .5 } },
+                        { id: 'port4', shape: 'Circle', offset: { x: .5, y: 0 } }
+                    ];
+                    return ports;
+
+                }
+                function getConnectorDefaults(obj, diagram) {
+
+                    if (obj.id === 'connector9') {
+                        obj.segments = [{ direction: 'Top', length: 120, type: 'Orthogonal' }];
+                    }
+                    if (obj.id === 'connector10') {
+                        obj.segments = [{ direction: 'Right', length: 100, type: 'Orthogonal' }];
+                    }
+                    if (obj.id.indexOf('connector') !== -1) {
+                        obj.type = 'Orthogonal';
+                        obj.targetDecorator = { shape: 'Arrow', width: 10, height: 10 };
+                    }
+                }
+                function diagramCreated() {
+                    addEvents();
+                }
+    function addEvents() {
+                    debugger
+                    var isMobile = window.matchMedia('(max-width:550px)').matches;
+                    if (isMobile) {
+                        var paletteIcon = document.getElementById('palette-icon');
+                        if (paletteIcon) {
+                            paletteIcon.addEventListener('click', openPalette, false);
+                        }
+                    }
+                }
+                function contextMenuOpen(args) {
+                    var diagram = document.getElementById("container").ej2_instances[0];
+                    if (diagram.selectedItems.nodes.length > 0) {
+                        var parent = diagram.selectedItems.nodes[0];
+                        if (parent.shape.shape == "Decision") {
+                            args.hiddenItems.push("Node");
+                            if (parent.data == "0,1") {
+                                args.hiddenItems.push("IfNode");
+                            }
+                            else if (parent.data == "1,1") {
+                                args.hiddenItems.push("ElseNode");
+                                args.hiddenItems.push("IfNode");
+                            }
+                            else if (parent.data == "1,0") {
+                                args.hiddenItems.push("ElseNode");
+                            }
+                        }
+                        else if (parent.shape.shape == 'Process') {
+                            if (parent.data == "1") {
+                                args.hiddenItems.push("Node");
+                            }
+                            args.hiddenItems.push("IfNode");
+                            args.hiddenItems.push("ElseNode");
+
+                        }
+                        else if (parent.shape.shape == 'Terminator' && diagram.selectedItems.nodes[0].annotations[0].content != "Start") {
+                            args.hiddenItems.push("Node");
+                            args.hiddenItems.push("IfNode");
+                            args.hiddenItems.push("ElseNode");
+                            args.hiddenItems.push("View");
+                            //args.hiddenItems.push("RemoveNode");
+                        }
+                        else {
+                            if (parent.data == "1") {
+                                args.hiddenItems.push("Node");
+                            }
+                            args.hiddenItems.push("IfNode");
+                            args.hiddenItems.push("ElseNode");
+                            args.hiddenItems.push("View");
+                            args.hiddenItems.push("RemoveNode");
+
+                        }
+                    }
+                    else {
+
+                        args.hiddenItems.push("Node");
+                        args.hiddenItems.push("IfNode");
+                        args.hiddenItems.push("ElseNode");
+                        args.hiddenItems.push("View");
+                        args.hiddenItems.push("RemoveNode");
+                    }
+                }
+
+                function contextMenuClick(args) {
+                    if (args.item.id == "View") {
+                        var diagram = document.getElementById("container").ej2_instances[0];
+                        var NodeId = diagram.selectedItems.nodes[0].id;
+                        if (diagram.selectedItems.nodes[0].shape.shape == "Decision") {
+                           
+                             var win = GetMainWindow();
+            win.iframeOpenUrl =  '/bre/BusinessRule/RuleBuilder?nodeId=' + NodeId + '&ruleId=' + $("#BusinessRuleId").val() + "&templateId=" + $("#TemplateId").val();//+ NodeId;
+            win.OpenWindow({ Title: 'View Details', Width: 1000, Height: 700, });
+                        }
+                        else
+                        {
+                           
+                            var win = GetMainWindow();
+                            win.iframeOpenUrl = '/bre/bre/BreResultViewDetails?businessRuleNodeId=' + NodeId + "&templateId=" + $("#TemplateId").val();
+                            win.OpenWindow({ Title: 'View Details', Width: 1300, Height: 600, });
+                        }
+
+
+                        //OpenIframeModal('/bre/BreResultViewDetails?businessRuleNodeId=' + NodeId, 'View Details', 450, 1000);
+                    }
+                    else if (args.item.id == "RemoveNode") {
+                        
+                        var diagram = document.getElementById("container").ej2_instances[0];
+                        if (diagram.selectedItems.nodes[0] != undefined && diagram.selectedItems.nodes[0] != null)
+                        {
+                            var selectednode = diagram.getNodeObject(diagram.selectedItems.nodes[0].id);
+                            var parentId = selectednode.addInfo.parentId;
+                            var isChildelem = selectednode.addInfo.isDecisionChildNode;
+                            if (parentId != null) {
+                                var parent;
+                                for (var i = 0; i < diagram.nodes.length; i++) {
+                                    if (diagram.nodes[i].id == parentId) {
+                                        parent = diagram.nodes[i];
+                                    }
+                                }
+                                if (parent != undefined && parent != null) {
+                                    if (parent.shape.shape != "Decision") {
+                                        parent.data = "0";
+                                    }
+                                    else {
+                                        if (isChildelem == true) {
+                                            var data = parent.data.split(",");
+                                            data[1] = "0";
+                                            parent.data = data[0] + "," + data[1];
+                                        }
+                                        else if (isChildelem == false) {
+                                            var data = parent.data.split(",");
+                                            data[0] = "0";
+                                            parent.data = data[0] + "," + data[1];
+                                        }
+                                        else {
+                                            parent.data = "0,0";
+                                        }
+                                    }
+                                    var childs = parent.addInfo.childId.split(",");
+                                    childs.pop(diagram.selectedItems.nodes[0].id);
+                                    parent.addInfo.childId = childs.join();
+                                }
+                            }
+                            DeleteChild(diagram.selectedItems.nodes[0].id);
+                            diagram.remove(diagram.selectedItems.nodes[0]);
+
+                        }
+                    }
+                    else if (args.item.id == "Node" || args.item.id == "IfNode" || args.item.id == "ElseNode") {
+                        //this.Visibility = true;
+                    }
+                    else {
+                        selectedDiagramNode = args.item.id;
+                        //$('#CreateNodeDialog').modal({ show: true });
+                        OnCreateNode();
+                    }
+    }
+    function DeleteChild(id)
+    {
+        
+        var diagram = document.getElementById("container").ej2_instances[0];
+        var selectednode1 = diagram.getNodeObject(id);
+        var childIds = selectednode1.addInfo.childId;
+        if (childIds != "") {
+            var childId = childIds.split(",");
+            var child;
+            for (var j = 0; j < childId.length; j++)
+            {
+                for (var i = 0; i < diagram.nodes.length; i++) {
+                    if (diagram.nodes[i].id == childId[j]) {
+                        child = diagram.nodes[i];
+                        DeleteChild(childId[j]);
+                        if (child != null) {
+                            diagram.remove(child);
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+                document.getElementById('btnSave').onclick = function (e) {
+                    debugger
+                    var diagram = document.getElementById("container").ej2_instances[0];
+                    var data = diagram.nodes;
+                   // console.log(data);
+                        $.ajax({
+                            type: "POST",
+                            url: "/bre/BusinessRuleDiagram/Create",
+                            data: {
+                                Id: $("#BusinessRuleId").val(),
+                                //Nodes: data,
+                                //Connectors: diagram.connectors,
+                               // BusinessRuleId: $("#BusinessRuleId").val(),
+                                DiagramData: diagram.saveDiagram()
+                            },
+                            success: function (response) {
+                                debugger
+                                if (response.success) {
+                                    window.parent.ShowNotification("Data Saved Successfully", "success");
+                                    LoadPartailView('@Url.Action("businessFlowDiagram", "businessRuleDiagram", new { @area = "bre" ,ruleId= Model.BusinessRuleId, templateId= Model.TemplateId})', $('#diagramarea'));
+                                }
+                                else
+                                {
+                                    window.parent.ShowNotification("Please Try Again", "error");
+                                }
+                            },
+                        });
+
+
+                };
+                @*document.getElementById('btnTest').onclick = function (e) {
+                   // window.parent.iframeOpenUrl = '/bre/BreResultViewDetails';
+                   
+
+                 };*@
+
+</script>
+<ejs-scripts></ejs-scripts>
+

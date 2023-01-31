@@ -1,0 +1,241 @@
+﻿@*@using Kendo.Mvc.UI;*@
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Synergy.App.Business;
+@model CapacityRiskViewModel
+@{
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+<style>
+    .btn-default {
+        background: #e4e7eb;
+        margin-top: 5px;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+        $.extend(true, kendo.ui.validator, {
+            rules: { // custom rules
+                externalavailability: function (input) {
+                    //check if it is the ProductName field
+                    if (input.is("[name=ExternalAvailability]") && input.val()) {
+                        input.attr("data-externalavailability-msg", "Value Cannot be greater than 100");
+                        return validate(input.val());
+                    }
+                    return true;
+                },
+
+                internalavailability: function (input) {
+                    //check if it is the ProductName field
+                    if (input.is("[name=InternalAvailability]") && input.val()) {
+                        input.attr("data-internalavailability-msg", "Value Cannot be greater than 100");
+                        return validate(input.val());
+                    }
+                    return true;
+                }
+            }
+        });
+
+          $("#grid").jsGrid({
+        width: "100%",
+        height: "600px",
+
+        inserting: false,
+        editing: true,
+        sorting: true,
+        paging: true,
+        autoload: true,
+        pageSize: 14,
+        pageButtonCount: 5,
+       // deleteConfirm: "Do you really want to delete?",
+
+        //data: clients,
+        controller: {
+            loadData: function (filter) {
+                return $.ajax({
+                    type: "GET",
+                    url: "/tas/JobCapacityRisk/ReadSearchData?departmentId=@Model.DepartmentId",
+                    data: filter,
+                    dataType: "json"
+                });
+            },
+            
+            updateItem: function (item) {
+               
+            },
+          
+        },
+        onItemEditing: function (e) {
+            if (e.grid._container.find(".jsgrid-edit-row")[0] != undefined) {
+                //  
+                e.grid.updateItem();
+            }
+        },
+        fields: [            
+            { name: "JobName", type: "text", width: 200, readOnly: true, editing: false},
+            { name: "ExternalAvailability", type: "text", width: 200 },
+            { name: "InternalAvailability", type: "text", width: 200 },
+            { name: "JobId", type: "text", width: 50 ,visible:false},
+            //{ type: "control" }
+
+        ]
+    });
+
+
+    });
+
+    function validate(value) {
+      //  alert(value);
+        if (value > 100) {
+            return false;
+        }
+        return true;
+    }
+    function ShowErrors(err) {
+        $(".text-danger").removeClass("validation-summary-valid");
+        $(".text-danger").addClass("validation-summary-errors");
+        //var msg = ExtractError(err);
+        $(".text-danger ul").html(err.error);
+    }
+    var onAjaxSuccess = function (res) {
+
+         if (res.success) {
+            ShowNotification("@SharedResource["SavedSuccessfully"]", "success");
+
+        }
+        else {
+             $(".text-danger").removeClass("validation-summary-valid");
+             $(".text-danger").addClass("validation-summary-errors");
+             $(".text-danger").html(res.error);
+             HideLoader($('#update'));
+        }
+
+    };
+
+    function Close() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "Refresh" });
+        return false;
+    }
+
+    function onGridSave(arg) {
+      //  alert(123);
+        if ((arg.model.ExternalAvailability + arg.model.InternalAvailability) > 100) {
+            arg.preventDefault();
+            alert("Sum of Internal Availability and External Availability Should be less than 100");
+            return false;
+        }
+
+    }
+
+    function OnSave(e) {
+
+
+       // var cgrid = $("#grid").data("kendoGrid");
+
+       // var ccount = cgrid.dataSource.data().length;
+
+        
+        var entityGrid = $("#grid").data("JSGrid");
+        entityGrid.updateItem();
+      //  pushPopinArray(entityGrid.data);
+
+      //  console.log(selectedDataItems);
+        e.preventDefault();
+       
+        //if (selectedDataItems > 0) {
+
+        var detail = JSON.stringify(entityGrid.data);
+            $("#JsonData").val(detail);
+       // }
+        var json = $("#JsonData").val();
+        ShowLoader($('.viewdata'));
+             $.ajax({
+            type: 'POST',
+                 url: "/tas/JobCapacityRisk/ManageUpdateCapacityRisk",
+                 //contentType: 'application/json; charset=utf-8',
+                 data: { json: json},
+                 dataType: 'json',
+                 success: function (res) {
+                     // alert(res.success);
+                     HideLoader($('.viewdata'));
+                     if (res.success) {
+                         window.parent.ShowNotification("Successfully Updated", "success");
+                         Close();
+                         // $("#kgrdPDM").data("kendoGrid").dataSource.read();
+                     }
+                     else {
+                         window.parent.ShowNotification(res.message, "error");
+                     }
+                 }
+                 });
+    }
+
+
+
+</script>
+<div class="row">
+    <div class="col-12 viewdata">
+
+        <div id="grid"></div>
+
+        @*@(Html.Kendo().Grid<CapacityRiskViewModel>
+        ()
+        .Name("grid").Height(850)
+        //.ToolBar(toolbar =>
+        // toolbar.ClientTemplate("<button type='button' class='btn btn-primary' onclick='OnCreate();'><i class='fa fas fa-plus'></i>&nbsp;Add</button>"))
+
+        .Columns(columns =>
+
+        {
+
+            columns.Bound(c => c.JobName);
+            columns.Bound(c => c.JobId).Hidden(true);
+            columns.Bound(c => c.ExternalAvailability);
+            columns.Bound(c => c.InternalAvailability);
+            columns.Command(command => command.Edit()).Title("Update").Width(200);
+
+            //columns.Bound(c => c.TargetBatchCount).Width(120);
+            //columns.Bound(c => c.Id).Title("Send Batch").Width(120).ClientTemplate("#if(BatchStatusName=='Draft'){#<button class='btn btn-info' onclick='UpdateBatch(\"#:Id#\")'>Send To Hiring Manager</button>#}#").Width(280);
+        })
+        .Events(e => e.Save("onGridSave"))
+        .Editable(editable => editable.Mode(GridEditMode.InLine).DisplayDeleteConfirmation(true))
+        .Scrollable(x => x.Enabled(true))
+                    .Sortable(srt => srt.Enabled(true))
+                    .Selectable(select => select.Enabled(false))
+                    .Filterable(f => f.Extra(false)
+                                                        .Operators(o => o.ForString(s => s.Clear()
+                                                        .Contains("Contains")
+                                                        .IsEqualTo("Is equal to")
+                                                    )))
+                    //.Pageable(pageable => pageable
+                    //.Refresh(true)
+
+                    //.PageSizes(true)
+                    //.ButtonCount(5))
+                    .AutoBind(true)
+                    .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                       // .PageSize(10)
+                       //.Events(events => events.Error("OnError"))
+                       .Read(read => read.Action("ReadSearchData", "JobCapacityRisk", new { departmentId = Model.DepartmentId }))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.JobId);
+                        model.Field(p => p.JobName).Editable(false);
+                    }
+                    )
+                    )
+                   )*@
+
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-success" style="float:right" onclick="OnSave(event)">Save</button>
+    </div>
+
+    @Html.HiddenFor(x => x.JsonData)
+
+</div>

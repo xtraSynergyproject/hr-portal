@@ -1,0 +1,242 @@
+﻿
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@model UserViewModel
+@{
+    ViewData["Title"] = "Udf Permission Settings";
+    Layout = null;
+}
+<script>
+
+    function OnCreate() {
+
+           var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Create", "UdfPermissionSettings", new { @area= "PortalAdmin" })';
+        win.OpenWindow({ Title: 'Manage Udf Permission Settings', Width: 450, Height: 800 });
+        return false;
+    }
+
+
+    function OnEdit(id) {
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+         var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Edit", "UdfPermissionSettings", new { @area= "PortalAdmin" })?Id=' + id;
+        win.OpenWindow({ Title: 'Manage Udf Permission Settings', Width: 450, Height: 800 });
+        return false;
+    }
+
+    function onPermission(id) {
+        //var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("ManagePermission", "UdfPermissionSettings", new { @area= "PortalAdmin" })?userId=' + id;
+        win.OpenWindow({ Title: 'Manage Permissions', Width: 450, Height: 800 });
+        return false;
+    }
+    
+
+   
+    $(function () {
+        $.contextMenu({
+            selector: '#usertree-menu',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+                console.log($trigger);
+                var id = $trigger.data('idvalue');
+                var status = 0;
+
+
+                switch (status) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'edit':
+                                        OnEditUser(id);
+                                        break;
+                                  
+                                    case 'Permission':
+                                        onPermission(id);
+                                        break;
+                                   
+                                    default:
+                                }
+                            },
+                            items: {
+                                "edit": { name: "@Html.Raw(SharedResource["Edit"])", icon: "fas fa-pencil" },
+                              
+                                "Permission": { name: "Permission", icon: "fas fa-user-shield" },
+                                
+                                
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+    });
+</script>
+<script>
+
+    var NtsType = '@Html.Raw(EnumExtension.EnumToJson(typeof(NtsTypeEnum)))';
+    var NtsTypeObj = JSON.parse(NtsType);
+     var UserType = '@Html.Raw(EnumExtension.EnumToJson(typeof(UserTypeEnum)))';
+    var UserTypeObj = JSON.parse(UserType);
+    var columnDefs = [
+        {
+            headerName: "Actions",
+            field: "Id",
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='usertree-menu' data-idvalue=\"" + value + "\"  ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+        {
+            field: "UserName",
+
+        },
+           {
+               field: "TeamName",
+           },
+           {
+               field: "PageName",
+
+           },
+           {
+               field: "NtsType",
+               cellRenderer: params => {
+                   return NtsTypeObj[params.value]; //only for enum
+               }
+           },
+
+        {
+            field: "UserType",
+            cellRenderer: params => {
+                return UserTypeObj[params.value]; //only for enum
+            }
+        },
+        {
+            field: "PrimaryTemplateName",
+
+        },
+        {
+            field: "Category",
+
+        },
+        {
+            field: "Template",
+
+        },
+
+    ];
+
+    $(function () {
+
+        getData();
+
+
+
+
+    });
+
+    function getData() {
+        document.getElementById("grid").innerHTML = "";
+        gridConfig(
+            "grid",
+            "/PortalAdmin/UdfPermissionSettings/ReadData",
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+</script>
+<style>
+    .fa-plus {
+        margin-top: 5px;
+    }
+</style>
+<div style="padding:15px;">
+    <h4>@ViewBag.PageName</h4>
+
+    <hr />
+
+
+    <div class="row">
+        <div class="col-12">
+            <button type='button' class='btn btn-primary' onclick='OnCreateUser();'><i class='fa fas fa-plus'></i>&nbsp;@SharedResource["Create"]</button>
+            <br /><br />
+            <div id="grid" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+            @*@(Html.Kendo().Grid<UdfPermissionSettingsViewModel>
+        ()
+        .Name("grid")
+          .ToolBar(toolbar =>
+          {
+              toolbar.Custom().Text("" + SharedResource["Create"] + "").Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateUser();" });
+          })
+
+
+            .Columns(columns =>
+            {
+
+                columns.Bound(c => c.Id).ClientTemplate("<div class='btn-group grid-menu' id='usertree-menu' data-idvalue=\"#:Id#\"  ><i class='fas fa-ellipsis-v'></i></div>").Width(150).Title("" + SharedResource["Action"] + "");
+                columns.Bound(c => c.UserName);
+                columns.Bound(c => c.TeamName);
+                columns.Bound(c => c.PageName);
+                columns.Bound(c => c.NtsType);
+                columns.Bound(c => c.UserType);
+                columns.Bound(c => c.PrimaryTemplateName);
+                columns.Bound(c => c.Category);
+                columns.Bound(c => c.Template);
+
+            })
+             .Scrollable(x => x.Enabled(false))
+                        .Sortable(srt => srt.Enabled(true))
+                        .Selectable(select => select.Enabled(false))
+                        .Filterable(f => f.Extra(false)
+                                                            .Operators(o => o.ForString(s => s.Clear()
+                                                            .Contains("Contains")
+                                                            .IsEqualTo("Is equal to")
+                                                        )))
+                        .Pageable(pageable => pageable
+                        .Refresh(true)
+
+                        .PageSizes(true)
+                        .ButtonCount(5))
+                        .AutoBind(true)
+                        .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .PageSize(10)
+                        //.Events(events => events.Error("OnError"))
+                        .Read(read => read.Action("ReadData", "UdfPermissionSettings", new { @area="PortalAdmin" }))
+                        .Model(model => model.Id(p => p.Id))
+                        )
+                  )*@
+        </div>
+    </div>
+
+</div>
+
+<script>
+        // $(document).ready(function () {
+
+        //        $("#grid").data("kendoGrid").dataSource.reload()
+
+        //});
+
+    //function OnDeleteUser() {
+    //
+    //    $('#dlg_DeleteConfirmation').data("kendoDialog").open();
+    //}
+
+
+
+</script>

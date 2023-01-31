@@ -1,0 +1,460 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.TAA.Controllers.AttendanceController> Resource
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@model AttendanceViewModel
+@{
+    ViewBag.Title = "Attendance";
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#SearchDate").kendoDatePicker({ value: "@Model.SearchDate", change: OnDateChange});
+        $("#OrganizationId").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+	    optionLabel:"@ApplicationConstant.PlaceHolder_AllOption",
+            change: OnChange,
+            value:'@Model.OrganizationId',
+            dataSource:
+            {
+                transport:
+                {
+                    read:
+                    {
+                        url: "/Taa/Attendance/GetIdNameListWithLegalEntityAsAllOption",
+                    }
+                }
+            }
+        });
+
+        $('#kgrdAttendance input[type=checkbox][name=sunday]').val('@ViewBag.Sunday');
+        $('#kgrdAttendance input[type=checkbox][name=monday]').val('@ViewBag.Monday');
+        $('#kgrdAttendance input[type=checkbox][name=tuesday]').val('@ViewBag.Tuesday');
+        $('#kgrdAttendance input[type=checkbox][name=wednesday]').val('@ViewBag.Wednesday');
+        $('#kgrdAttendance input[type=checkbox][name=thursday]').val('@ViewBag.Thursday');
+        $('#kgrdAttendance input[type=checkbox][name=friday]').val('@ViewBag.Friday');
+        $('#kgrdAttendance input[type=checkbox][name=saturday]').val('@ViewBag.Saturday');
+
+
+
+        if (localStorage["Org-options"]!=null) {
+            $("#OrganizationId").data("kendoDropDownList").value(localStorage["Org-options"]);
+            $("#OrganizationId").val(localStorage["Org-options"]);
+        }
+        var gridData = $("#kgrdAttendance").data("kendoGrid");
+
+        var search = FilterGrid();
+        gridData.dataSource.read(search);
+
+
+
+
+    });
+    $(".checkboxAll").bind("change", function (e) {
+        if ($(this).attr('checked')) {
+            $('.checkboxAll').removeAttr('checked');
+            $('.checkbox').removeAttr('checked');
+            $(".checkbox").closest("td").removeClass("k-state-selected");
+        } else {
+            $('.checkboxAll').attr('checked', 'checked');
+            $('.checkbox').attr('checked', 'checked');
+            $(".checkbox").closest("td").addClass("k-state-selected");
+        }
+        });
+        function FilterGrid() {
+            return {
+                orgId: $("#OrganizationId").val(),
+                date : $("#SearchDate").val()
+            };
+    }
+    //function grid_dataBound() {
+    //    var grid = $("#kgrdAttendance").data("kendoGrid");
+    //    localStorage["kendo-grid-options"] = kendo.stringify(grid.getOptions());
+    //}
+    function UpdateData() {
+        var search = {
+            Id: $("#Id").val(),
+            OverrideComments: $("#OverrideComments").val(),
+            OverrideAttendance: $("#OverrideAttendance").val(),
+            OverrideOTHours: $("OverrideOTHours").val(),
+
+        };
+        return search;
+    }
+    function goService(serviceId) {
+        //var ru = "/taa/attendance/"
+        //ru = encodeURIComponent(ru);
+        //var url = "/nts/service/Manage?serviceId=" + serviceId + "&ru=" + ru;
+        //window.parent.location.href = url;
+
+        var portalId = $('#GlobalPortalId').val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/Cms/Page?lo=Popup&cbm=OnAfterViewService&source=View&dataAction=View&templateCodes=OVERRIDE_OT_HOURS&portalId=' + portalId + '&recordId=' + serviceId;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["OverrideOTService"])', Width: 1000, Height: 600 });
+        return false;
+    }
+    function OnAfterViewService() {
+        var gridData = $("#kgrdAttendance").data("kendoGrid");
+        var search = FilterGrid();
+        gridData.dataSource.read(search);
+    }
+    function OnChange(e) {
+
+        var orgId = $("#OrganizationId").val();
+        var date = $("#SearchDate").val();
+
+        localStorage["Org-options"] = orgId;
+
+        //if (orgId=='') {
+        //    orgId = 0;
+        //}
+        //var url = "/taa/attendance/index?orgId=" + orgId+"&date="+date;
+        //window.location.href = url;
+        var gridData = $("#kgrdAttendance").data("kendoGrid");
+        var search = {
+            orgId: orgId,
+            date: date
+        };
+        gridData.dataSource.read(search);
+    }
+
+    function OnDateChange(e) {
+
+        var orgId = $("#OrganizationId").val();
+        var date = $("#SearchDate").val();
+
+        //if (orgId == '') {
+        //    orgId = 0;
+        //}
+        //var url = "/taa/attendance/index?orgId=" + orgId + "&date=" + date;
+        //window.location.href = url;
+        var gridData = $("#kgrdAttendance").data("kendoGrid");
+        var search = {
+            orgId: orgId,
+            date: date
+        };
+        gridData.dataSource.read(search);
+    }
+
+     function OnRowSelection(element) {
+
+            $('input.checkbox[type=checkbox]').each(function (e) {
+                if (this.checked) {
+                    $(this).closest("td").addClass("k-state-selected");
+                }
+            });
+            var isChecked = $(element).prop('checked');
+            if (isChecked) {
+                $(element).prop('checked', true);
+                $(element).closest("td").addClass("k-state-selected");
+            }
+            else {
+                $(element).prop('checked', false);
+                $(element).closest("td").removeClass("k-state-selected");
+            }
+         var numChkBoxes = $('#kgrdAttendance input[type=checkbox][class=checkbox]').length;
+         var numChkBoxesChecked = $('#kgrdAttendance tbody input:checkbox:checked').length;
+            if (numChkBoxes == numChkBoxesChecked && numChkBoxes > 0) {
+                $('.checkboxAll').prop('checked', true);
+            }
+            else {
+
+                $('.checkboxAll').prop('checked', false);
+            }
+
+
+
+    }
+
+    function OnDataBound2(arg) {
+
+        $("#kgrdAttendance tbody tr").each(function () {
+            var currentDataItem = $("#kgrdAttendance").data("kendoGrid").dataItem($(this));
+            var update = $(this).find(".k-grid-Edit");
+
+            if (currentDataItem.IsOverridden) {
+                update.remove();
+            }
+
+
+        });
+
+
+        $(".checkbox").bind("change", function (e) {
+            OnRowSelection(e.target);
+        });
+
+        $(".canEdit").bind("change", function (e) {
+            OnEditSelection(e.target);
+        });
+
+        //     var grid = $("#kgrdAttendance").data("kendoGrid");
+        //localStorage["kendo-grid-options"] = kendo.stringify(grid.getOptions());
+    }
+    function OnEditSelection(element) {
+        var grid = $("#kgrdAttendance").data("kendoGrid");
+
+       // alert($(element).val());
+        //var isChecked = $(element).prop('checked');
+
+        dataItem = grid.dataItem($(element).closest("tr"));
+        dataItem.set("OverrideAttendanceText", $(element).val());
+
+
+
+    }
+    function OnSuccess(response) {
+        if (response.success) {
+            if (response.operation=="@DataOperation.Create") {
+                kendo.alert("New User Hierarchy created Successfully");
+            }
+            else if (response.operation=="@DataOperation.Update") {
+                kendo.alert("User Hierarchy updated Successfully");
+            }
+            else if (response.operation=="@DataOperation.Correct") {
+                kendo.alert("User Hierarchy corrected Successfully");
+            }
+            else if (response.operation=="@DataOperation.Delete") {
+                kendo.alert("User Hierarchy deleted Successfully");
+            }
+
+            var url = "/hrs/userhierarchy";
+            if (response.ru != null) {
+                url = decodeURI(response.ru) + "&posId=" + response.posId;
+            }
+            window.location.href = url;
+        }
+        else {
+            ShowErrors(response.errors);
+        }
+    }
+    function OnCancel(e) {
+        window.location.href = "/hrs/userhierarchy";
+        return true;
+    }
+    function OnChart(e) {
+        //var posId = $("#PositionId").data("kendoDropDownList").value();
+        var posId = $("#PositionId").val();
+        if (posId == null || posId == 0) {
+            posId = $("#ParentPositionId").val();
+        }
+        var param = this.element.attr("param");
+        url = decodeURI(param) + "&posId=" + posId;
+        window.location.href = url;
+        return true;
+    }
+    function OnUpdate() {
+
+        var users = '';
+
+        var date = $("#SearchDate").val();
+
+        var grid = $("#kgrdAttendance").data("kendoGrid");
+        grid.tbody.find("input:checked").closest("tr").each(function (index) {
+            users = users + grid.dataItem(this).UserId + ',';
+        });
+
+
+
+        if (users == '' || users == ',') {
+            alert("Please Select atleast one user from the grid");
+        }
+        else {
+
+
+            var url = "/taa/attendance/createattendance?users=" + users + "&date=" + date;
+            var win = GetMainWindow();
+            win.iframeOpenUrl = url;
+            win.OpenWindow({ Title: "@Html.Raw(Resource["CreateRoster"])", Width: 1200, Height: 600 });
+            return false;
+        }
+
+    }
+
+    function OnEdit(e) {
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var date = $("#SearchDate").val();
+
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = "/taa/attendance/OverrideAttendance?id=" + dataItem.Id + "&userId=" + dataItem.UserId + "&empName=" + dataItem.EmployeeName + "&date=" + date;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["OverrideAttendance"])', Width: 1000, Height: 600 });
+        return false;
+    }
+    function OnCloseOverride(prms) {
+        var serviceId = prms.id;
+        var portalId = $('#GlobalPortalId').val();
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '/Cms/Page?lo=Popup&cbm=OnAfterViewService&source=View&dataAction=View&templateCodes=OVERRIDE_OT_HOURS&portalId=' + portalId + '&recordId=' + serviceId;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["OverrideOTService"])', Width: 1000, Height: 600 });
+        return false;
+    }
+    function ShowErrors(err) {
+        $(".hr-v-summary").removeClass("validation-summary-valid");
+        $(".hr-v-summary").addClass("validation-summary-errors");
+        var msg = ExtractError(err);
+        $(".hr-v-summary ul").html(msg);
+        }
+    function Close(dorefresh, mode) {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+        if (dorefresh) {
+
+            $("#kgrdAttendance").data("kendoGrid").dataSource.read();
+            ShowNotification('UpdateSuccess');
+
+        }
+    }
+    function RefreshGrid() {
+
+            $("#kgrdAttendance").data("kendoGrid").dataSource.read();
+
+    }
+    function OnError(e) {
+        //alert(e.toString());
+    }
+
+</script>
+
+<div id="appWrapper">
+    <div class="formHeader">
+        <h4>
+            @*@ViewBag.Title*@
+        </h4>
+    </div>
+    <div class="row no-gutter hr-pad-top-15">
+        <div class="form-group col-xs-12 col-sm-6">
+            <div class="col-lg-3 label-div">
+                <span class="required">*</span>
+                @*@Html.Label("Department", new { @class = "control-label" })*@
+                @Resource["Department"]
+            </div>
+            <div class="col-lg-9">
+                @*@(Html.Kendo().DropDownListFor(x => x.OrganizationId)
+
+        .DataSource(source =>
+        {
+            source.Read(read =>
+            {
+                read.Action("GetIdNameListWithLegalEntityAsAllOption", "Attendance", new { area = "Taa" });
+            });
+        })
+        .DataTextField("Name")
+        .DataValueField("Id")
+        .OptionLabel(ApplicationConstant.PlaceHolder_AllOption)
+        .Filter(FilterType.Contains)
+        .Events(e => e.Change("OnChange"))
+        .HtmlAttributes(new { @class = "hr-xx-large" }))*@
+
+                <input id="OrganizationId" class="hr-xx-large" />
+
+            </div>
+        </div>
+        <div class="form-group col-xs-12 col-sm-6">
+            <div class="col-lg-3 label-div">
+                <span class="required">*</span>
+                @*@Html.Label("Date", new { @class = "control-label" })*@
+                @Resource["Date"]
+            </div>
+            <div class="col-lg-9">
+                @*@Html.Kendo().DatePickerFor(x => x.SearchDate).Events(e => e.Change("OnDateChange")).HtmlAttributes(new { @class = "form-control hr-small" })*@
+                <input id="SearchDate" class="form-control hr-small" />
+            </div>
+        </div>
+
+    </div>
+    <hr />
+    <div>
+        @(Html.Kendo().Grid<AttendanceViewModel>()
+                        .Name("kgrdAttendance")
+                        .Columns(columns =>
+                        {
+                            //columns.Template(x => x.Id).Width(35).ClientTemplate(@"<input class='checkbox' type='checkbox' />").HeaderTemplate(@"<input class='checkboxAll' type='checkbox' />");
+                            // columns.Bound(c => c.Id).Width(50);
+                            columns.Bound(c => c.EmployeeName).Title(@Resource["EmployeeName"]).Locked(true).Width(200).Filterable(ftb => ftb.Multi(true).Search(true));
+                            columns.Bound(c => c.PersonNo).Title(@Resource["EmployeeNo"]).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));
+                            //columns.Bound(c => c.SponsorshipNo).Title("Iqamah No").Width(150).Filterable(ftb => ftb.Multi(true).Search(true));
+                            columns.Bound(c => c.JobName).Title(@Resource["JobTitle"]).Width(200).Filterable(ftb => ftb.Multi(true).Search(true));
+                            columns.Bound(c => c.OrganizationName).Title(@Resource["OrganizationName"]).Width(200).Filterable(ftb => ftb.Multi(true).Search(true));
+                            // columns.Bound(c => c.SectionName).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));//.ClientTemplate("#=SectionName#");
+                            // columns.Bound(c => c.SubSectionName).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));
+                            //columns.Bound(c => c.Nationality).Width(150).Filterable(ftb => ftb.Multi(true).Search(true));
+                            //columns.Bound(c => c.ContractEndDate).Width(150).HeaderTemplate("Contract" + "<br/>End Date").Format(ERP.Utility.Constant.Annotation.DefaultDateFormat).Filterable(ftb => ftb.Multi(true).Search(true));
+                            // columns.Bound(c => c.ContractRenewable).Width(110).HeaderTemplate("Contract" + "<br/>Renewable").Filterable(ftb => ftb.Multi(true).Search(true));
+                            columns.Bound(c => c.RosterText).Title(@Resource["RosterText"]).Width(180).Filterable(false).ClientTemplate("<div style='color:blue'>#= RosterText#</div>").ClientHeaderTemplate("Roster <br/>(Time In - Time Out)");
+                            columns.Bound(c => c.RosterHours).Title(@Resource["RosterHours"]).Width(180).Filterable(false);// Filterable(false).ClientTemplate("#if (Monday == 'A') {# #=Monday# #} else {#<div style='color:blue'>#= MondayText#</div><div>Total Hours :#=MondayHours#</div> #}#").HeaderTemplate("<input name='monday' type='checkbox' />&nbsp;" + ViewBag.Mon + "<br/>(Start Time - End Time)");
+                            columns.Bound(c => c.AccessLogText).Title(@Resource["AccessLogText"]).Width(250).Filterable(false).ClientTemplate("<div style='color:blue'>#= AccessLogText#</div>");
+                            columns.Bound(c => c.ActualText).Title(@Resource["ActualText"]).Width(180).Filterable(false).ClientTemplate("<div style='color:blue'>#= ActualText#</div>").ClientHeaderTemplate("Actual <br/>(Time In - Time Out)");
+                            columns.Bound(c => c.ActualHours).Title(@Resource["ActualHours"]).Width(180).Filterable(false);
+                            columns.Bound(c => c.SystemAttendance).Title(@Resource["SystemAttendance"]).Filterable(false).Width(180).Width(180);//.Filterable(false).ClientTemplate("#if (Tuesday == 'A') {# #=Tuesday# #} else {#<div style='color:blue'>#= TuesdayText#</div><div>Total Hours :#=TuesdayHours#</div> #}#").HeaderTemplate("<input name='tuesday' type='checkbox' />&nbsp;" + ViewBag.Tue + "<br/>(Start Time - End Time)");
+                            columns.Bound(c => c.SystemOTHoursText).Title(@Resource["SystemOTHoursText"]).Filterable(false).Width(180);
+                            columns.Bound(c => c.SystemDeductionHoursText).Title(@Resource["SystemDeductionHoursText"]).Filterable(false).Width(180);//.Filterable(false).ClientTemplate("#if (Wednesday == 'A') {# #=Wednesday# #} else {#<div style='color:blue'>#= WednesdayText#</div><div>Total Hours :#=WednesdayHours#</div> #}#").HeaderTemplate("<input name='wednesday' type='checkbox' />&nbsp;" + ViewBag.Wed + "<br/>(Start Time - End Time)");
+                            columns.Bound(c => c.OverrideAttendance).Title(@Resource["OverrideAttendance"]).Filterable(false).Width(200);//.ClientTemplate("#=OverrideAttendanceText#").HtmlAttributes(new { @Class = "canEdit" });//.Filterable(false).ClientTemplate("#if (Thursday == 'A') {# #=Thursday# #} else {#<div style='color:blue'>#= ThursdayText#</div><div>Total Hours :#=ThursdayHours#</div> #}#").HeaderTemplate("<input name='thursday' type='checkbox' />&nbsp;" + ViewBag.Thu + "<br/>(Start Time - End Time)");
+                            columns.Bound(c => c.OverrideOTHoursText).Title(@Resource["OverrideOTHoursText"]).Filterable(false).Width(180);//.Filterable(false).ClientTemplate("#if (Friday == 'A') {# #=Friday# #} else {#<div style='color:blue'>#= FridayText#</div><div>Total Hours :#=FridayHours#</div> #}#").HeaderTemplate("<input name='friday' type='checkbox' />&nbsp;" + ViewBag.Fri + "<br/>(Start Time - End Time)");
+                            columns.Bound(c => c.OverrideDeductionHoursText).Title(@Resource["OverrideDeductionHoursText"]).Filterable(false).Width(200);
+                            columns.Bound(c => c.OverrideComments).Title(@Resource["OverrideComments"]).Width(180);
+                            columns.Bound(c => c.ServiceId).Filterable(false).Title(@Resource["OverrideOTService"]).Width(200).ClientTemplate("#if (ServiceId != null) {# <a href='javascript:goService(\"#=ServiceId#\");'>Override OT Service</a> #}#");
+                            //columns.Command(command => { command.Edit(); }).Width(100);
+                            columns.Command(c => c.Custom("Edit").Text(@Resource["Override"]).Click("OnEdit")).Width(100);
+                            columns.Bound(c => c.Approved).Title(@Resource["Approved"]).Filterable(false).ClientTemplate("<input type='checkbox' disabled #= Approved == true ? checked='checked' : '' # />").Width(100);
+                            columns.Bound(c => c.EmployeeComments).Title(@Resource["EmployeeComments"]).Width(230);//.Filterable(false).ClientTemplate("#if (Saturday == 'A') {# #=Saturday# #} else {#<div style='color:blue'>#= SaturdayText#</div><div>Total Hours :#=SaturdayHours#</div> #}#").HeaderTemplate("<input name='saturday' type='checkbox' />&nbsp;" + ViewBag.Sat + "<br/>(Start Time - End Time)");
+
+                        })
+                        .ToolBar(toolbar =>
+                        {
+                            //if (2235.HasPermission())
+                            //{
+                            //    //toolbar.Custom().Text("Update Actual Time").Name("btnAdd").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnUpdate();" });
+                            //    toolbar.Excel();
+                            //}
+                            toolbar.Excel().Text(@SharedResource["ExportToExcel"]);
+                        })
+                        .Events(e => e.DataBound("OnDataBound2"))
+                        .Resizable(resize => resize.Columns(true))
+                        .Reorderable(reorderable => reorderable.Columns(true))
+                        .Scrollable(scrollable => scrollable.Enabled(true).Height(400))
+                        .Selectable(select => select.Enabled(false).Mode(GridSelectionMode.Multiple))
+                        .Sortable(srt => srt.Enabled(false))
+                        // .Filterable(filter => filter.Mode(GridFilterMode.Row))
+                        .Filterable()
+                        // .Events(e => e.DataBound("grid_dataBound"))
+                        .Excel(e => e.FileName("Attendance.xlsx").AllPages(true))
+                        .Pageable(pageable => pageable
+                        .Refresh(true)
+                        .PageSizes(new[] { 10, 50, 100, 200, 500, 1000, 2000 })
+                        .ButtonCount(10))
+                        .DataSource(
+                        dataSource => dataSource
+                        .Ajax()
+                        .PageSize(1000)
+                        .Events(events => events.Error("OnError"))
+                        .Read(read => read.Action("ReadSearchData", "Attendance", new { area = "Taa" }).Data("FilterGrid"))
+                        //.Update(update => update.Action("UpdateEmployeeAtendance", "Attendance"))
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+
+                        })
+
+                        )
+        
+        )
+    </div>
+
+    @Html.HiddenFor(x => x.DataAction)
+    @Html.HiddenFor(x => x.Id)
+    @Html.HiddenFor(x => x.ReturnUrl)
+    @Html.HiddenFor(x => x.UserIds)
+
+
+</div>
+
+
+

@@ -1,0 +1,120 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Kendo.Mvc.UI;
+
+@{
+    ViewData["Title"] = "Add Existing Career Level";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+</style>
+<style>
+    #users-list .k-item {
+        width: 100%;
+        background-color: #fff;
+        padding-top: 3px;
+        padding-bottom: 3px;
+        border-bottom: 1px solid #f2f2f2;
+        border-collapse: collapse;
+    }
+
+        #users-list .k-item:hover {
+            background-color: rgb(182,189,202);
+        }
+
+    #users-list .k-state-selected, #SwitchToUserId-list .k-state-selected:hover {
+        background-color: #1984c8;
+        border-color: #1984c8;
+    }
+</style>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#Id").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/CHR/BusinessHierarchy/GetAllCareerLevels",
+                    }
+                }
+            }
+        });
+    });
+
+    function Close() {
+
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: "OnAfterCreate" });
+        return false;
+    }
+
+
+
+    function onAdd() {
+
+        var value = $("#Id").data("kendoDropDownList").value();
+        if (value == "" || value == null) {
+            kendo.alert("Please Select Deaprtment")
+            return false;
+        }
+        else {
+            ShowLoader($('.viewdata'));
+             $.ajax({
+                 type: 'POST',
+                 url: "/chr/BusinessHierarchy/AddExistingtoHybridHierarchy?parentHierarchyId=" + '@ViewBag.ParentHierarchyId' + "&referenceId=" + value + "&level=" + '@ViewBag.Level',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+                 success: function (res) {
+                HideLoader($('.viewdata'));
+                if (res.success) {
+                    Close();
+                }
+                else {
+                    window.parent.ShowNotification(res.message, "error");
+                }
+
+            }
+
+        });
+        }
+
+    }
+
+
+
+</script>
+
+<br />
+<br />
+<div class=" viewdata" style="margin-left:15px;">
+
+    <div class="col-12">
+        <span style="font-size:16px;">Existing Career Level</span>
+        <input id="Id" class="drp-user" style="width: 80%;" />
+
+    </div>
+    <br />
+    <br />
+    <br />
+    <br />
+    <div class="col-12" style="text-align:center">
+        <button class="k-button k-button-icontext k-grid-btnAdd k-primary" onclick="onAdd()" @*style="float:right;"*@><i class="fas fa-plus"></i>Add Career Level</button>
+    </div>
+
+
+</div>
+

@@ -1,0 +1,1178 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Controllers.CmsController> Resource
+@using CMS.UI.ViewModel;
+@using CMS.Common;
+
+@model DashboardViewModel;
+@{
+
+    //Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+    Layout = ViewBag.Layout ?? null;
+}
+
+<style>
+    .k-dropdowntree {
+        width: 75% !important;
+        float: left !important;
+    }
+    .SYN-task-pending {
+        height: 46px;
+        width: 40px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/task-pending.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-overdue {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/service-overdue.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-task-overdue {
+        height: 46px;
+        width: 40px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/task-overdue.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-task-completed {
+        height: 46px;
+        width: 40px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/task-completed.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-completed {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/service-completed.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-pending {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/service-pending.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-task-draft {
+        height: 46px;
+        width: 40px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/task-draft.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-service-draft {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/service-draft.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-notes-overdue {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/notes-overdue.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-notes-pending {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/notes-pending.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-notes-completed {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/notes-completed.png);
+        background-repeat: no-repeat;
+    }
+
+    .SYN-notes-draft {
+        height: 46px;
+        width: 46px;
+        float: left;
+        padding: 8px;
+        margin: 4px 6px 0 0;
+        text-align: center;
+        background: url(/images/pmt/notes-draft.png);
+        background-repeat: no-repeat;
+    }
+
+    .create-but-div {
+        float: right;
+        width: 100%;
+        height: auto;
+        text-align: right;
+        background-color: #d6d3d3;
+        padding: 6px;
+        border-radius: 6px;
+        margin: 12px 0;
+    }
+
+    h5 {
+        color: black;
+        font-weight: 500;
+    }
+
+    .filter-row-bg {
+        background-color: #2D9FCA;
+        height: auto;
+        border-radius: 6px;
+        padding: 0 6px 6px;
+        margin: 0px;
+        border: 1px solid #fff;
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .SYN-filter-row-bg-s {
+        background-color: #146587;
+        height: auto;
+        border-radius: 6px;
+        padding: 6px;
+        margin: 0px;
+        border: 1px solid #fff;
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .col-xl-3 {
+        max-width: none;
+    }
+
+    .drp_label {
+        color: #fff;
+    }
+
+    .btn {
+        margin-right: 5px;
+    }
+</style>
+<script>
+
+    function OnFilterChange(e) {
+        var dataItem = e.sender.dataItem();
+        if (dataItem.Value == "1") {
+            $("#TeamFilter").hide();
+            $("#ProjFilter").show();
+        }
+        if (dataItem.Value == "2") {
+            $("#TeamFilter").show();
+            $("#ProjFilter").hide();
+        }
+        SubordinateCount();
+    }
+    function OnTypeBound(e) {
+        var dataItem = e.sender.dataItem();
+        if (dataItem.Value == "1") {
+            $("#TeamFilter").hide();
+            $("#ProjFilter").show();
+        }
+        if (dataItem.Value == "2") {
+            $("#TeamFilter").show();
+            $("#ProjFilter").hide();
+        }
+
+    }
+    function OnProjectChange(e) {
+
+        SubordinateCount();
+    }
+    function OnMemberChange(e) {
+
+        SubordinateCount();
+    }
+    function OnTeamChanges(e) {
+
+        SubordinateCount();
+    }
+
+    function FilterUser() {
+        return { teamId: $("#Team").data("kendoDropDownList").value() }
+    }
+    function FilterMembers() {
+        return { projectId: $("#Projects").data("kendoDropDownList").value() }
+    }
+    function OnServiceCreate() {
+        var portalId = $('#GlobalPortalId').val();
+        //var prms = encodeURIComponent( 'parentServiceId=123&parentTaskId=223');
+
+        var url = '@Url.Action("SelectServiceTemplate", "NtsService",new {area="Cms" })?templateCode=&categoryCode=&moduleCodes=@Model.ModuleCodes&userId=@Model.UserId';//'/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=Project&portalId=' + portalId /*+ '&prms=' + prms*/;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateService"])', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+    function OnTaskCreate() {
+        var portalId = $('#GlobalPortalId').val();
+
+        var url = '@Url.Action("SelectTaskTemplate", "NtsTask",new {area="Cms" })?templateCode=&categoryCode=&moduleCodes=@Model.ModuleCodes&userId=@Model.UserId';//'/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=Project&portalId=' + portalId /*+ '&prms='Model+ prms*/;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateTask"])', Width: 1000, Height: 600 });
+        return false;
+    }
+    function OnNoteCreate() {
+        var portalId = $('#GlobalPortalId').val();
+        //var prms = encodeURIComponent( 'parentServiceId=123&parentTaskId=223');
+
+        var url = '@Url.Action("SelectNoteTemplate", "NtsNote",new {area="Cms" })?templateCode=&categoryCode=&moduleCodes=@Model.ModuleCodes&userId=@Model.UserId';//'/Cms/Page?lo=Popup&cbm=OnAfterServiceCreate&source=Create&dataAction=Create&pageName=Project&portalId=' + portalId /*+ '&prms=' + prms*/;
+
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateNote"])', Width: 1000, Height: 600, Position: 'Right1' });
+        return false;
+    }
+     function backtoNtsServiceIndex(tempid) {
+        //alert(tempid);
+      
+         var win = GetMainWindow();
+         win.CloseWindow();
+
+          var url = '@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?templateid=' + tempid + '&pageId=4bf170b2-0bc9-4bfc-8cdc-85f048c9fcd3&lo=Popup&cbm=OnAfterServiceCreate';
+         var win = GetMainWindow();
+         win.iframeOpenUrl = url;
+         win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateService"])', Width: 1000, Height: 600, Position: 'Right1' });
+         return false;
+            @*LoadCmsPartialView('@Url.Action("NtsServicePage", "NtsService", new { @area = "Cms" })?templateid=' + tempid + '&pageId=@Model.Page.Id', 'Service', false);*@
+    }
+     function backtoNtsTaskIndex(prm) {
+         var portalId = $('#GlobalPortalId').val();
+        var tempid = prm.tempid;
+       
+         var win = GetMainWindow();
+         win.CloseWindow();
+         var url = '@Url.Action("NtsTaskPage", "NtsTask", new { @area = "Cms" })?templateid=' + tempid + '&lo=Popup&cbm=OnAfterTaskCreate&pageId=bcf41d01-77ce-4681-a501-a3c89161e003' /*+ portalId +'&pageName=NtsTaskTest'*/;
+         var win = GetMainWindow();
+         win.iframeOpenUrl = url;
+         win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateTask"])', Width: 1000, Height: 600});
+    }
+     function backtoNtsNoteIndex(tempid) {
+        //alert(tempid);
+       
+         var win = GetMainWindow();
+         win.CloseWindow();
+         var url = '@Url.Action("NtsNotePage", "NtsNote", new { @area = "Cms" })?templateid=' + tempid + '&pageId=42fe9627-6e46-47c1-9251-43c81e7b010e&lo=Popup&cbm=OnAfterNoteCreate';
+         var win = GetMainWindow();
+         win.iframeOpenUrl = url;
+         win.OpenWindow({ Title: '@Html.Raw(SharedResource["CreateNote"])', Width: 1000, Height: 600, Reload: true });
+    }
+    function OnAfterServiceCreate(service) {
+        location.href = location.href;
+    }
+    function OnAfterTaskCreate(task) {
+        location.href = location.href;
+    }
+    function OnAfterNoteCreate(task) {
+        location.href = location.href;
+    }
+    function OnService(mode, status) {
+        var url = "/cms/NtsService/ServiceHome?serviceStatus=" + status + "&mode=" + mode+"&lo=Popup&moduleCodes=@Model.ModuleCodes&userId=@Model.UserId";
+        var win = GetMainWindow();
+        //var url = '/Cms/Page?popup=true&lo=Popup&pageType=Custom&source=Main&dataAction=None&pageName=ServiceHome&portalId=' + portalId /*+ '&prms=' + prms*/;
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["Services"])', Width: 1000, Height: 1000 });
+        return false;
+    }
+    function OnTask(mode, status) {
+        var url = "/cms/NtsTask/TaskHome?taskStatus=" + status + "&mode=" + mode + "&lo=Popup&moduleCodes=@Model.ModuleCodes&userId=@Model.UserId";
+        var win = GetMainWindow();
+        //var url = '/Cms/Page?popup=true&lo=Popup&pageType=Custom&source=Main&dataAction=None&pageName=ServiceHome&portalId=' + portalId /*+ '&prms=' + prms*/;
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["Tasks"])', Width: 1000, Height: 1000 });
+        return false;
+    }
+    function OnNote(mode, status) {
+        var url = "/cms/NtsNote/NoteHome?noteStatus=" + status + "&mode=" + mode + "&lo=Popup&moduleCodes=@Model.ModuleCodes&userId=@Model.UserId";
+        var win = GetMainWindow();
+        //var url = '/Cms/Page?popup=true&lo=Popup&pageType=Custom&source=Main&dataAction=None&pageName=ServiceHome&portalId=' + portalId /*+ '&prms=' + prms*/;
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["Notes"])', Width: 1000, Height: 1000 });
+        return false;
+    }
+    function OnServiceTemplateChange(e)
+    {
+        TaskServiceCount();
+    }
+    function OnTaskTemplateChange(e) {
+        TaskServiceCount();
+    }
+    function OnNoteTemplateChange(e) {
+        NoteCounts();
+    }
+</script>
+
+<div class="container">
+    @*<ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#"><span>Home</span></a></li>
+            <li class="breadcrumb-item"><a href="#"><span>Library</span></a></li>
+            <li class="breadcrumb-item"><a href="#"><span>Data</span></a></li>
+        </ol>*@
+    <h5>@Resource["Worklist"]</h5>
+    <div class="filter-row-bg">
+        <div class="row">
+
+            <div class="col-sm-12 col-md-4 col-lg-4 col-xl-4">
+                <div class="container-lbl-dd">
+                    <div class="row">
+                        <div class="col-sm-12 col-lg-4 col-xl-6">
+                            <label class="col-form-label text-nowrap wtext">@*Filter by Module*@</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="dropdown dd-filter-by">
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-4 col-lg-4 col-xl-4">
+
+            </div>
+            <div class="col-sm-12 col-md-4 col-lg-4 col-xl-4">
+                <div class="container-lbl-dd">
+                    <div class="row">
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div>
+        <div class="row">
+            <div class="col-md-12 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col"><label class="col-form-label title-label">@Resource["TASK"]&nbsp;&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["AssignedtoMe"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-task-overdue" href="javascript:void(0);" onclick="OnTask('ASSIGN_TO','TASK_STATUS_OVERDUE')" title="OverDue"><label id="taskAssODue">0</label></a>
+                            <a class="SYN-task-pending" href="javascript:void(0);" onclick="OnTask('ASSIGN_TO','TASK_STATUS_INPROGRESS')" title="In Progress"><label id="taskAssPen">0</label></a>
+                            <a class="SYN-task-completed" href="javascript:void(0);" onclick="OnTask('ASSIGN_TO','TASK_STATUS_COMPLETE')" title="Completed"><label id="taskAssCom">0</label></a>
+                            @*<div class="SYN-task-draft"><label>111</label></div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["RequestedbyMe"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-task-overdue" href="javascript:void(0);" onclick="OnTask('ASSIGN_BY','TASK_STATUS_OVERDUE')" title="OverDue"><label id="tskreqByMeOdue">0</label></a>
+                            <a class="SYN-task-pending" href="javascript:void(0);" onclick="OnTask('ASSIGN_BY','TASK_STATUS_INPROGRESS')" title="In Progress"><label id="tskreqByMePen">0</label></a>
+                            <a class="SYN-task-completed" href="javascript:void(0);" onclick="OnTask('ASSIGN_BY','TASK_STATUS_COMPLETE')" title="Completed"><label id="tskreqByMeCom">0</label></a>
+                            <a class="SYN-task-draft" href="javascript:void(0);" onclick="OnTask('ASSIGN_BY','TASK_STATUS_DRAFT')" title="Draft"><label id="tskreqByMeDraft">0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["SharedwithMe/Team"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-task-overdue" href="javascript:void(0);" onclick="OnTask('SHARE_TO','TASK_STATUS_OVERDUE')" title="OverDue"><label id="tskShareOdue">0</label></a>
+                            <a class="SYN-task-pending" href="javascript:void(0);" onclick="OnTask('SHARE_TO','TASK_STATUS_INPROGRESS')" title="In Progress"><label id="tskSharePen">0</label></a>
+                            <a class="SYN-task-completed" href="javascript:void(0);" onclick="OnTask('SHARE_TO','TASK_STATUS_COMPLETE')" title="Completed"><label id="tskShareCom">0</label></a>
+                            @*<div class="SYN-task-draft"><label>111</label></div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class=" col-sm-12 col-md-12 col-lg-12 col-xl-12 row-grey-bg" style="width: 100%;/*padding-left: 6px;*/">
+
+                <div class="create-but-div">
+                    @*@(Html.Kendo().DropDownTreeFor(x=>x.TaskTemplateIds)
+                                         // .Name("dropdowntree")
+                                          .DataTextField("DisplayName")
+                                          .DataValueField("id")
+                                           .Checkboxes(e => e.CheckChildren(true)
+                                           .Template("# if (item.Type=='Template') { #" +
+                                          "<input type='checkbox' #= item.checked ? 'checked' : '' #>" +
+                                      "# } #")
+                                           )
+                                            .Placeholder("Select Task Templates...")
+                                          //.CheckAll(true)
+
+                                          .Events(e => e.Change("OnTaskTemplateChange"))
+                          .DataSource(dataSource => dataSource
+                              .Read(read => read.Action("GetTaskTemplateTreeList", "Template", new { area = "Cms" })
+                              )
+                          )
+                        .HtmlAttributes(new { @class = "hr-xx-large", @style = "float:left;" })
+                          )*@
+
+                    <input asp-for="TaskTemplateIds" id="TaskTemplateIds" style="width: 100%" />
+
+                    <button class="btn btn-dark but-height" type="button" onclick="OnTaskCreate();">+ @SharedResource["CreateTask"]</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col"><label class="col-form-label title-label">@Resource["SERVICE"]&nbsp;&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["RequestedbyMe"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-service-overdue" href="javascript:void(0);" onclick="OnService('REQ_BY','SERVICE_STATUS_OVERDUE')" title="OverDue"><label id="reqByMeOdue">0</label></a>
+                            <a class="SYN-service-pending" href="javascript:void(0);" onclick="OnService('REQ_BY','SERVICE_STATUS_INPROGRESS')" title="In Progress"><label id="reqByMePen">0</label></a>
+                            <a class="SYN-service-completed" href="javascript:void(0);" onclick="OnService('REQ_BY','SERVICE_STATUS_COMPLETE')" title="Completed"><label id="reqByMeCom">0</label></a>
+                            <a class="SYN-service-draft" href="javascript:void(0);" onclick="OnService('REQ_BY','SERVICE_STATUS_DRAFT')" title="Draft"><label id="reqByMeDraft">0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["SharedwithMe/Team"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-service-overdue" href="javascript:void(0);" onclick="OnService('SHARE_TO','SERVICE_STATUS_OVERDUE')" title="OverDue"><label id="serShareOdue">0</label></a>
+                            <a class="SYN-service-pending" href="javascript:void(0);" onclick="OnService('SHARE_TO','SERVICE_STATUS_INPROGRESS')" title="In Progress"><label id="serSharePen">0</label></a>
+                            <a class="SYN-service-completed" href="javascript:void(0);" onclick="OnService('SHARE_TO','SERVICE_STATUS_COMPLETE')" title="Draft"><label id="serShareCom">0</label></a>
+                            @*<div class="SYN-service-draft"><label>111</label></div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12 row-grey-bg" style="width: 100%;/*padding-left: 6px;*/">
+                @*@if (ViewBag.Permissions.Contains("CREATE_PROJECT"))
+                    {*@
+                <div class="create-but-div">
+                    @*@(Html.Kendo().DropDownTreeFor(x=>x.ServiceTemplateIds)
+                                          // .Name("dropdowntree")
+                                          .DataTextField("DisplayName")
+                                          .DataValueField("id")
+                                           .Checkboxes(e => e.CheckChildren(true)
+                                           .Template("# if (item.Type=='Template') { #" +
+                                          "<input type='checkbox' #= item.checked ? 'checked' : '' #>" +
+                                      "# } #")
+                                           )
+                                            .Placeholder("Select Service Templates...")
+                                         //.CheckAll(true)
+
+                                         .Events(e => e.Change("OnServiceTemplateChange"))
+                          .DataSource(dataSource => dataSource
+                              .Read(read => read.Action("GetServiceTemplateTreeList", "Template", new { area = "Cms" })
+                              )
+                          )
+                        .HtmlAttributes(new { @class = "hr-xx-large", @style = "float:left;" })
+                          )*@
+
+                    <input asp-for="ServiceTemplateIds" id="ServiceTemplateIds" style="width: 100%" />
+
+                    <button class="btn btn-dark but-height" type="button" onclick="OnServiceCreate();">+ @SharedResource["CreateService"]</button>
+                </div>
+                @*}*@
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col"><label class="col-form-label title-label">@Resource["NOTE"]&nbsp;&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["CreatedbyMe"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-notes-overdue" href="javascript:void(0);" onclick="OnNote('REQ_BY','NOTE_STATUS_EXPIRE')" title="Expired"><label id="noteCreatedByMeExpired">0</label></a>
+                            @*<div class="SYN-notes-pending"><label>219</label></div>*@
+                            <a class="SYN-notes-completed" href="javascript:void(0);" onclick="OnNote('REQ_BY','NOTE_STATUS_COMPLETE')" title="Completed"><label id="noteCreatedByMeActive">0</label></a>
+                            <a class="SYN-notes-draft" href="javascript:void(0);" onclick="OnNote('REQ_BY','NOTE_STATUS_DRAFT')" title="Draft"><label id="noteCreatedByMeDraft">0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["SharedbyMe"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-notes-overdue" href="javascript:void(0);" onclick="OnNote('ASSIGN_BY','NOTE_STATUS_EXPIRE')" title="Expired"><label id="noteSharedByMeExpired">0</label></a>
+                            @*<div class="SYN-notes-pending"><label>219</label></div>*@
+                            <a class="SYN-notes-completed" href="javascript:void(0);" onclick="OnNote('ASSIGN_BY','NOTE_STATUS_COMPLETE')" title="Completed"><label id="noteSharedByMeActive">0</label></a>
+                            <a class="SYN-notes-draft" href="javascript:void(0);" onclick="OnNote('ASSIGN_BY','NOTE_STATUS_DRAFT')" title="Draft"><label id="noteSharedByMeDraft">0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["SharedwithMe/Team"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-notes-overdue" href="javascript:void(0);" onclick="OnNote('SHARE_TO','NOTE_STATUS_EXPIRE')" title="Expired"><label id="noteSharedWithMeExpired">0</label></a>
+                            @*<div class="SYN-notes-pending"><label>219</label></div>*@
+                            <a class="SYN-notes-completed" href="javascript:void(0);" onclick="OnNote('SHARE_TO','NOTE_STATUS_COMPLETE')" title="Completed"><label id="noteSharedWithMeActive">0</label></a>
+                            <a class="SYN-notes-draft" href="javascript:void(0);" onclick="OnNote('SHARE_TO','NOTE_STATUS_DRAFT')" title="Draft"><label id="noteSharedWithMeDraft">0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12 row-grey-bg" style="width: 100%;/*padding-left: 6px;*/">
+                <div class="create-but-div">
+
+                    @*@(Html.Kendo().DropDownTreeFor(x=>x.NoteTemplateIds)
+                          // .Name("dropdowntree")
+                          .DataTextField("DisplayName")
+                          .DataValueField("id")
+                           .Checkboxes(e => e.CheckChildren(true)
+                           .Template("# if (item.Type=='Template') { #" +
+                          "<input type='checkbox' #= item.checked ? 'checked' : '' #>" +
+                      "# } #")
+                           )
+                            .Placeholder("Select Note Templates...")
+                         //.CheckAll(true)
+
+                         .Events(e => e.Change("OnNoteTemplateChange"))
+          .DataSource(dataSource => dataSource
+              .Read(read => read.Action("GetNoteTemplateTreeList", "Template", new { area = "Cms" })
+              )
+          )
+        .HtmlAttributes(new { @class = "hr-xx-large", @style = "float:left;" })
+          )*@
+
+                    <input asp-for="NoteTemplateIds" id="NoteTemplateIds" style="width: 100%" />
+
+                    <button class="btn btn-info but-height" type="button" onclick="OnNote('','');">@Resource["ViewAllNotes"]</button><button class="btn btn-dark but-height" type="button" onclick="OnNoteCreate()">+ @SharedResource["CreateNote"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h5 class="SYN-seperator-gap">@Resource["WorklistforSubordinate"]</h5>
+    <div class="SYN-filter-row-bg-s">
+        <div class="row">
+
+            @*<div class="col-sm-12 col-md-4 col-lg-4 col-xl-4">
+                    <div class="container-lbl-dd">
+                        <div class="row">
+                            <div class="col-sm-12 col-lg-4 col-xl-4"><label class="col-form-label text-nowrap wtext drp_label">Type</label></div>
+                            <div class="col-sm-8 col-lg-4 col-xl-8">
+                                <div class="dropdown dd-filter-by">
+                                    @(Html.Kendo().DropDownList()
+                    .Name("FilterByType")
+                   // .OptionLabel("--select--")
+                    .Events(e => e.Change("OnFilterChange").DataBound("OnTypeBound"))
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .Filter(FilterType.Contains)
+                    .HtmlAttributes(new { @class = "hr-x-large" })
+                    .BindTo(new List<SelectListItem>() {
+                             new SelectListItem() {
+                                 Text = "Project",
+                                 Value = "1"
+                             },
+                             new SelectListItem() {
+                                 Text = "Team",
+                                 Value = "2"
+                             }
+
+                     })
+
+                )
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-4 col-lg-4 col-xl-8" id="ProjFilter" style="display:none;">
+                    <div class="container-lbl-dd">
+                        <div class="row">
+                            <div class="col-sm-12 col-lg-4 col-xl-2"><label class="col-form-label text-nowrap wtext drp_label"> Project</label></div>
+                            <div class="col-sm-4 col-lg-4 col-xl-3">
+                                <div class="dropdown dd-filter-by">
+                                    @(Html.Kendo().DropDownList()
+                                            .Name("Projects")
+                                            .OptionLabel("--All--")
+                                            .Events(e => e.Change("OnProjectChange"))
+
+                                            .Filter(FilterType.Contains)
+                                            .HtmlAttributes(new { @class = "hr-x-large" })
+                                            .DataSource(source =>
+                                            {
+                                                source.Read(read =>
+                                                {
+                                                    read.Action("GetProjectIdNameList", "project",new { area="pjm"});
+                                                    // read.Action("ReadProjectListByOwner", "project", new { area = "pmt" });
+                                                });
+                                            })
+
+                                       .DataTextField("Name")
+                                       .DataValueField("Id")
+
+                                    )
+
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-lg-4 col-xl-2"><label class="col-form-label text-nowrap wtext drp_label">Team Member</label></div>
+                            <div class="col-sm-4 col-lg-4 col-xl-3">
+                                <div class="dropdown dd-filter-by">
+                                    @(Html.Kendo().DropDownList()
+                                            .Name("ProjectMembers")
+                                            .OptionLabel("--All--")
+                                            .Events(e => e.Change("OnMemberChange"))
+
+                                            .Filter(FilterType.Contains)
+                                            .HtmlAttributes(new { @class = "hr-x-large" })
+                                            .DataSource(source =>
+                                                {
+                                                    source.Read(read =>
+                                                {
+                                                    read.Action("ReadProjectMembers", "project", new { area = "pjm" }).Data("FilterMembers");
+                                                }).ServerFiltering(true);
+                                            })
+                                            .CascadeFrom("Projects")
+                                            .DataTextField("Name")
+                                            .DataValueField("Id")
+
+                                )
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+            <div class="col-sm-12 col-md-6 col-lg-6 col-xl-8" id="TeamFilter" @*style="display:none;"*@>
+                <div class="container-lbl-dd">
+                    <div class="row">
+                        @*<div class="col-sm-12 col-lg-2 col-xl-2"><label class="col-form-label text-nowrap wtext drp_label">Select Team</label></div>
+                            <div class="col-sm-4 col-lg-2 col-xl-3">
+                                <div class="dropdown dd-filter-by">
+                                    @(Html.Kendo().DropDownList()
+                                         .Name("Team")
+                                       .DataSource(source =>
+                                       {
+                                           source.Read(read =>
+                                           {
+                                               read.Action("GetTeamByOwner", "Team", new { area = "cms" });
+                                           }).ServerFiltering(true);
+                                       })
+                                       .Events(x=>x.Change("OnTeamChanges"))
+                                       .OptionLabel("--All--")
+                                       .DataTextField("Name")
+                                       .DataValueField("Id")
+                                       .Filter(FilterType.Contains)
+                                       .HtmlAttributes(new { @class = "hr-x-large" }))
+
+                                </div>
+                            </div>*@
+                        <div class="col-sm-12 col-lg-2 col-xl-2"><label class="col-form-label text-nowrap wtext drp_label">@Resource["SelectUser"]</label></div>
+                        <div class="col-sm-4 col-lg-2 col-xl-3">
+                            <div class="dropdown dd-filter-by">
+                                @*@(Html.Kendo().DropDownList()
+                                     .Name("User")
+                                     .DataSource(source =>
+                                     {
+                                         source.Read(read =>
+                                         {
+                                             read.Action("GetPositionHierarchyByUserLoggedInUser", "PositionHierarchy", new { area = "Chr" })/*.Data("FilterUser")*/;
+                                         }).ServerFiltering(true);
+                                     })
+                                   .Events(e => e.Change("OnMemberChange"))
+                                  .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+                                   .DataTextField("Name")
+                                   .DataValueField("Id")
+                                   .Filter(FilterType.Contains)
+                                   // .CascadeFrom("Team")
+                                   .HtmlAttributes(new { @class = "hr-x-large" }))*@
+
+                                <input id="User" class="hr-x-large" />
+                                <script>
+                                    $(document).ready(function () {
+                                                                                $("#User").kendoDropDownList({
+                                                optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+                                                dataTextField: "Name",
+                                                dataValueField: "Id",
+                                            filter: "contains",
+                                            change: OnMemberChange,
+                                            dataSource: {
+                                                serverFiltering: true,
+                                                    transport: {
+                                                        read: {
+                                                            url: "/Chr/PositionHierarchy/GetPositionHierarchyByUserLoggedInUser",
+                                                        }
+                                                    }
+                                                }
+                                            });
+
+                                    });
+                                </script>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="row">
+            <div class="col-md-12 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col"><label class="col-form-label title-label">@Resource["TASK"]&nbsp;&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["AssignedwithHim/Her"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-task-overdue" href="javascript:void(0);"><label id="taskAssODueHim">0</label></a>
+                            <a class="SYN-task-pending" href="javascript:void(0);"><label id="taskAssPenHim">0</label></a>
+                            <a class="SYN-task-completed" href="javascript:void(0);"><label id="taskAssComHim">0</label></a>
+                            @*<div class="SYN-task-draft" id=""><label>0</label></div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["RequestedbyHim/Her"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-task-overdue" href="javascript:void(0);"><label id="tskreqByHimOdue">0</label></a>
+                            <a class="SYN-task-pending" href="javascript:void(0);"><label id="tskreqByHimPen">0</label></a>
+                            <a class="SYN-task-completed" href="javascript:void(0);"><label id="tskreqByHimCom">0</label></a>
+                            <a class="SYN-task-draft" href="javascript:void(0);"><label id="tskreqByHimDraft">0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["SharedwithHim/Her"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-task-overdue" href="javascript:void(0);"><label id="tskShareOdueHim">0</label></a>
+                            <a class="SYN-task-pending" href="javascript:void(0);"><label id="tskSharePenHim">0</label></a>
+                            <a class="SYN-task-completed" href="javascript:void(0);"><label id="tskShareComHim">0</label></a>
+                            @*<div class="SYN-task-draft"><label id="taskShareOdueHim">0</label></div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="display:none">
+            <div class="col-md-12 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col"><label class="col-form-label title-label">@Resource["SERVICE"]&nbsp;&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["RequestedbyHim/Her"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-service-overdue" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-service-pending" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-service-completed" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-service-draft" href="javascript:void(0);"><label>0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["SharedwithHim/Her"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-service-overdue" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-service-pending" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-service-completed" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-service-draft" href="javascript:void(0);"><label>0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="display:none">
+            <div class="col-md-12 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col"><label class="col-form-label title-label">@Resource["NOTES"]&nbsp;&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["AssignedwithHim/Her"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-notes-overdue" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-pending" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-completed" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-draft" href="javascript:void(0);"><label>0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["RequestedbyHim/Her"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-notes-overdue" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-pending" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-completed" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-draft" href="javascript:void(0);"><label>0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3">
+                <div class="row">
+                    <div class="col-xl-12"><label class="col-form-label task-lable">@Resource["SharedwithHim/Her"]&nbsp;<i class="fa fa-info-circle"></i></label></div>
+                    <div class="col">
+                        <div>
+                            <a class="SYN-notes-overdue" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-pending" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-completed" href="javascript:void(0);"><label>0</label></a>
+                            <a class="SYN-notes-draft" href="javascript:void(0);"><label>0</label></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br /><br />
+    </div>
+</div>
+
+<script id="dropdowntree-template" type="text/kendo-ui-template">
+    @*# if (item.Type=='Template') { #" +
+                           "<input type='checkbox' #= item.checked ? 'checked' : '' #>" +
+                       "# } #*@
+     #if(item.Type=='Template') {#
+                           <input type='checkbox' #= item.checked ? 'checked' : '' #>
+                       #}#
+</script>
+
+
+<script>
+     function TaskServiceCount()
+    {
+        var tasktemplateIds = $("#TaskTemplateIds").data("kendoDropDownTree").value();
+        var servicetemplateIds = $("#ServiceTemplateIds").data("kendoDropDownTree").value();
+         $.ajax({
+             url: "/pjm/Project/WorklistDashboardCount?moduleCodes=@Model.ModuleCodes&userId=@Model.UserId&taskTemplateIds=" + tasktemplateIds + "&serviceTemplateIds=" + servicetemplateIds,
+                //url: "/pjm/Project/WorklistDashboardCount?categoryCode=ProjectService",
+                dataType: "json",
+                type: "GET",
+                contentType: 'application/json; charset=utf-8', //define a contentType of your request
+                cache: false,
+                success: function (data) {
+                    if (data != null) {
+                        $('#taskAssToMe').html(data.T_AssignedToMe);
+                        $('#taskAssPen').html(data.T_AssignPending);
+                        $('#taskAssCom').html(data.T_AssignCompleted);
+                        $('#taskAssODue').html(data.T_AssignOverdue);
+                        $('#taskAssReject').html(data.T_AssignReject);
+                        $('#tskreqByMe').html(data.T_RequestedByMe);
+                        $('#tskreqByMeOdue').html(data.T_RequestOverdue);
+                        $('#tskreqByMeCom').html(data.T_RequestCompleted);
+                        $('#tskreqByMeDraft').html(data.T_RequestDraft);
+                        $('#tskreqByMePen').html(data.T_RequestPending);
+                        $('#reqByMe').html(data.S_RequestedByMe);
+                        $('#reqByMeOdue').html(data.S_RequestOverdue);
+                        $('#reqByMeCom').html(data.S_RequestCompleted);
+                        $('#reqByMeDraft').html(data.S_RequestDraft);
+                        $('#reqByMePen').html(data.S_RequestPending);
+                        $('#reqByMeCancel').html(data.S_RequestCancel);
+                        $('#serShareWithMe').html(data.S_SharedWithMe);
+                        $('#serShareOdue').html(data.S_ShareWithOverdue);
+                        $('#serShareCom').html(data.S_ShareWithCompleted);
+                        $('#serSharePen').html(data.S_ShareWithPending);
+                        $('#serShareCancel').html(data.S_ShareWithCancel);
+                        $('#tskShareWithMe').html(data.T_SharedWithMe);
+                        $('#tskShareOdue').html(data.T_ShareWithOverdue);
+                        $('#tskShareCom').html(data.T_ShareWithCompleted);
+                        $('#tskSharePen').html(data.T_ShareWithPending);
+                        $('#tskShareReject').html(data.T_ShareWithReject);
+                    }
+                },
+                error: function (xhr) {
+                    alert('error');
+                }
+            });
+    }
+    function NoteCounts()
+    {
+        var notetemplateIds = $("#NoteTemplateIds").data("kendoDropDownTree").value();
+         $.ajax({
+             url: "/pjm/Project/WorklistDashboardNotesCount?moduleCodes=@Model.ModuleCodes&userId=@Model.UserId&noteTemplateIds=" + notetemplateIds,
+                dataType: "json",
+                type: "GET",
+                contentType: 'application/json; charset=utf-8', //define a contentType of your request
+                cache: false,
+                success: function (data) {
+                    if (data != null) {
+                       // $('#noteCreatedByMe').html(data.Data.createdByMe);
+                        $('#noteCreatedByMeDraft').html(data.createdByMeDraft);
+                        $('#noteCreatedByMeActive').html(data.createdByMeActive);
+                        $('#noteCreatedByMeExpired').html(data.createdByMeExpired);
+
+                        //$('#noteSharedByMe').html(data.Data.sharedByMe);
+
+                        $('#noteSharedByMeActive').html(data.sharedByMeActive);
+                        $('#noteSharedByMeDraft').html(data.sharedByMeDraft);
+                        $('#noteSharedByMeExpired').html(data.sharedByMeExpired);
+
+                        //$('#noteSharedWithMe').html(data.Data.shareWithMe);
+
+                        $('#noteSharedWithMeActive').html(data.sharedWithMeActive);
+                        $('#noteSharedWithModeleDraft').html(data.sharedWithMeDraft);
+                        $('#noteSharedWithMeExpired').html(data.sharedWithMeExpired);
+                    }
+                },
+                error: function (xhr) {
+                    alert('error');
+                }
+            });
+    }
+       $(function () {
+
+
+           serviceRoot = "/cms/template/GetTaskTemplateTreeList";
+
+        homogeneous = new kendo.data.HierarchicalDataSource({
+            transport: {
+                read: {
+                    url: serviceRoot,
+                    dataType: "json"
+                }
+            },
+            schema: {
+                model: {
+                    id: "id",
+                    hasChildren: "hasChildren"
+                }
+            }
+        });
+
+
+           $("#TaskTemplateIds").kendoDropDownTree({
+               placeholder: "Select ...",
+               dataSource: homogeneous,
+               height: "150px",
+               dataTextField: "Name",
+               dataValueField: "id",
+               placeholder: '@SharedResource["Select"]',
+               value: "@Model.TaskTemplateIds",
+               checkboxes: {
+                   checkChildren: true,
+                   template:
+                       "# if (item.type=='Template') { #" +
+                       "<input type='checkbox' #= item.checked ? 'checked' : '' #>" +
+                       "# } #"
+               },
+          // template: kendo.template($("#dropdowntree-template").html()),
+           change: OnTaskTemplateChange,
+
+           });
+
+
+           serviceRoot2 = "/cms/template/GetServiceTemplateTreeList";
+
+        homogeneous2 = new kendo.data.HierarchicalDataSource({
+            transport: {
+                read: {
+                    url: serviceRoot2,
+                    dataType: "json"
+                }
+            },
+            schema: {
+                model: {
+                    id: "id",
+                    hasChildren: "hasChildren"
+                }
+            }
+        });
+
+
+           $("#ServiceTemplateIds").kendoDropDownTree({
+               placeholder: "Select ...",
+               dataSource: homogeneous2,
+               height: "150px",
+               dataTextField: "Name",
+               dataValueField: "id",
+               placeholder: 'Select Service Templates...',
+               value: "@Model.ServiceTemplateIds",
+               checkboxes: {
+                   checkChildren: true,
+                   template:
+                       "# if (item.type=='Template') { #" +
+                       "<input type='checkbox' #= item.checked ? 'checked' : '' #>" +
+                       "# } #"
+               },
+              // template: kendo.template($("#dropdowntree-template").html()),
+               change: OnServiceTemplateChange,
+           });
+
+
+
+           serviceRoot3 = "/cms/template/GetNoteTemplateTreeList";
+
+        homogeneous3 = new kendo.data.HierarchicalDataSource({
+            transport: {
+                read: {
+                    url: serviceRoot3,
+                    dataType: "json"
+                }
+            },
+            schema: {
+                model: {
+                    id: "id",
+                    hasChildren: "hasChildren"
+                }
+            }
+        });
+
+
+           $("#NoteTemplateIds").kendoDropDownTree({
+               placeholder: "Select ...",
+               dataSource: homogeneous3,
+               height: "150px",
+               
+               dataTextField: "Name",
+               dataValueField: "id",
+               placeholder: 'Select Note Templates...',
+               value: "@Model.NoteTemplateIds",
+               checkboxes: {
+                   checkChildren: true,
+                   template:
+                       "# if (item.type=='Template') { #" +
+                       "<input type='checkbox' #= item.checked ? 'checked' : '' #>" +
+                       "# } #"
+               },
+              // template: kendo.template($("#dropdowntree-template").html()),
+               change: OnNoteTemplateChange,
+       });
+
+           TaskServiceCount();
+           NoteCounts();
+       });
+
+    function SubordinateCount() {
+        var MemberId = "";
+        var TeamId = "";//$("#Team").data("kendoDropDownList").value();
+        var ProjectId = "";// $("#Projects").data("kendoDropDownList").value();
+        //var Type = $("#FilterByType").data("kendoDropDownList").text();
+        //if (Type == "Project") {
+        //    ProjectId = $("#Projects").data("kendoDropDownList").value();
+        //    MemberId = $("#ProjectMembers").data("kendoDropDownList").value();
+        //}
+        //if (Type == "Team") {
+        //    TeamId = $("#Team").data("kendoDropDownList").value();
+        //    MemberId = $("#User").data("kendoDropDownList").value();
+        //}
+
+        MemberId = $("#User").data("kendoDropDownList").value();
+        $.ajax({
+            url: "/pjm/project/SubOrdinateDashboardCount?userId=" + MemberId+"&moduleCodes=@Model.ModuleCodes",
+            dataType: "json",
+            type: "GET",
+            contentType: 'application/json; charset=utf-8', //define a contentType of your request
+            cache: false,
+            success: function (data) {
+                if (data.Data != null) {
+                    $('#taskAssToHim').html(data.Data.T_AssignedToMe);
+                    $('#taskAssPenHim').html(data.Data.T_AssignPending);
+                    $('#taskAssComHim').html(data.Data.T_AssignCompleted);
+                    $('#taskAssODueHim').html(data.Data.T_AssignOverdue);
+                    $('#taskAssRejectHim').html(data.Data.T_AssignReject);
+                    $('#tskreqByHim').html(data.Data.T_RequestedByMe);
+                    $('#tskreqByHimOdue').html(data.Data.T_RequestOverdue);
+                    $('#tskreqByHimCom').html(data.Data.T_RequestCompleted);
+                    $('#tskreqByHimDraft').html(data.Data.T_RequestDraft);
+                    $('#tskreqByHimPen').html(data.Data.T_RequestPending);
+                    $('#reqByMeHim').html(data.Data.S_RequestedByMe);
+                    $('#reqByMeOdueHim').html(data.Data.S_RequestOverdue);
+                    $('#reqByMeComHim').html(data.Data.S_RequestCompleted);
+                    $('#reqByMeDraftHim').html(data.DaModela.S_RequestDraft);
+                    $('#reqByMePenHim').html(data.Data.S_RequestPending);
+                    $('#reqByMeCancelHim').html(data.Data.S_RequestCancel);
+                    $('#serShareWithMeHim').html(data.Data.S_SharedWithMe);
+                    $('#serShareOdueHim').html(data.Data.S_ShareWithOverdue);
+                    $('#serShareComHim').html(data.Data.S_ShareWithCompleted);
+                    $('#serSharePenHim').html(data.Data.S_ShareWithPending);
+                    $('#serShareCancelHim').html(data.Data.S_ShareWithCancel);
+                    $('#tskShareWithMeHim').html(data.Data.T_SharedWithMe);
+                    $('#tskShareOdueHim').html(data.Data.T_ShareWithOverdue);
+                    $('#tskShareComHim').html(data.Data.T_ShareWithCompleted);
+                    $('#tskSharePenHim').html(data.Data.T_ShareWithPending);
+                    $('#tskShareRejectHim').html(data.Data.T_ShareWithReject);
+                }
+            },
+            error: function (xhr) {
+                alert('error');
+            }
+        });
+    }
+</script>
+

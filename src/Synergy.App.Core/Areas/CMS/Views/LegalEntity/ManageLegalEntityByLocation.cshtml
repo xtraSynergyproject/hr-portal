@@ -1,0 +1,221 @@
+﻿
+@using Synergy.App.ViewModel
+@using Synergy.App.Business
+@using Synergy.App.Common
+@{
+    ViewData["Title"] = "Location";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+@model Synergy.App.ViewModel.LegalEntityViewModel
+
+<style>
+    .form-control {
+        width: unset;
+    }
+
+    .required {
+        color: red;
+    }
+
+    .row {
+        margin-right: 0px;
+    }
+
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 80px;
+        width: 80px;
+    }
+
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {        
+
+        $("#CityName").kendoDropDownList({
+            dataTextField: "CityName",
+            dataValueField: "Id",
+            optionLabel:"@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/BLS/BLSApplication/GetCityList",
+                    }
+                }
+            }
+        });
+
+        $("#StateName").kendoDropDownList({
+            dataTextField: "StateName",
+            dataValueField: "Id",
+            optionLabel:"@ApplicationConstant.PlaceHolder_SelectOption",
+            filter: "contains",
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/BLS/BLSApplication/GetStateList",
+                    }
+                }
+            }
+        });
+       
+    });
+
+    function onAjaxBegin() {
+        ShowLoader($('#myForm'));
+    }
+
+    function onAjaxSuccess(res) {
+        if (res.success) {
+            HideLoader($('#myForm'));
+            window.parent.ShowNotification("Saved Successfully", "success");
+            window.parent.getLegalEntityByLocationData();
+            closePopup();
+        }
+        else {
+            HideLoader($('#myForm'));
+            ShowNotification(res.error, "error");
+        }
+    }
+
+    function closePopup() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+
+    function OnSave(e) {
+        var city = $("#CityName").data("kendoDropDownList").value();
+        var state = $("#StateName").data("kendoDropDownList").value();
+
+        if ($('#Name').val() != "" && $('#Code').val() != "") {
+            if (city == "" || city == undefined) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("Select City");
+                window.scrollTo(0, 0);
+                e.preventDefault();
+                return false;
+            } else if (state == "" || state == undefined) {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("Select State");
+                window.scrollTo(0, 0);
+                e.preventDefault();
+                return false;
+            }
+            else {
+                $(".text-danger").removeClass("validation-summary-errors");
+                $(".text-danger").addClass("validation-summary-valid");
+                $(".text-danger").html("");
+            }
+        }
+       
+    }
+
+</script>
+
+<div class="row-12" style="margin-left:15px;">
+
+    <form asp-controller="LegalEntity" asp-action="ManageLegalEntityByLocation" class="form-horizontal" id="myForm"
+          data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete" data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+                  data-ajax="true" data-ajax-method="POST">
+
+        <div class="text-danger" asp-validation-summary="All" style="font-size:14px;"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Name" required="required" autocomplete="off" style="width:80%" />
+                    <label for="Name">Name <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Code" type="text" class="form-control" placeholder="Code" required="required" autocomplete="off" style="width:80%" />
+                    <label for="Code">Code <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="col-12">City <span class="required">*</span></div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="CityName" id="CityName" class="form-control" style="width:80%" />
+                </div>
+            </div>
+
+            <div class="col-12">State <span class="required">*</span></div>
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="StateName" id="StateName" class="form-control" style="width:80%" />
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Address" type="text" class="form-control" placeholder="Address" autocomplete="off" style="width:80%" />
+                    <label for="Address">Address @*<span class="required">*</span>*@</label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Street" type="text" class="form-control" placeholder="Street" autocomplete="off" style="width:80%" />
+                    <label for="Street">Street @*<span class="required">*</span>*@</label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="PinCode" type="text" class="form-control" placeholder="Zip Code" autocomplete="off" style="width:80%" />
+                    <label for="PinCode">Zip Code @*<span class="required">*</span>*@</label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Latitude" type="text" class="form-control" placeholder="Latitude" autocomplete="off" style="width:80%" />
+                    <label for="Latitude">Latitude @*<span class="required">*</span>*@</label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Longitude" type="text" class="form-control" placeholder="Longitude" autocomplete="off" style="width:80%" />
+                    <label for="Longitude">Longitude @*<span class="required">*</span>*@</label>
+                </div>
+            </div>
+
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="Phone" type="text" class="form-control" placeholder="Phone" autocomplete="off" style="width:80%" />
+                    <label for="Phone">Phone @*<span class="required">*</span>*@</label>
+                </div>
+            </div>
+
+        </div>
+        
+
+        <div class="col-12" style="text-align:right">
+            <button type="button" class="btn btn-light" onclick="closePopup();">Close</button>
+            <input type="submit" class="btn btn-primary" value="Save" id="submitBtn" onclick="OnSave(event);"/>
+        </div>
+
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x=>x.PortalId)
+    </form>
+</div>

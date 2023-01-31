@@ -1,0 +1,533 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "File Manager";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+
+
+<script src="~/js/fancytree/jquery.fancytree.filter.js"></script>
+<script src="~/js/fancytree/jquery.fancytree.edit.js"></script>
+<script src="~/js/fancytree/jquery.fancytree.dnd.js"></script>
+
+
+<style>
+    .app-footer {
+        margin:0;
+    }
+    .left {
+        min-width: 400px;
+        max-width: 600px;
+    }
+
+   
+
+    .belowHead-nav {
+        width: 99%;
+        padding: 0;
+        margin: 10px auto -9px;
+        background-color: #fafafa;
+        border-color: #e0e0e0 !important;
+        border: 1px solid;
+        border-bottom: 0px solid;
+    }
+
+    .belowHead-main {
+        width: 99%;
+        height: 96vh;
+        padding: 0;
+        margin: 10px auto;
+        background-color: white;
+        border-color: #e0e0e0 !important;
+        border: 1px solid;
+    }
+
+  
+
+    .L-block {
+        width: 40%;
+        float: left;
+        padding: 4px;
+        margin: 0;
+    }
+
+
+    .L-menu-block {
+        width: 100%;
+        float: left;
+        padding: 4px;
+        margin: 0;
+    }
+
+    .Content-block {
+        width: 100%;
+        height: 82vh;
+        clear: both;
+        padding: 4px;
+        /*margin: 6px;*/
+    }
+
+    .fa-workspace:before {
+        content: "\f07b";
+        color: cornflowerblue;
+    }
+
+    .fa-folder:before {
+        content: "\f07b";
+        color: #ffcf20 !important;
+    }
+
+    .fa-file-alt:before {
+        /* content: "\e30d";*/
+        /*color: #266cb7 !important;*/
+        /*font-size:24px;*/
+    }
+
+    .nav-count {
+        background: #ffa828;
+        border-radius: 30%;
+        padding: 0px 5px;
+        color: white;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-top: 5px;
+    }
+
+    #tree {
+        height: 95vh;
+        overflow-y: scroll;
+    }
+
+    ul.fancytree-container {
+        border: unset;
+    }
+
+    body {
+        background: unset;
+    }
+
+    .tree-search-wrap {
+        float: right;
+        padding: 0px 16px 0 16px;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 300px;
+    }
+
+    .e-icons {
+        color: rgba(0,0,0,0.54);
+    }
+
+    .fa-search {
+        font-size: 14px;
+        margin: 4px 0;
+        padding: 5px;
+        /*position: absolute;*/
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .e-input-group input.e-input {
+        border-color: rgba(0,0,0,0.42);
+        border: none;
+        font-family: "Roboto","Segoe UI","GeezaPro","DejaVu Serif","sans-serif","-apple-system","BlinkMacSystemFont" !important;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        outline-color:white;
+    }
+
+  
+        
+
+    .tree-address .tree-address-ul {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        list-style: none;
+        margin: 0;
+        padding: 3px 8px;
+        visibility: visible;
+    }
+
+    .tree-address .e-address-list-item {
+        color: rgba(0,0,0,0.54);
+    }
+
+    .tree-address .tree-address-list-item {
+        display: inline-block;
+        height: 27px;
+    }
+
+    .tree-address .tree-list-text {
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 27px;
+        padding: 4px 4px 5px;
+        text-decoration: none;
+        color: rgba(0,0,0,0.54);
+    }
+
+    .tree-address-list-item:hover {
+        background: #eee;
+        color: rgba(0,0,0,0.87);
+    }
+
+    .tree-address-list-item:last-child {
+        color: black;
+        pointer-events: none;
+    }
+
+    .tree-address-ul .fa-angle-right {
+        padding: 5px !important;
+        font-size: 16px !important;
+    }
+
+  
+
+   
+
+    .tree-toolbar-left {
+        display: flex;
+    }
+
+    .tree-tbar-btn {
+        box-shadow: none;
+        border: none;
+        font-weight: 400;
+        overflow: hidden;
+        text-align: center;
+        text-decoration: none;
+        text-transform: none;
+    }
+
+    .tree-btn-icon {
+        display: inline-block;
+        font-size: 12px;
+        margin-top: -2px;
+        vertical-align: middle;
+        width: 1em;
+    }
+
+    .tree-icons {
+        font-family: "e-icons";
+        font-style: normal;
+        font-variant: normal;
+        font-weight: normal;
+        line-height: 1;
+        text-transform: none;
+    }
+
+    .tree-control {
+        font-size: 12px;
+        font-weight: normal;
+    }
+
+    .tree-btn {
+        border: 1px solid;
+        display: inline-block;
+        font-size: 14px;
+        justify-content: center;
+        line-height: 1.143em;
+        padding: 6px 12px 4px;
+        text-align: center;
+        text-decoration: none;
+        vertical-align: middle;
+        white-space: nowrap;
+        background-color: #fafafa;
+        border-color: transparent;
+    }
+
+    .tree-btn-text {
+        color: #424242;
+        font-weight: 400;
+        margin-left: 5px;
+    }
+
+    .tree-hidden {
+        display: none;
+    }
+
+    .fancytree-ext-filter span.fancytree-title mark {
+        background-color: #E09090;
+    }
+
+    .fancytree-plain span.fancytree-active,
+    .fancytree-plain span.fancytree-selected {
+        background-color: #e0e0e0 !important;
+        border-color: #e0e0e0 !important;
+    }
+
+        .fancytree-plain span.fancytree-active span.fancytree-title,
+        .fancytree-plain span.fancytree-selected span.fancytree-title {
+            background-color: unset;
+            border-color: unset;
+            border: none;
+        }
+
+    .fancytree-plain.fancytree-container.fancytree-treefocus span.fancytree-active,
+    .fancytree-plain.fancytree-container.fancytree-treefocus span.fancytree-selected {
+        background-color: #e0e0e0 !important;
+        border-color: #e0e0e0 !important;
+    }
+
+        .fancytree-plain.fancytree-container.fancytree-treefocus span.fancytree-active span.fancytree-title,
+        .fancytree-plain.fancytree-container.fancytree-treefocus span.fancytree-selected span.fancytree-title {
+            background-color: unset;
+            border-color: unset;
+        }
+
+    .fancytree-plain span.fancytree-node:hover {
+        background-color: #eee;
+        border-color: #eee;
+    }
+
+        .fancytree-plain span.fancytree-node:hover span.fancytree-title {
+            background-color: unset;
+            border-color: unset;
+            border: none;
+        }
+
+    table.fancytree-ext-table tbody tr.fancytree-active {
+        background-color: #e0e0e0 !important;
+        outline: 1px solid #DEDEDE;
+    }
+
+    table.fancytree-ext-table tbody tr.fancytree-focused span.fancytree-title {
+        outline: 1px dotted black;
+    }
+
+ 
+    .display-hide {
+        display: none;
+    }
+
+ 
+   
+
+   
+
+   
+
+    .e-control-wrapper {
+        border-color: rgba(0,0,0,0.42);
+        border: 1px solid;
+        border-width: 0 0 1px 0;
+        background: transparent;
+        color: rgba(0,0,0,0.87);
+        position: relative;
+        width: 100%;
+        display: inline-flex;
+        vertical-align: middle;
+        border-radius: 0;
+        line-height: 1.4 !important;
+        margin-bottom: 4px;
+        height: auto;
+        min-height: 28px;
+        box-sizing: content-box;
+        content: '';
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    :focus {
+        outline-color: transparent !important;
+    }
+</style>
+<div class="control-section">   
+    <div class="belowHead-main">      
+            <div class="left" id="L-div">
+                <div class="L-menu-block">
+                    <div id="tree"></div>
+                </div>
+            </div> 
+    </div>
+</div>
+
+<script>      
+    $(document).ready(function () {
+        $("#tree").fancytree({
+            extensions: ['contextMenu'],
+            source: $.ajax({
+                url: "/Dms/Document/GetSoureceFolders",
+                dataType: "json",
+                data: { key: '@ViewBag.Key'}
+            }),
+            lazyLoad: function (event, data) {
+
+                var node = data.node;
+                // Issue an Ajax request to load child nodes
+                data.result = {
+                    url: "/Dms/Document/GetChildFolders",
+                    data: { key: node.key }
+                }
+            },           
+            renderNode: function (event, data) {
+                var node = data.node;
+                if (node != null && node.key != "_1") {
+                    if (node.data.Workspace) {
+                        node.icon = "fa fa-workspace";
+                        node.tooltip = true;
+                        node.renderTitle();
+                    }
+                    else if (node.folder) {
+                        node.icon = "fa fa-folder";
+                        node.tooltip = true;
+                        node.renderTitle();
+                    }
+                    var span = $(node.span);
+                    //var elm = span[0].lastElementChild;
+                    //if (node.data.Count != undefined) {
+                    //    $("<span class='nav-count pull-right'>" + node.data.Count + "</span>").insertAfter(elm);
+                    //}
+                    span.find("> span.fancytree-title").css({
+                        fontSize: "13px",
+                        height: "32px",
+                        lineHeight: "32px",
+                        padding: "0px 10px 0px 10px",
+                        fontFamily: "Roboto,Segoe UI, GeezaPro, DejaVu Serif, sans-serif, -apple-system, BlinkMacSystemFont"
+                    });
+                    span.find("> span.fancytree-custom-icon").css({
+                        fontSize: "18px",
+                        marginTop: "8px"
+                    });
+                    span.find("> span.fancytree-expander").css({
+                        marginTop: "8px"
+                    });
+
+                }              
+
+            },
+            select: function (event, data) {
+               
+            },
+            dblclick: function (event, data) {
+                
+
+            },
+            contextMenu: {
+                menu: function (node) {
+
+                    return {
+                        'workspace': {
+                            'name': 'Workspace',
+                            'items': {
+                                'CreateWorkspace': { 'name': 'Create Workspace', 'icon': 'add', 'disabled': node.data.Workspace==false || node.data.CanCreateWorkspace ==false  },                                
+                            }
+                        },
+                        'folder': {
+                            'name': 'Folder',
+                            'items': {
+                                'CreateFolder': { 'name': 'Create Folder', 'icon': 'add', 'disabled': node.data.Document == true || node.data.CanCreateSubFolder==false},                                
+                            }
+                        },
+                        'upload': {
+                            'name': 'Upload',
+                            'items': {
+                                'UploadFolder': { 'name': 'Upload Folder', 'icon': 'fas fa-folder-upload', 'disabled': node.data.Document == true || node.data.CanCreateSubFolder==false },
+                                'UploadFiles': { 'name': 'Upload Files', 'icon': 'fas fa-upload', 'disabled': node.folder == false || node.data.CanCreateDocument==false },
+                            }
+                        },
+                        'document': {
+                            'name': 'Document',
+                            'items': {
+                                'CreateDocument': { 'name': 'Create Document', 'icon': 'add', 'disabled': node.folder == false || node.data.CanCreateDocument==false },                                
+                            }
+                        },
+                       
+
+                    }
+                },
+                actions: function (node, action, options) {
+                    switch (action) {
+                        case "CreateWorkspace":
+                            var win = GetMainWindow();
+                            win.iframeOpenUrl = '@Url.Action("Create", "Workspace", new { @area="Dms"})?parentId='+node.key+'&dataAction=Create';
+                            win.OpenWindow({ Title: '@Html.Raw(Resource["ManageWorkspace"])', Width: 450, Height: 750, Position: 'Right' });
+                            return false;
+                            break;                       
+                        case "CreateFolder":
+                            var win = GetMainWindow();
+                            win.iframeOpenUrl = '/Dms/Document/ManageFolder?parentId=' + node.key;
+                            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateFolder"])', Width: 450, Height: 750, Position: 'Right' });
+                            return false;
+                            break;                        
+                        case "UploadFolder":
+                            var win = GetMainWindow();
+                            win.iframeOpenUrl = '/dms/Document/UploadFolder?parentId=' + node.key;
+                            win.OpenWindow({ Title: '@Html.Raw(Resource["UploadFolder"])', Width: 450, Height: 750, Position: 'Right' });
+                            return false;
+                            break;
+                        case "UploadFiles":
+                            var win = GetMainWindow();
+                            win.iframeOpenUrl = '/dms/Document/UploadFile?parentId=' + node.key;
+                            win.OpenWindow({ Title: '@Html.Raw(Resource["UploadFiles"])', Width: 450, Height: 750, Position: 'Right' });
+                            return false;
+                            break;
+                        case "CreateDocument":
+                            var url = '/Dms/DocumentPermission/DMSTemplate?parentId=' + node.key;
+                            var win = GetMainWindow();
+                            win.iframeOpenUrl = url;
+                            win.OpenWindow({ Title: '@Html.Raw(Resource["CreateDocument"])', Width: 1200, Height: 650 });
+                            return false;
+                            break;                      
+                        default:
+                    }
+
+                }
+            }
+        });
+
+    });
+    function RefreshAllParentNode(activeKey,action,section) {          
+        var node = $("#tree").fancytree("getActiveNode");
+        if(action=="delete" && section=="left"){
+            node = node.parent;
+        }       
+         var newSourceOption1 = {
+            url: "/Dms/Document/GetSoureceFolders",
+            dataType: "json",
+            data: { key: activeKey}
+        };
+        var tree = $('#tree').fancytree('getTree');
+        tree.reload(newSourceOption1); 
+       
+    }
+    function ExpandTree(rnode) {
+        var newSourceOption = {
+            url: "/Dms/Document/GetSoureceFolders",
+            type: 'POST',
+            dataType: "json",
+            data: { key: rnode.key }
+        };
+        var tree = $("#tree").fancytree('getTree');
+        tree.reload(newSourceOption);
+    }
+    function OnCreateWorkspace() {
+        var win = GetMainWindow();
+        win.iframeOpenUrl = '@Url.Action("Create", "Workspace", new { @area="Dms"})?dataAction=Create';
+        win.OpenWindow({ Title: '@Html.Raw(Resource["ManageWorkspace"])', Width: 450, Height: 750, Position: 'Right'});
+        return false;
+    }
+    
+   
+
+     
+   
+
+  
+    
+</script>
+
+
+
+
+
+
+
+
+
+

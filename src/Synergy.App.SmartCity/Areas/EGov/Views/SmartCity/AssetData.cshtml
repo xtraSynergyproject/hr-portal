@@ -1,0 +1,336 @@
+﻿@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@model JMCAssetViewModel
+
+@{
+    ViewData["Title"] = "Asset Details";
+    Layout = null;
+}
+
+<style>
+    .colLabel{
+        color: black !important;
+    }
+    .ag-theme-balham .ag-header-row .ag-header-cell-text{
+        color: black !important;
+    }
+    .divDim {
+        width: 100%;
+        height: 100%;
+        min-height: calc(100vh - 6.5rem);
+        margin: auto;
+    }
+</style>
+
+<script>
+
+    $(function () {
+        getGonsumerList();
+        getPaymentList();
+
+        $.contextMenu({
+            selector: '#actions',
+            trigger: 'left',
+            build: function ($trigger, e) {
+
+
+                var id = $trigger.data('idvalue');
+
+                switch (0) {
+                    case 0:
+                        return {
+                            callback: function (key, options) {
+                                switch (key) {
+                                    case 'view':
+                                        onView(id);
+                                        break;
+
+                                    default:
+                                }
+                            },
+                            items: {
+                                "view": { name: "View Consumer Details", icon: "fas fa-eye" },
+
+                            }
+                        };
+
+
+                }
+            }
+        });
+
+    });
+
+    function onView(id) {
+        var customUrl = encodeURIComponent(id);
+        LoadPartailView('/EGov/SmartCity/ConsumerData?backEnable=true&id=' + id+'&assetId=@Model.Id', $('#cms-content'));
+    }
+
+    var consumerColumnDefs = [
+        {
+            headerName: "View",
+            field: "ConsumerId",
+            minWidth: 90,
+
+            cellRenderer: params => {
+                return "<div class='btn-group grid-menu' id='actions' data-idvalue='" + params.value + "' ><i class='fas fa-ellipsis-v'></i></div>"
+            }
+        },
+        {
+            field: "ConsumerNo",
+            headerName: "Consumer No",
+            minWidth: 150
+        },
+        {
+            field: "ConsumerName",
+            headerName: "Consumer Name",
+            minWidth: 150
+        },
+        {
+            field: "Email",
+            headerName: "Email",
+            minWidth: 150
+        },
+        {
+            field: "Mobile",
+            headerName: "Mobile",
+            minWidth: 150
+        },
+        {
+            field: "Address",
+            headerName: "Address",
+            minWidth: 150
+        },
+        {
+            field: "AssetTypeName",
+            headerName: "Asset Type",
+            minWidth: 150
+        },
+        {
+            field: "AssetName",
+            headerName: "Asset Name",
+            minWidth: 150,
+        },
+        {
+            field: "AllotmentDate",
+            headerName: "Asset Allotment Date",
+            minWidth: 180,
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            field: "AllotmentFromDate",
+            headerName: "Allotment From Date",
+            minWidth: 180,
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            field: "AllotmentToDate",
+            headerName: "Allotment To Date",
+            minWidth: 150,
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+    ];
+
+    function getGonsumerList() {
+        document.getElementById("consumerGrid").innerHTML = "";
+        gridConfig(
+            "consumerGrid",
+            "/EGov/SmartCity/GetAssetConsumerData?assetId=@Model.Id",
+            consumerColumnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    var paymentColumnDefs = [
+        {
+            field: "ConsumerNo",
+            headerName: "Consumer No",
+            minWidth: 150,
+        },
+        {
+            field: "ConsumerName",
+            headerName: "Consumer Name",
+            minWidth: 150,
+        },
+        {
+            field: "AssetTypeName",
+            headerName: "Asset Type",
+            minWidth: 150,
+        },
+        {
+            field: "AssetName",
+            headerName: "Asset Name",
+            minWidth: 150,
+        },
+        {
+            field: "Amount",
+            headerName: "Amount",
+            minWidth: 150,
+        },
+        {
+            field: "BillDate",
+            headerName: "Bill Date",
+            minWidth: 150,
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            field: "DueDate",
+            headerName: "Due Date",
+            minWidth: 150,
+            cellRenderer: params => {
+                var date = new Date(params.value);
+                return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+            }
+        },
+        {
+            field: "PaymentReferenceNo",
+            headerName: "Payment Reference No",
+            minWidth: 150,
+        },
+        {
+            field: "PaymentStatus",
+            headerName: "Payment Status",
+            minWidth: 150,
+        }
+    ];
+
+    function getPaymentList() {
+        document.getElementById("paymentGrid").innerHTML = "";
+        gridConfig(
+            "paymentGrid",
+            "/EGov/SmartCity/GetAssetPaymentData?assetId=@Model.Id",
+            paymentColumnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function goBack(id) {
+        LoadPartailView('/EGov/SmartCity/ConsumerData?id=' + id, $('#cms-content'));
+    }
+
+</script>
+
+<div id="appWrapper" class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            
+            
+            <div class="jumbotron divDim">
+                <div class="text-center">
+                    <h5>ASSET DETAILS</h5>
+                    <h6>@Model.AssetName</h6>
+                </div>
+                <hr />
+                @if (ViewBag.BackEnable)
+                {
+                    <button class="btn btn-secondary btn-sm" onclick="goBack('@ViewBag.ConsumerId')" style="float:right;">Back</button>
+                }
+                <div>
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active show" data-toggle="tab" href="#asset">Asset Details</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#consumer">Consumer Details</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#payment">Payment Details</a>
+                        </li>
+                    </ul>
+                </div>
+                <hr />
+
+                <div>
+                    <div class="tab-content">
+                        <div class="tab-pane fade active show text-center" id="asset">
+
+                            <div class="row">
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label">Asset Name</label>
+                                </div>
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label colLabel">@Model.AssetName</label>
+                                </div>
+
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label">Asset Type Name</label>
+                                </div>
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label colLabel">@Model.AssetTypeName</label>
+                                </div>
+
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label">Asset Description</label>
+                                </div>
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label colLabel">@Model.AssetDescription</label>
+                                </div>
+
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label">Ward Name</label>
+                                </div>
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label colLabel">@Model.WardName</label>
+                                </div>
+
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label">Location Address</label>
+                                </div>
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label colLabel">@Model.specificLocation</label>
+                                </div>
+
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label">Latitude</label>
+                                </div>
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label colLabel">@Model.Latitude</label>
+                                </div>
+
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label">Longitude</label>
+                                </div>
+                                <div class="col-3 text-left">
+                                    <label class="col-form-label colLabel">@Model.Longitude</label>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="tab-pane fade" id="consumer">
+                            <div id="consumerGrid" style="width: 100%;height:350px" class="ag-theme-balham"></div>
+                        </div>
+                        <div class="tab-pane fade" id="payment">
+                            <div id="paymentGrid" style="width: 100%;height:350px" class="ag-theme-balham"></div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>

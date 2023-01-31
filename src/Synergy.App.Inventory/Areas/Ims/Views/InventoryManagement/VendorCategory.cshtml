@@ -1,0 +1,191 @@
+﻿@{
+    ViewData["Title"] = "Vendor Category";
+
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Newtonsoft.Json;
+
+
+<style>
+    input[type="radio"] {
+        margin-top: 5px;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+    .radio{
+        cursor:pointer;
+    }
+</style>
+<script>
+    
+
+    $(document).ready(function () {               
+
+        $("#VendorId").kendoDropDownList({
+            dataTextField: "VendorName",
+            dataValueField: "Id",
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            filter: "contains",
+            enable:false,
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryManagement/GetVendorsList",
+                    }
+                }
+            }
+        });
+
+        $("#CategoryId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            enable: false,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetItemCategoryList",
+                    }
+                }
+            }
+        });
+
+        $("#SubCategoryId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_AllOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",
+            cascadeFrom: "CategoryId",            
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/IMS/InventoryMaster/GetItemSubCategoryListByItemCategory",
+                        data: filtersubcat
+                    }
+                }
+            }
+        });
+
+        $(document).on("change", "input[type='radio']", function () {            
+            var ven = $("#VendorId").data("kendoDropDownList");
+            var cat = $("#CategoryId").data("kendoDropDownList");            
+
+            if (this.value == 'Vendor') {
+                ven.enable(true);
+                cat.enable(false);
+                cat.value("");
+            } else {
+                ven.value("");
+                ven.enable(false);
+                cat.enable(true);                
+            }
+        });
+        
+    });
+
+    function filtersubcat() {
+        return {
+            itemCategoryId: $("#CategoryId").val()
+        }
+    }
+
+    var columnDefs = [
+        {
+            field: "SNo",
+            headerName: "Sr No"
+        },
+        {
+            field: "VendorName",
+            headerName: "Vendor Name"
+        },
+        {
+            field: "ItemCategoryName",
+            headerName: "Category Name"
+        },        
+    ];
+
+    function getVendorCategoryData() {
+        document.getElementById("VendorCategoryGrid").innerHTML = "";             
+
+        gridConfig(
+            "VendorCategoryGrid",
+            "/IMS/InventoryManagement/ReadVendorCategoryData?venId=" + $("#VendorId").data("kendoDropDownList").value() + "&catId=" + $("#CategoryId").data("kendoDropDownList").value() + "&subCatId=" + $("#SubCategoryId").data("kendoDropDownList").value(),
+            columnDefs,
+            false,
+            true,
+            true,
+            true,
+            1,
+            true,
+            10);
+    }
+
+    function OnSearch() {
+        document.getElementById("vcGrid").style.display = "block"; 
+        getVendorCategoryData();
+    }
+
+    function OnReset() {    
+        var ven = $("#VendorId").data("kendoDropDownList");
+        var cat = $("#CategoryId").data("kendoDropDownList");
+        var subcat = $("#SubCategoryId").data("kendoDropDownList");
+
+        ven.value("");
+        cat.value("");
+        subcat.value("");
+        $("input[type=radio]").prop('checked', false);
+        document.getElementById("vcGrid").style.display = "none"; 
+    }
+
+</script>
+
+<div class="row pad-10 no-gutters page-content">
+    <div class="container" style="padding:0px;max-width:100%">
+        <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li class="nav-item"><a data-toggle="tab" href="#vencat" class="nav-link active" role="tab" aria-controls="draft" aria-selected="true"><i class="far fa-file-alt" style="margin-left:15px;"></i><br />VENDOR CATEGORY</a></li>
+        </ul>
+        <div class="tab-content" style="border: 1px solid silver;border-top:none;">
+            <div id="vencat" class="tab-pane in active" role="tabpanel" aria-labelledby="design-tab">
+                <div style="width: 100%;" class="p-3">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Search Criteria</legend>
+                        <div class="text-danger" asp-validation-summary="All"></div>
+                        <div class="row">
+                            <div class="col-4 form-group radio">
+                                <input type="radio" name="type" id="Vendor" value="Vendor"><label for="Vendor">Vendor Wise</label>
+                                <input type="text" id="VendorId" class="form-control" style="width:60%;margin-left:25px;" />
+                            </div>
+                            <div class="col-4 form-group radio">
+                                <input type="radio" name="type" id="Category" value="Category"><label for="Category">Category Wise</label>
+                                <input type="text" id="CategoryId" class="form-control" style="width:60%;margin-left:25px;" />
+                            </div>
+                            <div class="col-4 form-group">
+                                <label for="Vendor">&nbsp;</label>
+                                <input type="text" id="SubCategoryId" class="form-control" style="width:60%;" />
+                            </div>
+
+                            <div class="col-12 form-group" style="text-align:right;margin-bottom:0px;">
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Search" onclick="OnSearch()" />
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Reset" onclick="OnReset()" />
+                                <input type="button" class="btn btn-primary btn-control" style="color:white" value="Print" onclick="OnPrint()" disabled />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                </div>
+                <div id="vcGrid" class="p-3" style="display:none;margin-top:-30px;">
+                    <fieldset class="fieldset">
+                        <legend class="fs-legend">Vendor Category Mapping</legend>
+                        <div id="VendorCategoryGrid" style="width:100%;height:550px;" class="ag-theme-alpine"></div>
+                    </fieldset>
+                </div>
+            </div>                       
+            
+        </div>
+    </div>
+</div>
+

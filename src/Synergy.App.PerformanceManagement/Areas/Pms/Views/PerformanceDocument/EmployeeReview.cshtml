@@ -1,0 +1,249 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+@{
+    ViewData["Title"] = "Template";
+    //Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+    Layout = "~/Areas/CMS/Views/Shared/_LayoutCms.cshtml";
+}
+<style>
+    h5 {
+        color:black;
+    }
+</style>
+<div id="template">
+    <h5>Goal Review</h5>
+    <div class="row">
+        <div class="col-12">
+
+            <div id="GoalReviewGrid" > </div>
+
+        </div>
+
+    </div>
+    <h5>Competency Review</h5>
+    <div class="row">
+
+        <div class="col-12">
+
+            <div id="CompetencyReviewGrid" ></div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: "GET",
+            url: "/Pms/PerformanceDocument/GetRatingDetailsFromDocumentMaster?DocMasterId=@ViewBag.DocumentMasterId",
+
+            dataType: "json",
+            success: function (data1) {
+
+                $("#GoalReviewGrid").jsGrid({
+                    width: "100%",
+                    height: "400px",
+                    // selecting: true,
+                    inserting: false,
+                   editing: true,
+                    sorting: true,
+                    paging: true,
+                    autoload: true,
+                    pageSize: 14,
+                    pageButtonCount: 5,
+                    deleteConfirm: "Do you really want to delete client?",
+                    //data: clients,
+                    controller: {
+                        loadData: function (filter) {
+                            return $.ajax({
+                                type: "GET",
+                                url: "/pms/PerformanceDocument/ReadGoalServiceData?documentMasterStageId=@ViewBag.DocMasterStageId&userType=@ViewBag.userType&documentstageId=@ViewBag.StageId",
+                                data: filter,
+                                dataType: "json"
+                            });
+                        },
+
+
+
+                    updateItem: function (item) {
+
+                        if ("@ViewBag.userType" == "PERFORMANCE_MANAGER") {
+                            item.UserType = "PERFORMANCE_MANAGER";
+                            item.ManagerComment=$("textarea").val();
+                        }
+                        else
+                        {
+                            item.UserType = "PERFORMANCE_EMPLOYEE";
+                            item.EmployeeComment=$("textarea").val();
+                        }
+
+
+                            return $.ajax({
+                                type: "POST",
+                                url: "/pms/PerformanceDocument/UpdateGoalReview",
+                             data: item,
+
+                                   success: function (result) {
+                                    var grid = $("#GoalReviewGrid").data("JSGrid")
+                                    grid.render();
+
+                                },
+                               });
+                        },
+                    },
+                    fields: [
+                        {
+                            name: "Id", title: "Id", type: "text", width: 150, visible: false, editing: false
+                        },
+                        {
+                            name: "StageName", title: "Goal Name", type: "text", width: 150, editing: false
+                        },
+                        {
+                            name: "ProjectOwnerName", title: "Owner Name", type: "text", width: 120, editing: false
+                        },
+                        {
+                            name: "SuccessCriteria", title: "Success Criteria", type: "text", width: 120, editing: false
+                        },
+                        @if (ViewBag.userType=="PERFORMANCE_MANAGER")
+                        {
+                            @:  {name: "EmployeeComment",title:"Employee Comment", type: "text", width: 150, editing: false,},
+
+                     @:    { name: "EmployeeRating", title: "Employee Rating", type: "select", width: 120, editing: false, items: data1, valueField: "Id", textField: "Name", align: "left", },
+
+
+                            @: {name: "ManagerComment",title:"Manager Comment", type: "text", width: 150, editing: true, editValue: function() {  },
+                            @:editTemplate: function(value, item)
+                           @: {
+         @:if (value == null)
+         @:{
+             @:return "<textarea></textarea>";
+         @:}
+         @:return "<textarea>" + value + "</textarea>";}
+                             @:},
+                            @: { name: "ManagerRating", title: "Manager Rating", type: "select", width: 120, editing: true, items: data1, valueField: "Id", textField: "Name", align: "left", },
+                        }
+@if (ViewBag.userType == "PERFORMANCE_EMPLOYEE")
+{
+
+       @:  {name: "EmployeeComment",title:"Employee Comment", type: "text", width: 150, editing: true,editValue: function() {  },editTemplate: function(value, item)
+                            @:{
+       @: if (value == null)
+       @: {
+       @:     return "<textarea></textarea>";
+       @: }
+       @: return "<textarea >" + value + "</textarea>";
+                           @:  }},
+
+                     @:    { name: "EmployeeRating", title: "Employee Rating", type: "select", width: 120, editing: true, items: data1, valueField: "Id", textField: "Name", align: "left", },
+    }
+
+                        { type: "control", width: 60,deleteButton: false},
+
+                    ]
+                });
+                $("#CompetencyReviewGrid").jsGrid({
+                    width: "100%",
+                    height: "400px",
+                    // selecting: true,
+                    inserting: false,
+                   editing: true,
+                    sorting: true,
+                    paging: true,
+                    autoload: true,
+                    pageSize: 14,
+                    pageButtonCount: 5,
+                    deleteConfirm: "Do you really want to delete client?",
+                    //data: clients,
+                    controller: {
+                        loadData: function (filter) {
+                            return $.ajax({
+                                type: "GET",
+                                url: "/pms/PerformanceDocument/ReadCompetencyServiceData?documentMasterStageId=@ViewBag.DocMasterStageId&userType=@ViewBag.userType&documentStageId=@ViewBag.StageId",
+                                data: filter,
+                                dataType: "json",
+
+                            });
+                        },
+
+
+
+                    updateItem: function (item) {
+
+                        if ("@ViewBag.userType" == "PERFORMANCE_MANAGER") {
+                            item.UserType = "PERFORMANCE_MANAGER";
+     item.ManagerComment=$("textarea").val();
+                        }
+                        else
+                        {
+                            item.UserType = "PERFORMANCE_EMPLOYEE";
+     item.EmployeeComment=$("textarea").val();
+                        }
+                        return $.ajax({
+                            type: "POST",
+                            url: "/pms/PerformanceDocument/UpdateCompetencyReview",
+                            data: item,
+                            success: function (result) {
+                                var grid = $("#CompetencyReviewGrid").data("JSGrid")
+                                 grid.render();
+
+                            },
+                        });
+                    },
+                },
+                    fields: [
+                        {
+                            name: "Id", title: "Id", type: "text", width: 150, visible: false, editing: false
+                        },
+                        {
+                            name: "StageName", title: "Competency Name", type: "text", width: 150, editing: false
+                        },
+                        {
+                            name: "ProjectOwnerName", title: "Owner Name", type: "text", width: 150, editing: false
+                        },
+                        //{
+                        //    name: "SuccessCriteria", title: "Success Criteria", type: "text", width: 150, editing: false
+                        //},
+                        @if (ViewBag.userType=="PERFORMANCE_MANAGER")
+                        {
+                            @: {name: "EmployeeComment",title:"Employee Comment", type: "text", width: 150, editing: false, },
+
+                        @: { name: "EmployeeRating", title: "Employee Comment", type: "select", width: 120, editing: false, items: data1, valueField: "Id", textField: "Name", align: "left", },
+
+
+                            @: {name: "ManagerComment",title:"Manager Comment", type: "text", width: 150, editing: true, editValue: function() {  },
+                            @:editTemplate: function(value, item)
+                           @: {
+         @:if (value == null)
+         @:{
+             @:return "<textarea></textarea>";
+         @:}
+         @:return "<textarea>" + value + "</textarea>";}
+                             @:},
+                            @: { name: "ManagerRating", title: "Manager Rating", type: "select", width: 120, editing: true, items: data1, valueField: "Id", textField: "Name", align: "left", },
+                        }
+ @if (ViewBag.userType == "PERFORMANCE_EMPLOYEE")
+ {
+
+             @: {name: "EmployeeComment",title:"Employee Comment", type: "text", width: 150, editing: true, editValue: function() {  },
+                            @:editTemplate: function(value, item)
+                           @: {
+         @:if (value == null)
+         @:{
+             @:return "<textarea></textarea>";
+         @:}
+         @:return "<textarea>" + value + "</textarea>";}
+                             @:},
+
+                        @: { name: "EmployeeRating", title: "Employee Comment", type: "select", width: 120, editing: true, items: data1, valueField: "Id", textField: "Name", align: "left", },
+                     }
+     { type: "control", width: 60,deleteButton: false,         },
+
+                    ]
+                });
+            }
+        });
+    });
+</script>

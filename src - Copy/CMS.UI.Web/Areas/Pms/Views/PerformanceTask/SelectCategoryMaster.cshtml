@@ -1,0 +1,427 @@
+﻿@using CMS.UI.ViewModel;
+@using CMS.Common;
+@using Kendo.Mvc.UI;
+@{
+    //Layout = null;
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@model TemplateViewModel
+
+<style>
+
+    .announcement {
+        background-color: #f7e6be;
+        border: 2px solid white;
+        color: #373e4c;
+        padding: 10px 30px 15px 15px;
+    }
+
+    .iconwithtextan {
+        display: flex;
+        align-items: center;
+    }
+
+        .iconwithtextan.img {
+            margin: 10px;
+            padding: 10px;
+            transition: margin 200ms;
+        }
+
+    .k-state-selected, .k-state-selected:link, .k-state-selected:visited, .k-tool.k-state-selected {
+        color: #fff;
+        background-color: #d6a03d;
+        /* border-color: #1a87cd; */
+    }
+
+    #listViewTM {
+        padding: 5px 5px;
+        margin-bottom: -1px;
+    }
+
+    #listView {
+        margin-bottom: -1px;
+        font: inherit;
+        background: white;
+        border-color: white;
+    }
+
+
+    .fa-span {
+        margin-left: 20%;
+    }
+
+    .template-description-tile {
+        border: solid 1px #bfbfbf;
+        font-size: .9eM;
+        color: gray;
+        background-color: white;
+        height: 30px;
+        width: 149px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+    }
+
+
+
+    .template-flip-card {
+        background-color: transparent;
+        width: 150px;
+        height: 160px;
+        /*border: 1px solid #f1f1f1;*/
+        perspective: 1000px; /* Remove this if you don't want the 3D effect */
+    }
+
+    .template-flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+    }
+
+    .template-flip-card:hover .template-flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .template-flip-card-front, .template-flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden; /* Safari */
+        backface-visibility: hidden;
+    }
+
+    .template-flip-card-front {
+        /* background-color: #bbb;*/
+        color: black;
+        display: flex;
+        text-align: center;
+        align-items: center;
+    }
+
+    .template-flip-card-back {
+        background-color: #307bbb;
+        color: white;
+        transform: rotateY(180deg);
+    }
+
+    .template-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 4px;
+        cursor: default;
+    }
+
+    /*  #listView {
+        padding: 10px 5px;
+        margin-bottom: -1px;
+        min-height: 510px;
+    }*/
+
+    .card {
+        max-height: 90px !important;
+        min-height: 90px !important;
+        max-width: 280px !important;
+        min-width: 280px !important;
+        margin-top: 10px;
+        float: left;
+        margin-left: 10px;
+        flex-direction: unset;
+    }
+
+    .card-header {
+        background-color: #fff;
+        padding: 5px 0px 0px 0px;
+        border-bottom: none;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .card-body {
+        padding: unset;
+        padding-top: 2px;
+        font-size: 14px;
+    }
+
+    .multi-line-truncate {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+    .k-listview-content {
+        overflow: unset;
+    }
+
+    .k-listview {
+        border-style: none;
+    }
+
+    .row {
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+
+    .taskicon {
+        background-color: MediumTurquoise;
+        border-radius: 3px 0px 0px 3px;
+        text-align: center;
+    }
+
+    .icon {
+        width: 100%;
+        height: 100%;
+        border-radius: 3px 0px 0px 3px;
+    }
+
+    .col-4 {
+        padding-left: unset;
+        padding-right: unset;
+    }
+</style>
+
+<script>
+
+    function SelectTemplate(id, code, name, desc, proficid, CompetencyType) {
+        //alert(id + " " + code + " " + name + " " + desc);
+        var win = GetMainWindow();
+        win.CloseWindow({ MethodName: 'OnCloseCompetencyMaster', Prms: { id: id, code: code, subject: name, description: desc, proficlevelid: proficid, PmsTypeId: CompetencyType } });
+        return false;
+
+        //var win = GetMainWindow();
+        //var portalId = win.$('#GlobalPortalId').val();
+        ////var prms = encodeURIComponent('parentServiceId=' + id);
+        //var url = '/Cms/Page?lo=Popup&cbm=OnAfterTask&source=Create&dataAction=Create&templateCodes='+code+'&portalId=' + portalId; //+ '&prms=' + prms;
+
+        //win.iframeOpenUrl = url;
+        //win.OpenWindow({ Title: 'Create Task', Width: 1200, Height: 600 });
+        //// LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Task');
+        //return false;
+    }
+    function OnAfterTask(task) {
+        var win = GetMainWindow();
+        //win.CloseWindow({ MethodName: 'OnAfterTaskCreate' });
+        win.OnAfterTaskCreate();
+    }
+    function OnTask(Id) {
+
+        var portalId = $('#GlobalPortalId').val();
+        var prms = encodeURIComponent('parentServiceId=' + Id);
+        var url = '/Cms/Page?lo=Popup&cbm=OnAfterTaskCreate&source=Create&dataAction=Create&pageName=ProjectTask&portalId=' + portalId + '&prms=' + prms;
+
+        LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Create Task');
+        return false;
+    }
+
+    function EditTask(Id) {
+        var portalId = $('#GlobalPortalId').val();
+        // var prms = encodeURIComponent('parentServiceId=' + Id);
+        var url = '/Cms/Page?lo=Popup&source=Edit&dataAction=Edit&pageName=ProjectTask&portalId=' + portalId + '&recordId=' + Id;
+
+        LoadCmsPartialView(url, 'Task', true, 1200, 650, 'Edit Task');
+        return false;
+    }
+
+    $(document).ready(function () {
+        HideLoader($("#global-overlay"));
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Pms/PerformanceTask/ReadPerformanceTaskCategory?templateCode=" + '@Model.Code' + "&categoryCode="+'@Model.CategoryCode',
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listViewTM").kendoListView({
+            dataSource: dataSource,
+            template: kendo.template($("#templateTM").html())
+        });
+
+        function filterdata() {
+            var tcode = '@Model.Code';
+            var ccode = '@Model.CategoryCode';
+            //var search = {
+            //    templateCode: Model.Code, categoryCode: Model.CategoryCode
+            //};
+            var search = {
+                templateCode: tcode,
+                categoryCode: ccode
+            };
+            return search;            
+        };
+
+        var dataSource1 = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Pms/PerformanceTask/ReadPerformanceTaskMaster",
+                    data: filterdata,
+                    dataType: "json"
+                }
+            },
+        });
+
+        $("#listView").kendoListView({
+            dataSource: dataSource1,
+            dataBound: OnDataBoundDoc,
+            template: kendo.template($("#tasktemplate1").html())
+        });
+
+        $("#mysearch2").keyup(function () {
+            var val = $('#mysearch2').val();
+            var listView = $("#listView").data("kendoListView");
+            // var listView = $("#kgrdService").data("kendoListView");
+            listView.dataSource.filter({
+                logic: "or",
+                filters: [
+                    {
+                        field: "DisplayName",
+                        operator: "contains",
+                        value: val
+                    },
+                    {
+                        field: "Description",
+                        operator: "contains",
+                        value: val
+                    },
+                ]
+            });
+
+        });
+    });
+    var colors = ['#F56564', '#1B4D3E','#555D50' ,'#90D142', '#28BAF5', '#7551F5', '#5BA79F', '#7A8F9D', '#4F67B6'];
+    function OnDataBoundDoc(arg) {
+
+        var childDiv = document.getElementById('listView').children;
+        ////var childDiv = document.getElementById('count').children;
+
+        for (var i = 0; i < childDiv[0].children.length; i++) {
+            var uc = childDiv[0].children[i].getElementsByClassName("template-flip-card-front");
+            var colr = colors[Math.floor(Math.random() * colors.length)];
+            uc[0].style.backgroundColor = colr;
+        }
+    }
+
+    function OnChange(id) {
+        //var data = this.dataItem(e.node);
+        $("#listView").data('kendoListView').dataSource.read({ categoryCode: id, templateCode:'@Model.Code' });
+    }
+
+
+
+</script>
+
+<script id="tasktemplate" type="text/kendo-ui-template">
+    <div class="card" onclick="SelectTemplate('#=Id#','#=DisplayName#')" style="cursor:pointer;">
+
+            <div class="col-4 taskicon">
+               #if(IconFileId != null)
+                  {#
+                    <img class="icon" src="/cms/Document/GetImageMongo?id=#=IconFileId#">
+                  #}
+                  else
+                    {#
+                      <img class="icon" src='/images/profile.jpg'>
+                    #}#
+            </div>
+
+            <div class="col-8">
+                 <div class="card-header">#=DisplayName#</div>
+                 <div class="card-body multi-line-truncate">#=Description#</div>
+            </div>
+    </div>
+</script>
+<div class="row" @*class="demo-section k-content wide"*@>
+    <div class="col-md-3">
+        <button id="btn" style="width: 100%;height: 30px;" class="k-button k-primary" href="javascript:void(0);" onclick="return OnChange();">
+            @SharedResource["All"]
+        </button>
+        @*@(Html.Kendo().ListView<CompetencyCategoryViewModel>()
+                  .Name("listViewTM")
+                  .TagName("div")//.Events(e=>e.Change("Onchange"))
+                  .ClientTemplateId("templateTM")
+                  .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Read(read => read.Action("ReadPerformanceTaskCategory", "PerformanceTask", new { @area = "Pms", templateCode = Model.Code, categoryCode = Model.CategoryCode }))
+                    )
+            )*@
+
+        <div id="listViewTM"></div>
+    </div>
+    <script type="text/x-kendo-tmpl" id="templateTM">
+        <div class="announcement">
+            <div class="iconwithtextan" style="padding-left: 10px;cursor:pointer" onclick="OnChange('#:CategoryCode#');">
+                <div style="font-size: 10px; padding-left: 10px;"></div>
+                <div style="font-size: 16px">#:CategoryName#</div>
+            </div>
+        </div>
+    </script>
+    <div class="row col-9">
+        <div class="col-12">
+            <input id="mysearch2" type="search" placeholder="@SharedResource["Search"]" class="form-control" style="border-radius: 30px;">
+        </div>
+        <div class="col-12">
+            @*@(Html.Kendo().ListView<CompetencyViewModel>()
+                .Name("listView").Events(e => e.DataBound("OnDataBoundDoc"))
+                .TagName("div")
+                .ClientTemplateId("tasktemplate1")
+                .DataSource(dataSource => dataSource
+                .Ajax()
+                .Read(read => read.Action("ReadPerformanceTaskMaster", "PerformanceTask", new { @area = "Pms", templateCode = Model.Code, categoryCode = Model.CategoryCode }))
+                )
+            )*@
+
+            <div id="listView"></div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/x-kendo-template" id="tasktemplate1">
+    <div style="display: inline-table;padding:10px;">
+        <div class="template-flip-card">
+            <div class="template-flip-card-inner">
+                <div class="template-flip-card-front" id="board">
+                    <div style="width:100%;">
+                       #if(IconFileId != null)
+                  {#
+                    <img class="icon" src="/cms/Document/GetImageMongo?id=#=IconFileId#">
+                  #}
+                  else
+                    {#<i class="fas fa-tasks" id="img-alt-#:data.Id#" style="color:white;font-size:75px;"></i>
+                     @*<span id="img-alt-#:data.Id#" class="template-image fas" style="display:none;color:white;font-size:75px;"></span>*@
+                    #}#
+                        @*<span id="img-alt-#:data.Id#" class="template-image fas" style="display:none;color:white;font-size:75px;"></span>*@
+                    </div>
+                </div>
+                <div class="template-flip-card-back">
+                    <div style="text-align:center;padding:5px;">
+                        <div style="font-size:.8eM;padding:3px;">#: CompetencyName#</div>
+                        # if (data.CompetencyName!=data.CompetencyDescription) { #
+                        <div style="font-size:.8eM;padding:3px;">#: CompetencyDescription#</div>
+                        # } #
+                        <br />
+                        <button class="k-button k-primary" href="javascript:void(0);" style="width:100px;" onclick="return SelectTemplate('#=Id#','#=CompetencyCode#','#=CompetencyName#','#=CompetencyDescription#','#=ProficiencyLevelId#','#=CompetencyType#');">
+                            Create
+                        </button>
+                        <br />
+                        <br />
+                        @*<i class="fad fa-project-diagram" onclick="Workflow(#:Id#)" style="cursor:pointer;font-size:25px;" title="View Workflow"></i>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="template-description-tile" style="padding:3px;overflow-wrap:break-word;">
+            <span style="width:100%;">  #: CompetencyName#</span>
+        </div>
+    </div>
+</script>
+
+
+
+
+

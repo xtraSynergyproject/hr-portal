@@ -1,0 +1,182 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration configuration
+@inject IStringLocalizer<Synergy.App.BLS.Areas.Controllers.BLSApplicationController> Resource
+@using System.Text;
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+@using Microsoft.Extensions.Configuration;
+@inject Synergy.App.Common.IUserContext _userContext
+
+@model UserViewModel
+
+@{
+    ViewData["Title"] = "Visa Appointment Form";
+    Layout = null;
+}
+
+<style>
+    .pwd-tgap {
+        margin: 20px 0 0 0;
+        padding: 0;
+        text-align: center;
+    }
+</style>
+
+<script>
+    var onAjaxSuccess = function (res) {
+        debugger;
+        if (res.success) {
+            HideLoader($('#cms-content'));
+            document.getElementById("registrationForm").reset();
+            ShowNotification('User Registered', 'success');
+            var returnurl = '/BLS/BLSApplication';
+            //LoadPartailView('/Account/Login?portalId=@_userContext.PortalId&returnUrl='+returnurl, $('#cms-content'));
+            window.location.href = '/Account/Login?portalId=@_userContext.PortalId';
+        }
+        else {
+            HideLoader($('#cms-content'));
+            showError(res.error);
+        }
+    }
+
+    function registerUser(e) {
+        $("#validation-summary").html("");
+        $("#validation-summary").css("display", "none");
+
+        var name = $("#Name").val();
+        var email = $("#UserEmail").val();
+        var phone = $("#phoneNo").val();
+        var loc = $("#LocationId").val();
+        if (name == '' || name == null) {
+            $("#validation-summary").html("Please Enter UserName");
+            $("#validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+        else if (email == '' || email == null) {
+            $("#validation-summary").html("Please Enter Email");
+            $("#validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+        else if (phone == '' || phone == null) {
+            $("#validation-summary").html("Please Enter Your Phone No.");
+            $("#validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+        else if (loc == '' || loc == null) {
+            $("#validation-summary").html("Please Select Location");
+            $("#validation-summary").css("display", "block");
+            e.preventDefault();
+            return false;
+        }
+
+        ShowLoader($('#cms-content'));
+    }
+
+    var showError = function (error) {
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+
+    $("#LocationId").kendoDropDownList({
+        optionLabel: "--Select--",
+        dataTextField: "Name",
+        dataValueField: "Id",
+        filter: "contains",
+        autoBind: true,
+        dataSource: {
+            transport: {
+                read: {
+                    url: "/BLS/BLSApplication/GetLocationList"
+                }
+            }
+        }
+    });
+</script>
+
+<div class="wrapper">
+    <div class="page">
+        <div class="page-inner">
+            <div class="jumbotron" style="max-width:400px;margin:auto;">
+                <h5 class="text-center">User Registration</h5>
+                <hr />
+
+                <form asp-controller="BLSApplication" asp-action="RegisterBLSUser" class="form-horizontal"
+                      id="registrationForm" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+                      data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+                      data-ajax="true" data-ajax-method="POST">
+
+                    <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+
+
+                    <div class="form-group">
+                        <label for="Name" class="form-label required">
+                            @Resource["Name"]
+                        </label>
+                        <div>
+                            <input asp-for="Name" class="form-control" style="width:100%" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Email" class="form-label required">
+                            @Resource["Email"]
+                        </label>
+                        <div>
+                            <input asp-for="Email" type="email" class="form-control" id="UserEmail" autocomplete="off" style="width:100%" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Mobile" class="form-label required">
+                            @Resource["Mobile"]
+                        </label>
+                        <div>
+                            <input asp-for="Mobile" type="number" class="form-control" id="phoneNo" autocomplete="off" style="width:100%" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="LocationId" class="form-label required">
+                            @Resource["Location"]
+                        </label>
+                        <div>
+                            <input asp-for="LocationId" style="width:100%;" />
+                        </div>
+                    </div>
+
+
+                    <div class="text-center">
+                        <dnt-captcha asp-captcha-generator-max="999999"
+                                     asp-captcha-generator-min="111111"
+                                     asp-captcha-generator-language="English"
+                                     asp-captcha-generator-display-mode="ShowDigits"
+                                     asp-use-relative-urls="true"
+                                     asp-show-refresh-button="true"
+                                     asp-placeholder=""
+                                     asp-font-name="Tahoma"
+                                     asp-font-size="20"
+                                     asp-fore-color="#222222"
+                                     asp-back-color="#ccc"
+                                     asp-text-box-class="form-control"
+                                     asp-text-box-template="<div class='form-group'><label class='form-label required text-left d-block' for='captcha'>Captcha</label>{0}</div>"
+                                     asp-validation-message-class="text-danger"
+                                     asp-validation-error-message="Please enter captcha"
+                                     asp-refresh-button-class="fas fa-redo btn-sm"
+                                     asp-use-noise="false" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-block" onclick="registerUser(event)">@Resource["Register"]</button>
+                        </div>
+                    </div>
+
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>

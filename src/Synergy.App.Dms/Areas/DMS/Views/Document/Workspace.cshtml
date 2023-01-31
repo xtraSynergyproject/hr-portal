@@ -1,0 +1,130 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.DMS.Controllers.DocumentController> Resource
+@{
+    ViewData["Title"] = "Workspace";
+    Layout = "~/Areas/Core/Views/Shared/_PopupLayout.cshtml";
+}
+@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+
+@model WorkspaceViewModel
+
+<style>
+    /* .cms-footer {
+        position: unset !important;
+        background-color: unset !important;
+    }*/
+    .cms-workspace-footer {
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+</style>
+<script>
+
+
+
+    $(document).ready(function () {
+
+    });
+
+    function OnError(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+    var onAjaxSuccess = function (res) {
+        
+        if (res.success) {
+            if ('@Model.DataAction'=='@DataActionEnum.Create')
+            {
+                ShowNotification("Saved Successfully", "success");
+            }
+            if ('@Model.DataAction'=='@DataActionEnum.Edit')
+            {
+                ShowNotification("Updated Successfully", "success");
+            }
+            //refreshTreeview()RefreshFileManager
+            var win = GetMainWindow();
+            win.CloseWindow({ MethodName:'RefreshFileManager'});
+
+        }
+        else {
+            showError(res.error);
+        }
+        HideLoader($('#template-content'));
+    };
+    var showError = function (error) {
+
+        //#validation-summary-manageform
+        $("#validation-summary").html(error);
+        $("#validation-summary").css("display", "block")
+    }
+    function closeNavPortal() {
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+</script>
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <form asp-controller="document" asp-action="ManageWorkspace" class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary" class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+            <div class="col-12 pad-10">
+                <div class="form-label-group">
+                    <input asp-for="NoteSubject" type="text" class="form-control" placeholder="Enter Name" required="required" autocomplete="off" />
+                    <label for="NoteSubject">@SharedResource["Name"]</label>
+                </div>
+
+            </div>
+
+            <div class="col-12 pad-15">
+                &nbsp;
+            </div>
+            <div class="cms-workspace-footer">
+                <input type="button" class="btn btn-link" value="Close" onclick="closeNavPortal()" />
+                <input type="submit" class="btn btn-primary" value="Save" />
+            </div>
+
+        </div>
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.DataAction)
+        @Html.HiddenFor(x => x.NoteId)
+        @Html.HiddenFor(x => x.Json)
+        @Html.HiddenFor(x => x.DataJson)
+        @Html.HiddenFor(x => x.CompanyId)
+        @Html.HiddenFor(x => x.CreatedBy)
+        @Html.HiddenFor(x => x.CreatedDate)
+        @Html.HiddenFor(x => x.LastUpdatedBy)
+        @Html.HiddenFor(x => x.LastUpdatedDate)
+
+    </form>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+

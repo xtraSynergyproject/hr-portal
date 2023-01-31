@@ -1,0 +1,138 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model StepTaskComponentViewModel
+<link rel="stylesheet" href="~/lib/duration-picker/dist/jquery-duration-picker.min.css">
+<script src="~/lib/duration-picker/dist/jquery-duration-picker.min.js"></script>
+<style>
+    .cms-slidebar-footer {
+        position: relative;
+    }
+
+    
+    .form-label-group {
+        position: relative;
+        margin-bottom: 0px;
+    } 
+    
+</style>
+<script type="text/javascript">
+        
+  
+    function onClose() {
+      
+        var win = GetMainWindow();
+        win.CloseWindow();
+        return false;
+    }
+   
+    
+   var onAjaxSuccess = function (res) {
+        if (res.success) {
+            
+           ShowNotification("Saved Successfully", "success");          
+                       
+           var win = GetMainWindow();
+           win.CloseWindow({ MethodName: "TemplateChangeCallback", Prms: { TemplateId: $("#TemplateId").val() } });
+           
+        }
+        else {
+           // alert(res)
+            $(".text-danger").removeClass("validation-summary-valid");
+            $(".text-danger").addClass("validation-summary-errors");
+            $(".text-danger").html(res.error);
+            return false;
+        }
+   };
+
+   function OnSave(evt) {
+       if ($("#ComponentId").val() == "") {
+                $(".text-danger").removeClass("validation-summary-valid");
+                $(".text-danger").addClass("validation-summary-errors");
+                $(".text-danger").html("Existing Component is required");
+                evt.preventDefault();
+                return false;
+       }          
+   }        
+        
+
+</script>
+
+
+
+<div class="pad-15">
+    <form asp-controller="ProcessDesign" asp-action="AddExistingComponent" class="form-horizontal" id="steptaskform" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        @*onsubmit='return onSubmit(this)'>*@
+        <div class="text-danger" asp-validation-summary="All"></div>
+        <div class="row" style="padding:10px;">
+
+            <div class="col-12 pad-10">
+                <div class="col-12">Existing Component<span style="color:red;"> *</span></div>
+                <div class="row">
+                    <div class="form-label-group col-10">
+                        <input asp-for="ComponentId" id="ComponentId" style="width: 95%;" />
+                        @*@(Html.Kendo().DropDownListFor(x => x.ComponentId)
+               .DataTextField("Name")
+               .DataValueField("Id")
+               .DataSource(source =>
+               {
+                   source.Read(read =>
+                   {
+                       read.Action("ReadComponentsList", "Template", new { @area = "Cms", templateId=Model.TemplateId });
+                   });
+               })
+               .OptionLabel(ApplicationConstant.PlaceHolder_SelectOption)
+               .Filter(FilterType.Contains)
+               .HtmlAttributes(new { @class = "form-control" })
+        )*@
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        @Html.HiddenFor(x => x.Id)
+        @Html.HiddenFor(x => x.ComponentId)
+        @Html.HiddenFor(x => x.ParentId)
+        @Html.HiddenFor(x => x.TemplateId)
+
+        <div class="cms-slidebar-footer">
+            <input type="button" class="btn btn-light" value="Close" onclick="onClose()"  />
+            <input type="submit" class="btn btn-primary" value="Save" onclick="OnSave(event)" />
+        </div>
+
+    </form>
+    
+    
+</div>
+
+<script>
+
+        $(document).ready(function () {
+            $("#ComponentId").kendoDropDownList({
+            optionLabel: "@ApplicationConstant.PlaceHolder_SelectOption",
+            dataTextField: "Name",
+            dataValueField: "Id",
+            value: "@Model.ComponentId",
+            filter: "contains",
+            autoBind: true,
+            dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: "/Cms/Template/ReadComponentsList?templateId=@Model.TemplateId",
+                       // data: FilterData
+                    }
+                }
+            }
+        });
+        });
+</script>

@@ -1,0 +1,332 @@
+﻿@using Synergy.App.ViewModel;
+@using Synergy.App.Common;
+
+@{
+    ViewData["Title"] = "Portal";
+    //Layout = null;
+    //Layout = "/Views/Shared/_PopupLayout.cshtml";
+}
+@inject Synergy.App.Common.IUserContext _userContext
+@model PageTemplateViewModel
+
+@*<style>
+    .cms-manageportal-footer {
+/*        position: absolute;*/
+        left: 0;
+        bottom: 0;
+        padding: 10px;
+        padding-right: 20px;
+        width: 100%;
+        background-color: #F8F8F8 !important;
+        color: white;
+        text-align: right;
+    }
+    .slidenav-flow {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        height: 75%;
+    }
+    .style-mylogoimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+    .style-mybannerimage {
+        /*border-radius: 50%;*/
+        height: 100px;
+        width: 100px;
+    }
+    .style-image {
+        width: 30%;
+        float: left;
+    }
+
+    .style-upload {
+        width: 70%;
+        float: left;
+    }
+    .style-pickerleft {
+        width: 50%;
+        float: left;
+        padding-bottom: 15px;
+    }
+/*    k-colorpicker {
+        width: 100px;
+    }
+
+    .k-colorpicker .k-selected-color {
+            width: 100px;
+    }*/
+</style>*@
+
+<script>
+
+    function formType() {
+        var data = $("#formTypeValue").data("kendoDropDownList").value();
+        
+        jsonObj = JSON.parse(JSON.stringify(builder.instance.schema, null, 4));
+        console.log(data);
+        
+        if (data == "Form") {
+            //form
+            jsonObj.display = "form";
+        } else if (data == "Wizard") {
+            //Wizard
+            jsonObj.display = "wizard";
+        }
+
+        builder = new Formio.FormBuilder(document.getElementById("builder"), jsonObj, {
+            builder: {
+                custom: {
+                    title: 'Chart',
+                    weight: 10,
+                    components: {
+                        chartjs: {
+                            title: 'Chart',
+                            key: 'chartJS',
+                            icon: 'terminal',
+                            schema: {
+                                label: 'Chart JS',
+                                type: 'htmlelement',
+                                key: 'chartJs',
+                                input: true
+                            }
+                        },
+                    }
+                },
+
+            }
+        });
+    }
+    
+</script>
+
+
+<div style="margin-top: 5px;padding-left: 20px;padding-right: 20px;width: 100%;">
+    <form asp-controller="Template" asp-action="ManagePage"  class="form-horizontal" data-ajax-begin="onAjaxBegin" data-ajax-complete="onAjaxComplete"
+          data-ajax-failure="onAjaxFailed" data-ajax-success="onAjaxSuccess"
+          data-ajax="true" data-ajax-method="POST">
+        <div id="validation-summary-managepage" class="text-danger" asp-validation-summary="All"></div>
+        <div class="row">
+            <div class="pad-15 no-gutters" style="width: 100%;">
+                <div class="pad-b-15 card col-12 page" data-mode="@Model.DataAction" id="@Model.Id" data-page-content-type="Page"
+                     data-sequence="@Model.SequenceOrder">
+                    <div class="card-header page-header bg-info">
+                        <span id="page-name" class="page-title content-editable" data-placeholder="Page Name" style="padding-left:3px" contenteditable="true">
+
+                        </span>
+
+                        <span class="cms-settings-box" onclick="OpenPageSettings(this)">
+                            <i class="cursor-p fa fa-cog" title="Settings"></i>
+                        </span>
+                        @if (Model.DataAction == DataActionEnum.Edit)
+                        {
+                            <button type="button" class="btn btn-primary" onclick="OnPreview('@Model.TemplateId')" title="Preview"><i class="fa fa-eye"></i></button>
+                        }
+                    </div>
+                    <div class="card-body" id="component-container">
+                        @*<div class="row" style="width:93%;text-align:right">
+            <div class="col-sm-12">
+                <input type="submit" class="btn btn-primary" value="Save" onclick="SaveData()" />
+            </div>
+        </div>*@
+
+                        @Html.HiddenFor(x => x.Id)
+                        @Html.HiddenFor(x => x.DataAction)
+                        @Html.HiddenFor(x => x.TemplateId)
+                        @Html.HiddenFor(x => x.Json)
+
+                        @*@(Html.Kendo().DropDownList()
+              .Name("formTypeValue")
+              .DataTextField("Text")
+              .DataValueField("Value")
+              .Events(e => e.Change("formType"))
+              .BindTo(new List<SelectListItem>() {
+                  new SelectListItem() {
+                      Text = "Form",
+                      Value = "1"
+                  },
+                  new SelectListItem() {
+                      Text = "Wizard",
+                      Value = "2"
+                  },
+              })
+              .Value("1")
+              .HtmlAttributes(new { style = "width: 100%" })
+        )*@
+
+                        @*@(Html.Kendo().DropDownList().Name("formTypeValue")
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .Events(e => e.Change("formType"))
+                        .DataSource(source =>
+                        {
+                        source.Read(read =>
+                        {
+                            read.Action("GetEnumIdNameList", "Home", new { @area = "", enumType = "FormTypeEnum" });
+                        });
+                        })
+                        .Value(Model.Status.ToString())
+                        .HtmlAttributes(new { @class = "form-control", @style = "width:80%" })
+                        )*@
+
+                        <input id="formTypeValue" class="form-control" style = "width:80%"/>
+                        <br />
+                        <br />
+                        <div id="builder"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="cms-footer">
+            <div class="col-sm-12" style="text-align:right;">
+                <button type="submit" class="btn btn-success" onclick="SaveData()">Save</button>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+
+
+
+    $(document).ready(function () {
+
+        $("#formTypeValue").kendoDropDownList({
+            dataTextField: "Name",
+            dataValueField: "Id",
+            filter: "contains",            
+            value: '@Model.Status.ToString()',
+            change: formType,
+            dataSource: {
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "/Home/GetEnumIdNameList?enumType=FormTypeEnum",
+                    }
+                }
+            }
+        });
+
+        if ('@ViewBag.Success' == "True") {
+            //alert("1");
+            closeNavPortal();
+            var tree = window.parent.$("#contentTreeView").data("kendoTreeView");
+            tree.dataSource.read();
+            //alert("2");
+        }
+          $.ajax({
+                 type: "GET",
+              url: "/Cms/Template/GetTemplateJson?templateId=@Model.TemplateId",
+            success: function (response) {
+
+                if (response != "" && response != null) {
+                    var obj = JSON.parse(response);
+                    builder = new Formio.FormBuilder(document.getElementById("builder"), obj, {
+                        builder: {
+                            custom: {
+                                title: 'Chart',
+                                weight: 10,
+                                components: {
+                                    chartjs: {
+                                        title: 'Chart',
+                                        key: 'chartJS',
+                                        icon: 'terminal',
+                                        schema: {
+                                            label: 'Chart JS',
+                                            type: 'htmlelement',
+                                            key: 'chartJs',
+                                            input: true
+                                        }
+                                    },
+                                }
+                            },
+
+                        }
+                    }
+);
+                }
+                else {
+                     var obj = {
+                         "synergyTableMapId": '@ViewBag.SynergyTableMapId',
+                         "display": "form",
+                         "components": [{
+                             "title": "Page",
+                             "theme": "primary",
+                             "collapsible": false,
+                             "hideLabel": true,
+                             "key": "panel",
+                             "type": "panel",
+                             "label": "Page",
+                             "input": false,
+                             "tableView": false,
+                             "components": []
+
+                         }]
+                    }
+                    builder = new Formio.FormBuilder(document.getElementById("builder"), obj,
+                        {
+                            builder: {
+                                custom: {
+                                    title: 'Chart',
+                                    weight: 10,
+                                    components: {
+                                        chartjs: {
+                                            title: 'Chart',
+                                            key: 'chartJS',
+                                            icon: 'terminal',
+                                            schema: {
+                                                label: 'Chart JS',
+                                                type: 'htmlelement',
+                                                key: 'chartJs',
+                                                input: true
+                                            }
+                                        },
+                                    }
+                                },
+
+                            }
+                        }
+
+                    );
+                }
+
+            },
+            error: function (response) {
+                alert("error");
+            },
+             });
+    });
+    function SaveData() {
+        $("#Json").val(JSON.stringify(builder.instance.schema, null, 4));
+        return true;
+    }
+     var onAjaxSuccess = function (res) {
+
+        if (res.success) {
+
+            ShowNotification("Saved Successfully", "success");
+            var TemplateId = res.templateId;
+            LoadPartailView('@Url.Action("ManagePage", "PageTemplate", new { @area = "Cms" })?templateId='+ TemplateId, $('#detailPage'));
+        }
+        else {
+            showError(res.error);
+        }
+    };
+    var showError = function (error) {
+
+        //#validation-summary-manageform
+        $("#validation-summary-managepage").html(error);
+        $("#validation-summary-managepage").css("display", "block")
+    }
+    function OnPreview(templateId) {
+        var url = "/CMS/BusinessAnalytics/PreviewPageTemplate?templateId=" + templateId;
+        var win = GetMainWindow();
+        win.iframeOpenUrl = url;
+        win.OpenWindow({ Title: "Preview", Width: 1200, Height: 650 });
+        return false;
+    }
+</script>

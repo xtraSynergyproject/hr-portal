@@ -1,0 +1,148 @@
+﻿@inject IStringLocalizer<CMS.UI.Web.Areas.Pay.Controllers.CalendarController> Resource
+@using CMS.UI.ViewModel;
+@using Kendo.Mvc.UI;
+@using CMS.Common;
+@using Kendo.Mvc.Extensions;
+@{
+    ViewData["Title"] = @Resource["Calendar"];
+    //Layout = "/Areas/Cms/Views/Shared/_LayoutCms.cshtml";
+    Layout = null;
+}
+<style>
+    .kgrdSalaryInfoStyle {
+        width: 100% !important;
+    }
+</style>
+<script type="text/javascript">
+
+    function OnCreateCalendar() {
+        var win = GetMainWindow();
+       // var portalId = $('#GlobalPortalId').val();
+       // var url = '/Cms/Page?lo=Popup&cbm=OnAfterNoteCreate&source=Create&dataAction=Create&pageName=SalaryInfo&portalId=' + portalId /*+ '&prms=' + prms*/;
+        win.iframeOpenUrl = "/pay/Calendar/ManageCalendar";
+        win.OpenWindow({ Title: '@Html.Raw(Resource["ManageCalendar"])', Width: 1000, Height: 700 });
+        return false;
+    }
+    function onEditCalendar(id) {
+       // e.preventDefault();
+       // var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+
+        var win = GetMainWindow();
+        //var portalId = $('#GlobalPortalId').val();
+        win.iframeOpenUrl = "/pay/Calendar/ManageCalendar?CalendarId=" + id;
+        win.OpenWindow({ Title: '@Html.Raw(Resource["ManageCalendar"])', Width: 1000, Height: 700 });
+    }
+
+</script>
+<h3>@ViewBag.Title</h3>
+<div class="row">
+    <div class="col-md-12">
+        <script>
+                        var columnDefs = [
+                            {
+                                headerName: "Actions",
+                                field: "Id",
+                                cellRenderer: params => {
+                                    return "<div class='btn-group grid-menu' id='tree-menu' data-idvalue='" + params.value + "' data-status=\"0\" ><i class='fas fa-ellipsis-v'></i></div>"
+                                }
+                            },
+                            {
+                                field: "Name",
+                                headerName:"@Resource["CalendarName"]"
+                            },
+                        ];
+                        $(function () {
+                            GetCalData();
+                             $.contextMenu({
+                                 selector: '#tree-menu',
+                                trigger: 'left',
+                                build: function ($trigger, e) {
+
+
+                                    var id = $trigger.data('idvalue');
+
+                                    switch (0) {
+                                        case 0:
+                                            return {
+                                                callback: function (key, options) {
+                                                    switch (key) {
+                                                        case 'edit':
+                                                            onEditCalendar(id);
+                                                            break;
+
+
+                                                        default:
+                                                    }
+                                                },
+                                                items: {
+
+                                                        "edit": { name: "Edit", icon: "fas fa-edit" },
+
+
+                                                }
+                                            };
+
+
+                                    }
+                                }
+                            });
+                        });
+
+                        function GetCalData() {
+                            document.getElementById("kgrdCalendar").innerHTML = "";
+                            gridConfig(
+                                "kgrdCalendar",
+                                "/Pay/Calendar/ReadCalendarData",
+                                columnDefs,
+                                false,
+                                true,
+                                true,
+                                true,
+                                1,
+                                true,
+                                10);
+                        }
+        </script>
+        <button type="submit" class="btn btn-primary" onclick="return OnCreateCalendar();"><i class="fa fa-plus pr-1"></i>@SharedResource["Create"]</button>
+        <div id="kgrdCalendar" style="width: 100%;height:550px" class="ag-theme-alpine"></div>
+        @*@(Html.Kendo().Grid<dynamic>
+        ().Name("kgrdCalendar").HtmlAttributes(new { @class = "kgrdCalendar" })
+        .Columns(col =>
+        {
+            col.Command(command =>
+            {
+               command.Custom("Edit").Text("<i class='fa fas fa-pencil'></i>").Click("onEditCalendar").HtmlAttributes(new { @class = "action-icon", @title = @SharedResource["Edit"] });
+               // command.Custom("Manage Salary Elements").Text("<i class='fa fas fa-cog'></i>").Click("OnManageSalaryElements").HtmlAttributes(new { @class = "action-icon", @title = "Manage Salary Elements" });
+            }).Title(@SharedResource["Action"]).Width(150);
+            //col.Bound(c => c.Id);
+            col.Bound("Name").Title(@Resource["CalendarName"]);
+
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Custom().Text(@SharedResource["Create"]).Name("btnAdd").IconClass("fa fas fa-plus").HtmlAttributes(new { @class = "k-primary", href = "javascript:OnCreateCalendar();" });
+        })
+        .Scrollable(x => x.Enabled(true))
+        .Sortable(srt => srt.Enabled(true))
+        .Selectable(select => select.Enabled(false))
+        .Filterable(f => f.Extra(false)
+        .Operators(o => o.ForString(s => s.Clear()
+        .Contains("Contains")
+        .IsEqualTo("Is equal to")
+        )))
+        .Resizable(resize => resize.Columns(true))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .AutoBind(true)
+        .DataSource(
+        dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Read(read => read.Action("ReadCalendarData", "Calendar", new { Area="Pay"}))
+        .Model(model => model.Id("Id")))
+        )*@
+    </div>
+</div>
+
