@@ -338,10 +338,10 @@ const UserList = ({ apiData }) => {
       </Grid>
       <Grid item xs={12}>
         <Card>
-          <CardHeader title={<h3> HR Document Policy</h3>} />
+          <CardHeader title= 'HR Document Policy'/>
           <CardContent>
             <Grid container spacing={6}>
-              <Grid item sm={4} xs={12}>
+              {/* <Grid item sm={4} xs={12}> */}
                 {/* <FormControl fullWidth>
                   <InputLabel id='role-select'>Import/Export</InputLabel>
                   <Select
@@ -362,7 +362,7 @@ const UserList = ({ apiData }) => {
                     <MenuItem value='subscriber'>Subscriber</MenuItem>
                   </Select>
                 </FormControl> */}
-              </Grid>
+              {/* </Grid> */}
               {/* <Grid item sm={4} xs={12}>
                 <FormControl fullWidth>
                   <InputLabel id='plan-select'>Select Plan</InputLabel>

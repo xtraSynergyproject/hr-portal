@@ -44,7 +44,7 @@ const TabsCustomized = () => {
   return (
     <TabContext value={value}>
       <TabList onChange={handleChange} aria-label='customized tabs example'>
-        <Tab value='1' label='Create' />
+        <Tab value='1'sx={{ml:3}}label='Create' />
         
       </TabList>
       <TabPanel value='1'>

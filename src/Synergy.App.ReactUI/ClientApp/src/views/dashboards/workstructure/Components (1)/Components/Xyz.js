@@ -1,5 +1,6 @@
 // ** React Imports
-import { useState } from 'react'
+import React, { useState } from 'react'
+
 
 // ** MUI Imports
 import Tab from '@mui/material/Tab'
@@ -40,6 +41,10 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
 const TabsCustomized = () => {
   // ** State
   const [value, setValue] = useState('1')
+  
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -48,8 +53,8 @@ const TabsCustomized = () => {
   return (
     <TabContext value={value}>
       <TabList onChange={handleChange} aria-label='customized tabs example'>
-        <Tab value='1' label='close' icon={ <CancelIcon />} />
-        <Tab value='2' label='Note No'icon={<FormatListNumberedRtlIcon/>} />
+      {/* <Tab value='1' label='close' icon={ <CancelIcon />} onClick={handleClose}/> */}
+        <Tab value='2' label='Note No'icon={<FormatListNumberedRtlIcon/>} sx={{ml:2.5}} />
         <Tab value='3' label='Draft'icon={<DraftsIcon/> } />
         <Tab value='4' label='Version No' icon={<FormatListNumberedRtlIcon/>} />
         <Tab value='5' label='Attachment'icon={<FilePresentIcon />} />

@@ -44,7 +44,9 @@ const UserProfileHeader = () => {
         image={data.coverImg}
         sx={{
           height: { xs: 150, md: 250 }
+        
         }}
+        
       />
       <CardContent
         sx={{

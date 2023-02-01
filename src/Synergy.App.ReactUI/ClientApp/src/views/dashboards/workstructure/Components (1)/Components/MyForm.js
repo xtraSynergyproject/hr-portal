@@ -8,17 +8,17 @@ function MyForm() {
   return (
     <Box>
       <div>
-      <TextField required id='outlined-required' label='Location' sx={{width:"100%"}}/>
+      <TextField required id='outlined-required' label='Location' sx={{width:"80%"}}/>
       </div>
       
   <div>
-      <TextField required id='outlined-required' label='Location (in Arabic)'sx={{width:"100%",mt:2}}/>
+      <TextField required id='outlined-required' label='Location (in Arabic)'sx={{width:"80%",mt:2}}/>
      </div> 
       <div>
-      <TextField required id='outlined-required' label='Description'sx={{width:"100%",mt:2}} />
+      <TextField required id='outlined-required' label='Description'sx={{width:"80%",mt:2}} />
      </div>
       <div>
-      <Button variant="contained" sx={{width:"50%",mt:2,ml:5}}>Submit</Button>
+      <Button variant="contained" sx={{width:"10%",mt:2}}>Submit</Button>
       </div>
     </Box>
   )

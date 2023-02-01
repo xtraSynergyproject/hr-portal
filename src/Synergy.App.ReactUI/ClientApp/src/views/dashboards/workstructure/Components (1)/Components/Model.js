@@ -8,6 +8,7 @@ import Abc from 'src/views/dashboards/workstructure/Components (1)/Abc'
 import Xyz from 'src/views/dashboards/workstructure/Components (1)/Components/Xyz'
 // import Form from 'src/views/dashboards/workstructure/Components (1)Components/Form'
 import Form from './Form'
+import CancelIcon from '@mui/icons-material/Cancel'
 
 
 
@@ -48,7 +49,7 @@ export default function Model() {
 
   return (
     <div>
-      <Button variant="contained" onClick={handleOpen}sx={{ml:3}}>Create</Button>
+      <Button variant="contained" onClick={handleOpen}sx={{ml:6}}>Create</Button>
       <Modal
         open={open}
         sx={modalWrapper}
@@ -59,6 +60,7 @@ export default function Model() {
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
 
+  <CancelIcon onClick ={handleClose} sx={{float:"right",mt:1}}/>
 
 <Abc/>
 
