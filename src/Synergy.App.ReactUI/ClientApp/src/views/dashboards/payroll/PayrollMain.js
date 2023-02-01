@@ -3,7 +3,7 @@ import PayrollUserProfileHeader from './components/PayrollUserProfileHeader'
 import PayrollTab from './components/PayrollTab'
 
 
-function PayrollMain() {
+function PayrollMain() {   
   return (
     <div>
   <PayrollUserProfileHeader/>
@@ -15,4 +15,3 @@ function PayrollMain() {
 
 export default PayrollMain
 
- 

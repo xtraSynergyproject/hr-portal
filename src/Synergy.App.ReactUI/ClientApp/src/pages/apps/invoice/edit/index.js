@@ -1,15 +1,36 @@
-// ** Demo Components Imports
-import Edit from 'src/views/apps/invoice/edit/Edit'
+import React from 'react'
+import Project from 'src/views/dashboards/workstructure/Project3/Component/Project'
 
-// ** Styled Component
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
-
-const InvoiceEdit = () => {
+function index() {
   return (
-    <DatePickerWrapper sx={{ '& .react-datepicker-wrapper': { width: 'auto' } }}>
-      <Edit id='4987' />
-    </DatePickerWrapper>
+    <div>
+      <Project/>
+    </div>
   )
 }
 
-export default InvoiceEdit
+export default index
+
+
+
+
+
+
+
+
+
+// // ** Demo Components Imports
+// import Edit from 'src/views/apps/invoice/edit/Edit'
+
+// // ** Styled Component
+// import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
+
+// const InvoiceEdit = () => {
+//   return (
+//     <DatePickerWrapper sx={{ '& .react-datepicker-wrapper': { width: 'auto' } }}>
+//       <Edit id='4987' />
+//     </DatePickerWrapper>
+//   )
+// }
+
+// export default InvoiceEdit
