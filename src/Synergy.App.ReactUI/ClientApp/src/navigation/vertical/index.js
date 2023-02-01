@@ -283,19 +283,19 @@ const navigation = () => {
       children: [
         {
           title: 'Remote Sign In/Out Request',
-          path: '/pages/faq'
+          path: '/dashboards/attendance/RemoteSignInOut/RemoteSignInOut'
         },
         {
           title: 'Attendance Details',
-          path: '/pages/help-center'
+          path: '/dashboards/attendance/AttendanceDetails/AttendanceDetails'
         },
         {
           title: 'Access Logs',
-          path: '/pages/help-center'
+          path: '/dashboards/attendance/AccessLogs/AccessLogs'
         },
         {
-          title: 'Router Schedule',
-          path: '/pages/help-center'
+          title: 'Roster Schedule',
+          path: '/dashboards/attendance/RosterSchedule/RosterSchedule'
         }
         
       ]
