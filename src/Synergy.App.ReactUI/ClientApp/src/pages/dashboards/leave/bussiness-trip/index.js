@@ -113,7 +113,7 @@
 // export default EcommerceDashboard
 
 import React from 'react'
-import Bussiness from '../../../views/dashboards/bussiness-trip/project2/Bussiness'
+import Bussiness from '../../../../views/dashboards/leave/bussiness-trip/Project2/Bussiness'
 
 function index() {
   return (

@@ -87,7 +87,7 @@
 
 // export default AnalyticsDashboard
 import React from 'react'
- import TimePermison from '../../../views/dashboards/time-permison/Project3/TimePermison'
+ import TimePermison from '../../../../views/dashboards/leave/time-permison/Project3/TimePermison'
 
 
 

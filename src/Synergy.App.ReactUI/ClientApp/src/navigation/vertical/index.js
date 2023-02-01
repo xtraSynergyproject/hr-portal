@@ -244,15 +244,15 @@ const navigation = () => {
       children: [
        {
           title: 'Leave Details',
-          path: '/dashboards/leave-details'
+          path: '/dashboards/leave/leave-details'
         },
         {
           title: 'Bussiness Trip',
-          path: '/dashboards/bussiness-trip'
+          path: '/dashboards/leave/bussiness-trip'
         },
         {
           title: 'Time Permission',
-          path: '/dashboards/time-permison'
+          path: '/dashboards/leave/time-permison'
         }
       ]
     },
