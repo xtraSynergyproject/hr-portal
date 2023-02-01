@@ -16,6 +16,7 @@ function RequestMainPage() {
             <Box>
                 <RequestSearchBar />
             </Box>
+            
             <Box>
                 <RequestMenu />
             </Box>

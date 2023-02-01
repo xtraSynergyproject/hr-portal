@@ -56,14 +56,15 @@ export default function RequestCreate() {
                 <div>
                   <h1>Create Home</h1>
                 </div>
+                <Box sx={{display: 'flex'}}>
                 <Button variant='contained'>
                   ALL
                 </Button>
               </Box>
-              <Box sx={{ width: '500px' }}>
+              <Box sx={{ width: '500px', display: 'flex'}}>
                 <SearchBar />
               </Box>
-
+              </Box>
             </form>
           </Box>
         </Box>

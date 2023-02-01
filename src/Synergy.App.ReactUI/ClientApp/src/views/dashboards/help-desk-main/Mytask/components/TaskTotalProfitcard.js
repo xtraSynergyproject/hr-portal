@@ -36,7 +36,7 @@ const TaskTotalProfitcard = () => {
     stroke: { width: 0 },
     legend: { show: false },
     dataLabels: { enabled: false },
-    labels: ['Apparel', 'Total Request', 'Pending', 'Other Task'],
+    labels: ['Apparel', 'Total Task', 'Pending', 'Other Task'],
     states: {
       hover: {
         filter: { type: 'none' }
@@ -98,7 +98,6 @@ const TaskTotalProfitcard = () => {
           <Grid item xs={12} sm={6} sx={{ my: 'auto' }}>
             <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
               <CustomAvatar skin='light' variant='rounded' sx={{ mr: 3, '& svg': { color: 'primary.main' } }}>
-                {/* <Icon icon='mdi:currency-usd' /> */}
               </CustomAvatar>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant='body2'>Number of Task</Typography>
@@ -131,7 +130,7 @@ const TaskTotalProfitcard = () => {
                   }}
                 >
                   <Icon icon='mdi:circle' />
-                  <Typography variant='body2'>Total Request</Typography>
+                  <Typography variant='body2'>Total Task</Typography>
                 </Box>
                 <Typography sx={{ fontWeight: 600 }}>250</Typography>
               </Grid>
