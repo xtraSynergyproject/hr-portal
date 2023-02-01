@@ -28,12 +28,10 @@ const navigation = () => {
     icon: 'mdi:home-outline',
     badgeContent: 'new',
     badgeColor: 'error',
-    // path: '/dashboards/'
     path: '/dashboards/employee-dashboard'
     
   },
 
-  
    // HR
    {
     title: 'HR Portal',
@@ -59,7 +57,7 @@ const navigation = () => {
 
         {
           title: 'Work Structure',
-          path: '/dashboards/workStructure'
+          path: '/dashboards/workStructureHrModule'
         },
        
         {
