@@ -12,22 +12,16 @@ function Bussiness() {
 
     <>
 
-      <Grid container spacing={8}>
-        <Grid xs={10}>
-        
-          <BussinessInput />
+<Grid container spacing={2}>
+  <Grid item xs={12} md={10}>
+    <BussinessInput/>
+  </Grid>
+  <Grid item xs={12} md={2}>
+   <Model/>
+  </Grid>
+  
 
-        </Grid>
-        <Grid xs={2}>
-          <Model />
-
-        </Grid>
-
-
-
-
-      </Grid>
-
+    </Grid>
 
 
       <BussinessTripProfile/>
