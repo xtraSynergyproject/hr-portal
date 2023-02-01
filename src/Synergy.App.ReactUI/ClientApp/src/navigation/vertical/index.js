@@ -1,6 +1,5 @@
 const navigation = () => {
   return [
-
     // {
     //   title: 'Dashboards',
     //   icon: 'mdi:home-outline',
@@ -22,101 +21,95 @@ const navigation = () => {
     //   ]
     // },
 
-   // Employee Dashboard
-   {
-    title: 'Employee Dashboards',
-    icon: 'mdi:home-outline',
-    badgeContent: 'new',
-    badgeColor: 'error',
-    // path: '/dashboards/'
-    path: '/dashboards/employee-dashboard'
-    
-  },
-
-  
-   // HR
-   {
-    title: 'HR Portal',
-    icon: 'mdi:home-outline',
-    badgeColor: 'error',
-    children: [
-      // HR
+    // Employee Dashboard
     {
-      title: 'HR',
+      title: 'Employee Dashboards',
+      icon: 'mdi:home-outline',
+      badgeContent: 'new',
+      badgeColor: 'error',
+      // path: '/dashboards/'
+      path: '/dashboards/employee-dashboard'
+    },
+
+    // HR
+    {
+      title: 'HR Portal',
       icon: 'mdi:home-outline',
       badgeColor: 'error',
       children: [
-        
+        // HR
         {
-          title: 'Home',
-          path: '/dashboards/hr-dashboard/home'
+          title: 'HR',
+          icon: 'mdi:home-outline',
+          badgeColor: 'error',
+          children: [
+            {
+              title: 'Home',
+              path: '/dashboards/hr-dashboard/home'
+            },
+
+            {
+              title: 'HR Direct',
+              path: '/dashboards/employee-dashboard'
+            },
+
+            {
+              title: 'Work Structure',
+              path: '/dashboards/workStructure'
+            },
+
+            {
+              title: 'Reports',
+              path: '/dashboards/hr/reports'
+            },
+            {
+              title: 'Master Data',
+              path: '/dashboards/'
+            }
+          ]
         },
 
         {
-          title: 'HR Direct',
-          path: '/dashboards/employee-dashboard'
+          title: 'HR 2 ',
+          icon: 'mdi:phone',
+          badgeColor: 'error',
+          children: [
+            {
+              title: 'Employee Dashboard',
+              path: '/dashboards/hr-dashboard/home'
+            },
+
+            {
+              title: 'Employee Profile',
+              path: '/dashboards/employee-dashboard'
+            }
+          ]
         },
 
         {
-          title: 'Work Structure',
-          path: '/dashboards/workStructure'
-        },
-       
-        {
-          title: 'Reports',
-          path: '/dashboards/hr/reports'
-        },
-        {
-          title: 'Master Data',
-          path: '/dashboards/'
+          title: 'HR Only',
+          icon: 'mdi:chart-donut',
+          children: [
+            {
+              title: 'Termination',
+              path: '/dashboards/hr-only/termination'
+            },
+            {
+              title: 'Remote Sign In/Out',
+              path: '/dashboards/hr-only/remote-sign-in-out'
+            }
+          ]
         }
       ]
     },
 
-      {
-        title: 'HR 2 ',
-        icon: 'mdi:phone',
-        badgeColor: 'error',
-        children: [
-          {
-            title: 'Employee Dashboard',
-            path: '/dashboards/hr-dashboard/home'
-          },
-
-          {
-            title: 'Employee Profile',
-            path: '/dashboards/employee-dashboard'
-          }
-        ]
-      },
-
-      {
-        title: 'HR Only',
-        icon: 'mdi:chart-donut',
-        children: [
-          {
-            title: 'Termination',
-            path: '/dashboards/hr-only/termination'
-          },
-          {
-            title: 'Remote Sign In/Out',
-            path: '/dashboards/hr-only/remote-sign-in-out'
-          }
-        ]
-      }
-
-    
-    ]
-  },
-
-//Employee Profile
-{
-  title: 'Employee Profile',
-  icon: 'mdi:account-outline',
-  badgeColor: 'error',
-  path: '/dashboards/employee-profile'
-  
-},
+    //Employee Profile
+    {
+      title: 'Employee Profile',
+      icon: 'mdi:account-outline',
+      badgeColor: 'error',
+      path: '/dashboards/employee-profile'
+    },
     // Document Management
     {
       title: 'Document Management',
@@ -129,84 +122,81 @@ const navigation = () => {
         {
           title: 'Documents',
           path: '/dashboards/document-management/documents'
-        },
+        }
       ]
     },
 
-   // Work Structure
-   {
-    title: 'Work Structure',
-    icon: 'mdi:file-document-outline',
-    children: [
-      {
-        title: 'HR Policy Document',
-        path: '/apps/invoice/list'
-      },
-      {
-        title: 'HR Location',
-        path: '/apps/invoice/preview'
-      },
-      {
-        title: 'HR Country',
-        path: '/apps/invoice/edit'
-      },
-      {
-        title: 'HR Nationality',
-        path: '/apps/invoice/add'
-      },
-      {
-        title: 'HR Sponsor',
-        path: '/dashboards/workStructure/sponsor'
-      },
-      {
-        title: 'HR City',
-        path: '/dashboards/workStructure/City'
-      },
-      {
-        title: 'Grade',
-        path: '/dashboards/workStructure/Grade'
-      },
-      {
-        title: 'Job',
-        path: '/dashboards/workStructure/Job'
-      },
-      {
-        title: 'Cost Center',
-        path: '/dashboards/workStructure/Costcenter'
-      },
-      {
-        title: 'Department',
-        path: '/dashboards/workStructure/Department'
-      },
-      {
-        title: 'Department Hierarchy',
-        path:  '/dashboards/workStructure/Department_H'
-      },
-      {
-        title: 'Position',
-        path: '/dashboards/workStructure/position'
-      },
-      {
-        title: 'Position Hierarchy',
-        path: '/dashboards/workStructure/position_Hirarachy'
-      },
-      {
-        title: 'Person',
-        path: '/dashboards/workStructure/person'
-      },
-      {
-        title: 'Contract',
-        path: '/dashboards/workStructure/contact'
-      },
-      {
-        title: 'Assignment',
-        path: '/dashboards/workStructure/Assignment'
-      }
-    ]
-  },
-
-
-
+    // Work Structure
+    {
+      title: 'Work Structure',
+      icon: 'mdi:file-document-outline',
+      children: [
+        {
+          title: 'HR Policy Document',
+          path: '/apps/invoice/list'
+        },
+        {
+          title: 'HR Location',
+          path: '/apps/invoice/preview'
+        },
+        {
+          title: 'HR Country',
+          path: '/apps/invoice/edit'
+        },
+        {
+          title: 'HR Nationality',
+          path: '/apps/invoice/add'
+        },
+        {
+          title: 'HR Sponsor',
+          path: '/dashboards/workStructure/sponsor'
+        },
+        {
+          title: 'HR City',
+          path: '/dashboards/workStructure/City'
+        },
+        {
+          title: 'Grade',
+          path: '/dashboards/workStructure/Grade'
+        },
+        {
+          title: 'Job',
+          path: '/dashboards/workStructure/Job'
+        },
+        {
+          title: 'Cost Center',
+          path: '/dashboards/workStructure/Costcenter'
+        },
+        {
+          title: 'Department',
+          path: '/dashboards/workStructure/Department'
+        },
+        {
+          title: 'Department Hierarchy',
+          path: '/dashboards/workStructure/Department_H'
+        },
+        {
+          title: 'Position',
+          path: '/dashboards/workStructure/position'
+        },
+        {
+          title: 'Position Hierarchy',
+          path: '/dashboards/workStructure/position_Hirarachy'
+        },
+        {
+          title: 'Person',
+          path: '/dashboards/workStructure/person'
+        },
+        {
+          title: 'Contract',
+          path: '/dashboards/workStructure/contact'
+        },
+        {
+          title: 'Assignment',
+          path: '/dashboards/workStructure/Assignment'
+        }
+      ]
+    },
 
     //Hierachy Chaert
     {
@@ -228,7 +218,7 @@ const navigation = () => {
         {
           title: 'Approval Hierarchy',
           path: '/apps/user/list'
-        },
+        }
         // {
         //   title: 'Department Hierarchy',
         //   children: [
@@ -257,43 +247,43 @@ const navigation = () => {
       ]
     },
 
-   //Leave
-   {
-    title: 'Leave',
-    icon: 'mdi:shield-outline',
-    children: [
-     {
-        title: 'Leave Details',
-        path: '/dashboards/leave/leave-details'
-      },
-      {
-        title: 'Bussiness Trip',
-        path: '/dashboards/leave/bussiness-trip'
-      },
-      {
-        title: 'Time Permission',
-        path: '/dashboards/leave/time-permison'
-      }
-    ]
-  },
+    //Leave
+    {
+      title: 'Leave',
+      icon: 'mdi:shield-outline',
+      children: [
+        {
+          title: 'Leave Details',
+          path: '/dashboards/leave/leave-details'
+        },
+        {
+          title: 'Bussiness Trip',
+          path: '/dashboards/leave/bussiness-trip'
+        },
+        {
+          title: 'Time Permission',
+          path: '/dashboards/leave/time-permison'
+        }
+      ]
+    },
 
-  //Payroll
-  {
-    title: 'Payroll',
-    icon: 'mdi:file-document-outline',
-    path: '/dashboards/payroll'
-    // children: [
-    //   {
-    //     title: 'Salary Info',
-    //     path: '//faq'
-    //   },
-    //   {
-    //     title: 'PaySlip',
-    //     path: '/pages/help-center'
-    //   },
+    //Payroll
+    {
+      title: 'Payroll',
+      icon: 'mdi:file-document-outline',
+      path: '/dashboards/payroll'
+      // children: [
+      //   {
+      //     title: 'Salary Info',
+      //     path: '//faq'
+      //   },
+      //   {
+      //     title: 'PaySlip',
+      //     path: '/pages/help-center'
+      //   },
 
-    // ]
-  },
+      // ]
+    },
 
     //Attendance
     {
@@ -316,7 +306,6 @@ const navigation = () => {
           title: 'Router Schedule',
           path: '/pages/help-center'
         }
-        
       ]
     },
 
@@ -341,11 +330,8 @@ const navigation = () => {
           title: 'My Notes',
           path: '/pages/help-center'
         }
-        
       ]
     },
-
-
 
     //Help Disk
     {
@@ -364,8 +350,6 @@ const navigation = () => {
           title: 'My Tasks',
           path: '/dashboards/help-desk-main/Mytask/Mytask'
         }
-       
-        
       ]
     },
 
@@ -375,7 +359,7 @@ const navigation = () => {
       title: 'Policy Documents',
       path: '/pages/dialog-examples'
     },
-   
+
     // App & Pages
     // {
     //   sectionTitle: 'Apps & Pages'
@@ -385,7 +369,7 @@ const navigation = () => {
     //   icon: 'mdi:email-outline',
     //   path: '/apps/email'
     // },
-    
+
     // {
     //   title: 'Chat',
     //   icon: 'mdi:message-outline',
@@ -669,8 +653,6 @@ const navigation = () => {
       ]
     },
 
-
-
     {
       title: 'Self Service',
       icon: 'mdi:home',
@@ -918,20 +900,24 @@ const navigation = () => {
       sectionTitle: 'Charts & Misc'
     },
     {
-      title: 'Charts',
+      title: 'Reimbursement',
       icon: 'mdi:chart-donut',
       children: [
         {
-          title: 'Apex',
-          path: '/charts/apex-charts'
+          title: 'Travel Reimbursement',
+          path: '/dashboards/reimbursement/travel-reimbursement'
         },
         {
-          title: 'Recharts',
-          path: '/charts/recharts'
+          title: 'Medical Reimbursement',
+          path: '/dashboards/reimbursement/medical-reimbursement'
         },
         {
-          title: 'ChartJS',
-          path: '/charts/chartjs'
+          title: 'Educational Reimbursement',
+          path: '/dashboards/reimbursement/educational-reimbursement'
+        },
+        {
+          title: 'Other Reimbursement',
+          path: '/dashboards/reimbursement/other-reimbursement'
         }
       ]
     },
@@ -982,50 +968,48 @@ const navigation = () => {
           path: 'https://demos.themeselection.com/marketplace/materio-mui-react-nextjs-admin-template/documentation'
         },
 
-           
-    {
-      title: 'Typography',
-      icon: 'mdi:format-letter-case',
-      path: '/ui/typography'
-    },
-    {
-      title: 'Icons',
-      path: '/ui/icons',
-      icon: 'mdi:google-circles-extended'
-    },
-    {
-      title: 'Cards',
-      icon: 'mdi:credit-card-outline',
-      children: [
         {
-          title: 'Basic',
-          path: '/ui/cards/basic'
+          title: 'Typography',
+          icon: 'mdi:format-letter-case',
+          path: '/ui/typography'
         },
         {
-          title: 'Advanced',
-          path: '/ui/cards/advanced'
+          title: 'Icons',
+          path: '/ui/icons',
+          icon: 'mdi:google-circles-extended'
         },
         {
-          title: 'Statistics',
-          path: '/ui/cards/statistics'
-        },
-        {
-          title: 'Widgets',
-          path: '/ui/cards/widgets'
-        },
-        {
-          title: 'Gamification',
-          path: '/ui/cards/gamification'
-        },
-        {
-          title: 'Actions',
-          path: '/ui/cards/actions'
+          title: 'Cards',
+          icon: 'mdi:credit-card-outline',
+          children: [
+            {
+              title: 'Basic',
+              path: '/ui/cards/basic'
+            },
+            {
+              title: 'Advanced',
+              path: '/ui/cards/advanced'
+            },
+            {
+              title: 'Statistics',
+              path: '/ui/cards/statistics'
+            },
+            {
+              title: 'Widgets',
+              path: '/ui/cards/widgets'
+            },
+            {
+              title: 'Gamification',
+              path: '/ui/cards/gamification'
+            },
+            {
+              title: 'Actions',
+              path: '/ui/cards/actions'
+            }
+          ]
         }
       ]
     }
-      ]
-    }
-
   ]
 }
 
