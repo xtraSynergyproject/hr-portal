@@ -60,7 +60,7 @@ function PayrollProfileDetails() {
     <div>
       <Grid container spacing={6} sx={{ mt: 1 }}>
         <Grid item xs={12}>
-          <Paper elevation={4} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Paper elevation={0} sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box sx={{width : "100%", display:"flex", justifyContent: "center"}}>
             <Box sx={{ p: 2, minWidth: '49%' }}>
               <Typography sx={{ display: 'flex', m: 2 }}>
