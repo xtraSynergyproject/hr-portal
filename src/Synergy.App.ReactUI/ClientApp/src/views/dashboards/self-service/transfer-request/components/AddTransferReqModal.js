@@ -1,17 +1,11 @@
 import React from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-// import TextField from '@mui/material/TextField'
-// import Typography from '@mui/material/Typography'
+import Typography from '@mui/material/Typography'
 import Modal from '@mui/material/Modal'
-// import Icon from 'src/@core/components/icon'
-// import MenuBtn from './MenuBtn'
-// import { Card, Divider } from '@mui/material'
-// import Select from '@mui/material/Select'
-// import MenuItem from '@mui/material/MenuItem'
-// import InputLabel from '@mui/material/InputLabel'
-// import FormControl from '@mui/material/FormControl'
-// import MoreDetailsModal from './MoreDetailsModal'
+import Icon from 'src/@core/components/icon'
+import MenuBtn from '../../../reimbursement/travel-reimbursement/components/MenuBtn'
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 const modalWrapper = {
   overflow: 'auto',
@@ -43,10 +37,15 @@ function AddTransferReqModal() {
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
 
+  const [value, setValue] = React.useState('')
+  const handleChanges = event => {
+    setValue(event.target.value)
+  }
+
   return (
     <Box>
       <Button variant='contained' onClick={handleOpen}>
-        New Transfer Request
+        Termination Request
       </Button>
 
       <Modal
@@ -57,7 +56,89 @@ function AddTransferReqModal() {
         aria-describedby='modal-modal-description'
       >
         <Box sx={modalBlock}>
-          <Box sx={modalContentStyle}>jhghgfjtj</Box>
+          <Box sx={modalContentStyle}>
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }} className='demo-space-x'>
+              <Typography sx={{ p: 4 }} variant='h4' component='h3'>
+                Termination Request
+              </Typography>
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                <Button sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }} component='label'>
+                  <Icon icon='mdi:attachment-plus' />
+                  Attachment
+                  <input type='file' hidden />
+                </Button>
+                <MenuBtn />
+
+                <Button
+                  sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }}
+                  onClick={handleClose}
+                  component='label'
+                >
+                  <Icon icon='mdi:close' />
+                  Close
+                </Button>
+              </Box>
+            </Box>
+            <hr />
+
+            <Box sx={{ mx: 4 }}>
+              <Box>
+                <Box sx={{ p: 3 }}>
+                  <Typography sx={{ my: 3 }}>
+                    Service Owner/Requester: <b>{}</b>
+                  </Typography>
+                  <Typography sx={{ my: 3 }}>
+                    Service Number: <b>{}</b>
+                  </Typography>
+                  <Typography sx={{ my: 3 }}>
+                    Service Status: <b>{}</b>
+                  </Typography>
+                  <Typography sx={{ my: 3 }}>
+                    Due Date: <b>{}</b>
+                  </Typography>
+                  <Typography sx={{ my: 3 }}>
+                    Service Version: <b>{}</b>
+                  </Typography>
+                </Box>{' '}
+              </Box>
+
+              <Box sx={{display:"flex", justifyContent:"space-between"}}>
+                <FormControl sx={{ width: '580px' }}>
+                  <InputLabel required id='demo-simple-select-label'>
+                    Location
+                  </InputLabel>
+                  <Select
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    value={value}
+                    label='Location'
+                    onChange={handleChanges}
+                  >
+                    <MenuItem value='Abu Dhabi'>Abu Dhabi</MenuItem>
+                    <MenuItem value='Sharjah'>Sharjah</MenuItem>
+                    <MenuItem value='Al Mankhool'>Al Mankhool</MenuItem>
+                    <MenuItem value='Satwa'>Satwa</MenuItem>
+                    <MenuItem value='Kuwait'>Kuwait</MenuItem>
+                    <MenuItem value='Saudi Arabia'>Saudi Arabia</MenuItem>
+                    <MenuItem value='Lebanon'>Lebanon</MenuItem>
+                    <MenuItem value='Jordan'>Jordan</MenuItem>
+                    <MenuItem value='Egypt'>Egypt</MenuItem>
+                    <MenuItem value='Bahrain'>Bahrain</MenuItem>
+                    <MenuItem value='UAE'>UAE</MenuItem>
+                    <MenuItem value='Tunisia'>Tunisia</MenuItem>
+                    <MenuItem value='Morocco'>Morocco</MenuItem>
+                    <MenuItem value='Bhopal'>Bhopal</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <Box sx={{ display: 'flex', my: 5, justifyContent: 'flex-end', gap: 3 }}>
+                  <Button variant='contained'>Save As Draft</Button>
+                  <Button variant='contained'>Submit</Button>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
         </Box>
       </Modal>
     </Box>

@@ -60,7 +60,7 @@ function MisconductsModal() {
           <Box sx={modalContentStyle}>
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }} className='demo-space-x'>
               <Typography sx={{ p: 4 }} variant='h4' component='h3'>
-                Termination Request
+                Add Misconducts
               </Typography>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
@@ -257,7 +257,7 @@ function MisconductsModal() {
               </Box>
 
               <Box sx={{ display: 'flex', my: 5, justifyContent: 'flex-end', gap: 3 }}>
-                {/* <MoreDetailsModal /> */}
+                <MoreDetailsModal/>
                 <Button variant='contained'>Save As Draft</Button>
                 <Button variant='contained'>Submit</Button>
               </Box>

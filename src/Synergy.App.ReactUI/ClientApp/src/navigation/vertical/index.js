@@ -916,20 +916,24 @@ const navigation = () => {
       sectionTitle: 'Charts & Misc'
     },
     {
-      title: 'Charts',
+      title: 'Reimbursement',
       icon: 'mdi:chart-donut',
       children: [
         {
-          title: 'Apex',
-          path: '/charts/apex-charts'
+          title: 'Travel Reimbursement',
+          path: '/dashboards/reimbursement/travel-reimbursement'
         },
         {
-          title: 'Recharts',
-          path: '/charts/recharts'
+          title: 'Medical Reimbursement',
+          path: '/dashboards/reimbursement/medical-reimbursement'
         },
         {
-          title: 'ChartJS',
-          path: '/charts/chartjs'
+          title: 'Educational Reimbursement',
+          path: '/dashboards/reimbursement/educational-reimbursement'
+        },
+        {
+          title: 'Other Reimbursement',
+          path: '/dashboards/reimbursement/other-reimbursement'
         }
       ]
     },
