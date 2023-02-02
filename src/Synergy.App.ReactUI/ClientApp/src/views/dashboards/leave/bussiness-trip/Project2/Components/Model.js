@@ -3,8 +3,8 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-//import ContactIcon from './ContactIcon'
-import Person from '@mui/icons-material/Person';
+import ContactIcon from './ContactIcon'
+//import Person from '@mui/icons-material/Person';
 
  import InputForm from './InputForm'
  
@@ -52,7 +52,7 @@ export default function BasicModal() {
     <div>
     
 
-      <Button sx={{ marginInlineStart: 'auto' }} onClick={handleOpen} ><Person/></Button>
+      <Button sx={{ marginInlineStart: 'auto' }} onClick={handleOpen} ><ContactIcon/></Button>
 
       <Modal
         open={open}

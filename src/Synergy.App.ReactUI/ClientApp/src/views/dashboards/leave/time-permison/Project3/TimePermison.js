@@ -4,6 +4,17 @@ import TimePermissionsTable from './Components/TimePermisonTable'
 import TimeSelect from '../Project3/Components/TimeSelect'
 import Model from '../../bussiness-trip/Project2/Components/Model'
 import Grid from '@mui/material/Unstable_Grid2';
+import { styled } from '@mui/material/styles';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'center',
+  color: theme.palette.text.secondary,
+}));
 
 
 
@@ -13,15 +24,12 @@ function  TimePermison() {
     <>
 
 
-<Grid container spacing={8}>
-  <Grid xs={10}>
-  <TimeSelect/>
-  
-    
+<Grid container spacing={2}>
+  <Grid item xs={12} md={10}>
+    <TimeSelect/>
   </Grid>
-  <Grid xs={2}>
-  <Model/>
-  
+  <Grid item xs={12} md={2}>
+   <Model/>
   </Grid>
   
   

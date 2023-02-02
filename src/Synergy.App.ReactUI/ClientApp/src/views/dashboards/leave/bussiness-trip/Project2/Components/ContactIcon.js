@@ -23,7 +23,7 @@ const Icons = () => {
   const renderIconGrids = () => {
     return icons.map((icon, index) => {
       return (
-        <Grid item key={index} sx={{margin:"22px"}}>
+        <Grid item key={index} sx={{margin:"25px"}}>
           <Tooltip arrow title={icon} placement='top'>
             <Card>
               <Button  variant="contained" sx={{ display: 'flex',Color:'#fff'}}>
@@ -40,7 +40,7 @@ const Icons = () => {
   }
 
   return (
-    <Grid container spacing={6}>
+    <Grid container spacing={5}>
     
       
          <Grid container spacing={4} >
