@@ -22,17 +22,23 @@ const navigation = () => {
     //   ]
     // },
 
-    // Employee Dashboard
-    {
-      title: 'Employee Dashboards',
-      icon: 'mdi:home-outline',
-      badgeContent: 'new',
-      badgeColor: 'error',
-      path: '/dashboards/employee-dashboard'
-      
-    },
+   // Employee Dashboard
+   {
+    title: 'Employee Dashboards',
+    icon: 'mdi:home-outline',
+    badgeContent: 'new',
+    badgeColor: 'error',
+    path: '/dashboards/employee-dashboard'
+    
+  },
 
-    // HR
+   // HR
+   {
+    title: 'HR Portal',
+    icon: 'mdi:home-outline',
+    badgeColor: 'error',
+    children: [
+      // HR
     {
       title: 'HR',
       icon: 'mdi:home-outline',
@@ -51,7 +57,7 @@ const navigation = () => {
 
         {
           title: 'Work Structure',
-          path: '/dashboards/workStructure'
+          path: '/dashboards/workStructureHrModule'
         },
        
         {
@@ -65,15 +71,50 @@ const navigation = () => {
       ]
     },
 
-    //Employee Profile
-    {
-      title: 'Employee Profile',
-      icon: 'mdi:account-outline',
-      badgeColor: 'error',
-      path: '/dashboards/employee-profile'
-      
-    },
+      {
+        title: 'HR 2 ',
+        icon: 'mdi:phone',
+        badgeColor: 'error',
+        children: [
+          {
+            title: 'Employee Dashboard',
+            path: '/dashboards/hr-dashboard/home'
+          },
 
+          {
+            title: 'Employee Profile',
+            path: '/dashboards/employee-dashboard'
+          }
+        ]
+      },
+
+      {
+        title: 'HR Only',
+        icon: 'mdi:chart-donut',
+        children: [
+          {
+            title: 'Termination',
+            path: '/dashboards/hr-only/termination'
+          },
+          {
+            title: 'Remote Sign In/Out',
+            path: '/dashboards/hr-only/remote-sign-in-out'
+          }
+        ]
+      }
+
+    
+    ]
+  },
+
+//Employee Profile
+{
+  title: 'Employee Profile',
+  icon: 'mdi:account-outline',
+  badgeColor: 'error',
+  path: '/dashboards/employee-profile'
+  
+},
     // Document Management
     {
       title: 'Document Management',
@@ -87,106 +128,83 @@ const navigation = () => {
           title: 'Documents',
           path: '/dashboards/document-management/documents'
         },
-      
-        // {
-        //   title: 'Department Hierarchy',
-        //   children: [
-        //     {
-        //       title: 'Overview',
-        //       path: '/apps/user/view/overview'
-        //     },
-        //     {
-        //       title: 'Security',
-        //       path: '/apps/user/view/security'
-        //     },
-        //     {
-        //       title: 'Billing & Plans',
-        //       path: '/apps/user/view/billing-plan'
-        //     },
-        //     {
-        //       title: 'Notifications',
-        //       path: '/apps/user/view/notification'
-        //     },
-        //     {
-        //       title: 'Connection',
-        //       path: '/apps/user/view/connection'
-        //     }
-        //   ]
-        // }
       ]
     },
 
-     // Work Structure
-     {
-      title: 'Work Structure',
-      icon: 'mdi:file-document-outline',
-      children: [
-        {
-          title: 'HR Policy Document',
-          path: '/apps/invoice/list'
-        },
-        {
-          title: 'HR Location',
-          path: '/apps/invoice/preview'
-        },
-        {
-          title: 'HR Country',
-          path: '/apps/invoice/edit'
-        },
-        {
-          title: 'HR Nationality',
-          path: '/apps/invoice/add'
-        },
-        {
-          title: 'HR Sponsor',
-          path: '/apps/invoice/list'
-        },
-        {
-          title: 'HR City',
-          path: '/apps/invoice/preview'
-        },
-        {
-          title: 'Grade',
-          path: '/apps/invoice/edit'
-        },
-        {
-          title: 'Job',
-          path: '/apps/invoice/add'
-        },
-        {
-          title: 'Cost Center',
-          path: '/apps/invoice/list'
-        },
-        {
-          title: 'Department',
-          path: '/apps/invoice/preview'
-        },
-        {
-          title: 'Department Hierarchy',
-          path: '/apps/invoice/edit'
-        },
-        {
-          title: 'Position',
-          path: '/apps/invoice/add'
-        },
-        {
-          title: 'Position Hierarchy',
-          path: '/apps/invoice/list'
-        },
-        {
-          title: 'Person',
-          path: '/apps/invoice/preview'
-        },
-        {
-          title: 'Contract',
-          path: '/apps/invoice/edit'
-        },
-        {
-          title: 'Assignment',
-          path: '/apps/invoice/add'
-        }
-      ]
-    },
+   // Work Structure
+   {
+    title: 'Work Structure',
+    icon: 'mdi:file-document-outline',
+    children: [
+      {
+        title: 'HR Policy Document',
+        path: '/apps/invoice/list'
+      },
+      {
+        title: 'HR Location',
+        path: '/apps/invoice/preview'
+      },
+      {
+        title: 'HR Country',
+        path: '/apps/invoice/edit'
+      },
+      {
+        title: 'HR Nationality',
+        path: '/apps/invoice/add'
+      },
+      {
+        title: 'HR Sponsor',
+        path: '/dashboards/workStructure/sponsor'
+      },
+      {
+        title: 'HR City',
+        path: '/dashboards/workStructure/City'
+      },
+      {
+        title: 'Grade',
+        path: '/dashboards/workStructure/Grade'
+      },
+      {
+        title: 'Job',
+        path: '/dashboards/workStructure/Job'
+      },
+      {
+        title: 'Cost Center',
+        path: '/dashboards/workStructure/Costcenter'
+      },
+      {
+        title: 'Department',
+        path: '/dashboards/workStructure/Department'
+      },
+      {
+        title: 'Department Hierarchy',
+        path:  '/dashboards/workStructure/Department_H'
+      },
+      {
+        title: 'Position',
+        path: '/dashboards/workStructure/position'
+      },
+      {
+        title: 'Position Hierarchy',
+        path: '/dashboards/workStructure/position_Hirarachy'
+      },
+      {
+        title: 'Person',
+        path: '/dashboards/workStructure/person'
+      },
+      {
+        title: 'Contract',
+        path: '/dashboards/workStructure/contact'
+      },
+      {
+        title: 'Assignment',
+        path: '/dashboards/workStructure/Assignment'
+      }
+    ]
+  },
+
+
+
 
     //Hierachy Chaert
     {
@@ -237,42 +255,44 @@ const navigation = () => {
       ]
     },
 
-    //Leave
-    {
-      title: 'Leave',
-      icon: 'mdi:shield-outline',
-      children: [
-       {
-          title: 'Leave Details',
-          path: '/dashboards/leave/leave-details'
-        },
-        {
-          title: 'Bussiness Trip',
-          path: '/dashboards/leave/bussiness-trip'
-        },
-        {
-          title: 'Time Permission',
-          path: '/dashboards/leave/time-permison'
-        }
-      ]
-    },
 
-    //Payroll
-    {
-      title: 'Payroll',
-      icon: 'mdi:file-document-outline',
-      children: [
-        {
-          title: 'Salary Info',
-          path: '/pages/faq'
-        },
-        {
-          title: 'PaySlip',
-          path: '/pages/help-center'
-        },
-    
-      ]
-    },
+   //Leave
+   {
+    title: 'Leave',
+    icon: 'mdi:shield-outline',
+    children: [
+     {
+        title: 'Leave Details',
+        path: '/dashboards/leave/leave-details'
+      },
+      {
+        title: 'Bussiness Trip',
+        path: '/dashboards/leave/bussiness-trip'
+      },
+      {
+        title: 'Time Permission',
+        path: '/dashboards/leave/time-permison'
+      }
+    ]
+  },
+
+  //Payroll
+  {
+    title: 'Payroll',
+    icon: 'mdi:file-document-outline',
+    path: '/dashboards/payroll'
+    // children: [
+    //   {
+    //     title: 'Salary Info',
+    //     path: '//faq'
+    //   },
+    //   {
+    //     title: 'PaySlip',
+    //     path: '/pages/help-center'
+    //   },
+
+    // ]
+  },
 
     //Attendance
     {
@@ -289,8 +309,7 @@ const navigation = () => {
         },
         {
           title: 'Access Logs',
-          path: '/dashboards/attendance/AccessLogs'
-        },
+          path: '/dashboards/attendance/AccessLogs'        },
         {
           title: 'Router Schedule',
           path: '/pages/help-center'
@@ -323,6 +342,8 @@ const navigation = () => {
         
       ]
     },
+
+
 
     //Help Disk
     {
@@ -645,21 +666,24 @@ const navigation = () => {
         }
       ]
     },
+
+
+
     {
-      title: 'Wizard Examples',
-      icon: 'mdi:transit-connection-horizontal',
+      title: 'Self Service',
+      icon: 'mdi:home',
       children: [
         {
-          title: 'Checkout',
-          path: '/pages/wizard-examples/checkout'
+          title: 'Resignation',
+          path: '/dashboards/self-service/resignation'
         },
         {
-          title: 'Property Listing',
-          path: '/pages/wizard-examples/property-listing'
+          title: 'Misconducts',
+          path: '/dashboards/self-service/misconducts'
         },
         {
-          title: 'Create Deal',
-          path: '/pages/wizard-examples/create-deal'
+          title: 'Transfer Request',
+          path: '/dashboards/self-service/transfer-request'
         }
       ]
     },
@@ -892,20 +916,24 @@ const navigation = () => {
       sectionTitle: 'Charts & Misc'
     },
     {
-      title: 'Charts',
+      title: 'Reimbursement',
       icon: 'mdi:chart-donut',
       children: [
         {
-          title: 'Apex',
-          path: '/charts/apex-charts'
+          title: 'Travel Reimbursement',
+          path: '/dashboards/reimbursement/travel-reimbursement'
         },
         {
-          title: 'Recharts',
-          path: '/charts/recharts'
+          title: 'Medical Reimbursement',
+          path: '/dashboards/reimbursement/medical-reimbursement'
         },
         {
-          title: 'ChartJS',
-          path: '/charts/chartjs'
+          title: 'Educational Reimbursement',
+          path: '/dashboards/reimbursement/educational-reimbursement'
+        },
+        {
+          title: 'Other Reimbursement',
+          path: '/dashboards/reimbursement/other-reimbursement'
         }
       ]
     },

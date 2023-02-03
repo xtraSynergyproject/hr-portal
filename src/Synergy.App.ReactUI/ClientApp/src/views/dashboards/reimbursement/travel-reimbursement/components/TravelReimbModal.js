@@ -8,8 +8,6 @@ import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
 
 import Modal from '@mui/material/Modal'
-import InputLabel from '@mui/material/InputLabel'
-import FormControl from '@mui/material/FormControl'
 
 import TextField from '@mui/material/TextField'
 import MenuBtn from './MenuBtn'
@@ -45,7 +43,7 @@ const modalContentStyle = {
 
   mt: 3,
 
-  width: '60rem',
+  width: '50rem',
 
   mb: 3,
 
@@ -98,7 +96,7 @@ export default function TravelReimbModal() {
               </Box>
             </Box>
             <hr />
-            <Box sx={{ p: 3 }}>
+            <Box sx={{ py: 3, px: 5 }}>
               <Box>
                 <Typography sx={{ my: 3 }}>
                   Service Owner/Requester: <b>{}</b>
@@ -120,7 +118,7 @@ export default function TravelReimbModal() {
                 <TextField
                   required
                   fullWidth
-                  sx={{ marginBottom: '20px' }}
+                  sx={{ marginY: '5px' }}
                   id='date'
                   label='Travel Date'
                   type='date'
@@ -130,10 +128,46 @@ export default function TravelReimbModal() {
                   }}
                 />
 
-                <TextField fullWidth id='outlined-basic' label='Duration' variant='outlined' />
-                <TextField fullWidth id='outlined-basic' label='Location' variant='outlined' />
-                <TextField fullWidth id='outlined-multiline-static' label='Reimbursement Amount' multiline rows={4} />
-                <TextField fullWidth id='outlined-basic' label='Reimbursement Amount' variant='outlined' />
+                <TextField sx={{ marginY: '5px' }} fullWidth id='outlined-basic' label='Duration' variant='outlined' />
+                <TextField sx={{ marginY: '5px' }} fullWidth id='outlined-basic' label='Location' variant='outlined' />
+                <TextField
+                  sx={{ marginY: '5px' }}
+                  fullWidth
+                  id='outlined-multiline-static'
+                  label='Travel Reason'
+                  multiline
+                  rows={4}
+                />
+                <TextField
+                  sx={{ marginY: '5px' }}
+                  required
+                  fullWidth
+                  id='outlined-basic'
+                  label='Reimbursement Amount'
+                  variant='outlined'
+                />
+
+                <Box
+                  sx={{
+                    mt: 6
+                  }}
+                >
+                  <Typography variant='outlined'>
+                    Supporting Document :
+                    <Button component='label'>
+                      Browse Document
+                      <input type='file' hidden />
+                    </Button>
+                  </Typography>
+                  <Box sx={{width:"700px",display:"flex", justifyContent:"space-between",}}> 
+                    <Box ><Typography>File Name : {} </Typography></Box>
+                    <Box ><Typography>File Size : {} </Typography></Box>
+                  </Box>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex',mt:15, mb: 5, justifyContent: 'flex-end', gap: 3 }}>
+                <Button variant='contained'>Save As Draft</Button>
+                <Button variant='contained'>Submit</Button>
               </Box>
             </Box>
           </Box>
