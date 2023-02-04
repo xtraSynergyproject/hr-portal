@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 
 export default function Searchbtn() {
   return (
-    <Button variant="contained" sx={{height: '40px'}}>
+    <Button variant="contained" sx={{height: '40px', paddingLeft: '20px'}}>
       Search
     </Button>
   );

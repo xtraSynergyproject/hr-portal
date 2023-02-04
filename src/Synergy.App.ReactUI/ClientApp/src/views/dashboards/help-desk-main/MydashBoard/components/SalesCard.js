@@ -75,7 +75,7 @@ const SalesCard = () => {
   }
 
   return (
-    <Card sx={{width: '400px', display: 'flex', justifyContent: "space-evenly", height: 144, mt:3, mr:8 }}>
+    <Card sx={{width: '500px', display: 'flex', justifyContent: "space-evenly", mt:12, mr:8 }}>
       <CardContent sx={{ py: `${theme.spacing(3.75)} !important` }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '330px' }}>
           <Box sx={{ my: 1.25 }}>

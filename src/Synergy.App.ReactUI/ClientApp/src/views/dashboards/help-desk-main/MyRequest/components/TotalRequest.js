@@ -166,7 +166,7 @@ const TotalRequest = () => {
   }
 
   return (
-    <Card>
+    <Card sx={{ paddingRight: '370px' }}>
       <Grid container>
         <StyledGrid item xs={12} sm={7}>
           <CardContent sx={{ height: '100%', '& .apexcharts-xcrosshairs.apexcharts-active': { opacity: 0 } }}>

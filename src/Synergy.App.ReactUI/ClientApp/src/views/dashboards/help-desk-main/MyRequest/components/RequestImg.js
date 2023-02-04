@@ -8,10 +8,10 @@ import TotalRequest from './TotalRequest'
 
 const RequestImg = ({ folder, label }) => {
   return (
-    <Box sx={{ height: 820, width: 950, background: 'white', transform: 'translateZ(0px)', flexGrow: 1 }}>
+    <Box sx={{}}>
 
       <Box>
-        <Typography sx={{ fontFamily: "sans-serif", fontSize: "30px", display: 'flex', marginLeft: '20px' }}><h5>Services Home</h5></Typography>
+        <Typography sx={{ fontFamily: "sans-serif", fontSize: "30px", display: 'flex', marginLeft: '20px' }}><h5>Service Home</h5></Typography>
         <Card>
           <CardMedia
             component='img'

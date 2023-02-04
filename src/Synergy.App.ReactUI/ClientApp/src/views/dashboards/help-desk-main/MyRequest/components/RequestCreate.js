@@ -40,7 +40,7 @@ export default function RequestCreate() {
   return (
 
     <Box>
-      {<Box onClick={handleOpen} variant='contained' sx={{ height: '26px' }}>ADD Request </Box>}
+      {<Box onClick={handleOpen} variant='contained' sx={{ height: '26px', gap: '5px' }}>Request</Box>}
       <Modal
         open={open}
         sx={modalWrapper}

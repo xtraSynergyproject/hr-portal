@@ -4,7 +4,7 @@ import Button from '@mui/material/Button';
 
 export default function BasicButtons() {
   return (
-    <Stack spacing={1} direction="row" paddingLeft={31}>
+    <Stack spacing={5} direction="row" paddingLeft={31}>
       <Button variant="contained">PersonFullName</Button>
       <Button variant="contained">SponsorshipNo</Button>
       <Button variant="contained">BiometricId</Button>

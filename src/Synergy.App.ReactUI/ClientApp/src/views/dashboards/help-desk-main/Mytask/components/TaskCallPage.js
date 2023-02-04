@@ -8,8 +8,10 @@ function TaskCallPage() {
     return (
         <Box sx={{ m: 5, display: "flex", justifyContent: "space-between", height: "30px", width: "100px", gap: 8 }} >
 
-            <Searchbtn />
+            
             <SearchBarTask />
+            <Searchbtn />
+            
             <TaskMenu />
         </Box>
     )

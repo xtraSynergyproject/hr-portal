@@ -7,15 +7,15 @@ import RequestCreate from './RequestCreate'
 function RequestMainPage() {
     return (
         <Box sx={{ m: 5, display: "flex", justifyContent: "space-between", width: "700px" }}>
-            <Box>
-                <Button variant='contained'>
-                    <RequestCreate />
-                </Button>
-            </Box>
+
 
             <Box>
                 <RequestSearchBar />
             </Box>
+
+            <Button variant='contained' sx={{ margin: '10px' }}>
+                <RequestCreate />
+            </Button>
             <Box>
                 <RequestMenu />
             </Box>

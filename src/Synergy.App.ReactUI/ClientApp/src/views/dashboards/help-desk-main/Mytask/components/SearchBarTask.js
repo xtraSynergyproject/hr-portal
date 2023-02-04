@@ -48,7 +48,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function SearchBarTask() {
   return (
 
-    <Search sx={{ border: '1px solid black' }}>
+    <Search sx={{ border: '1px solid black', paddingRight: '780px' }}>
       <SearchIconWrapper>
       </SearchIconWrapper>
       <StyledInputBase

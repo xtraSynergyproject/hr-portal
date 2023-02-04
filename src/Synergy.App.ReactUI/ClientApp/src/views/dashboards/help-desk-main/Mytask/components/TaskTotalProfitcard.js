@@ -77,7 +77,7 @@ const TaskTotalProfitcard = () => {
   }
 
   return (
-    <Card>
+    <Card sx={{paddingRight: "275px"}}>
       <CardHeader
         title='Task Overview'
         titleTypographyProps={{

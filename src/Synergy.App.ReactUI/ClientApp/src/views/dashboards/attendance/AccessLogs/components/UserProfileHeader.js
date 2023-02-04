@@ -15,16 +15,12 @@ import Personldetails from './Personldetails'
 // ** Third Party Imports
 import axios from 'axios'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import Selectpart from './Selectpart'
 import CalenderPage from './CalenderPage'
 
 function DashBoard(PersonFullName, Status, NationalityName, DateOfJoin, Title, DateOfBirth) {
   return { PersonFullName, Status, NationalityName, DateOfJoin, Title, DateOfBirth }
 }
-
-
 const ProfilePicture = styled('img')(({ theme }) => ({
   width: 160,
   height: 180,
@@ -38,14 +34,6 @@ const ProfilePicture = styled('img')(({ theme }) => ({
 }))
 
 const UserProfileHeader = () => {
-  // // ** State
-  // const [data, setData] = useState(null)
-  // useEffect(() => {
-  //   axios.get('/pages/profile-header').then(response => {
-  //     setData(response.data)
-  //   })
-  // }, [])
-
 
   const [data, setData] = useState([])
   useEffect(() => {
@@ -57,8 +45,6 @@ const UserProfileHeader = () => {
 
   }, [])
   const designationIcon = data?.designationIcon || 'mdi:briefcase-outline'
-
-
   return (
     <>
       <Card>
@@ -73,7 +59,6 @@ const UserProfileHeader = () => {
             justifyContent: { xs: 'center', md: 'flex-start' }
           }}
         >
-
           <Box sx={{ mb: [6, 0], display: 'flex', flexDirection: 'column', alignItems: ['center', 'flex-start'] }}>
             <Typography variant='h5' sx={{ mb: 4 }}>
               <b>{data.PersonFullName}</b>
@@ -86,18 +71,14 @@ const UserProfileHeader = () => {
               }}
             >
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                {/* <Icon icon={designationIcon} /> */}
-                {/* <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.designation} </Typography> */}
               </Box>
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                {/* <Icon icon='mdi:map-marker-outline' /> */}
+
                 <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.location}</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                {/* <Icon icon='mdi:calendar-blank' /> */}
-                <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
-                  {/* Joined {data.joiningDate} */}
 
+                <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
                 </Typography>
               </Box>
             </Box>
@@ -110,7 +91,7 @@ const UserProfileHeader = () => {
         <Grid container spacing={4}>
 
           <Grid item xs={3}>
-            <ProfilePicture src="https://apal.org.au/wp-content/uploads/2019/08/Andrew-Mandemaker-2.jpg" alt='profile-picture' />
+            <ProfilePicture src="https://th.bing.com/th/id/OIP.SZcxiMTozvt_2F-s-3vyCQAAAA?pid=ImgDet&w=185&h=246&c=7&dpr=1.3" alt='profile-picture' />
             <Box
               sx={{
                 width: '100%',
@@ -122,63 +103,37 @@ const UserProfileHeader = () => {
               }}
             ></Box>
           </Grid>
-
-
-
-
-
-
-
           <Grid item xs={4}>
 
-            <p>Title:<b>{data.Title}</b></p>
-            <p>DateOfBirth: <b>       {data.DateOfBirth}</b></p>
-            <p>NationalityName:<b>{data.NationalityName}</b></p>
-
-            <p>User Status: <b>{data.Status}</b></p>
-
+            <p>Title:  {data.Title}</p>
+            <p>DateOfBirth:  {data.DateOfBirth}</p>
+            <p>NationalityName:  {data.NationalityName}</p>
+            <p>User Status: {data.Status}</p>
           </Grid>
 
           <Grid item xs={4}>
-
-
-            <p>Department Name:<b>IT</b></p>
-
-            <p>Date of Join:28:<b>                  {data.DateOfJoin}</b></p>
-            <p>Person Status:<b>{data.Status}</b></p>
-            <p>Grade Name:<b>A</b></p>
-
+            <p>Department Name:  IT</p>
+            <p>Date of Join:  28:{data.DateOfJoin}</p>
+            <p>Person Status:{data.Status}</p>
+            <p>Grade Name:  A</p>
           </Grid>
 
         </Grid>
-        <b>{data.PersonFullName}</b>
-
-
-
-
-
-
-
-
+        {data.PersonFullName}
       </Card>
       <h1>Access Log</h1>
-      <Grid sx={{display: "flex", alignItems: 'center', gap: '28px'}}>
-        <h3>Employee</h3>
-      <Selectpart/>
-      <CalenderPage />
-      
-
-      
-
-      <Button variant="contained" paddingLeft="50">Submit</Button>
+      <Grid sx={{ display: "flex", alignItems: 'center', gap: '70px' }}>
+        <p>Employee</p>
+        <Selectpart />
+        <CalenderPage />
+        <Button variant="contained" size="large">Submit</Button>
       </Grid>
       <persondetails />
-              
-              <Box sx={{display: "flex", gap: "20px", marginTop: '30px'}}>
-                <Personldetails />
-              </Box>
+      <Box sx={{ display: "flex", gap: "20px", marginTop: '30px' }}>
+        <Personldetails />
+      </Box>
     </>
-    
+
   )
 }
 

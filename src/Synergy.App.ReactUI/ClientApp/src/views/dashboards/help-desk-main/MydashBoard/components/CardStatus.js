@@ -37,7 +37,7 @@ const CardStatus = () => {
   }
 
   return (
-    <Card sx={{ my: 3, width: '300px', display: 'flex', justifyContent: "space-evenly", mt: 5, mr: 8 }}>
+    <Card sx={{ my: 3, width: '400px', display: 'flex', justifyContent: "space-evenly", mt: 5, mr: 8 }}>
       <CardContent>
         <Typography variant='h6' sx={{ mb: 2.5 }}>
           135k

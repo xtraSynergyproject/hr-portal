@@ -37,9 +37,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('sm')]: {
-      width: '350px',
+      width: '400px',
       '&:focus': {
-        width: '520px',
+        width: '400px',
       },
     },
   },
@@ -48,7 +48,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function SearchBarTask() {
   return (
 
-    <Search sx={{ border: '1px solid black' }}>
+    <Search sx={{ m: 3, border: '1px solid black', paddingRight: '790px' }}>
       <SearchIconWrapper>
       </SearchIconWrapper>
       <StyledInputBase

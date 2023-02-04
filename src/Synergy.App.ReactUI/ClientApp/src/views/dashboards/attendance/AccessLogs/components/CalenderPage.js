@@ -8,7 +8,7 @@ import Box from '@mui/material/Box'
 import subDays from 'date-fns/subDays'
 import addDays from 'date-fns/addDays'
 import DatePicker from 'react-datepicker'
-
+import TextField from '@mui/material/TextField'
 // ** Custom Component Imports
 import CustomInput from './CustomInput'
 
@@ -18,26 +18,34 @@ const CalenderPage = ({ popperPlacement }) => {
   const [maxDate, setMaxDate] = useState(new Date())
 
   return (
-    <Box sx={{ display: 'flex', gap: '20px'}}>
+    <Box sx={{ display: "flex", alignItems: 'center', gap: '70px' }}>
       <div>
-        <DatePicker
-          id='Start-date'
-          selected={minDate}
-          minDate={subDays(new Date(), 5)}
-          popperPlacement={popperPlacement}
-          onChange={date => setMinDate(date)}
-          customInput={<CustomInput label='Min Date' />}
-        />
+      <TextField
+                  required
+                  fullWidth
+                  sx={{ marginY: '5px' }}
+                  id='date'
+                  label='Start Date'
+                  type='date'
+                  defaultValue='YYYY-MM-DD'
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                />
       </div>
       <div>
-        <DatePicker
-          id='End-date'
-          selected={maxDate}
-          maxDate={addDays(new Date(), 5)}
-          popperPlacement={popperPlacement}
-          onChange={date => setMaxDate(date)}
-          customInput={<CustomInput label='Max Date' />}
-        />
+      <TextField
+                  required
+                  fullWidth
+                  sx={{ marginY: '5px' }}
+                  id='date'
+                  label='End Date'
+                  type='date'
+                  defaultValue='YYYY-MM-DD'
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                />
       </div>
     </Box>
   )

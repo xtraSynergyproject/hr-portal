@@ -10,7 +10,7 @@ import TaskTotalProfitcard from './TaskTotalProfitcard'
 const TaskHomePage = ({ folder, label }) => {
 
   return (
-    <Box sx={{ height: 820, width: 950, background: 'white', transform: 'translateZ(0px)', flexGrow: 1 }}>
+    <Box>
 
       <Box>
         <Typography sx={{ fontFamily: "sans-serif", fontSize: "30px", display: 'flex', marginLeft: '20px' }}><h5>Task Home</h5></Typography>

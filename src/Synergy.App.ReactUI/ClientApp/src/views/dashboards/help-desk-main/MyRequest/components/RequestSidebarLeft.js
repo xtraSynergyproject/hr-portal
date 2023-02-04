@@ -13,18 +13,18 @@ import Icon from 'src/@core/components/icon'
 const RequestSidebarLeft = ({ direction }) => {
   const ExpandIcon = direction === 'rtl' ? 'mdi:chevron-left' : 'mdi:chevron-right'
 
-  return (<Box sx={{ m: 3 }}>
+  return (<Box sx={{ m: 3, width: '250px' }}>
     <Box >
-      <Button variant='text' color='secondary' size='small' startIcon={<Icon icon='mdi:home' />}>
+      <Button variant='text' color='secondary' size='medium' startIcon={<Icon icon='mdi:home' />}>
         Home
       </Button><br />
-      <Button variant='text' color='secondary' size='small' startIcon={<Icon icon='mdi:filter' />}>
+      <Button variant='text' color='secondary' size='medium' startIcon={<Icon icon='mdi:filter' />}>
         Pending Till Today
       </Button><br />
-      <Button variant='text' color='secondary' size='small' startIcon={<Icon icon='mdi:edit' />}>
+      <Button variant='text' color='secondary' size='medium' startIcon={<Icon icon='mdi:edit' />}>
         End in Next 7 days
       </Button><br />
-      <Button variant='text' color='secondary' size='small' startIcon={<Icon icon='mdi:delete' />}>
+      <Button variant='text' color='secondary' size='medium' startIcon={<Icon icon='mdi:delete' />}>
         Delete
       </Button>
     </Box>

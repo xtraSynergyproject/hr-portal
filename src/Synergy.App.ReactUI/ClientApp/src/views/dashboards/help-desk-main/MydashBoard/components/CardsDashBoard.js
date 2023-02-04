@@ -12,6 +12,7 @@ import SalesChard from './SalesCard'
 import CardStatus from './CardStatus'
 import CardStatsChart from './CardStatsChart'
 import CardStatusLineChart from './CardStatusLineChart'
+import RevenueReport from './RevenueReport'
 //** Axios */
 import axios from 'axios'
 
@@ -48,7 +49,7 @@ const CardsDashBoard = props => {
 
         <Box>
 
-            <Box sx={{ display: 'flex', justifyContent: "space-evenly" }}>
+            <Box sx={{ display: 'flex', gap: "120px", marginRight: "50px" }}>
                 <Card
                     sx={{
                         backgroundColor: 'transparent !important',
@@ -235,11 +236,13 @@ const CardsDashBoard = props => {
                 <SalesChard />
             </Box>
 
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between"}}>
                 <CardStatus />
                 <CardStatsChart />
                 <CardStatusLineChart />
-
+                <Box sx={{marginTop: "18px", marginBottom: "11px", paddingRight: "30px"}}>
+                <RevenueReport />
+                </Box>
             </Box>
 
         </Box>

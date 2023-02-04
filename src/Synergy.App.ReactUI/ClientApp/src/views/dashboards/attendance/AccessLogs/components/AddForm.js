@@ -4,12 +4,11 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import NativeSelect from '@mui/material/NativeSelect';
 import InputBase from '@mui/material/InputBase';
-import UserProfileHeader from './UserProfileHeader';
-import AddForm from './AddForm'
 
-const BootstrapInput = styled(InputBase)(({ theme }) => ({
+import UserData from './UserData'
+
+const Input = styled(InputBase)(({ theme }) => ({
   'label + &': {
     marginTop: theme.spacing(3),
   },
@@ -49,23 +48,24 @@ export default function SelectBar() {
   };
   return (
     <div>
-     <FormControl sx={{ width: '100%', height: '100px', borderRadius: "10px" }} variant="standard">
-        <InputLabel id="demo-customized-select-label"></InputLabel>
+     <FormControl sx={{ width: '1200px', height: '100px', borderRadius: "10px" }} variant="standard">
         <Select
           labelId="demo-customized-select-label"
           id="demo-customized-select"
           value={age}
           onChange={handleChange}
-          input={<BootstrapInput />}
+          input={<Input />}
         >
           <MenuItem value="">
           </MenuItem>
-          <MenuItem><AddForm/></MenuItem>
+         
         </Select>
-       
+
       </FormControl>
       
-         <UserProfileHeader />
+      
+      <UserData />
+         
       
      
     </div>

@@ -59,7 +59,7 @@ const renderStats = () => {
 
 const CardRate = () => {
   return (
-    <Card fullWidth sx={{ my: 3, width: '600px', justifyContent: "space-evenly" }}>
+    <Card fullWidth sx={{ mt: 12, width: '600px', justifyContent: "space-evenly" }}>
       <CardHeader
         title='Employees'
         titleTypographyProps={{ sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }}
