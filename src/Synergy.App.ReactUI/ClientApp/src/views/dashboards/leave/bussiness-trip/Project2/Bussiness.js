@@ -23,7 +23,6 @@ function Bussiness() {
 
     </Grid>
 
-
       <BussinessTripProfile/>
       <BussinessTable />
 

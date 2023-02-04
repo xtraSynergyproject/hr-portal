@@ -121,7 +121,7 @@ const UserProfileHeader = () => {
             justifyContent: ['center', 'space-between']
           }}
         ></Box>
-         <Typography variant='h5' sx={{ mb: 3, margin:'10px'}}>
+         <Typography variant='h5' sx={{ mb: 3, marginLeft:'20px'}}>
                      <b>{data.PersonFullName}</b>
             </Typography>
         </Grid>

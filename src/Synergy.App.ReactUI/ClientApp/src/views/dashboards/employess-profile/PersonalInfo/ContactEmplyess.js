@@ -7,6 +7,7 @@ import Button from '@mui/material/Button'
 import Icon from 'src/@core/components/icon'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import PrintIcon from '@mui/icons-material/Print'
+import Contactmodal from './Contactmodal'
 // import Logo from '../../../../../public/images/'
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -22,16 +23,16 @@ function PaySlip() {
         <Grid item xs={12}>
           <Item>
             <Box sx={{ width: 'auto', margin: 5 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'rghite' }}>
+              <Box sx={{ display: 'flex', justifyContent: '' }}>
                 {/* <img
               src='public/images/logos/logo.jfif'
               width='20%'
             /> */}
                 <Typography sx={{ fontSize: 20, ml: 2 }}>
-                  <h4>Contact</h4>
+                  <h3>Contact</h3>
                 </Typography>
-                <Typography sx={{ fontSize: 20, ml: 90, minWidth :"center" }}>
-                <Button variant='contained'>Manage Contact</Button>
+                <Typography sx={{ fontSize: 20,  ml: 190, minWidth :"center" }}>
+                <Contactmodal/>
                 </Typography>
               </Box>
         
