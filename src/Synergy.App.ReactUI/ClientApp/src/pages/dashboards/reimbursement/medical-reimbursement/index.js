@@ -1,8 +1,11 @@
 import React from 'react'
+import MedicalReimbursement from 'src/views/dashboards/reimbursement/medical-reimbursement/MedicalReimbursement'
 
 function index() {
   return (
-    <div>index</div>
+    <div>
+      <MedicalReimbursement/>
+    </div>
   )
 }
 
