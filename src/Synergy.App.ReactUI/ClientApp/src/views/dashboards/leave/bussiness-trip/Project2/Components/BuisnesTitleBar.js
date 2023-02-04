@@ -7,6 +7,15 @@ import TagIcon from '@mui/icons-material/Tag';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 
+import IconButton from '@mui/material/IconButton';
+import Icon from 'src/@core/components/icon'
+
+
+
+
+
+
+
 export default function MouseOverPopover() {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
@@ -18,10 +27,70 @@ export default function MouseOverPopover() {
     setAnchorEl(null);
   };
 
+
+
+
+
+
+
+
+
+
+  
+  const handleClose = () => {
+    setOpen(false)
+  }
+  
+  
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const open = Boolean(anchorEl);
+
+
+  
+
+
+
+
+
+
+
+
+
+
 
   return (
     <div>
+
+
+<IconButton
+            aria-label='close'
+            onClick={handleClose}
+            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+          >
+             <Icon icon='mdi:close' />
+          </IconButton>
+    
+
+
+
+
+     
+
 
 <Grid container spacing={2}>
   <Grid item xs={3}>
