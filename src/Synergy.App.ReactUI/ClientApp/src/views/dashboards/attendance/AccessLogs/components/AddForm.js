@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
-import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import InputBase from '@mui/material/InputBase';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import ListData from './ListData'
 
 import UserData from './UserData'
 
@@ -20,7 +22,7 @@ const Input = styled(InputBase)(({ theme }) => ({
     fontSize: 16,
     padding: '10px 26px 10px 12px',
     transition: theme.transitions.create(['border-color', 'box-shadow']),
-    // Use the system font instead of the default Roboto font.
+
     fontFamily: [
       '-apple-system',
       'BlinkMacSystemFont',
@@ -48,26 +50,26 @@ export default function SelectBar() {
   };
   return (
     <div>
-     <FormControl sx={{ width: '1200px', height: '100px', borderRadius: "10px" }} variant="standard">
-        <Select
-          labelId="demo-customized-select-label"
-          id="demo-customized-select"
-          value={age}
-          onChange={handleChange}
-          input={<Input />}
-        >
-          <MenuItem value="">
-          </MenuItem>
-         
-        </Select>
 
-      </FormControl>
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: '100%',
+          marginBottom: '20px'
+        }}
+      >
+        <TextField fullWidth label="" id="fullWidth" />
+      </Box>
+
+
+
+
+<Box padding={'10px'}>
+  <UserData />
+  </Box>
       
-      
-      <UserData />
-         
-      
-     
+
+      < ListData />
     </div>
   );
 }

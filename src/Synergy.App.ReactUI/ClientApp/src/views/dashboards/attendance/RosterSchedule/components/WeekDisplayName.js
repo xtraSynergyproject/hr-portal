@@ -48,7 +48,7 @@ export default function CustomizedSelects() {
   return (
     
       <FormControl sx={{ m: 1 }} variant="standard">
-        <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
+        {/* <InputLabel htmlFor="demo-customized-textbox">Ag</InputLabel> */}
         <BootstrapInput id="demo-customized-textbox" />
       </FormControl>
      

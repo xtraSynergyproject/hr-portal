@@ -51,7 +51,7 @@ export default function RequestCreate() {
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
             <form>
-              <Box sx={{ m: 2, display: "flex", justifyContent: "space-between", width: "700px" }}></Box>
+              <Box sx={{ m: 2, display: "flex", justifyContent: "space-between", width: "00px" }}></Box>
               <Box>
                 <div>
                   <h1>Create Home</h1>
@@ -60,7 +60,8 @@ export default function RequestCreate() {
                   ALL
                 </Button>
               </Box>
-              <Box sx={{ width: '500px' }}>
+
+              <Box>
                 <SearchBar />
               </Box>
 

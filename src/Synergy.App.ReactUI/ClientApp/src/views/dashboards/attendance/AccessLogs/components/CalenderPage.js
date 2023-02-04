@@ -5,12 +5,7 @@ import { useState } from 'react'
 import Box from '@mui/material/Box'
 
 // ** Third Party Imports
-import subDays from 'date-fns/subDays'
-import addDays from 'date-fns/addDays'
-import DatePicker from 'react-datepicker'
 import TextField from '@mui/material/TextField'
-// ** Custom Component Imports
-import CustomInput from './CustomInput'
 
 const CalenderPage = ({ popperPlacement }) => {
   // ** States
