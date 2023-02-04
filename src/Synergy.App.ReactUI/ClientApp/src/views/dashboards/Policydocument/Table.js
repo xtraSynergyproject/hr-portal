@@ -39,12 +39,12 @@ import { fetchData, deleteUser } from 'src/store/apps/user'
 
 // ** Third Party Components
 import axios from 'axios'
-function createData(NoteSubject, StartDate, CompletedDate, TemplateId, RequestedByUserId, ParentTaskId, LocationName){
-  return createData(NoteSubject, StartDate, CompletedDate, TemplateId, RequestedByUserId, ParentTaskId, UserRating)
+function createData(PolicyName,PolicyDescription,StartDate){
+  return createData(PolicyName,PolicyDescription,StartDate)
 }
 
 // ** Custom Table Components Imports
-import TableHeader from 'src/views/apps/user/list/TableHeader'
+// import TableHeader from 'src/views/apps/user/list/TableHeader'
 import AddUserDrawer from 'src/views/apps/user/list/AddUserDrawer'
 // import Model from './Model'
 
@@ -159,8 +159,8 @@ const columns = [
   {
     flex: 0.2,
     minWidth: 230,
-    field: 'NoteSubject',
-    headerName: 'Note Subject',
+    field: '"PolicyName"',
+    headerName: '"PolicyName"',
     renderCell: ({ row }) => {
       const { fullName, username } = row
 
@@ -177,7 +177,7 @@ const columns = [
             </Box>
           </Box> */}
           {/* <Model /> */}
-          {row.NoteSubject}
+          {row.PolicyName}
         </>
       )
     }
@@ -185,60 +185,60 @@ const columns = [
   {
     flex: 0.2,
     minWidth: 250,
-    field: 'StartDate',
-    headerName: 'Loaction Name("Arabic")',
+    field: 'PolicyDescription',
+    headerName: 'PolicyDescription',
     renderCell: ({ row }) => {
       return (
         <Typography noWrap variant='body2'>
+          {row.PolicyDescription}
+        </Typography>
+      )
+    }
+  },
+  // {
+  //   flex: 0.15,
+  //   field: 'PolicyDocument',
+  //   minWidth: 150,
+  //   headerName: 'PolicyDocument',
+  //   renderCell: ({ row }) => {
+  //     return (
+        
+  //        <Typography noWrap sx={{ textTransform: 'capitalize' }}>
+  //         {row.PolicyDocument}
+  //       </Typography>
+  //     )
+  //   }
+  // },
+  {
+    flex: 0.15,
+    minWidth: 120,
+    headerName: 'StartDate',
+    field: 'StartDate',
+    renderCell: ({ row }) => {
+      return (
+        <Typography noWrap sx={{ textTransform: 'capitalize' }}>
           {row.StartDate}
         </Typography>
       )
     }
   },
-  {
-    flex: 0.15,
-    field: 'CompletedDate',
-    minWidth: 150,
-    headerName: 'CompletedDate',
-    renderCell: ({ row }) => {
-      return (
-        
-         <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.CompletedDate}
-        </Typography>
-      )
-    }
-  },
-  {
-    flex: 0.15,
-    minWidth: 120,
-    headerName: 'TemplateId',
-    field: 'TemplateId',
-    renderCell: ({ row }) => {
-      return (
-        <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.TemplateId}
-        </Typography>
-      )
-    }
-  },
-  {
-    flex: 0.1,
-    minWidth: 110,
-    field: 'LocationName',
-    headerName: 'LocationName',
-    renderCell: ({ row }) => {
-      return (
-        <CustomChip
-          skin='light'
-          size='small'
-          field={row.LocationName}
+  // {
+  //   flex: 0.1,
+  //   minWidth: 110,
+  //   field: 'LocationName',
+  //   headerName: 'LocationName',
+  //   renderCell: ({ row }) => {
+  //     return (
+  //       <CustomChip
+  //         skin='light'
+  //         size='small'
+  //         field={row.LocationName}
          
-          sx={{ textTransform: 'capitalize' }}
-        />
-      )
-    }
-  },
+  //         sx={{ textTransform: 'capitalize' }}
+  //       />
+  //     )
+  //   }
+  // },
   {
     flex: 0.1,
     minWidth: 90,
@@ -260,7 +260,7 @@ const UserList = ({ apiData }) => {
   // Api intergration by using get method
   const[getdata, setGetdata]=useState([])
   const viewData=async()=>{
-    let response = await axios.get(`https://webapidev.aitalkx.com/CHR/query/LoadNoteIndexPageGrid?indexPageTemplateId=f6901163-b2f5-4f5d-86f5-7c6a0b39f92d`)
+    let response = await axios.get(`https://webapidev.aitalkx.com/chr/leave/GetPolicyDocuments?portalName=HR&userId=45bba746-3309-49b7-9c03-b5793369d73c`)
     setGetdata(response.data)
   }
 
@@ -384,7 +384,7 @@ const UserList = ({ apiData }) => {
             {/* </Grid> */}
           </CardContent>
           <Divider />
-          <TableHeader  handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
+          {/* <TableHeader  handleFilter={handleFilter} toggle={toggleAddUserDrawer} /> */}
           <DataGrid
             autoHeight
             rows={getdata}
