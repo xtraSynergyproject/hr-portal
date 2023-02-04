@@ -3,7 +3,9 @@ import RemoteSignInOut from '../../../../views/dashboards/attendance/RemoteSignI
 
 function index() {
   return (
-    <><RemoteSignInOut/></>
+    <>
+    <RemoteSignInOut/>
+    </>
   )
 }
 

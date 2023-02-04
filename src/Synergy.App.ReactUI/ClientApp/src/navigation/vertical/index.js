@@ -301,18 +301,19 @@ const navigation = () => {
       children: [
         {
           title: 'Remote Sign In/Out Request',
-          path: '/pages/faq'
+          path: '/dashboards/attendance/RemoteSignInOut'
         },
         {
           title: 'Attendance Details',
-          path: '/pages/help-center'
+          path: '/dashboards/attendance/AttendanceDetails'
         },
         {
           title: 'Access Logs',
-          path: '/dashboards/attendance/AccessLogs'        },
+          path: '/dashboards/attendance/AccessLogs'        
+        },
         {
           title: 'Router Schedule',
-          path: '/pages/help-center'
+          path: '/dashboards/attendance/RosterSchedule'
         }
         
       ]
