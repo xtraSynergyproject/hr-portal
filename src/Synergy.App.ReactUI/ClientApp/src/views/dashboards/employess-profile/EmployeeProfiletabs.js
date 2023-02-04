@@ -11,7 +11,7 @@ import Emplyesspayroll from "./PersonalInfo/Emplyesspayroll"
 import Etable from "./PersonalInfo/Etable"
 import ContactEmplyess from "./PersonalInfo/ContactEmplyess"
 import AttendenceE from './PersonalInfo/AttendenceE'
-import Deparment from './PersonalInfo/Deparment'
+
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
