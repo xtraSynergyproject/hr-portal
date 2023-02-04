@@ -11,6 +11,10 @@ import Button from '@mui/material/Button';
 import BuisnesTitleBar from './BuisnesTitleBar'
 
 
+
+
+
+
 // import Typography from "@mui/material";
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -21,10 +25,12 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
+
+
 function ContactInfoForm() {
   return (
     
-    <Container maxWidth="lg">
+    <Box sx={{ height: 600, width: 999, background: 'white', transform: 'translateZ(0px)', flexGrow: 1 }}>
       <div>
         <Box
           sx={{
@@ -36,6 +42,13 @@ function ContactInfoForm() {
             "& .MuiFormControl-root": { p: 1.2 },
           }}
         >
+
+
+
+
+         
+
+
 
         <BuisnesTitleBar/>
 
@@ -85,13 +98,35 @@ Submit
                 sx={{ marginBottom: "8px" }}
               />
 
+<TextField
+                    fullWidth
+                    sx={{ marginBottom: "8px" }}
+                    id="date"
+                    label="Business Trip Start Date"
+                    type="date"
+                    defaultValue="YYYY-MM-DD"
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                   <TextField
+                    fullWidth
+                    sx={{ marginBottom: "8px" }}
+                    id="date"
+                    label="Business Trip End Date"
+                    type="date"
+                    defaultValue="YYYY-MM-DD"
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+
 
 
 
         
              
             </Item>
-
 
             <Box sx={{ '& button': { m: 2 } }}>
 
@@ -109,7 +144,7 @@ Submit
         </Box>
 
       </div>
-    </Container>
+    </Box>
     
 
   );
