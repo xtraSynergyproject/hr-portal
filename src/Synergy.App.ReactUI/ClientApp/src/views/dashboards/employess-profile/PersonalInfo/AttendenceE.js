@@ -7,6 +7,7 @@ import Button from '@mui/material/Button'
 import Icon from 'src/@core/components/icon'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import PrintIcon from '@mui/icons-material/Print'
+
 // import Logo from '../../../../../public/images/'
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -18,62 +19,81 @@ const Item = styled(Paper)(({ theme }) => ({
 function PaySlip() {
   return (
     <div>
-     
-       
-          <Item>
-            <Box sx={{ width: 'auto', margin: 5 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'rghite' }}>
-                {/* <img
+
+
+      <Item>
+        <Box sx={{ width: 'auto', margin: 5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'rghite' }}>
+            {/* <img
               src='public/images/logos/logo.jfif'
               width='20%'
             /> */}
-              
-               
-              </Box>
-        
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
-                <Box sx={{ mt: 5, fontWeight: 5, minWidth :"40%" }}>
-                
-                  <Typography>
-                    ContractType:
-                  </Typography>
-                  <br />
-                </Box>
 
-                <Box sx={{ mt: 5, fontWeight: 5, minWidth :"40%"  }}>
-                  <Typography>
-                ContractRenewable:
-                  </Typography>
-                  <br />
-              
-               
-                </Box>
-                <Box sx={{ mt: 5, fontWeight: 5, minWidth :"40%"  }}>
-                <Typography>
-              ContractRenewable:
-                </Typography>
-                <br />
-            
-             
-              </Box>
-              <Box sx={{ mt: 5, fontWeight: 5, minWidth :"40%"  }}>
-              <Typography>
-            ContractRenewable:
-              </Typography>
+          </Box>
+
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
+
+              <Card sx={{ p: 3 }}>
+                <TextField
+                  fullWidth
+                  id='date'
+                  label='Payroll End Date'
+                  type='date'
+                  defaultValue='YYYY-MM-DD'
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                />
+              </Card>
               <br />
-          
-           
             </Box>
-            
-              </Box>
-              
-            </Box>
-          </Item>
-     
 
-      
-     
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
+              <Card sx={{ p: 3 }}>
+                <TextField
+                  fullWidth
+                  id='date'
+                  label='Payroll End Date'
+                  type='date'
+                  defaultValue='YYYY-MM-DD'
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                />
+              </Card>
+              <br />
+
+
+            </Box>
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
+              <Card sx={{ p: 3 }}>
+                <TextField
+                  fullWidth
+                  id='date'
+                  label='Payroll End Date'
+                  type='date'
+                  defaultValue='YYYY-MM-DD'
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                />
+              </Card>
+              <br /></Box>
+
+
+          </Box>
+
+        </Box>
+
+
+      </Item>
+
+
+
+
     </div>
   )
 }
