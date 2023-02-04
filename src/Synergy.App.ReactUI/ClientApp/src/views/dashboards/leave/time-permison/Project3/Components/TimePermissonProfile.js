@@ -61,12 +61,12 @@ const UserProfileHeader = () => {
 
   return  (
     <>
-    <Card>
+  <Card>
       
       <CardContent
         sx={{
           pt: 0,
-          mt: -8,
+          mt: -9,
           display: 'flex',
           alignItems: 'flex-end',
           flexWrap: { xs: 'wrap', md: 'nowrap' },
@@ -75,8 +75,8 @@ const UserProfileHeader = () => {
       >
         
           <Box sx={{ mb: [6, 0], display: 'flex', flexDirection: 'column', alignItems: ['center', 'flex-start'] }}>
-            <Typography variant='h5' sx={{ mb: 4 }}>
-              <b>{data.PersonFullName}</b>
+            <Typography variant='h5' sx={{ mb: 3, margin:'10px'}}>
+                     <b>{data.PersonFullName}</b>
             </Typography>
             <Box
               sx={{
@@ -110,7 +110,7 @@ const UserProfileHeader = () => {
       <Grid container spacing={4}>
 
       <Grid item xs ={3}>
-      <ProfilePicture src="https://apal.org.au/wp-content/uploads/2019/08/Andrew-Mandemaker-2.jpg" alt='profile-picture' />
+      <ProfilePicture src="https://th.bing.com/th/id/OIP.KzL19SzY6e3cM6amThuwigHaHb?pid=ImgDet&rs=1" alt='profile-picture' />
         <Box
           sx={{
             width: '100%',
@@ -121,6 +121,9 @@ const UserProfileHeader = () => {
             justifyContent: ['center', 'space-between']
           }}
         ></Box>
+         <Typography variant='h5' sx={{ mb: 3, marginLeft:'20px'}}>
+                     <b>{data.PersonFullName}</b>
+            </Typography>
         </Grid>
 
 
@@ -149,10 +152,8 @@ const UserProfileHeader = () => {
                 <p>Grade Name:<b>A</b></p>
             
               </Grid>
-             
               </Grid>
-              <b>{data.PersonFullName}</b>
-                        
+            
 
       
 

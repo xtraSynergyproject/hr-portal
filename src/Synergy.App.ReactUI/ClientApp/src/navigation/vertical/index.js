@@ -325,7 +325,7 @@ const navigation = () => {
       children: [
         {
           title: 'Dashboard',
-          path: '/pages/faq'
+          path: '/dashboards/worklist',
         },
         {
           title: 'My Services',

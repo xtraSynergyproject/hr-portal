@@ -132,13 +132,15 @@ const UserProfileHeader = () => {
           
         </Box>
       </CardContent>
-      <Grid container spacing={4}>
+      
+      <Grid container spacing={4} sx={{margin:'5px'}}>
 
-         <Grid item xs={6}>
+
+         <Grid item xs={7}>
               
-                <p>Title:<b>{data.Title}</b></p>
-               <p>DateOfBirth: <b>       {data.DateOfBirth}</b></p>
-              <p>NationalityName:<b>{data.NationalityName}</b></p>
+              <p>Title: <b>{data.Title}</b></p>
+               <p>DateOfBirth:   <b>{data.DateOfBirth}</b></p>
+              <p>NationalityName:  <b>{data.NationalityName}</b></p>
               
               <p>User Status: <b>{data.Status}</b></p>
             
@@ -147,14 +149,15 @@ const UserProfileHeader = () => {
             <Grid item xs={4}>
                 
 
-                <p>Department Name:<b>IT</b></p>
+                <p>Department Name:  <b>IT</b></p>
                 
-                <p>Date of Join:28:<b>                  {data.DateOfJoin}</b></p>
-                <p>Person Status:<b>{data.Status}</b></p>
-                <p>Grade Name:<b>A</b></p>
+                <p>Date of Join:28: <b>{data.DateOfJoin}</b></p>
+                <p>Person Status: <b>{data.Status}</b></p>
+                <p>Grade Name:  <b>A</b></p>
             
               </Grid>
               </Grid>
+              
 
       
 
