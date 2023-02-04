@@ -41,7 +41,7 @@ function Info() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
                 <Box sx={{ mt: 5, fontWeight: 5, minWidth: "40%" }}>
                   <Typography>
-                    <h4>Basic Info</h4>
+                    <h4></h4>
                   </Typography>
                   <br />
                   <Typography>
@@ -136,9 +136,8 @@ function Info() {
                   <br />
                   <br />
                   <br />
-                  <br />
-                  <br />
-                  <br />
+                  
+                  
                   <Typography>
                     Person Full Name :
                   </Typography>
@@ -164,7 +163,8 @@ function Info() {
                   <br />
                   <br />
                   <br />
-                  <br />
+                  <br/>
+                
                   <Typography>
                     Building Number :
                   </Typography>
@@ -201,7 +201,7 @@ function Info() {
                   <br />
                 </Box>
               </Box>
-              <Typography sx={{ fontSize: 20, ml: 140, minWidth: "center" }}>
+              <Typography sx={{ fontSize: 20, ml: 200, minWidth: "center" }}>
                 <Button variant='contained'>Edit</Button>
               </Typography>
             </Box>

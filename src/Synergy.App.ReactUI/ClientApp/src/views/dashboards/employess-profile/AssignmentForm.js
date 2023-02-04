@@ -7,6 +7,7 @@ import Button from '@mui/material/Button'
 
 
 import Paper from '@mui/material/Paper';
+import Assingmentmodal from './PersonalInfo/Assingmentmodal'
 
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -30,10 +31,15 @@ function TextFieldSizes() {
           width='20%'
         /> */}
                 <Typography sx={{ fontSize: 16, ml: 2, }}>
-                  <h4>Assignment</h4>
+                  <h3>Assignment</h3>
                 </Typography>
+                <Typography sx={{ fontSize: 20,   ml: 180}}>
+                <Assingmentmodal/>
+              </Typography>
               </Box>
               <hr />
+              <br />
+            
               <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
                 <Box sx={{ mt: 5, fontWeight: 5, minWidth: "40%" }}>
                   <br />
@@ -63,7 +69,7 @@ function TextFieldSizes() {
                   <br />
                   </Box>
                   <Box sx={{ mt: 5, fontWeight: 5, minWidth: "40%" }}>
-                    <br />     <br />     <br />
+                    <br />     <br />     <br /> <br />
                     <Typography>
                     Assignment Grade :
                     </Typography>
@@ -92,9 +98,7 @@ function TextFieldSizes() {
 
                   <br />
                   </Box></Box>
-              <Typography sx={{ fontSize: 20, minWidth: "center" }}>
-                <Button variant='contained'>Manage Assignment</Button>
-              </Typography>
+           
             </Box>
           </Item>
         </Grid>
