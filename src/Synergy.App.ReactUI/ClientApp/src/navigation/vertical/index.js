@@ -371,9 +371,13 @@ const navigation = () => {
     {
       icon: 'mdi:vector-arrange-below',
       title: 'Policy Documents',
-      path: '/pages/dialog-examples'
+children:[
+  {
+    title:'HR Policy Document',
+    path:'/dashboards/policy_document/hr_policy'
+  }
+]
     },
-   
     // App & Pages
     // {
     //   sectionTitle: 'Apps & Pages'
