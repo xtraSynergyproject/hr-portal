@@ -49,7 +49,7 @@ export default function Model() {
 
   return (
     <div>
-      <Button variant="contained" onClick={handleOpen}sx={{ml:6}}>Create</Button>
+      <Button variant="contained" onClick={handleOpen}sx={{ml:70}}>Create</Button>
       <Modal
         open={open}
         sx={modalWrapper}
