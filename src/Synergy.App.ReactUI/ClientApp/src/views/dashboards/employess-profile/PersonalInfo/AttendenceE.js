@@ -22,7 +22,7 @@ function PaySlip() {
 
 
       <Item>
-        <Box sx={{ width: 'auto', margin: 5 }}>
+        <Box sx={{ width: 'auto', margin: 10 }}>
           <Box sx={{ display: 'flex', justifyContent: 'rghite' }}>
             {/* <img
               src='public/images/logos/logo.jfif'
@@ -34,13 +34,13 @@ function PaySlip() {
 
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
-            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
 
-              <Card sx={{ p: 3 }}>
+              <Card sx={{ p: 7 }}>
                 <TextField
                   fullWidth
                   id='date'
-                  label='Payroll End Date'
+                  label='Month'
                   type='date'
                   defaultValue='YYYY-MM-DD'
                   InputLabelProps={{
@@ -51,12 +51,13 @@ function PaySlip() {
               <br />
             </Box>
 
-            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
-              <Card sx={{ p: 3 }}>
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
+              <Card sx={{ p: 7}}>
                 <TextField
                   fullWidth
                   id='date'
-                  label='Payroll End Date'
+                  label='
+                  PeriodFrom'
                   type='date'
                   defaultValue='YYYY-MM-DD'
                   InputLabelProps={{
@@ -68,12 +69,12 @@ function PaySlip() {
 
 
             </Box>
-            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
-              <Card sx={{ p: 3 }}>
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
+              <Card sx={{ p: 7 }}>
                 <TextField
                   fullWidth
                   id='date'
-                  label='Payroll End Date'
+                  label='To'
                   type='date'
                   defaultValue='YYYY-MM-DD'
                   InputLabelProps={{

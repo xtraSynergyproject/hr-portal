@@ -64,7 +64,7 @@ function PaySlip() {
 
                 <Box sx={{ mt: 5, fontWeight: 5, minWidth :"40%"  }}>
                   <Typography>
-                ContractRenewable:
+                   ContractRenewable:
                   </Typography>
                   <br />
                   <Typography>
