@@ -21,9 +21,9 @@ import Icon from 'src/@core/components/icon'
 
 // ** Demo Components
 import Teams from 'src/views/pages/user-profile/teams'
-import Profile from 'src/views/pages/user-profile/profile'
-import Projects from 'src/views/pages/user-profile/projects'
-import Connections from 'src/views/pages/user-profile/connections'
+import Profile from 'src/views/pages/user-profile/overview'
+import Projects from 'src/views/pages/user-profile/tasks'
+import Connections from 'src/views/pages/user-profile/settings'
 import UserProfileHeader from 'src/views/pages/user-profile/UserProfileHeader'
 
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -89,22 +89,24 @@ const UserProfile = ({ tab, data }) => {
         <UserProfileHeader />
       </Grid>
       {activeTab === undefined ? null : (
-        <Grid item xs={12}>
+        <Grid item xs={12}  >
           <TabContext value={activeTab}>
-            <Grid container spacing={6}>
-              <Grid item xs={12}>
+            <Grid container spacing={6} >
+              <Grid item xs={12} sx={{display:'flex',justifyContent:'space-around'}}>
                 <TabList
                   variant='scrollable'
                   scrollButtons='auto'
                   onChange={handleChange}
                   aria-label='customized tabs example'
+                  display='flex'
+                  justifyContent='center'
                 >
                   <Tab
                     value='profile'
                     label={
                       <Box sx={{ display: 'flex', alignItems: 'center', ...(!hideText && { '& svg': { mr: 2 } }) }}>
                         <Icon fontSize={20} icon='mdi:account-outline' />
-                        {!hideText && 'Profile'}
+                        {!hideText && 'Overview'}
                       </Box>
                     }
                   />
@@ -122,7 +124,7 @@ const UserProfile = ({ tab, data }) => {
                     label={
                       <Box sx={{ display: 'flex', alignItems: 'center', ...(!hideText && { '& svg': { mr: 2 } }) }}>
                         <Icon fontSize={20} icon='mdi:view-grid-outline' />
-                        {!hideText && 'Projects'}
+                        {!hideText && 'Tasks'}
                       </Box>
                     }
                   />
@@ -131,7 +133,7 @@ const UserProfile = ({ tab, data }) => {
                     label={
                       <Box sx={{ display: 'flex', alignItems: 'center', ...(!hideText && { '& svg': { mr: 2 } }) }}>
                         <Icon fontSize={20} icon='mdi:link' />
-                        {!hideText && 'Connections'}
+                        {!hideText && 'Settings'}
                       </Box>
                     }
                   />

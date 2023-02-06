@@ -21,9 +21,9 @@ import Icon from 'src/@core/components/icon'
 
 // ** Demo Components
 import Teams from 'src/views/pages/user-profile/teams'
-import Profile from 'src/views/pages/user-profile/profile'
-import Projects from 'src/views/pages/user-profile/projects'
-import Connections from 'src/views/pages/user-profile/connections'
+import Profile from 'src/views/pages/user-profile/overview'
+import Projects from 'src/views/pages/user-profile/tasks'
+import Connections from 'src/views/pages/user-profile/settings'
 
 import Empprofile from '../../../views/dashboards/employess-profile/info/Emprofile'
 import AssignmentForm from '../../../views/dashboards/employess-profile/AssignmentForm'
