@@ -64,6 +64,7 @@ const columns = [
       const { fullName, username } = row
 
       return (
+
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(row)} */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
@@ -82,7 +83,7 @@ const columns = [
 
             </Typography>
             <Typography noWrap variant='caption'>
-        
+
             </Typography>
           </Box>
         </Box>
@@ -202,28 +203,65 @@ const UserList = () => {
   }, [])
 
   return (
-    <Grid container spacing={6}>
-      <Grid item xs={12}>
-        <Card>
-          <TableHeader plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
-          <DataGrid
-            autoHeight
-            rows={getdata}
-            columns={columns}
-            checkboxSelection
-            pageSize={pageSize}
-            disableSelectionOnClick
-            rowsPerPageOptions={[10, 25, 50]}
-            onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-            getRowId={(row) => row.ServiceId}
 
+    <>
+      <Grid container spacing={6}>
+        <Grid item xs={11}>
+          <Box sx={{ width: 'auto', margin: 5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
+              <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
+                <br />
+                <Typography>
+                  Yearly Entitlement
+                </Typography>
+                <br />
+                <Typography>
+                  Leave Balance
+                </Typography>
+              </Box>
+              <Box sx={{ mt: 5, fontWeight: 5, minWidth: "40%" }}>
+                <br />
+                <Typography>
+                  Annual Leave Balance
+                </Typography>
+                <br />
+                <Typography>
+                  Projections
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <Box sx={{ width: 'auto', margin: 5 }}>
 
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
 
-          />
-        </Card>
+              <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
+                <Typography>
+                  <h3>Leave Transaction Details</h3>
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+        </Grid>
+        <Grid item xs={12}>
+          <Card>
+            <TableHeader plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
+            <DataGrid
+              autoHeight
+              rows={getdata}
+              columns={columns}
+              checkboxSelection
+              pageSize={pageSize}
+              disableSelectionOnClick
+              rowsPerPageOptions={[10, 25, 50]}
+              onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+              getRowId={(row) => row.ServiceId}
+            />
+          </Card>
+        </Grid>
       </Grid>
-    </Grid>
-
+    </>
   )
 }
 

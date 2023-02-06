@@ -8,9 +8,11 @@ import Personalinfo from './PersonalInfo/personalinfo';
 import AssignmentForm from './AssignmentForm';
 import EmplyessPaySlip from './PersonalInfo/EmplyessPaySlip';
 import Emplyesspayroll from "./PersonalInfo/Emplyesspayroll"
-import Etable from "./PersonalInfo/Etable"
+import Leave_Pages from "./PersonalInfo/Leave_Pages"
 import ContactEmplyess from "./PersonalInfo/ContactEmplyess"
 import AttendenceE from './PersonalInfo/AttendenceE'
+import Document_Pages from './PersonalInfo/Document_Pages'
+import Deparment_Pages from './PersonalInfo/Document_Pages'
 
 
 function TabPanel(props) {
@@ -78,16 +80,16 @@ export default function EmployeeProfiletabs() {
         <ContactEmplyess/>
       </TabPanel>
       <TabPanel value={value} index={3}>
-      <Etable/>
+      <Leave_Pages/>
       </TabPanel>
       <TabPanel value={value} index={4}>
         <AttendenceE/>
       </TabPanel>
       <TabPanel value={value} index={5}>
-      <Etable/>
+      <Document_Pages/>
       </TabPanel>
       <TabPanel value={value} index={6}>
-      <Etable/>
+      <Deparment_Pages/>
       </TabPanel>
       <TabPanel value={value} index={7}>
         <EmplyessPaySlip/>
