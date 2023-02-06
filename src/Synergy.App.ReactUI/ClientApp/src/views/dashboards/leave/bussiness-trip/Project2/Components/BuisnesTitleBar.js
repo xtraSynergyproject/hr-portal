@@ -7,6 +7,16 @@ import TagIcon from '@mui/icons-material/Tag';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 
+<<<<<<< Updated upstream
+=======
+
+
+
+
+
+
+
+>>>>>>> Stashed changes
 export default function MouseOverPopover() {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
@@ -20,9 +30,34 @@ export default function MouseOverPopover() {
 
   const open = Boolean(anchorEl);
 
+<<<<<<< Updated upstream
   return (
     <div>
 
+=======
+
+  
+
+
+
+
+
+
+
+
+
+  return (
+    <div>
+
+
+
+
+
+
+     
+
+
+>>>>>>> Stashed changes
 <Grid container spacing={2}>
   <Grid item xs={3}>
 

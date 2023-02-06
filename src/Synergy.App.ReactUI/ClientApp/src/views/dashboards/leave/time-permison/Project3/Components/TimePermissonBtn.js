@@ -10,8 +10,9 @@ import DialogActions from '@mui/material/DialogActions';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
+import TimePermissonBox from './TimePermissonBox';
 
-import Form from './Form'
+
 
 
 
@@ -73,7 +74,7 @@ export default function CustomizedDialogs() {
 
   return (
     <div>
-       <Button onClick={handleClickOpen} sx={{ mr: 4, mb: 2 ,margin:"10px" }}  variant="contained" >Create</Button>
+       <Button onClick={handleClickOpen} sx={{ mr: 4, mb: 2 ,margin:"10px" }}  variant="contained">+Add Time Permisson</Button>
        
       <BootstrapDialog
         onClose={handleClose}
@@ -85,8 +86,9 @@ export default function CustomizedDialogs() {
           Bussiness Trip
         </BootstrapDialogTitle>
         <DialogContent dividers>
+        <TimePermissonBox/>
 
-        <Form/>
+        
 
 
 
