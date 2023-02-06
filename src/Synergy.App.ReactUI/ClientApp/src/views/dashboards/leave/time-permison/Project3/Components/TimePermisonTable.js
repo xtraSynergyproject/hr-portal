@@ -34,6 +34,7 @@ import { fetchData } from 'src/store/apps/user'
 
 // ** Custom Components Imports
 import TimePermissonHeader from './TimePermissonHeader'
+import TimePermissonBtn from './TimePermissonBtn';
 
 //axios
 import axios from 'axios'
@@ -237,11 +238,7 @@ const UserList = () => {
     <Grid container spacing={6}>
       <Grid item xs={12}>
 
-      <Button variant="contained"  sx={{margin:'20px'}} onClick={() => {
-            
-                       prompt('loading roadmap React');
-              }} >+Add Time Permison</Button>
-
+     <TimePermissonBtn/>
               
         <Card>
               <TimePermissonHeader plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
