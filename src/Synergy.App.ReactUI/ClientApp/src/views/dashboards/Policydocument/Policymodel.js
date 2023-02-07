@@ -3,12 +3,12 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-import Abc from 'src/views/dashboards/workstructure/Components (1)/Abc'
-
-import Xyz from 'src/views/dashboards/workstructure/Components (1)/Components/Xyz'
+// import Abc from 'src/views/dashboards/workstructure/Components (1)/Abc'
+// // import NehaPagal from "./NehaPagal";
+// import Xyz from 'src/views/dashboards/workstructure/Components (1)/Components/Xyz'
 // import Form from 'src/views/dashboards/workstructure/Components (1)Components/Form'
-import Form from './Form'
-import CancelIcon from '@mui/icons-material/Cancel'
+// import Form from './Form'
+// import CancelIcon from '@mui/icons-material/Cancel'
 
 
 
@@ -60,12 +60,12 @@ export default function Model() {
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
 
-  <CancelIcon onClick ={handleClose} sx={{float:"right",mt:1}}/>
+  {/* <CancelIcon onClick ={handleClose} sx={{float:"right",mt:1}}/>
 
 <Abc/>
 
-<Xyz/>
-<Form/>
+<Xyz/> */}
+{/* <Form/> */}
         </Box>
         </Box>
       </Modal>

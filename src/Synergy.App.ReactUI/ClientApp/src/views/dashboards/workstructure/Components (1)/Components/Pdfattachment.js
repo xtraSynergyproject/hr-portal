@@ -25,7 +25,7 @@ const FileUploader = () => {
         <PageHeader
           title={
             <Typography variant='h5'>
-              <Link href='https://github.com/react-dropzone/react-dropzone/' target='_blank'>
+              <Link href='https://github.com/react-dropzone/react-dropzone/' target='_blank'sx={{ml:5}}>
                 Note Attachment
               </Link>
             </Typography>

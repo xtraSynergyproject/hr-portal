@@ -14,7 +14,7 @@ import FilePresentIcon from '@mui/icons-material/FilePresent'
 import StyleIcon from '@mui/icons-material/Style'
 import DraftsIcon from '@mui/icons-material/Drafts';
 import Icon from 'src/@core/components/icon'
-import Versiontag from './Versiontag'
+import Versionmodule from './Versionmodule'
 import Tmodule from'./Tmodule'
 import Logmodule from'./Logmodule'
 import Attachmentmodule from'./Attachmentmodule'
@@ -78,13 +78,11 @@ const TabsCustomized = () => {
       </TabPanel>
       <TabPanel value='4'>
         <Typography>
-          <p>1</p>
-          <Versiontag/>
+          <Versionmodule/>
         </Typography>
       </TabPanel>
       <TabPanel value='5'>
         <Typography>
-          <p>0</p>
           <Attachmentmodule/>
           
           {/* <FilePresentIcon /> */}

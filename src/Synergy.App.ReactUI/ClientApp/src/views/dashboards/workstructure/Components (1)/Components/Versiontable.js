@@ -45,7 +45,7 @@ function createData(NoteSubject, StartDate, CompletedDate, TemplateId, Requested
 }
 
 // ** Custom Table Components Imports
-import TableHeader from 'src/views/apps/user/list/TableHeader'
+// import TableHeader from 'src/views/apps/user/list/TableHeader'
 // import AddUserDrawer from 'src/views/apps/user/list/AddUserDrawer'
 // import Model from './Model'
 
@@ -385,7 +385,7 @@ const UserList = ({ apiData }) => {
             </Grid>
           </CardContent>
           <Divider />
-          <TableHeader  handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
+          {/* <TableHeader  handleFilter={handleFilter} toggle={toggleAddUserDrawer} /> */}
           <DataGrid
             autoHeight
             rows={getdata}

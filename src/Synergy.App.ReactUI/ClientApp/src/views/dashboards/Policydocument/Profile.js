@@ -16,18 +16,11 @@ import { Grid } from '@mui/material'
 import axios from 'axios'
 
 // ** Icon Imports
-import Icon from 'src/@core/components/icon'
+// import Icon from 'src/@core/components/icon'
 
 function DashBoard( PersonFullName,Status,NationalityName,DateOfJoin,Title,DateOfBirth) {
   return { PersonFullName,Status,NationalityName,DateOfJoin,Title,DateOfBirth}
 }
-
-
-
-
-
-
-
 
 const ProfilePicture = styled('img')(({ theme }) => ({
   width: 120,
@@ -108,7 +101,7 @@ const UserProfileHeader = () => {
               }}
             >
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                <Icon icon={designationIcon} />
+                {/* <Icon icon={designationIcon} /> */}
                 {/* <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.designation} Leave Balance</Typography> */}
               </Box>
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
@@ -116,7 +109,7 @@ const UserProfileHeader = () => {
                 <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.location}</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                <Icon icon='mdi:calendar-blank' />
+                {/* <Icon icon='mdi:calendar-blank' /> */}
                 <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
                   {/* Joined {data.joiningDate} */}
                   {/* Annual Leave Balance Projections */}
@@ -158,14 +151,6 @@ const UserProfileHeader = () => {
             
               </Grid>
               </Grid>
-              
-
-      
-
-
-
-
-
     </Card>
     </>
   ) 

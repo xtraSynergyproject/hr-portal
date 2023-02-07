@@ -22,6 +22,7 @@ import FormControl from '@mui/material/FormControl'
 import CardContent from '@mui/material/CardContent'
 import Select from '@mui/material/Select'
 import Icon from 'src/@core/components/icon'
+import Model from './Policymodel'
 
 // ** Store Imports
 import { useDispatch, useSelector } from 'react-redux'
@@ -44,9 +45,9 @@ function createData(PolicyName,PolicyDescription,StartDate){
 }
 
 // ** Custom Table Components Imports
-// import TableHeader from 'src/views/apps/user/list/TableHeader'
-import AddUserDrawer from 'src/views/apps/user/list/AddUserDrawer'
-// import Model from './Model'
+import TableHeader from './Tableheader'
+// import AddUserDrawer from 'src/views/apps/user/list/AddUserDrawer'
+// import Policymodel from './Policymodel'
 
 // ** Vars
 const userRoleObj = {
@@ -141,6 +142,7 @@ const RowOptions = ({ id }) => {
         >
           <Icon icon='mdi:eye-outline' fontSize={20} />
           View
+          {/* <Policymodel/> */}
         </MenuItem>
         <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:pencil-outline' fontSize={20} />
@@ -384,7 +386,7 @@ const UserList = ({ apiData }) => {
             {/* </Grid> */}
           </CardContent>
           <Divider />
-          {/* <TableHeader  handleFilter={handleFilter} toggle={toggleAddUserDrawer} /> */}
+          <TableHeader  handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
           <DataGrid
             autoHeight
             rows={getdata}
@@ -399,7 +401,7 @@ const UserList = ({ apiData }) => {
         </Card>
       </Grid>
 
-      <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
+      {/* <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} /> */}
     </Grid>
   )
 }
