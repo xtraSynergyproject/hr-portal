@@ -45,15 +45,8 @@ const ProfilePicture = styled('img')(({ theme }) => ({
 }))
 
 const UserProfileHeader = () => {
-  // const [anchorEl, setAnchorEl] = useState(null)
-  // const open = Boolean(anchorEl)
-  // const handleClick = event => {
-  //   setAnchorEl(event.currentTarget)
-  // }
-  // const handleClose = () => {
-  //   setAnchorEl(null)
-  // }
-
+  
+  
   // ** State
   const [data, setData] = useState(null)
   useEffect(() => {
@@ -73,14 +66,7 @@ const UserProfileHeader = () => {
 
   return data !== null ? (
     <Card sx={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
-      {/* <CardMedia
-        component='img'
-        alt='profile-header'
-        image={data.PhotoName}
-        sx={{
-          height: { xs: 100, md: 100 }
-        }}
-      /> */}
+    
       <Box sx={{ height: '7px', display: 'flex', justifyContent: 'space-between' }}>
         <Box>
           <Button sx={{ display: 'none' }}>k</Button>
