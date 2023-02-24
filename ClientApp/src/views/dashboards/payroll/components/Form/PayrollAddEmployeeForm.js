@@ -52,7 +52,6 @@ function PayrollAddEmployeeForm() {
 
   return (
     <Card>
-      <CardHeader title='Add Employee' />
       <CardContent>
         <StepperWrapper>
                 <Step>

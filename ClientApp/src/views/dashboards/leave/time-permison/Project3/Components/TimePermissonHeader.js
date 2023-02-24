@@ -20,7 +20,7 @@ const TableHeader = props => {
       
       </Button> */}
 
-     <b><h3>Time Permison</h3></b>
+      <b><h3>Time Permison</h3></b>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
         <TextField
           size='small'

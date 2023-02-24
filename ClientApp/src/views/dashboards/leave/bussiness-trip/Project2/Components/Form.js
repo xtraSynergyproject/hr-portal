@@ -11,10 +11,6 @@ import Button from '@mui/material/Button';
 import BuisnesTitleBar from './BuisnesTitleBar'
 
 
-
-
-
-
 // import Typography from "@mui/material";
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -43,22 +39,7 @@ function ContactInfoForm() {
           }}
         >
 
-
-
-
-         
-
-
-
         <BuisnesTitleBar/>
-
-
-
-
-
-
-
-
         
          <Box sx={{ '& button': { m: 2 } }}>
 
@@ -87,7 +68,7 @@ Submit
                 required
                 id="outlined-required"
                 label="Discription"
-                type="number"
+                type="Text"
                 sx={{ marginBottom: "8px" }}
               />
               <TextField
@@ -137,6 +118,7 @@ Submit
           Submit
         </Button>
         </Box>
+        
 
           </Grid>
          

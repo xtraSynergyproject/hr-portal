@@ -128,15 +128,15 @@ const AdministratorCard = () => {
 
   return (
     <Card sx={{ position: 'relative', m: 5 }}>
-      <CardMedia sx={{ height: '12.625rem' }} image='/images/cards/background-user.png' />
+      <CardMedia sx={{ height: '5.625rem' }}  />
       <Avatar
         alt='Robert Meyer'
         src='/images/avatars/1.png'
         sx={{
-          width: 75,
-          height: 75,
+          width: 80,
+          height: 80,
           left: '1.313rem',
-          top: '10.28125rem',
+          top: '1.28125rem',
           position: 'absolute',
           border: theme => `0.25rem solid ${theme.palette.common.white}`
         }}

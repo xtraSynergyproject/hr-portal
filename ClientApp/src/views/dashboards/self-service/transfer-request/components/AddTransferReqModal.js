@@ -4,8 +4,9 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Modal from '@mui/material/Modal'
 import Icon from 'src/@core/components/icon'
-import MenuBtn from '../../../reimbursement/travel-reimbursement/components/MenuBtn'
+import MenuBtn from 'src/views/dashboards/hr-only/termination/components/button_with_modal/MenuBtn'
 import { FormControl, InputLabel, Select, MenuItem, Divider } from '@mui/material'
+import ModalUserInfo from 'src/views/dashboards/hr-only/termination/ModalUserInfo'
 
 const modalWrapper = {
   overflow: 'auto',
@@ -57,53 +58,61 @@ function AddTransferReqModal() {
       >
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }} className='demo-space-x'>
-              <Typography sx={{ p: 4 }} variant='h5' component='h3'>
-                Termination Request
-              </Typography>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
-                <Button sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }} component='label'>
-                  <Icon icon='mdi:attachment-plus' />
-                  Attachment
-                  <input type='file' hidden />
-                </Button>
-                <MenuBtn />
-
-                <Button
-                  sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }}
-                  onClick={handleClose}
-                  component='label'
-                >
-                  <Icon icon='mdi:close' />
-                  Close
-                </Button>
-              </Box>
-            </Box>
-            <Divider/>
-
             <Box sx={{ mx: 4 }}>
-              <Box>
-                <Box sx={{ p: 3 }}>
-                  <Typography sx={{ my: 3 }}>
-                    Service Owner/Requester: <b>{}</b>
-                  </Typography>
-                  <Typography sx={{ my: 3 }}>
-                    Service Number: <b>{}</b>
-                  </Typography>
-                  <Typography sx={{ my: 3 }}>
-                    Service Status: <b>{}</b>
-                  </Typography>
-                  <Typography sx={{ my: 3 }}>
-                    Due Date: <b>{}</b>
-                  </Typography>
-                  <Typography sx={{ my: 3 }}>
-                    Service Version: <b>{}</b>
-                  </Typography>
-                </Box>{' '}
-              </Box>
+              <Box
+                sx={{ mb: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                className='demo-space-x'
+              >
+                <Typography sx={{ pl: 4 }} variant='h5' component='h3'>
+                  Add Misconduct
+                </Typography>
 
-              <Box sx={{display:"flex", justifyContent:"space-between"}}>
+                <Box
+                  sx={{
+                    width: '200px',
+                    height: '60px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignContent: 'center'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      borderRadius: '50px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                    component='label'
+                  >
+                    <Icon icon='mdi:attachment-plus' fontSize='18px' />
+                    Attachment
+                    <input type='file' hidden />
+                  </Typography>
+                  <MenuBtn />
+
+                  <Typography
+                    sx={{
+                      borderRadius: '50px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={handleClose}
+                    component='label'
+                  >
+                    <Icon icon='mdi:close' fontSize='18px' />
+                    Close
+                  </Typography>
+                </Box>
+              </Box>
+              <Divider />
+              <ModalUserInfo />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <FormControl sx={{ width: '580px' }}>
                   <InputLabel required id='demo-simple-select-label'>
                     Location

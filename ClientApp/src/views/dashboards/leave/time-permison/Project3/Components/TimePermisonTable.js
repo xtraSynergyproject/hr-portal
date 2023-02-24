@@ -39,21 +39,9 @@ import TimePermissonBtn from './TimePermissonBtn';
 //axios
 import axios from 'axios'
 
-function createData(ServiceNo,ServiceOwner ,Name, Hours) {
-  return {ServiceNo,ServiceOwner ,Name, Hours};
+function createData(ServiceNo, ServiceOwner, Name, Hours, ServiceStatus) {
+  return { ServiceNo, ServiceOwner, Name, Hours, ServiceStatus };
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // ** Vars
@@ -75,12 +63,8 @@ const renderClient = row => {
 
 }
 
-
-
-
-
 const columns = [
-  
+
   {
     flex: 0.2,
     minWidth: 230,
@@ -88,7 +72,7 @@ const columns = [
     headerName: 'ServiceNo',
     renderCell: ({ row }) => {
       const { fullName, username } = row
-    
+
       return (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {renderClient(row)}
@@ -105,10 +89,10 @@ const columns = [
                 '&:hover': { color: theme => theme.palette.primary.main }
               }}
             >
-              
+
             </Typography>
             <Typography noWrap variant='caption'>
-            {row.ServiceNo}
+              {row.ServiceNo}
             </Typography>
           </Box>
         </Box>
@@ -140,7 +124,7 @@ const columns = [
     field: 'Name',
     renderCell: ({ row }) => {
       return (
-        <Typography noWrap sx={{ textTransform: 'capitalize' }}>
+        <Typography noWrap >
           {row.Name}
         </Typography>
       )
@@ -157,25 +141,41 @@ const columns = [
         <CustomChip
           skin='light'
           size='small'
-          label={row.  Hours}
-          color={userStatusObj[row. Hours]}
+          label={row.Hours}
+          color={userStatusObj[row.Hours]}
           sx={{ textTransform: 'capitalize' }}
         />
       )
     }
   },
-  
+
   {
     flex: 0.15,
     field: 'Date',
-    minWidth: 150,
+    minWidth: 200,
     headerName: 'Date',
+    renderCell: ({ row }) => {
+      return (
+        <Box style={{ display: 'flex', alignItems: 'center', margin: '5px' }}>
+          <Icon fontSize={20} />
+          <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'Lowercase' }}>
+            {row.Date}
+          </Typography>
+        </Box>
+      )
+    }
+  },
+  {
+    flex: 0.15,
+    field: 'ServiceStatus',
+    minWidth: 180,
+    headerName: 'ServiceStatus',
     renderCell: ({ row }) => {
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
           <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.Date}
+            {row.ServiceStatus}
           </Typography>
         </Box>
       )
@@ -193,35 +193,23 @@ const UserList = () => {
   const [value, setValue] = useState('')
   const [pageSize, setPageSize] = useState(10)
 
-  
+
 
 
   // Api Intregration by using Get method
-   const [getdata, setGetdata] = useState([]) 
+  const [getdata, setGetdata] = useState([])
   const viewData = async () => {
     let response = await axios.get(`https://webapidev.aitalkx.com/chr/leave/GetTimePermissionData?portalName=HR&userId=45bba746-3309-49b7-9c03-b5793369d73c`)
     setGetdata(response.data)
     //console.log(response.data, "response data")
   }
-  
+
   useEffect(() => {
     viewData()
   }, [])
-  
 
-  // ** Hooks
-  // const dispatch = useDispatch()
-  // const store = useSelector(state => state.user)
-  // useEffect(() => {
-  //   dispatch(
-  //     fetchData({
-  //       role: '',
-  //       q: value,
-  //       status: '',
-  //       currentPlan: plan
-  //     })
-  //   )
-  // }, [dispatch, plan, value])
+
+
 
   const handleFilter = useCallback(val => {
     setValue(val)
@@ -238,26 +226,24 @@ const UserList = () => {
     <Grid container spacing={6}>
       <Grid item xs={12}>
 
-     <TimePermissonBtn/>
-              
-        <Card>
-              <TimePermissonHeader plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
-                <DataGrid
-                  autoHeight
-                  rows={getdata}
-                  columns={columns}
-                  checkboxSelection
-                  pageSize={pageSize}
-                  disableSelectionOnClick
-                  rowsPerPageOptions={[10, 25, 50]}
-                  onPageSizeChange={newPageSize => setPageSize(newPageSize)}
-                  getRowId={(row) =>  row.Id}
+        <TimePermissonBtn />
 
-                  
-                  
-                />
+        <Card>
+          <TimePermissonHeader plan={plan} value={value} handleFilter={handleFilter} handlePlanChange={handlePlanChange} />
+          <DataGrid
+            autoHeight
+            rows={getdata}
+            columns={columns}
+            checkboxSelection
+            pageSize={pageSize}
+            disableSelectionOnClick
+            rowsPerPageOptions={[10, 25, 50]}
+            onPageSizeChange={newPageSize => setPageSize(newPageSize)}
+            getRowId={(row) => row.Id}
+
+          />
         </Card>
-       
+
       </Grid>
     </Grid>
   )

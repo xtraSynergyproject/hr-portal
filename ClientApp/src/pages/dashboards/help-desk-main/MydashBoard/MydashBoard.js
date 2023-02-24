@@ -1,5 +1,5 @@
 import React from 'react'
-import MydashBoard from '../../../../views/dashboards/help-desk-main/MydashBoard/components/CardsDashBoard'
+import MydashBoard from '../../../../views/dashboards/help-desk-main/MydashBoard/components/MainPage'
 
 function index () {
   return (

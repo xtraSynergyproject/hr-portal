@@ -57,6 +57,33 @@ import 'src/iconify-bundle/icons-bundle-react'
 // ** Global css styles
 import '../../styles/globals.css'
 
+
+
+//Sufiyan CSS Imports
+// Payroll Module
+import '../../styles/payroll - module/UserProfile.css'
+import '../../styles/payroll - module/PayrollSalaryInfo.css'
+import '../../styles/payroll - module/PayrollHead.css'
+import '../../styles/payroll - module/PaySlip.css'
+
+
+//Mirza CSS Imports
+//for overview screen
+import '../../styles/UserDropdown/overview/UDDAboutOverview.css'
+//for teams screen
+import '../../styles/UserDropdown/teams/UDDteamsindex.css'
+//for tasks screen
+import '../../styles/UserDropdown/tasks/UDDCards1.css'
+import '../../styles/UserDropdown/tasks/UDDtasksindex.css'
+//for settings screen
+import '../../styles/UserDropdown/settings/UDDTabss.css'
+//for change password modal
+import '../../styles/UserDropdown/changepassword/UDDModalComp.css'
+
+
+// Rambali CSS Imports
+import '../../styles/help-desk-module/Mytask.css'
+import '../../styles/help-desk-module/Myrequest.css'
 const clientSideEmotionCache = createEmotionCache()
 
 // ** Pace Loader

@@ -19,8 +19,6 @@ const Item = styled(Paper)(({ theme }) => ({
 function PaySlip() {
   return (
     <div>
-
-
       <Item>
         <Box sx={{ width: 'auto', margin: 10 }}>
           <Box sx={{ display: 'flex', justifyContent: 'rghite' }}>
@@ -28,14 +26,9 @@ function PaySlip() {
               src='public/images/logos/logo.jfif'
               width='20%'
             /> */}
-
-
           </Box>
-
-
           <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
-            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
-
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
               <Card sx={{ p: 7 }}>
                 <TextField
                   fullWidth
@@ -50,9 +43,8 @@ function PaySlip() {
               </Card>
               <br />
             </Box>
-
-            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
-              <Card sx={{ p: 7}}>
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
+              <Card sx={{ p: 7 }}>
                 <TextField
                   fullWidth
                   id='date'
@@ -66,10 +58,8 @@ function PaySlip() {
                 />
               </Card>
               <br />
-
-
             </Box>
-            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
+            <Box sx={{ mt: 5, fontWeight: 5, minWidth: "20%" }}>
               <Card sx={{ p: 7 }}>
                 <TextField
                   fullWidth
@@ -82,19 +72,17 @@ function PaySlip() {
                   }}
                 />
               </Card>
-              <br /></Box>
-
-
+              <br />
+              </Box>
+              <Box sx={{ mt: 15, fontWeight: 10, minWidth: "20%" }}>
+              <Button variant='contained'  sx={{ maxHeight:'30', minWidth: "60%" }} >
+            Search
+          </Button>
+              <br />
+              </Box>
           </Box>
-
         </Box>
-
-
       </Item>
-
-
-
-
     </div>
   )
 }

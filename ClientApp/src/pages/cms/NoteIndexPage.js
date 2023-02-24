@@ -1,11 +1,11 @@
 import React from 'react'
-import FormIndexPage from 'src/views/cms/NoteIndexPage'
+import NoteIndexPage from 'src/views/cms/NoteIndexPage'
 
 
 
-function index() {
+function index(props) {
   return (
-    <FormIndexPage />
+    <NoteIndexPage />
 
   )
 }

@@ -93,7 +93,7 @@ function PaySlip() {
             <TextField
               fullWidth
               id='date'
-              label='Payroll End Date'
+              label='Payroll Start Date'
               type='date'
               defaultValue='YYYY-MM-DD'
               InputLabelProps={{
@@ -105,7 +105,7 @@ function PaySlip() {
             sx={{mt:3}}
               fullWidth
               id='date'
-              label='Payroll Start Date'
+              label='Payroll end Date'
               type='date'
               defaultValue='YYYY-MM-DD'
               InputLabelProps={{

@@ -122,7 +122,7 @@ const AppBarContent = props => {
             <Icon icon='mdi:menu' />
           </IconButton>
         ) : null}
-        <Autocomplete hidden={hidden} settings={settings} />
+        {/* <Autocomplete hidden={hidden} settings={settings} /> */}
       </Box>
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }} >
         <LanguageDropdown settings={settings} saveSettings={saveSettings} />

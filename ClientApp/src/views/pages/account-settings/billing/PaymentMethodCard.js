@@ -27,7 +27,7 @@ import DialogContentText from '@mui/material/DialogContentText'
 
 // ** Third Party Imports
 import Payment from 'payment'
-import Cards from 'react-credit-cards'
+// import Cards from 'react-credit-cards'
 
 // ** Custom Components Imports
 import CustomChip from 'src/@core/components/mui/chip'
@@ -39,7 +39,7 @@ import CardWrapper from 'src/@core/styles/libs/react-credit-cards'
 import { formatCVC, formatExpirationDate, formatCreditCardNumber } from 'src/@core/utils/format'
 
 // ** Styles Import
-import 'react-credit-cards/es/styles-compiled.css'
+// import 'react-credit-cards/es/styles-compiled.css'
 
 const CreditCardWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',

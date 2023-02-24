@@ -1,82 +1,86 @@
-import React from "react";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import Modal from "@mui/material/Modal";
+
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import Button from '@mui/material/Button';
+import { styled } from '@mui/material/styles';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import Typography from '@mui/material/Typography';
+import Icon from 'src/@core/components/icon'
 import LeaveType from './LeaveType'
 
+const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialogContent-root': {
+    padding: theme.spacing(2),
+  },
+  '& .MuiDialogActions-root': {
+    padding: theme.spacing(1),
+  },
+}));
 
+function BootstrapDialogTitle(props) {
+  const { children, onClose, ...other } = props;
 
-const modalWrapper = {
-  overflow: "auto",
-  maxHeight: "100vh",
-  display: "flex",
-
-};
-
-const modalBlock = {
-  position: "relative",
-  zIndex: 0,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  margin: "auto",
-
+  return (
+    <DialogTitle sx={{ m: 0, p: 2 }} {...other}>
+      {children}
+      {onClose ? (
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+      ) : null}
+    </DialogTitle>
+  );
 }
 
-const modalContentStyle = {
-  position: "relative",
-  // background:"#fff",
-  boxShadow: 20,
-  mt: 2,
-  // width:"30rem",
-  mb: 3,
-  borderRadius: "10px",
-
+BootstrapDialogTitle.propTypes = {
+  children: PropTypes.node,
+  onClose: PropTypes.func.isRequired,
 };
 
-export default function BasicModal() {
+export default function CustomizedDialogs() {
   const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   return (
     <div>
-
-      <Button sx={{ color: '#fff' }} onClick={handleOpen}>New Leave Request</Button>
-
-      <Modal
-        open={open}
-        sx={modalWrapper}
+      <Button onClick={handleClickOpen} sx={{ mr: 4, mb: 2, margin: "10px" }} variant="contained" startIcon={<Icon icon='mdi:account-check-outline' fontSize={20} />} >New Leave Request</Button>
+      <BootstrapDialog
         onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        aria-labelledby="customized-dialog-title"
+        open={open}
+        maxWidth={'lg'}
       >
-        <Box sx={modalBlock}>
-          <Box sx={modalContentStyle}>
+        <BootstrapDialogTitle id="customized-dialog-title" onClose={handleClose}>
+          Create New Leave Request
+        </BootstrapDialogTitle>
+        <DialogContent dividers>
+          <LeaveType />
 
-            <Box sx={{ display: 'flex' }}>
-              <LeaveType/>
+        </DialogContent>
+        <DialogActions>
 
-
-
-
-
-
-            </Box>
-
-
-
-
-
-
-
-
-
-
-          </Box>
-        </Box>
-      </Modal>
+        </DialogActions>
+      </BootstrapDialog>
     </div>
   );
 }

@@ -4,21 +4,16 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import PersonIcon from '@mui/icons-material/Person';
 import TagIcon from '@mui/icons-material/Tag';
+import Box from '@mui/material/Box'
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 
-<<<<<<< HEAD
-import IconButton from '@mui/material/IconButton';
-import Icon from 'src/@core/components/icon'
+import EditIcon from '@mui/icons-material/Edit';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import CancelIcon from '@mui/icons-material/Cancel';
+import Chip from '@mui/material/Chip';
 
-
-
-
-
-
-
-=======
->>>>>>> f52b79148e71e36001c1f597c65619bd12956f36
 export default function MouseOverPopover() {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
@@ -32,24 +27,17 @@ export default function MouseOverPopover() {
 
   const open = Boolean(anchorEl);
 
-<<<<<<< HEAD
-
-  
-
-
-
-
-
-
-
-
-
-
-
-=======
->>>>>>> f52b79148e71e36001c1f597c65619bd12956f36
   return (
     <div>
+
+<Chip label=" Buisiness Trip" component="a" href="#basic-chip" clickable />
+      <Grid sx={{ float: 'right', margin: '2px' }}>
+        <EditIcon />
+        <AttachFileIcon />
+        <MoreHorizIcon />
+        <CancelIcon />
+      </Grid>
+
       <Grid container spacing={2}>
         <Grid item xs={3}>
 
@@ -60,20 +48,16 @@ export default function MouseOverPopover() {
             onMouseEnter={handlePopoverOpen}
             onMouseLeave={handlePopoverClose}
           >
-<<<<<<< HEAD
-             <Icon icon='mdi:close' />
-          </IconButton>
-    
-=======
-            <PersonIcon /> Administrator admin
 
+            <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
+              <PersonIcon />
 
-
-
-
-
+              <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
+                {/* Joined {data.joiningDate} */}
+                Administrator admin
+              </Typography>
+            </Box>
           </Typography>
-
         </Grid>
         <Grid item xs={3}>
           <Typography
@@ -82,58 +66,15 @@ export default function MouseOverPopover() {
             onMouseEnter={handlePopoverOpen}
             onMouseLeave={handlePopoverClose}
           >
-            <TagIcon /> S-04-02-2023-3
->>>>>>> f52b79148e71e36001c1f597c65619bd12956f36
 
+            <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
+              <TagIcon />
 
-
-
-
-          </Typography>
-        </Grid>
-
-
-<<<<<<< HEAD
-<Grid container spacing={2}>
-  <Grid item xs={3}>
-
-  
-  <Typography
-        aria-owns={open ? 'mouse-over-popover' : undefined}
-        aria-haspopup="true"
-        onMouseEnter={handlePopoverOpen}
-        onMouseLeave={handlePopoverClose}
-      >
-      <PersonIcon/> Administrator admin
-
-
-      
-
-
-        
-      </Typography>
-    
-  </Grid>
-  <Grid item xs={3}>
-  <Typography
-        aria-owns={open ? 'mouse-over-popover' : undefined}
-        aria-haspopup="true"
-        onMouseEnter={handlePopoverOpen}
-        onMouseLeave={handlePopoverClose}
-      >
-       <TagIcon/> S-04-02-2023-3
-=======
-        <Grid item xs={3}>
-          <Typography
-            aria-owns={open ? 'mouse-over-popover' : undefined}
-            aria-haspopup="true"
-            onMouseEnter={handlePopoverOpen}
-            onMouseLeave={handlePopoverClose}
-          >
-            <DoneAllIcon />  Draft
->>>>>>> f52b79148e71e36001c1f597c65619bd12956f36
-
-
+              <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
+               
+                S-04-02-2023-3
+              </Typography>
+            </Box>
 
 
 
@@ -148,10 +89,39 @@ export default function MouseOverPopover() {
             onMouseEnter={handlePopoverOpen}
             onMouseLeave={handlePopoverClose}
           >
-            <CameraAltIcon />  tomorrow
+
+            <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
+              <DoneAllIcon />
+
+              <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
+                {/* Joined {data.joiningDate} */}
+                Draft
+              </Typography>
+            </Box>
+
           </Typography>
+        </Grid>
 
 
+        <Grid item xs={3}>
+          <Typography
+            aria-owns={open ? 'mouse-over-popover' : undefined}
+            aria-haspopup="true"
+            onMouseEnter={handlePopoverOpen}
+            onMouseLeave={handlePopoverClose}
+          >
+
+            <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
+              <CameraAltIcon />
+
+              <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
+                {/* Joined {data.joiningDate} */}
+                tomorrow
+              </Typography>
+            </Box>
+
+
+          </Typography>
 
         </Grid>
 

@@ -14,9 +14,6 @@ import CardContent from '@mui/material/CardContent'
 import Icon from 'src/@core/components/icon'
 import AdministratorCommentCard from './AdministratorCommentCard'
 import CommentsCard from './CommentsCard'
-import CommentsSecondCard from './CommentsSecondCard'
-import CommentThirdCard from './CommentsThirdCard'
-
 
 const AdministratorCommentCardContent = () => {
     // ** State
@@ -45,11 +42,11 @@ const AdministratorCommentCardContent = () => {
                         <Box component='span' sx={{ verticalAlign: 'top' }}>
                             <Icon icon='mdi:chevron-up' fontSize={20} />
                         </Box>{' '}
-                       <CommentsSecondCard/>
+                        <AdministratorCommentsCard/>
                        <Box component='span' sx={{ verticalAlign: 'top' }}>
                             <Icon icon='mdi:chevron-up' fontSize={20} />
                         </Box>{' '}
-                        <CommentThirdCard/>
+                        <AdministratorCommentsCard/>
                     </Typography>
                 </CardContent>
             </Collapse>

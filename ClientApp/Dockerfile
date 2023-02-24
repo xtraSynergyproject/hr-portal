@@ -3,6 +3,9 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 # install dependencies
 RUN yarn install --frozen-lockfile
+#RUN npm install --save react-credit-cards --legacy-peer-deps
+#RUN npm install --save react-draft-wysiwyg --legacy-peer-deps
+#RUN npm install immutable
 COPY . .
 # build
 RUN yarn build

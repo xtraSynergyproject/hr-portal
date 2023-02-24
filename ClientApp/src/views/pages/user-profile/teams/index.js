@@ -7,7 +7,6 @@ import CardContent from '@mui/material/CardContent'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { flexbox } from '@mui/system'
 import GroupsIcon from '@mui/icons-material/Groups'
 import MenuIcon from '@mui/icons-material/Menu'
 import FlagIcon from '@mui/icons-material/Flag'
@@ -78,89 +77,88 @@ const AboutOverview = props => {
   const { teams, about, contacts, overview } = props
 
   return (
-    <Grid container spacing={12}>
-      <Grid item xs={16} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-        {/* Card 1 */}
-        <Card
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            m: 5,
-            height: '200px',
-            width: '500px'
-          }}
-        >
-          <CardContent>
-            <Box 
-            sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'row', gap: 2 }}>
-              <GroupsIcon fontSize='large' />
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography variant='h6' component='h6'>
-                  Test BP 01
-                </Typography>
-                <Typography variant='p' component='p'>
-                  Administrator
-                </Typography>
-              </Box>
-            </Box>
-            <Divider />
-
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'end', gap: 2 }}>
-              <GroupsIcon fontSize='large' />
-              <Typography variant='p' component='p'>
-                Since Feb06, 2023
-              </Typography>
-            </Box>
-            <Stack direction='row' spacing={2}>
-              <Avatar
-                alt='Remy Sharp'
-                src='https://synergydev.aitalkx.com/Cms/document/getimagemongo/92133c2a-6a6c-4422-989f-c900eae6992e'
-              />
-            </Stack>
-          </CardContent>
-        </Card>
-
-        {/* Card 2 */}
-        <Card
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            m: 5,
-            height: '200px',
-            width: '500px'
-          }}
-        >
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-              <MenuIcon fontSize='large' />
-                <Box  sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant='h6' component='h6'>
-                    Test BP 02
-                  </Typography>
-                  <Typography variant='p' component='p'>
-                    Administrator
-                  </Typography>
+    // <Card>
+    //   <CardContent>
+        <Grid container spacing={12}>
+          <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+            {/* Card 1 */}
+            <Card
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                m: 5,
+                height: '200px',
+                width: '400px'
+              }}
+            >
+              <CardContent className='UDDcard1'>
+                <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'row', gap: 2 }}>
+                  <Box>
+                    <GroupsIcon fontSize='large' />
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography fontSize='12px'>
+                      <b> Test BP 01 </b>
+                    </Typography>
+                    <Typography fontSize='12px'>Administrator</Typography>
+                  </Box>
                 </Box>
-            <Divider />
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'end', gap: 2 }}>
-              <GroupsIcon fontSize='large' />
-              <Typography variant='p' component='p'>
-                Since Feb06, 2023
-              </Typography>
-            </Box>
-            <Stack direction='row' spacing={2}>
-              <Avatar
-                alt='Remy Sharp'
-                src='https://synergydev.aitalkx.com/Cms/document/getimagemongo/92133c2a-6a6c-4422-989f-c900eae6992e'
-              />
-            </Stack>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
+                <Divider />
+
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, marginLeft: '12px' }}>
+                  <FlagIcon />
+                  <Typography fontSize='12px'>Since Feb06, 2023</Typography>
+                </Box>
+                <Stack direction='row' spacing={2} sx={{ marginLeft: '30px' }}>
+                  <Avatar
+                    alt='Remy Sharp'
+                    src='https://synergydev.aitalkx.com/Cms/document/getimagemongo/92133c2a-6a6c-4422-989f-c900eae6992e'
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+
+            {/* Card 2 */}
+            <Card
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                m: 5,
+                height: '200px',
+                width: '400px'
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'row', gap: 2 }}>
+                  <Box>
+                    <MenuIcon fontSize='large' />
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography fontSize='12px'>
+                      <b> Test BP 02 </b>
+                    </Typography>
+                    <Typography fontSize='12px'>Administrator</Typography>
+                  </Box>
+                </Box>
+                <Divider />
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, marginLeft: '18px' }}>
+                  <FlagIcon />
+                  <Typography fontSize='12px'>Since Feb06, 2023</Typography>
+                </Box>
+                <Stack direction='row' spacing={2} sx={{ marginLeft: '30px' }}>
+                  <Avatar
+                    alt='Remy Sharp'
+                    src='https://synergydev.aitalkx.com/Cms/document/getimagemongo/92133c2a-6a6c-4422-989f-c900eae6992e'
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+    //   </CardContent>
+    // </Card>
   )
 }
 

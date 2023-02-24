@@ -49,10 +49,7 @@ export default function SelectBar() {
   };
   return (
     <div>
-      {/* <FormControl sx={{ m: 1 }} variant="standard">
-        <InputLabel htmlFor="demo-customized-textbox">Age</InputLabel>
-        <BootstrapInput id="demo-customized-textbox" />
-      </FormControl> */}
+
       <FormControl sx={{ width: '100%', height: '60px' }} variant="standard">
         <InputLabel id="demo-customized-select-label"></InputLabel>
         <Select
@@ -70,20 +67,7 @@ export default function SelectBar() {
           <MenuItem value={30}>Thirty</MenuItem>
         </Select>
       </FormControl>
-      {/* <FormControl sx={{ m: 1 }} variant="standard">
-        <InputLabel htmlFor="demo-customized-select-native">Age</InputLabel>
-        <NativeSelect
-          id="demo-customized-select-native"
-          value={age}
-          onChange={handleChange}
-          input={<BootstrapInput />}
-        >
-          <option aria-label="None" value="" />
-          <option value={10}>Ten</option>
-          <option value={20}>Twenty</option>
-          <option value={30}>Thirty</option>
-        </NativeSelect>
-      </FormControl> */}
+
     </div>
   );
 }

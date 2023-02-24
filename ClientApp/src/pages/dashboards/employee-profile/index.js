@@ -16,6 +16,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import MuiTabList from '@mui/lab/TabList'
 import CircularProgress from '@mui/material/CircularProgress'
 
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -24,11 +25,11 @@ import Teams from 'src/views/pages/user-profile/teams'
 import Profile from 'src/views/pages/user-profile/overview'
 import Projects from 'src/views/pages/user-profile/tasks'
 import Connections from 'src/views/pages/user-profile/settings'
-
-import Empprofile from '../../../views/dashboards/employess-profile/info/Emprofile'
-import AssignmentForm from '../../../views/dashboards/employess-profile/AssignmentForm'
+import EmployeeProfiletabs from 'src/views/dashboards/employess-profile/EmployeeProfiletabs'
+import UserProfile from 'src/views/dashboards/payroll/components/UserProfile'
 //import Personalinfo from '../../../views/dashboards/employess-profile/personalInfo'
-import EmployeeProfiletabs from '../../../views/dashboards/employess-profile/EmployeeProfiletabs'
+// import EmployeeProfiletabs from '../../../views/dashboards/employess-profile/EmployeeProfiletabs'
+import Emprofile from '../../../views/dashboards/employess-profile/PersonalInfo/Emprofile'
 
 const TabList = styled(MuiTabList)(({ theme }) => ({
   '& .MuiTabs-indicator': {
@@ -50,7 +51,7 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
   }
 }))
 
-const CRMDasbboard = ({ tab, data }) => {
+const EmployeeProfile = ({ tab, data }) => {
   // ** State
   const [activeTab, setActiveTab] = useState(tab)
   const [isLoading, setIsLoading] = useState(true)
@@ -90,18 +91,15 @@ const CRMDasbboard = ({ tab, data }) => {
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <Empprofile />
+      <Emprofile/>
       </Grid>
-   
       <Grid item xs={12}>
         <EmployeeProfiletabs/>
       </Grid>
-     
-     
-    </Grid>
+     </Grid>
 
  
   )
 }
 
-export default CRMDasbboard
+export default EmployeeProfile

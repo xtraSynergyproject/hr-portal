@@ -8,6 +8,7 @@ import Icon from 'src/@core/components/icon'
 import MenuBtn from './button_with_modal/MenuBtn'
 import { Card, Divider } from '@mui/material'
 import TerminateBtnModal from './button_with_modal/TerminateBtnModal'
+import ModalUserInfo from '../ModalUserInfo'
 
 const modalWrapper = {
   overflow: 'auto',
@@ -55,56 +56,57 @@ function TerminationRequestModal() {
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
             
-              <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }} className='demo-space-x'>
-                <Typography sx={{ p: 4 }} variant='h5' component='h3'>
-                  Termination Request
-                </Typography>
+            <Box sx={{ mb: "10px", display: 'flex', justifyContent: 'space-between', alignItems:"center" }} className='demo-space-x'>
+              <Typography sx={{ pl: 4 }} variant='h5' component='h3'>
+                Termination Request
+              </Typography>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
-                <Button sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }} component='label'>
-                  <Icon icon='mdi:attachment-plus' />
+              <Box sx={{width:"200px",height:"60px", display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                <Typography
+                  sx={{
+                    borderRadius: '50px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    fontSize: '13px',
+                    cursor:"pointer"
+                  }}
+                  component='label'
+                >
+                  <Icon icon='mdi:attachment-plus' fontSize='18px' />
                   Attachment
                   <input type='file' hidden />
-                </Button>
+                </Typography>
                 <MenuBtn />
-                
-                <Button
-                  sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }}
+
+                <Typography
+                  sx={{
+                    borderRadius: '50px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    fontSize: '13px',
+                    cursor:"pointer"
+                  }}
                   onClick={handleClose}
                   component='label'
                 >
-                  <Icon icon='mdi:close' />
+                  <Icon icon='mdi:close' fontSize='18px' />
                   Close
-                </Button>
-                </Box>
+                </Typography>
               </Box>
-              <Divider/>
+            </Box>
+            <Divider />
 
-              <Box sx={{ mx: 4}}>
+            <Box sx={{ m: 4 }}>
               <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Box sx={{ p: 3 }}>
-                    <Typography sx={{ my: 3 }}>
-                      Service Owner/Requester: <b>{}</b>
-                    </Typography>
-                    <Typography sx={{ my: 3 }}>
-                      Service Number: <b>{}</b>
-                    </Typography>
-                    <Typography sx={{ my: 3 }}>
-                      Service Status: <b>{}</b>
-                    </Typography>
-                    <Typography sx={{ my: 3 }}>
-                      Due Date: <b>{}</b>
-                    </Typography>
-                    <Typography sx={{ my: 3 }}>
-                      Service Version: <b>{}</b>
-                    </Typography>
-                  </Box>
-                  <Box sx={{ mt: 7 }}>
+                <ModalUserInfo />
+                <Box>
+                  <Box sx={{ mt: 7, display: 'flex', justifyContent: 'space-between' }}>
                     <TextField
                       required
-                      fullWidth
-                      sx={{ marginBottom: '20px' }}
+                      // fullWidth
+                      sx={{ marginBottom: '20px', width: '452px' }}
                       id='date'
                       label='Last Working Date'
                       type='date'
@@ -115,7 +117,8 @@ function TerminationRequestModal() {
                     />
 
                     <TextField
-                      fullWidth
+                      // fullWidth
+                      sx={{ width: '452px' }}
                       required
                       id='date'
                       label='Resignation/Termination Date'
@@ -126,39 +129,31 @@ function TerminationRequestModal() {
                       }}
                     />
                   </Box>
-                </Box >
-                <TextField id='outlined-basic' fullWidth label='Reason' variant='outlined' sx={{mb : 3}}/>
+                </Box>
+                <TextField id='outlined-basic' fullWidth label='Reason' variant='outlined' sx={{ mb: 3 }} />
                 <TextField id='outlined-basic' fullWidth label='Comment' multiline rows={4} variant='outlined' />
               </Box>
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignContent: 'center' }}>
                 <Card sx={{ width: '450px', borderBlockWidth: '1px', borderBlockStyle: 'solid', my: 3 }}>
-                  <Typography sx={{ m: 2 }}>
-                    Line Manager
-                  </Typography>
+                  <Typography sx={{ m: 2 }}>Line Manager</Typography>
 
                   <hr />
                   <Typography sx={{ m: 20 }}>{}</Typography>
                 </Card>
 
                 <Card sx={{ width: '450px', borderBlockWidth: '1px', borderBlockStyle: 'solid', my: 3 }}>
-                  <Typography sx={{ m: 2 }}>
-                    Department Manager
-                  </Typography>
+                  <Typography sx={{ m: 2 }}>Department Manager</Typography>
                   <hr /> <Typography sx={{ m: 20 }}>{}</Typography>
                 </Card>
 
                 <Card sx={{ width: '450px', borderBlockWidth: '1px', borderBlockStyle: 'solid', my: 3 }}>
-                  <Typography sx={{ m: 2 }}>
-                    Finance Department
-                  </Typography>
+                  <Typography sx={{ m: 2 }}>Finance Department</Typography>
                   <hr /> <Typography sx={{ m: 20 }}>{}</Typography>
                 </Card>
 
                 <Card sx={{ width: '450px', borderBlockWidth: '1px', borderBlockStyle: 'solid', my: 3 }}>
-                  <Typography sx={{ m: 2 }}>
-                    HR Department
-                  </Typography>
+                  <Typography sx={{ m: 2 }}>HR Department</Typography>
                   <hr /> <Typography sx={{ m: 20 }}>{}</Typography>
                 </Card>
               </Box>

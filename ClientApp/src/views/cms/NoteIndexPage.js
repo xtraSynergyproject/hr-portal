@@ -1,4 +1,5 @@
 // ** React Imports
+import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react'
 
 
@@ -23,7 +24,6 @@ import FormControl from '@mui/material/FormControl'
 import CardContent from '@mui/material/CardContent'
 import Select from '@mui/material/Select'
 import Icon from 'src/@core/components/icon'
-
 // ** Store Imports
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -32,6 +32,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import axios from 'axios'
 
 import CMSDataGrid from './components/CMSDataGrid'
+import NoteModel from './components/NoteModel'
 
 
 
@@ -58,6 +59,18 @@ const RowOptions = ({ id }) => {
     handleRowOptionsClose()
   }
 
+  /**  */
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+
+
   return (
     <>
       <IconButton size='small' onClick={handleRowOptionsClick}>
@@ -78,22 +91,24 @@ const RowOptions = ({ id }) => {
         }}
         PaperProps={{ style: { minWidth: '8rem' } }}
       >
-        <MenuItem
-          component={Link}
-          sx={{ '& svg': { mr: 2 } }}
-          onClick={handleRowOptionsClose}
-          href='/apps/user/view/overview/'
-        >
-          <Icon icon='mdi:eye-outline' fontSize={20} />
-          View
+       
+
+        <MenuItem sx={{ '& svg': { mr: 2 } }}>
+          <Icon  icon='mdi:eye-outline' fontSize={20} />
+          {/* View */}
+          <NoteModel title="View" />
         </MenuItem>
-        <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
+
+        <MenuItem sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:pencil-outline' fontSize={20} />
-          Edit
+          {/* Edit */}
+          <NoteModel title="Edit" />
         </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 } }}>
+
+        <MenuItem sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:delete-outline' fontSize={20} />
-          Delete
+          {/* Delete */}
+          <NoteModel title="Delete" />
         </MenuItem>
       </Menu>
     </>
@@ -103,6 +118,7 @@ const RowOptions = ({ id }) => {
 
 
 const UserList = ({ apiData }) => {
+
 
   //Index Page
   const [popupCallbackMethod, setPopupCallbackMethod] = useState([])
@@ -123,7 +139,10 @@ const UserList = ({ apiData }) => {
   // Api intergration by using get method
   const [getdata, setGetdata] = useState([])
   const [columns, setColumns] = useState([])
+
+
   const viewData = async () => {
+
 
     let colresponse = await axios.get(`https://webapidev.aitalkx.com/cms/NtsNote/GetNoteIndexColumn?pageId=dab0d921-cabc-4008-840b-4d1097dc47c3`)
 
@@ -164,16 +183,27 @@ const UserList = ({ apiData }) => {
 
   useEffect(() => {
     viewData()
-  }, [])
+  }, [getdata])
 
+  console.log(getdata, "data")
 
 
   return (
     <Grid container spacing={6}>
 
+
       <Grid item xs={12}>
         <Card>
           <CardHeader title={pageTitle} />
+
+          <Card>
+            <Box sx={{ width: '100%' }}>
+
+
+              <NoteModel />
+
+            </Box>
+          </Card>
           <CMSDataGrid row={getdata} columns={columns} pageSize={pageSize} />
 
         </Card>

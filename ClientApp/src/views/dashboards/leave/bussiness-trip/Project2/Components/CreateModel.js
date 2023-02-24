@@ -14,8 +14,6 @@ import Typography from '@mui/material/Typography';
 import Form from './Form'
 
 
-
-
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialogContent-root': {
     padding: theme.spacing(2),
@@ -24,13 +22,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     padding: theme.spacing(1),
   },
 }));
-
-
-
-
-
-
-    
+   
 
 function BootstrapDialogTitle(props) {
   const { children, onClose, ...other } = props;
@@ -87,12 +79,6 @@ export default function CustomizedDialogs() {
         <DialogContent dividers>
 
         <Form/>
-
-
-
-
-
-
 
          
         </DialogContent>

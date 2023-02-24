@@ -1,16 +1,13 @@
 import * as React from 'react'
-
 import Box from '@mui/material/Box'
-
 import Button from '@mui/material/Button'
-
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
-
 import Modal from '@mui/material/Modal'
-
 import TextField from '@mui/material/TextField'
-import MenuBtn from './MenuBtn'
+import Divider from '@mui/material/Divider'
+import MenuBtn from 'src/views/dashboards/hr-only/termination/components/button_with_modal/MenuBtn'
+import ModalUserInfo from 'src/views/dashboards/hr-only/termination/ModalUserInfo'
 
 const modalWrapper = {
   overflow: 'auto',
@@ -43,7 +40,7 @@ const modalContentStyle = {
 
   mt: 3,
 
-  width: '50rem',
+  width: '60rem',
 
   mb: 3,
 
@@ -72,48 +69,52 @@ export default function TravelReimbModal() {
       >
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }} className='demo-space-x'>
-              <Typography sx={{ p: 4 }} variant='h4' component='h3'>
+          <Box sx={{ mb: "10px", display: 'flex', justifyContent: 'space-between', alignItems:"center" }} className='demo-space-x'>
+              <Typography sx={{ pl: 4 }} variant='h5' component='h3'>
                 Create Request
               </Typography>
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
-                <Button sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }} component='label'>
-                  <Icon icon='mdi:attachment-plus' />
+              <Box sx={{width:"200px",height:"60px", display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                <Typography
+                  sx={{
+                    borderRadius: '50px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    fontSize: '13px',
+                    cursor:"pointer"
+                  }}
+                  component='label'
+                >
+                  <Icon icon='mdi:attachment-plus' fontSize='18px' />
                   Attachment
                   <input type='file' hidden />
-                </Button>
+                </Typography>
                 <MenuBtn />
 
-                <Button
-                  sx={{ borderRadius: '50px', display: 'flex', flexDirection: 'column' }}
+                <Typography
+                  sx={{
+                    borderRadius: '50px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    fontSize: '13px',
+                    cursor:"pointer"
+                  }}
                   onClick={handleClose}
                   component='label'
                 >
-                  <Icon icon='mdi:close' />
+                  <Icon icon='mdi:close' fontSize='18px' />
                   Close
-                </Button>
+                </Typography>
               </Box>
             </Box>
-            <hr />
+            <Divider />
             <Box sx={{ py: 3, px: 5 }}>
-              <Box>
-                <Typography sx={{ my: 3 }}>
-                  Service Owner/Requester: <b>{}</b>
-                </Typography>
-                <Typography sx={{ my: 3 }}>
-                  Service Number: <b>{}</b>
-                </Typography>
-                <Typography sx={{ my: 3 }}>
-                  Service Status: <b>{}</b>
-                </Typography>
-                <Typography sx={{ my: 3 }}>
-                  Due Date: <b>{}</b>
-                </Typography>
-                <Typography sx={{ my: 3 }}>
-                  Service Version: <b>{}</b>
-                </Typography>
-              </Box>
+
+
+            <ModalUserInfo/>
+
               <Box>
                 <TextField
                   required
@@ -139,6 +140,7 @@ export default function TravelReimbModal() {
                   rows={4}
                 />
                 <TextField
+                  type='number'
                   sx={{ marginY: '5px' }}
                   required
                   fullWidth
@@ -159,13 +161,17 @@ export default function TravelReimbModal() {
                       <input type='file' hidden />
                     </Button>
                   </Typography>
-                  <Box sx={{width:"700px",display:"flex", justifyContent:"space-between",}}> 
-                    <Box ><Typography>File Name : {} </Typography></Box>
-                    <Box ><Typography>File Size : {} </Typography></Box>
+                  <Box sx={{ width: '700px', display: 'flex', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography>File Name : {} </Typography>
+                    </Box>
+                    <Box>
+                      <Typography>File Size : {} </Typography>
+                    </Box>
                   </Box>
                 </Box>
               </Box>
-              <Box sx={{ display: 'flex',mt:15, mb: 5, justifyContent: 'flex-end', gap: 3 }}>
+              <Box sx={{ display: 'flex', mt: 15, mb: 5, justifyContent: 'flex-end', gap: 3 }}>
                 <Button variant='contained'>Save As Draft</Button>
                 <Button variant='contained'>Submit</Button>
               </Box>

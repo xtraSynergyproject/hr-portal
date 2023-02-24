@@ -19,6 +19,9 @@ import Icon from 'src/@core/components/icon'
 
 // ** Context
 import { useAuth } from 'src/hooks/useAuth'
+import ModalComp from 'src/views/pages/changepassword/ModalComp'
+import GrantAccess from '../../../../views/pages/grantaccess/GrantAccess'
+import SwitchProfile from '../../../../views/pages/switchprofile/SwitchProfile'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -122,44 +125,42 @@ const UserDropdown = props => {
           </Box>
         </Box>
         <Divider sx={{ mt: '0 !important' }} />
+
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/user-profile/profile')}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
             My Profile
           </Box>
         </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/apps/email')}>
+        
+        <MenuItem sx={{ p: 0 }}>
           <Box sx={styles}>
-            <Icon icon='mdi:email-outline' />
-            Change Password 
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/apps/chat')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:message-outline' />
-            Grant Access
+            <Icon icon='material-symbols:change-circle-outline' />
+            <ModalComp />
           </Box>
         </MenuItem>
         <Divider />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/account-settings/account')}>
+
+        <MenuItem sx={{ p: 0 }}>
           <Box sx={styles}>
-            <Icon icon='mdi:cog-outline' />
-            Settings
+            <Icon icon='mdi:tick-all' />
+            <GrantAccess />
           </Box>
         </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/pricing')}>
+        <MenuItem sx={{ p: 0 }}>
           <Box sx={styles}>
-            <Icon icon='mdi:currency-usd' />
-            Switch Profile
+            <Icon icon='ic:round-switch-access-shortcut-add' />
+            <SwitchProfile />
           </Box>
         </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/faq')}>
+        <Divider />
+
+        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/helpfaq')}>
           <Box sx={styles}>
             <Icon icon='mdi:help-circle-outline' />
             Help Center
           </Box>
         </MenuItem>
-        <Divider />
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
@@ -167,6 +168,7 @@ const UserDropdown = props => {
           <Icon icon='mdi:logout-variant' />
           Logout
         </MenuItem>
+        
       </Menu>
     </Fragment>
   )

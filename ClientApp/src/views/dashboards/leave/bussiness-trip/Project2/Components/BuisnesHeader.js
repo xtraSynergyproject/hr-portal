@@ -5,12 +5,9 @@ import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
+
 import Select from '@mui/material/Select'
 import CreateModel from './CreateModel'
-
-
-
-
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -35,8 +32,11 @@ const TableHeader = props => {
           value={value}
           placeholder='Search User'
           sx={{ mr: 4, mb: 2 }}
+         
           onChange={e => handleFilter(e.target.value)}
+          
         />
+       
         <FormControl size='small' sx={{ mb: 2 }}>
           <InputLabel id='plan-select'>Select Plan</InputLabel>
           <Select

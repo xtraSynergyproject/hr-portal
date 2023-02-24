@@ -60,13 +60,6 @@ const userStatusObj = {
 
 
 
-
-
-
-
-
-
-
 const columns = [
 
   {
@@ -113,7 +106,7 @@ const columns = [
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
-          <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+          <Typography noWrap sx={{ color: 'text.secondary', mt: 7, mb: 2, textTransform: 'lowercase' }}>
             {row.LeaveType}
           </Typography>
         </Box>

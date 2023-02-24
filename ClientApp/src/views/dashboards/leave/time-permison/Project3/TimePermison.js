@@ -18,30 +18,26 @@ const Item = styled(Paper)(({ theme }) => ({
 
 
 
-function  TimePermison() {
+function TimePermison() {
   return (
-    
+
     <>
 
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={10}>
+          <TimeSelect />
+        </Grid>
+        <Grid item xs={12} md={2}>
+          <Model />
+        </Grid>
 
-<Grid container spacing={2}>
-  <Grid item xs={12} md={10}>
-    <TimeSelect/>
-  </Grid>
-  <Grid item xs={12} md={2}>
-   <Model/>
-  </Grid>
-  
-  
-  
+      </Grid>
 
-    </Grid>
-    
-    <TimePermisonProfile/>
-    <TimePermissionsTable/>
-    
+      <TimePermisonProfile />
+      <TimePermissionsTable />
+
     </>
-    
+
 
   )
 }

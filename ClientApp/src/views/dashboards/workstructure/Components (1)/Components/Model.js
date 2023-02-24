@@ -17,29 +17,29 @@ import CancelIcon from '@mui/icons-material/Cancel'
 // import StepperLinearWithValidation from 'src/views/forms/form-wizard/StepperVerticalWithoutNumbers'
 
 const modalWrapper = {
-  overflow:"auto",
-  maxHeight:"100vh",
-  display:"flex",
+  overflow: "auto",
+  maxHeight: "100vh",
+  display: "flex",
 };
 
 const modalBlock = {
-  position:"relative",
-  zIndex:0,
-  display:"flex",
-  alignItems:"center",
-  justifyContent:"center",
-  margin:"auto",
+  position: "relative",
+  zIndex: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  margin: "auto",
 }
 
-const modalContentStyle ={
-  position:"relative",
-  background:"#fff",
-  boxShadow:24,
-  mt:3,
-  width:"100%",
-  height:"100%",
-  mb:3,
-  borderRadius:"10px",
+const modalContentStyle = {
+  position: "relative",
+  background: "#fff",
+  boxShadow: 24,
+  mt: 3,
+  width: "100%",
+  height: "100%",
+  mb: 3,
+  borderRadius: "10px",
 };
 
 export default function Model() {
@@ -49,7 +49,7 @@ export default function Model() {
 
   return (
     <div>
-      <Button variant="contained" onClick={handleOpen}sx={{ml:70}}>Create</Button>
+      <Button variant="contained" onClick={handleOpen} sx={{ ml: 5 }}>Manage</Button>
       <Modal
         open={open}
         sx={modalWrapper}
@@ -60,13 +60,13 @@ export default function Model() {
         <Box sx={modalBlock}>
           <Box sx={modalContentStyle}>
 
-  <CancelIcon onClick ={handleClose} sx={{float:"right",mt:1}}/>
+            <CancelIcon onClick={handleClose} sx={{ float: "right", }} />
 
-<Abc/>
+            <Abc />
 
-<Xyz/>
-<Form/>
-        </Box>
+            <Xyz />
+            <Form />
+          </Box>
         </Box>
       </Modal>
     </div>

@@ -40,8 +40,6 @@ const ProfilePicture = styled('img')(({ theme }) => ({
 }))
 
 const UserProfileHeader = () => {
-  
-  
   // ** State
   const [data, setData] = useState(null)
   useEffect(() => {
@@ -59,119 +57,114 @@ const UserProfileHeader = () => {
 
   const designationIcon = data?.designationIcon || 'mdi:briefcase-outline'
 
+
   return data !== null ? (
-    <Card sx={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
-    
-      <Box sx={{ height: '7px', display: 'flex', justifyContent: 'space-between' }}>
-        <Box>
-          <Button sx={{ display: 'none' }}>k</Button>
-        </Box>
-        <MenuIconPage sx={{ mr: '500px' }} />
+    <Card sx={{ py: '10px', display: 'flex', alignItems: 'center' }} className='user_profile_grid'>
+      <Box sx={{ minWidth: '20%', display: 'flex', justifyContent: 'center' }}>
+        <ProfilePicture
+          src={data.PhotoName}
+          alt='profile-picture'
+          sx={{ width: '150px', height: '150px', border: '5px solid #f0f0f0' }}
+        />
       </Box>
-      <Box>
-        <Grid container spacing={6} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <Paper elevation={0} sx={{ display: 'flex' }}>
-              <Box sx={{ width: '220px', ml: '10px' , mt:"20px"}}>
-                <ProfilePicture
-                   src={data.PhotoName}
-                  // src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8MXw3NjA4Mjc3NHx8ZW58MHx8fHw%3D&w=1000&q=80'
-                  alt='profile-picture'
-                  sx={{ width: '150px', height: '150px', border: '5px solid #f0f0f0' }}
-                />
-              </Box>
-              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
-                <Box sx={{ p: 2, minWidth: '49%' }}>
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <PersonOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Person Full Name:  <b>{data.PersonFullName} </b>
-                    </Box>
-                  </Typography>
+      <Box
+        className='user_profile_second_box'
+        sx={{ width: '70%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+      >
+        <Box
+          className='user_profile_box box_one'
+          //  sx={{  minWidth: '40%' }}
+        >
+          <Typography sx={{ display: 'flex', mx: 2, mb: 2 }}>
+            <PersonOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Person Full Name:<b>{data.PersonFullName} </b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <WorkOutlineOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Job Name:  <b>{data.JobName } </b>
-                    </Box>
-                  </Typography>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <WorkOutlineOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Job Name:<b>{data.JobName} </b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <FmdGoodOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Location Name:  <b>{data.LocationName} </b>
-                    </Box>
-                  </Typography>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <FmdGoodOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Location Name: <b>{data.LocationName} </b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <CallOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Contact:  <b>{data.Mobile} </b>
-                    </Box>
-                  </Typography>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <CallOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Contact: <b>{data.Mobile} </b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <MailOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Email:  <b>{data.PersonalEmail} </b>
-                    </Box>
-                  </Typography>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <MailOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Email: <b>{data.PersonalEmail} </b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <DoneOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Status:  <b>{data.Status} </b>
-                    </Box>
-                  </Typography>
-                </Box>
+          <Typography sx={{ display: 'flex', mt: 2, mx: 2 }}>
+            <DoneOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Status: <b>{data.Status} </b>
+            </Box>
+          </Typography>
+        </Box>
 
-                <Box sx={{ p: 2, minWidth: '49%' }}>
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <BadgeOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Department Name:<b> {}</b>
-                    </Box>
-                  </Typography>
+        <Box
+          className='user_profile_box box_two'
+          //  sx={{  minWidth: '40%' }}
+        >
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <BadgeOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Department Name:<b> {}</b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <DriveFileRenameOutlineOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Position Name:  <b>{data.PositionName} </b>
-                    </Box>
-                  </Typography>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <DriveFileRenameOutlineOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Position Name: <b>{data.PositionName} </b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <AssignmentTurnedInOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Assignment Status:  <b>{data.AssignmentStatusName} </b>
-                    </Box>
-                  </Typography>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <AssignmentTurnedInOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Assignment Status: <b>{data.AssignmentStatusName} </b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <CalendarMonthOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Date Of Join:  <b>{data.DateOfJoin} </b>
-                    </Box>
-                  </Typography>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <CalendarMonthOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Date Of Join: <b>{data.DateOfJoin} </b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <DownloadDoneOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Person Status:  <b>{}</b>
-                    </Box>
-                  </Typography>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <DownloadDoneOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Person Status: <b>{}</b>
+            </Box>
+          </Typography>
 
-                  <Typography sx={{ display: 'flex', m: 2 }}>
-                    <GradingOutlinedIcon />
-                    <Box sx={{ ml: 3 }}>
-                      Grade Name:  <b>{data.GradeName} </b>
-                    </Box>
-                  </Typography>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
+          <Typography sx={{ display: 'flex', m: 2 }}>
+            <GradingOutlinedIcon />
+            <Box sx={{ ml: 3 }}>
+              Grade Name: <b>{data.GradeName} </b>
+            </Box>
+          </Typography>
+          
+        </Box>
       </Box>
     </Card>
   ) : null

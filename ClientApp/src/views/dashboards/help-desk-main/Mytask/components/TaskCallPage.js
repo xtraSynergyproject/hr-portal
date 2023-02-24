@@ -1,20 +1,27 @@
 import React from 'react'
-import { Box, Button } from '@mui/material'
+import { Box } from '@mui/material'
 import SearchBarTask from './SearchBarTask'
 import TaskMenu from './TaskMenu'
-import CreateModelTask from './CreateModelTask'
+import Diaglog from './Diaglog'
+import Pagination from './Pagination'
+
 function TaskCallPage() {
-    return (
-
-        <Box sx={{ m: 2, display: "flex", gap: '8px', alignItems: 'center' }} >
-            <Box sx={{ justifyContent: "left" }}><CreateModelTask /></Box>
-
-            <SearchBarTask />
-
-            <TaskMenu />
+  return (
+    <div>
+      <Box sx={{ m: 3, display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ justifyContent: 'left' }}>
+          <Diaglog />
         </Box>
 
-    )
+        <SearchBarTask />
+        <TaskMenu />
+      </Box>
+
+      <Box sx={{ width: '100%' }}>
+        <Pagination />
+      </Box>
+    </div>
+  )
 }
 
 export default TaskCallPage

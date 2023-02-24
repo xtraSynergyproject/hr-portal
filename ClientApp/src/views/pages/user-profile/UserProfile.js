@@ -74,7 +74,7 @@ const UserProfile = ({ tab, data }) => {
       setActiveTab(tab)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab])
+  }, [tab]) 
 
   const tabContentList = {
     profile: <Profile data={data} />,

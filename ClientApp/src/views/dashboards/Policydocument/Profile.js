@@ -10,26 +10,30 @@ import CardMedia from '@mui/material/CardMedia'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import { Grid } from '@mui/material'
-// import LeaveRequest from './LeaveRequest'
+
+
 
 // ** Third Party Imports
 import axios from 'axios'
 
 // ** Icon Imports
-// import Icon from 'src/@core/components/icon'
+import Icon from 'src/@core/components/icon'
 
 function DashBoard( PersonFullName,Status,NationalityName,DateOfJoin,Title,DateOfBirth) {
   return { PersonFullName,Status,NationalityName,DateOfJoin,Title,DateOfBirth}
 }
 
+
 const ProfilePicture = styled('img')(({ theme }) => ({
-  width: 120,
-  height: 120,
+  width: 160,
+  height: 180,
+  margin:15,
   borderRadius: theme.shape.borderRadius,
   border: `5px solid ${theme.palette.common.white}`,
   [theme.breakpoints.down('md')]: {
     marginBottom: theme.spacing(4)
   }
+
 }))
 
 const UserProfileHeader = () => {
@@ -56,42 +60,22 @@ const UserProfileHeader = () => {
 
   return  (
     <>
-    <Card>
-      <CardMedia
-        component='img'
-        alt='profile-header'
-        image="https://www.influencive.com/wp-content/uploads/2021/03/it-firms-1536x1022.jpg"
-        sx={{
-          height: { xs: 150, md: 250 }
-        }}
-
-
-  
-      />
+  <Card>
+      
       <CardContent
         sx={{
           pt: 0,
-          mt: -8,
+          mt: -9,
           display: 'flex',
           alignItems: 'flex-end',
           flexWrap: { xs: 'wrap', md: 'nowrap' },
           justifyContent: { xs: 'center', md: 'flex-start' }
         }}
       >
-        <ProfilePicture src="https://bionordika.no/application/files/cache/thumbnails/649d1af142975fe6f429c75165136708.png" alt='profile-picture' />
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            ml: { xs: 0, md: 6 },
-            alignItems: 'flex-end',
-            flexWrap: ['wrap', 'nowrap'],
-            justifyContent: ['center', 'space-between']
-          }}
-        >
+        
           <Box sx={{ mb: [6, 0], display: 'flex', flexDirection: 'column', alignItems: ['center', 'flex-start'] }}>
-            <Typography variant='h5' sx={{ mb: 4 }}>
-              {/* <b>{data.PersonFullName}</b> */}
+            <Typography variant='h5' sx={{ mb: 3, margin:'10px'}}>
+                     <b>{data.PersonFullName}</b>
             </Typography>
             <Box
               sx={{
@@ -102,7 +86,7 @@ const UserProfileHeader = () => {
             >
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
                 {/* <Icon icon={designationIcon} /> */}
-                {/* <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.designation} Leave Balance</Typography> */}
+                {/* <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.designation} </Typography> */}
               </Box>
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
                 {/* <Icon icon='mdi:map-marker-outline' /> */}
@@ -112,29 +96,41 @@ const UserProfileHeader = () => {
                 {/* <Icon icon='mdi:calendar-blank' /> */}
                 <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
                   {/* Joined {data.joiningDate} */}
-                  {/* Annual Leave Balance Projections */}
+                  
                 </Typography>
               </Box>
             </Box>
           </Box>
-{/*           
-          <Button variant='contained' startIcon={<Icon icon='mdi:account-check-outline' fontSize={20} />}>
-            <LeaveRequest/>
-          </Button> */}
           
-        </Box>
-      </CardContent>
+          
       
-      <Grid container spacing={4} sx={{margin:'5px'}}>
+      </CardContent>
+      <Grid container spacing={4}>
 
+      <Grid item xs ={3}>
+      <ProfilePicture src="https://th.bing.com/th/id/OIP.KzL19SzY6e3cM6amThuwigHaHb?pid=ImgDet&rs=1" alt='profile-picture' />
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            ml: { xs: 0, md: 6 },
+            alignItems: 'flex-end',
+            flexWrap: ['wrap', 'nowrap'],
+            justifyContent: ['center', 'space-between']
+          }}
+        ></Box>
+         <Typography variant='h5' sx={{ mb: 3, marginLeft:'20px'}}>
+                     <b>{data.PersonFullName}</b>
+            </Typography>
+        </Grid>
 
-         <Grid item xs={7}>
+         <Grid item xs={4}>
               
-              <p>Full Name: <b>{data.Title}</b></p>
-               <p>Job Name:   <b>{data.DateOfBirth}</b></p>
-              <p>Location Name:  <b>{data.NationalityName}</b></p>
+                <p>Mr:<b>{data.Title}</b></p>
+               <p>Job Name: <b>       {data.DateOfBirth}</b></p>
+              <p>Loaction Name:<b>{data.NationalityName}</b></p>
+              
               <p>Assignment Status: <b>{data.Status}</b></p>
-              
               <p>User Status: <b>{data.Status}</b></p>
             
             </Grid>
@@ -142,15 +138,18 @@ const UserProfileHeader = () => {
             <Grid item xs={4}>
                 
 
-                <p>Department Name:  <b>IT</b></p>
+                <p>Department Name:<b>IT</b></p>
                 
-                <p>Position Name: <b>{data.DateOfJoin}</b></p>
-                <p>Date of Join: <b>{data.Status}</b></p>
-                <p>Personal status:  <b>A</b></p>
-                <p>Grade Name:  <b>A</b></p>
+                <p>Position Name:<b>                  {data.DateOfJoin}</b></p>
+                <p>Person Status:<b>{data.Status}</b></p>
+                <p>Grade Name:<b>A</b></p>
             
               </Grid>
               </Grid>
+            
+
+
+
     </Card>
     </>
   ) 

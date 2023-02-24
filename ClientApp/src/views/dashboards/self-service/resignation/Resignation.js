@@ -16,6 +16,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import { styled } from '@mui/material/styles'
 
 import Icon from 'src/@core/components/icon'
+import ResignationRequestModal from "./components/ResignationRequestModal"
 
 // ** Store Imports
 import { useDispatch, useSelector } from 'react-redux'
@@ -186,8 +187,8 @@ const columns = [
 
   {
     flex: 0.2,
-    field: 'Resignation Termination Date',
-    headerName: 'Resignation Termination Date',
+    field: 'Resignation Date',
+    headerName: 'Resignation Date',
     minWidth: 200
     // renderCell: ({ row }) => {
     //   return (
@@ -302,7 +303,7 @@ const Resignation = ({ apiData }) => {
           <Typography variant='h5' component='h2'>
             Resignation
           </Typography>
-        
+        <ResignationRequestModal/>
         </Box>
         <Divider/>
           <UserProfile />

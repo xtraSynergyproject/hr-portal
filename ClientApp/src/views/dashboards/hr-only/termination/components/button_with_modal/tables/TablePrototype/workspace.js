@@ -163,7 +163,7 @@ const columns = [
   },
   {
     flex: 0.2,
-    minWidth: 250,
+    minWidth: 230,
     field: 'Service No.',
     headerName: 'Service No.',
     // renderCell: ({ row }) => {
@@ -175,10 +175,10 @@ const columns = [
     // }
   },
   {
-    flex: 0.15,
+    flex: 0.2,
     field: 'Subject',
     headerName: 'Subject',
-    minWidth: 150,
+    minWidth: 230,
     // renderCell: ({ row }) => {
     //   return (
     //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -192,10 +192,10 @@ const columns = [
   },
 
   {
-    flex: 0.15,
-    field:  'Resignation Termination Date',
-    headerName:  'Resignation Termination Date',
-    minWidth: 150,
+    flex: 0.2,
+    field:  'Termination Date',
+    headerName:  'Termination Date',
+    minWidth: 230,
     // renderCell: ({ row }) => {
     //   return (
     //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -211,8 +211,8 @@ const columns = [
   
   
   {
-    flex: 0.1,
-    minWidth: 90,
+    flex: 0.2,
+    minWidth: 230,
     field: 'Last Working Date',
     headerName: 'Last Working Date',
     // sortable: false,
@@ -221,8 +221,8 @@ const columns = [
   
 
   {
-    flex: 0.15,
-    minWidth: 120,
+    flex: 0.2,
+    minWidth: 230,
     headerName: 'Service Status',
     field: 'Service Status',
   //   renderCell: ({ row }) => {
@@ -234,8 +234,8 @@ const columns = [
   //   }
   },
   {
-    flex: 0.15,
-    minWidth: 120,
+    flex: 0.2,
+    minWidth: 230,
     headerName: 'Clearance Form',
     field: 'Clearance Form',
   //   renderCell: ({ row }) => {

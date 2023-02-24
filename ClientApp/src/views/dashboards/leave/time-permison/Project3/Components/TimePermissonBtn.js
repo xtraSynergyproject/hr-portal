@@ -12,11 +12,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import TimePermissonBox from './TimePermissonBox';
 
-
-
-
-
-
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialogContent-root': {
     padding: theme.spacing(2),
@@ -26,12 +21,6 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   },
 }));
 
-
-
-
-
-
-    
 
 function BootstrapDialogTitle(props) {
   const { children, onClose, ...other } = props;
@@ -74,8 +63,8 @@ export default function CustomizedDialogs() {
 
   return (
     <div>
-       <Button onClick={handleClickOpen} sx={{ mr: 4, mb: 2 ,margin:"10px" }}  variant="contained">+Add Time Permisson</Button>
-       
+      <Button onClick={handleClickOpen} sx={{ mr: 4, mb: 2, margin: "10px" }} variant="contained">+Add Time Permisson</Button>
+
       <BootstrapDialog
         onClose={handleClose}
         aria-labelledby="customized-dialog-title"
@@ -86,25 +75,14 @@ export default function CustomizedDialogs() {
           Bussiness Trip
         </BootstrapDialogTitle>
         <DialogContent dividers>
-        <TimePermissonBox/>
+          <TimePermissonBox />
 
-        
-
-
-
-
-
-
-
-         
         </DialogContent>
         <DialogActions>
-          {/* <Button autoFocus onClick={handleClose}>
-            Save changes
-          </Button> */}
+
         </DialogActions>
       </BootstrapDialog>
-      
+
     </div>
   );
 }

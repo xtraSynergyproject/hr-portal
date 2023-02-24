@@ -30,6 +30,8 @@ import { fetchData } from 'src/store/apps/user'
 // ** Custom Components Imports
 import TableHeader from 'src/views/apps/roles/TableHeader'
 
+import Leave_Modal from './Leave_Modal'
+
 //axios
 import axios from 'axios'
 
@@ -93,15 +95,15 @@ const columns = [
 
   {
     flex: 0.15,
-    field: 'LeaveType',
+    field: 'Document Type',
     minWidth: 150,
-    headerName: 'LeaveType',
+    headerName: 'Document Type',
     renderCell: ({ row }) => {
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
           <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.LeaveType}
+            {/* {row.LeaveType} */}
           </Typography>
         </Box>
       )
@@ -111,12 +113,12 @@ const columns = [
   {
     flex: 0.15,
     minWidth: 120,
-    headerName: 'StartDate',
-    field: 'StartDate',
+    headerName: 'status',
+    field: 'status',
     renderCell: ({ row }) => {
       return (
         <Typography noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.StartDate}
+          {/* {row.StartDate} */}
         </Typography>
       )
     }
@@ -126,7 +128,7 @@ const columns = [
     flex: 0.1,
     minWidth: 110,
     field: 'EndDate',
-    headerName: 'EndDate',
+    headerName: 'issue Date',
     renderCell: ({ row }) => {
       return (
         <CustomChip
@@ -140,22 +142,22 @@ const columns = [
     }
   },
 
-  {
-    flex: 0.15,
-    field: 'ServiceNo',
-    minWidth: 150,
-    headerName: 'ServiceNo',
-    renderCell: ({ row }) => {
-      return (
-        <Box style={{ display: 'flex', alignItems: 'center' }}>
-          <Icon fontSize={20} />
-          <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.ServiceNo}
-          </Typography>
-        </Box>
-      )
-    }
-  },
+  // {
+  //   flex: 0.15,
+  //   field: 'ServiceNo',
+  //   minWidth: 150,
+  //   headerName: 'ServiceNo',
+  //   renderCell: ({ row }) => {
+  //     return (
+  //       <Box style={{ display: 'flex', alignItems: 'center' }}>
+  //         <Icon fontSize={20} />
+  //         <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+  //           {row.ServiceNo}
+  //         </Typography>
+  //       </Box>
+  //     )
+  //   }
+  // },
 
 
 ]
@@ -208,28 +210,7 @@ const UserList = () => {
       <Grid container spacing={6}>
         <Grid item xs={11}>
           <Box sx={{ width: 'auto', margin: 5 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left' }}>
-              <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
-                <br />
-                <Typography>
-                  
-                </Typography>
-                <br />
-                <Typography>
-                  Leave Balance
-                </Typography>
-              </Box>
-              <Box sx={{ mt: 5, fontWeight: 5, minWidth: "40%" }}>
-                <br />
-                <Typography>
-                  Annual Leave Balance
-                </Typography>
-                <br />
-                <Typography>
-                  Projections
-                </Typography>
-              </Box>
-            </Box>
+          
           </Box>
           <Box sx={{ width: 'auto', margin: 5 }}>
 
@@ -237,7 +218,12 @@ const UserList = () => {
 
               <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
                 <Typography>
-                  <h3>Leave Transaction Details</h3>
+                  <h3>Documents Requested By HR</h3>
+                </Typography>
+              </Box>
+              <Box sx={{ mt: 5, fontWeight: 5, minWidth: "30%" }}>
+                <Typography>
+                <Leave_Modal/>
                 </Typography>
               </Box>
             </Box>

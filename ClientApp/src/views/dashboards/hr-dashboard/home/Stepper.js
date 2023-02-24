@@ -15,22 +15,22 @@ const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
 const images = [
   {
-    label: 'Create Post',
+    // label: 'Create Post',
     imgPath:
       'https://files.spazioweb.it/44/db/44db50d1-f58c-4cff-b619-6af24d31af21.jpg',
   },
   {
-    label: 'Create Post',
+    // label: 'Create Post',
     imgPath:
       'http://st.depositphotos.com/1325771/2521/i/450/depositphotos_25218381-Group-portrait-of-a-professional-business-team-looking-confidently-at-camera.jpg',
   },
   {
-    label: 'Create Post',
+    // label: 'Create Post',
     imgPath:
       'https://t4.ftcdn.net/jpg/03/72/48/83/360_F_372488329_6bJkPEgd3Ectqt3cv23xrSJpNwhBzaov.jpg',
   },
   {
-    label: 'Create Post',
+    // label: 'Create Post',
     imgPath:
       'https://snacknation.com/wp-content/uploads/2022/03/CoAdvantage-e1646179929156.png',
   },

@@ -42,18 +42,6 @@ function createData(ServiceNo,Id ,StartDate,Status,ClaimServiceNo) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // ** Vars
 const userRoleObj = {
   admin: { icon: 'mdi:laptop', color: 'error.main' },
@@ -72,9 +60,6 @@ const userStatusObj = {
 const renderClient = row => {
 
 }
-
-
-
 
 
 const columns = [
@@ -119,13 +104,13 @@ const columns = [
   {
     flex: 0.15,
     field: 'Id',
-    minWidth: 150,
+    minWidth: 180,
     headerName: 'Id',
     renderCell: ({ row }) => {
       return (
         <Box style={{ display: 'flex', alignItems: 'center', margin:'15px'}}>
           <Icon fontSize={20} />
-          <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+          <Typography noWrap sx={{ color: 'text.secondary', mt: 7, mb: 2, textTransform: 'lowercase' }}>
             {row.Id}
           </Typography>
         </Box>
@@ -140,7 +125,7 @@ const columns = [
     field: 'StartDate',
     renderCell: ({ row }) => {
       return (
-        <Typography noWrap sx={{ textTransform: 'capitalize' }}>
+        <Typography noWrap sx={{ mt: 7, mb: 2, textTransform: 'lowercase'}}>
           {row.StartDate}
         </Typography>
       )
@@ -159,7 +144,7 @@ const columns = [
           size='small'
           label={row. Purpose}
           color={userStatusObj[row.Status]}
-          sx={{ textTransform: 'capitalize' }}
+          sx={{mt: 7, mb: 2, textTransform: 'lowercase' }}
         />
       )
     }
@@ -174,7 +159,7 @@ const columns = [
       return (
         <Box style={{ display: 'flex', alignItems: 'center' }}>
           <Icon fontSize={20} />
-          <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+          <Typography noWrap sx={{ color: 'text.secondary', mt: 7, mb: 2, textTransform: 'lowercase' }}>
             {row.ClaimServiceNo}
           </Typography>
         </Box>
@@ -208,20 +193,6 @@ const UserList = () => {
     viewData()
   }, [])
   
-
-  // ** Hooks
-  // const dispatch = useDispatch()
-  // const store = useSelector(state => state.user)
-  // useEffect(() => {
-  //   dispatch(
-  //     fetchData({
-  //       role: '',
-  //       q: value,
-  //       status: '',
-  //       currentPlan: plan
-  //     })
-  //   )
-  // }, [dispatch, plan, value])
 
   const handleFilter = useCallback(val => {
     setValue(val)

@@ -65,8 +65,6 @@ export default function SelectBar() {
       </FormControl>
       
          <UserProfileHeader />
-      
-     
     </div>
   );
 }

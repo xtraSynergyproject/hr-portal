@@ -1,5 +1,5 @@
 import React from 'react'
-import Misconducts from 'src/views/dashboards/self-service/misconducts/Misconducts'
+import Misconducts from 'src/views/dashboards/self-service/misconducts/components/Misconducts'
 
 function index() {
   return (

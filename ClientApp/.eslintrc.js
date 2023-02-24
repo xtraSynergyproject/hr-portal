@@ -5,7 +5,8 @@ module.exports = {
     browser: true
   },
   parser: '@babel/eslint-parser',
-  extends: ['next/core-web-vitals', 'prettier'],
+  extends: ["next/babel",'next/core-web-vitals', 'prettier'],
+  plugins: ["prettier"],
   parserOptions: {
     ecmaVersion: 11,
     sourceType: 'module',

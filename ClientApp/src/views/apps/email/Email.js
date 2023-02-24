@@ -1,3 +1,5 @@
+
+
 // ** React Imports
 import { useState, useEffect } from 'react'
 
@@ -114,12 +116,12 @@ const EmailAppLayout = ({ folder, label }) => {
         handleSelectAllMail={handleSelectAllMail}
         handleLeftSidebarToggle={handleLeftSidebarToggle}
       />
-      <ComposePopup
+      {/* <ComposePopup
         mdAbove={mdAbove}
         composeOpen={composeOpen}
         composePopupWidth={composePopupWidth}
         toggleComposeOpen={toggleComposeOpen}
-      />
+      /> */}
     </Box>
   )
 }

@@ -16,27 +16,18 @@ import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
-import InputLabel from '@mui/material/InputLabel'
-import FormControl from '@mui/material/FormControl'
-import CardContent from '@mui/material/CardContent'
-import Select from '@mui/material/Select'
-// import Button from 'src/views/apps/user/list/Button'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Store Imports
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 
 // ** Custom Components Imports
-import CustomChip from 'src/@core/components/mui/chip'
-import CustomAvatar from 'src/@core/components/mui/avatar'
 import CardStatisticsHorizontal from 'src/@core/components/card-statistics/card-stats-horizontal'
 
-// ** Utils Import
-import { getInitials } from 'src/@core/utils/get-initials'
-
 // ** Actions Imports
-import { fetchData, deleteUser } from 'src/store/apps/user'
+import { deleteUser } from 'src/store/apps/user'
 
 // ** Custom Table Components Imports
 import TableHeader from './components/imports/TableHeader'
@@ -44,7 +35,6 @@ import AddUserDrawer from './components/imports/AddUserDrawer'
 
 // ** Third Party Components
 import axios from 'axios'
-
 
 function createData(WorkspaceName, ParentName, LegalEntityName, CreatedbyName) {
   return {WorkspaceName, ParentName, LegalEntityName, CreatedbyName};
@@ -79,7 +69,7 @@ const StyledLink = styled(Link)(({ theme }) => ({
 // ** renders client column
 //change1
 const renderClient = row => {
-   
+
 }
 
 const RowOptions = ({ id }) => {
@@ -103,12 +93,8 @@ const RowOptions = ({ id }) => {
     handleRowOptionsClose()
   }
 
-
- 
-
   return (
     <>
-    
       <IconButton size='small' onClick={handleRowOptionsClick}>
         <Icon icon='mdi:dots-vertical' />
       </IconButton>
@@ -269,14 +255,14 @@ const Workspace = ({ apiData }) => {
    // Api Intregration by using Get method
    const [getdata, setGetdata] = useState([])
    const viewData = async () => {
-    // let response = await axios.get(`https://webapidev.aitalkx.com/api/Command/CreateWorkspace`)
+
     let response = await axios.get(`https://webapidev.aitalkx.com/dms/workspace/ReadDataGrid?userId=45bba746-3309-49b7-9c03-b5793369d73c&portalName=HR`)
     
 
      setGetdata(response.data)
     //  console.log(response.data, "response data")
    }
-   console.log(getdata, 'response')
+  //  console.log(getdata, 'response')
  
    useEffect(() => {
      viewData()
@@ -301,70 +287,7 @@ const Workspace = ({ apiData }) => {
       <Grid item xs={12}>
         <Card>
           <CardHeader title='Workspace' />
-          {/* <CardContent>
-            <Grid container spacing={6}>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='role-select'>Select Role</InputLabel>
-                  <Select
-                    fullWidth
-                    value={role}
-                    id='select-role'
-                    label='Select Role'
-                    labelId='role-select'
-                    onChange={handleRoleChange}
-                    inputProps={{ placeholder: 'Select Role' }}
-                  >
-                    <MenuItem value=''>Select Role</MenuItem>
-                    <MenuItem value='admin'>Admin</MenuItem>
-                    <MenuItem value='author'>Author</MenuItem>
-                    <MenuItem value='editor'>Editor</MenuItem>
-                    <MenuItem value='maintainer'>Maintainer</MenuItem>
-                    <MenuItem value='subscriber'>Subscriber</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='plan-select'>Select Plan</InputLabel>
-                  <Select
-                    fullWidth
-                    value={plan}
-                    id='select-plan'
-                    label='Select Plan'
-                    labelId='plan-select'
-                    onChange={handlePlanChange}
-                    inputProps={{ placeholder: 'Select Plan' }}
-                  >
-                    <MenuItem value=''>Select Plan</MenuItem>
-                    <MenuItem value='basic'>Basic</MenuItem>
-                    <MenuItem value='company'>Company</MenuItem>
-                    <MenuItem value='enterprise'>Enterprise</MenuItem>
-                    <MenuItem value='team'>Team</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='status-select'>Select Status</InputLabel>
-                  <Select
-                    fullWidth
-                    value={status}
-                    id='select-status'
-                    label='Select Status'
-                    labelId='status-select'
-                    onChange={handleStatusChange}
-                    inputProps={{ placeholder: 'Select Role' }}
-                  >
-                    <MenuItem value=''>Select Role</MenuItem>
-                    <MenuItem value='pending'>Pending</MenuItem>
-                    <MenuItem value='active'>Active</MenuItem>
-                    <MenuItem value='inactive'>Inactive</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </CardContent> */}
+  
           <Divider />
           <TableHeader  handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
          {/* change3 */}

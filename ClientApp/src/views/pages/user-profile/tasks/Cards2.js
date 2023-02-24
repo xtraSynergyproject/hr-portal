@@ -26,7 +26,7 @@ const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
   },
   [`& .${linearProgressClasses.bar}`]: {
     borderRadius: 5,
-    backgroundColor: theme.palette.mode === 'light' ? '#1a90ff' : '#308fe8'
+    backgroundColor: theme.palette.mode === 'light' ? 'gold' : '#308fe8'
   }
 }))
 
@@ -39,40 +39,42 @@ const StyledBox = styled(Box)(({ theme }) => ({
 
 const CardMembership = () => {
   return (
-    <Card sx={{height:'260px', width: 'auto' }}>
-      <Grid container sx={{ padding: '1px', gap: '2px' }}>
+    <Card sx={{ height: '32vh', maxWidth: '15rem' }}>
+      <Grid container sx={{ padding: '1px', gap: '2px', mt: '10px' }}>
         <Grid item xs={12} sm={12}>
-          
           {/* For progress line  */}
           <Box sx={{ flexGrow: 1 }}>
             <BorderLinearProgress variant='determinate' value={100} />
           </Box>
           <CardContent>
-            <Typography variant='h6' sx={{ mb: 3.5 }}>
-              Payment
+            <Typography fontSize='12px'>
+              <b>Payment</b>
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center',justifyContent:'space-between'}}>
-            <Typography variant='body2'>00:00 / 00:00· </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <AccessTimeIcon />
-              <Typography variant='body2'> 10 months ago</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography fontSize='10px' variant='body2'>
+                00:00 / 00:00·{' '}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <AccessTimeIcon />
+                <Typography fontSize='10px' variant='body2'>
+                  {' '}
+                  10 months ago
+                </Typography>
+              </Box>
             </Box>
-            </Box>
-            <br />
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 5 }}>
               <Stack direction='row' spacing={6}>
                 <Avatar
                   alt='Remy Sharp'
                   src='https://synergydev.aitalkx.com/Cms/document/getimagemongo/92133c2a-6a6c-4422-989f-c900eae6992e'
                 />
               </Stack>
-              <Typography variant='p' component='p'>
-                 Administrator
+              <Typography fontSize='12px'>
+                <p>Administrator</p>
               </Typography>
             </Box>
-            <br/>
             <Divider />
-            <Grid container spacing={6} sx={{display:'flex',justifyContent:'center'}}>
+            <Grid container spacing={6} sx={{ display: 'flex', justifyContent: 'center' }}>
               <Grid item xs={12} sm={6}>
                 <StyledBox>
                   <Box
@@ -94,7 +96,6 @@ const CardMembership = () => {
                   sx={{ mb: 6.75, display: 'flex', alignItems: 'center', '& svg': { color: 'primary.main', mr: 2.75 } }}
                 >
                   <VisibilityIcon />
-                  {/* <Typography variant='body2'>Access all Features</Typography> */}
                 </Box>
               </Grid>
             </Grid>

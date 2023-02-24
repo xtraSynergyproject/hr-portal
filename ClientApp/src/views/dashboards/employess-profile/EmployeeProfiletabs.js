@@ -1,105 +1,87 @@
-import * as React from 'react';
-import PropTypes from 'prop-types';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+// ** MUI Imports
+import { useState } from 'react'
+import Tab from '@mui/material/Tab'
+import TabList from '@mui/lab/TabList'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import Typography from '@mui/material/Typography'
 import Personalinfo from './PersonalInfo/personalinfo';
 import AssignmentForm from './AssignmentForm';
-import EmplyessPaySlip from './PersonalInfo/EmplyessPaySlip';
-import Emplyesspayroll from "./PersonalInfo/Emplyesspayroll"
+import PayrollPaySlip from 'src/views/dashboards/payroll/components/PayrollPaySlip';
+import PayrollSalaryInfo from "src/views/dashboards/payroll/components/PayrollSalaryInfo"
 import Leave_Pages from "./PersonalInfo/Leave_Pages"
 import ContactEmplyess from "./PersonalInfo/ContactEmplyess"
 import AttendenceE from './PersonalInfo/AttendenceE'
 import Document_Pages from './PersonalInfo/Document_Pages'
-import Deparment_Pages from './PersonalInfo/Deparment_Pages'
-
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-};
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
-
-export default function EmployeeProfiletabs() {
-  const [value, setValue] = React.useState(0);
+import Dependents_Pages from './PersonalInfo/Dependents_Pages'
+const TabsForcedScroll = () => {
+  // ** State
+  const [value, setValue] = useState('1')
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+    setValue(newValue)
+  }
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-          <Tab label="Personal Info" {...a11yProps(0)} />
-          <Tab label="Assignment" {...a11yProps(1)} />
-          <Tab label="Contact" {...a11yProps(2)} />
-          <Tab label="Leave" {...a11yProps(3)} />
-          <Tab label="Attendance" {...a11yProps(4)} />
-          <Tab label="Documents" {...a11yProps(5)} />
-          <Tab label="Deparment" {...a11yProps(6)} />
-          <Tab label="Payroll" {...a11yProps(7)} />
-          <Tab label="Pay Slip" {...a11yProps(8)} />
-        </Tabs>
-      </Box>
-      <TabPanel value={value} index={0}>
+    <TabContext value={value}>
+      <TabList scrollButtons variant='scrollable' onChange={handleChange} aria-label='forced scroll tabs example'>
+        <Tab value='1' label='Personal Info'  />
+        <Tab value='2' label='Assignment'  />
+        <Tab value='3' label='Contract' />
+        <Tab value='4' label='Leave'  />
+        <Tab value='5' label='Attendance'  />
+        <Tab value='6' label='Documents' />
+        <Tab value='7' label='Dependents' />
+        <Tab value='8' label='Payroll Salary Info'  />
+        <Tab value='9' label='Pay Slip'  />
+      </TabList>
+      <TabPanel value='1'>
+        <Typography>
         <Personalinfo />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={1}>
-        <AssignmentForm />
+      <TabPanel value='2'>
+        <Typography> 
+          <AssignmentForm />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={2}>
-        <ContactEmplyess/>
+      <TabPanel value='3'>
+        <Typography>
+          <ContactEmplyess />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={3}>
-      <Leave_Pages/>
+      <TabPanel value='4'>
+        <Typography>
+          <Leave_Pages />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={4}>
-        <AttendenceE/>
+      <TabPanel value='5'>
+        <Typography>
+          <AttendenceE />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={5}>
-      <Document_Pages/>
+      <TabPanel value='6'>
+        <Typography>
+        <Document_Pages />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={6}>
-      <Deparment_Pages/>
+      <TabPanel value='7'>
+        <Typography>
+        <Dependents_Pages />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={7}>
-        <EmplyessPaySlip/>
+      <TabPanel value='8'>
+        <Typography>
+        <PayrollSalaryInfo />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={8}>
-        <Emplyesspayroll/>
+      <TabPanel value='9'>
+        <Typography>
+        <PayrollPaySlip />
+        </Typography>
       </TabPanel>
-      <TabPanel value={value} index={8}>
-       
-      </TabPanel>
-    </Box>
-  );
+    </TabContext>
+  )
 }
+
+export default TabsForcedScroll

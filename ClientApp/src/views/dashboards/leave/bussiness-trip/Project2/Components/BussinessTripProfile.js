@@ -20,8 +20,8 @@ import axios from 'axios'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-function DashBoard( PersonFullName,Status,NationalityName,DateOfJoin,Title,DateOfBirth) {
-  return { PersonFullName,Status,NationalityName,DateOfJoin,Title,DateOfBirth}
+function DashBoard(PersonFullName, Status, NationalityName, DateOfJoin, Title, DateOfBirth, JobName, LocationName, AssignmentStatusName, PositionName) {
+  return { PersonFullName, Status, NationalityName, DateOfJoin, Title, DateOfBirth, JobName, LocationName, AssignmentStatusName, PositionName }
 }
 
 
@@ -38,45 +38,37 @@ const ProfilePicture = styled('img')(({ theme }) => ({
 }))
 
 const UserProfileHeader = () => {
-  // // ** State
-  // const [data, setData] = useState(null)
-  // useEffect(() => {
-  //   axios.get('/pages/profile-header').then(response => {
-  //     setData(response.data)
-  //   })
-  // }, [])
-  
 
   const [data, setData] = useState([])
   useEffect(() => {
-    axios.get('https://webapidev.aitalkx.com/chr/hrdirect/EmployeeProfile?userId=76e33a87-1e40-4767-9fc4-8107de4f6b2a&portalName=HR&personId=8393d114-f109-45ea-9fcc-ad63f1233264').then(response => {
+    axios.get('https://webapidev.aitalkx.com/chr/hrdirect/EmployeeProfile?userId=60da8f8f195197515042a1f2&portalName=HR&personId=0a11a928-4f66-41b4-aa44-150d1470ef7e').then(response => {
       setData(response.data)
-      console.log(response.data, );
-      
+      console.log(response.data,);
+
     })
-  
+
   }, [])
   const designationIcon = data?.designationIcon || 'mdi:briefcase-outline'
 
 
-  return  (
+  return (
     <>
-    <Card>
-      
-      <CardContent
-        sx={{
-          pt: 0,
-          mt: -9,
-          display: 'flex',
-          alignItems: 'flex-end',
-          flexWrap: { xs: 'wrap', md: 'nowrap' },
-          justifyContent: { xs: 'center', md: 'flex-start' }
-        }}
-      >
-        
+      <Card>
+
+        <CardContent
+          sx={{
+            pt: 0,
+            mt: -9,
+            display: 'flex',
+            alignItems: 'flex-end',
+            flexWrap: { xs: 'wrap', md: 'nowrap' },
+            justifyContent: { xs: 'center', md: 'flex-start' }
+          }}
+        >
+
           <Box sx={{ mb: [6, 0], display: 'flex', flexDirection: 'column', alignItems: ['center', 'flex-start'] }}>
-            <Typography variant='h5' sx={{ mb: 3, margin:'10px'}}>
-                     <b>{data.PersonFullName}</b>
+            <Typography variant='h5' sx={{ mb: 3, margin: '10px' }}>
+              <b>{data.PersonFullName}</b>
             </Typography>
             <Box
               sx={{
@@ -86,7 +78,7 @@ const UserProfileHeader = () => {
               }}
             >
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                {/* <Icon icon={designationIcon} /> */}
+
                 {/* <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.designation} </Typography> */}
               </Box>
               <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
@@ -97,73 +89,156 @@ const UserProfileHeader = () => {
                 {/* <Icon icon='mdi:calendar-blank' /> */}
                 <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>
                   {/* Joined {data.joiningDate} */}
-                  
+
                 </Typography>
               </Box>
             </Box>
           </Box>
-          
-         
-          
-      
-      </CardContent>
-      <Grid container spacing={4}>
 
-      <Grid item xs ={3}>
-      <ProfilePicture src="https://kapernikov.com/wp-content/uploads/2020/02/patrick-1536x1024.jpg" alt='profile-picture' />
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            ml: { xs: 0, md: 6 },
-            alignItems: 'flex-end',
-            flexWrap: ['wrap', 'nowrap'],
-            justifyContent: ['center', 'space-between']
-          }}
-        ></Box>
-         <Typography variant='h5' sx={{ mb: 3, marginLeft:'20px'}}>
-                     <b>{data.PersonFullName}</b>
+
+        </CardContent>
+        <Grid container spacing={2} sx={{ margin: '5px' }}>
+
+          <Grid item xs={2}>
+            <ProfilePicture src='https://synergydev.aitalkx.com/Cms/document/getimagemongo/92133c2a-6a6c-4422-989f-c900eae6992e' alt='profile-picture' />
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                ml: { xs: 0, md: 6 },
+                alignItems: 'flex-end',
+                flexWrap: ['wrap', 'nowrap'],
+                justifyContent: ['center', 'space-between']
+              }}
+            ></Box>
+            <Typography variant='h5' sx={{ mb: 3, marginLeft: '20px' }}>
+              <b>{data.PersonFullName}</b>
             </Typography>
+          </Grid>
+
+
+
+          <Grid item xs={6}>
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                PositionName:
+              </Box>
+              <Box sx={{ ml: 15 }}>
+                <b>{data.PositionName} </b>
+              </Box>
+            </Typography>
+
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                Date Of Birth:
+              </Box>
+              <Box sx={{ ml: 16 }}>
+                <b>{data.DateOfBirth}</b>
+              </Box>
+            </Typography>
+
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                Nationality Name:
+              </Box>
+              <Box sx={{ ml: 7 }}>
+                <b>{data.NationalityName}</b>
+              </Box>
+            </Typography>
+
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                Job Name:
+              </Box>
+              <Box sx={{ ml: 22 }}>
+                <b>{data.JobName}</b>
+              </Box>
+            </Typography>
+
+
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                User Status:
+              </Box>
+              <Box sx={{ ml: 19 }}>
+                <b>{data.Status}</b>
+              </Box>
+            </Typography>
+
+          </Grid>
+
+          <Grid item xs={4}>
+
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                Department Name:
+              </Box>
+              <Box sx={{ ml: 5 }}>
+                <b>{data.DepartmentName}</b>
+              </Box>
+            </Typography>
+
+            <Typography sx={{ display: 'flex', m: 3, fontSize: 18 }}>
+
+              <Box sx={{ ml: 2 }}>
+                Date of Join:
+              </Box>
+              <Box sx={{ ml: 24 }}>
+                <b>{data.DateOfJoin}</b>
+              </Box>
+            </Typography>
+
+
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                Person Status:
+              </Box>
+              <Box sx={{ ml: 12 }}>
+                <b>{data.Status}</b>
+              </Box>
+            </Typography>
+
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                Location Name:
+              </Box>
+              <Box sx={{ ml: 10 }}>
+                <b>{data.LocationName}</b>
+              </Box>
+            </Typography>
+
+            <Typography sx={{ display: 'flex', m: 2, fontSize: 18 }}>
+
+              <Box sx={{ ml: 3 }}>
+                Assignment Status:
+              </Box>
+              <Box sx={{ ml: 2 }}>
+                <b>{data.AssignmentStatusName}</b>
+              </Box>
+            </Typography>
+
+
+
+
+
+
+
+          </Grid>
         </Grid>
 
 
 
-
-
-
-
-         <Grid item xs={4}>
-              
-                <p>Title:<b>{data.Title}</b></p>
-               <p>DateOfBirth: <b>       {data.DateOfBirth}</b></p>
-              <p>NationalityName:<b>{data.NationalityName}</b></p>
-              
-              <p>User Status: <b>{data.Status}</b></p>
-            
-            </Grid>
-
-            <Grid item xs={4}>
-                
-
-                <p>Department Name:<b>IT</b></p>
-                
-                <p>Date of Join:28:<b>                  {data.DateOfJoin}</b></p>
-                <p>Person Status:<b>{data.Status}</b></p>
-                <p>Grade Name:<b>A</b></p>
-            
-              </Grid>
-              </Grid>
-            
-
-      
-
-
-
-
-
-    </Card>
+      </Card>
     </>
-  ) 
+  )
 }
 
 export default UserProfileHeader

@@ -12,43 +12,45 @@ import CardStatisticsVerticalComponent from 'src/@core/components/card-statistic
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 // ** Demo Components Imports
-import CrmTotalSales from 'src/views/dashboards/crm/CrmTotalSales'
-import CrmWeeklySales from 'src/views/dashboards/crm/CrmWeeklySales'
-import CrmTotalGrowth from 'src/views/dashboards/crm/CrmTotalGrowth'
-import CrmUpgradePlan from 'src/views/dashboards/crm/CrmUpgradePlan'
-import CrmTransactions from 'src/views/dashboards/crm/CrmTransactions'
+
 import CrmRevenueReport from 'src/views/dashboards/crm/CrmRevenueReport'
 import CrmSalesOverview from 'src/views/dashboards/crm/CrmSalesOverview'
-import CrmMeetingSchedule from 'src/views/dashboards/crm/CrmMeetingSchedule'
-import CrmDeveloperMeetup from 'src/views/dashboards/crm/CrmDeveloperMeetup'
-import CrmActivityTimeline from 'src/views/dashboards/crm/CrmActivityTimeline'
-import UserProfile from 'src/views/dashboards/payroll/components/UserProfile'
+
+import EmployeeDashboardUserProfile from 'src/views/dashboards/employee-dashboard/EmployeDashboardUserProfile'
+
+import EmployeeDashboardAdministrationCard from 'src/views/dashboards/employee-dashboard/EmployeeDashboardAdministratorCard'
+
 
 const data = [
   {
-    stats: '13',
+    // stats: '13',
+    id: 1,
     title: 'Leave Request',
     chipColor: 'primary',
     chipText: 'See More',
     src: '/images/cards/pose_f9.png'
   },
   {
-    stats: '24',
+    // stats: '24',
+    id: 2,
     trend: 'negative',
-    title: 'Request Time-Off',
+    title: 'Request Time Off',
     chipText: 'See More',
     chipColor: 'secondary',
     src: '/images/cards/pose_m18.png'
   },
+
   {
-    stats: '13',
+    // stats: '13',
+    id: 3,
     title: 'Employee Directory',
     chipColor: 'primary',
     chipText: 'See More',
     src: '/images/cards/pose_f9.png'
   },
   {
-    stats: '24',
+    // stats: '24',
+    id: 4,
     trend: 'negative',
     title: 'My Profile',
     chipText: 'See More',
@@ -62,79 +64,38 @@ const EmployeeDashboard = () => {
   return (
     <ApexChartWrapper>
       <Grid container spacing={6}>
-      
-
-      <Grid item xs={12}  >
         
-         <UserProfile/>
+        <Grid item xs={12}  >
+          <EmployeeDashboardUserProfile/>
         </Grid>
-        <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
-          <CardStatisticsCharacter data={data[0]} />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
-          <CardStatisticsCharacter data={data[1]} />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
-          <CardStatisticsCharacter data={data[2]} />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
-          <CardStatisticsCharacter data={data[3]} />
-        </Grid>
-        {/* <Grid item xs={12} md={6}>
-          <CrmTransactions />
-        </Grid> */}
 
         <Grid item xs={12}  >
-         <h3> My Task</h3>
+          <h3>  Shortcuts </h3>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <CrmTotalSales />
+        {
+          data.map((elem, i) => {
+            return <Grid id={i} item xs={12} sm={6} md={3} sx={{ pt: theme => `${theme.spacing(12.25)} !important` }}>
+              <CardStatisticsCharacter data={elem} />
+            </Grid>
+
+          })
+        }
+
+        <Grid item xs={12} sm={6} md={4}>
+          <h3>You Report To </h3>
+          < EmployeeDashboardAdministrationCard />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={4}>
+          <h3> My Tasks </h3>
           <CrmRevenueReport />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} sm={6} md={4}>
+          <h3>My Services </h3>
           <CrmSalesOverview />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <CrmActivityTimeline />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Grid container spacing={6}>
-            <Grid item xs={12} sm={8}>
-              <CrmWeeklySales />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Grid container spacing={6}>
-                <Grid item xs={6} sm={12}>
-                  <CrmTotalGrowth />
-                </Grid>
-                <Grid item xs={6} sm={12}>
-                  <CardStatisticsVerticalComponent
-                    stats='862'
-                    trend='negative'
-                    title='New Progress'
-                    subtitle='Yearly Progress'
-                    icon={<Icon icon='mdi:briefcase-variant-outline' />}
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-        {/* <Grid item xs={12} md={6} lg={4}>
-          <CrmUpgradePlan />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <CrmMeetingSchedule />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <CrmDeveloperMeetup />
-        </Grid> */}
       </Grid>
     </ApexChartWrapper>
   )
 }
 
 export default EmployeeDashboard
-

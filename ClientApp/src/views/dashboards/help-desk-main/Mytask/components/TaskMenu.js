@@ -1,58 +1,57 @@
-import React from 'react';
-import Button from '@mui/material/Button';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
-import Grow from '@mui/material/Grow';
-import Paper from '@mui/material/Paper';
-import Popper from '@mui/material/Popper';
-import MenuItem from '@mui/material/MenuItem';
-import MenuList from '@mui/material/MenuList';
-import Stack from '@mui/material/Stack';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import React from 'react'
+import Button from '@mui/material/Button'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
+import Grow from '@mui/material/Grow'
+import Paper from '@mui/material/Paper'
+import Popper from '@mui/material/Popper'
+import MenuItem from '@mui/material/MenuItem'
+import MenuList from '@mui/material/MenuList'
+import Stack from '@mui/material/Stack'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 
 export default function TaskMenu() {
-  const [open, setOpen] = React.useState(false);
-  const anchorRef = React.useRef(null);
+  const [open, setOpen] = React.useState(false)
+  const anchorRef = React.useRef(null)
 
   const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
-  };
+    setOpen(prevOpen => !prevOpen)
+  }
 
-  const handleClose = (event) => {
+  const handleClose = event => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
+      return
     }
 
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   function handleListKeyDown(event) {
     if (event.key === 'Tab') {
-      event.preventDefault();
-      setOpen(false);
+      event.preventDefault()
+      setOpen(false)
     } else if (event.key === 'Escape') {
-      setOpen(false);
+      setOpen(false)
     }
   }
 
-  const prevOpen = React.useRef(open);
+  const prevOpen = React.useRef(open)
   React.useEffect(() => {
     if (prevOpen.current === true && open === false) {
-      anchorRef.current.focus();
+      anchorRef.current.focus()
     }
 
-    prevOpen.current = open;
-  }, [open]);
+    prevOpen.current = open
+  }, [open])
 
   return (
-    <Stack direction="row" spacing={2}>
-
+    <Stack direction='row' spacing={2}>
       <div>
         <Button
           ref={anchorRef}
-          id="composition-button"
+          id='composition-button'
           aria-controls={open ? 'composition-menu' : undefined}
           aria-expanded={open ? 'true' : undefined}
-          aria-haspopup="true"
+          aria-haspopup='true'
           onClick={handleToggle}
         >
           <ArrowDropDownIcon />
@@ -61,7 +60,7 @@ export default function TaskMenu() {
           open={open}
           anchorEl={anchorRef.current}
           role={undefined}
-          placement="bottom-start"
+          placement='bottom-start'
           transition
           disablePortal
         >
@@ -69,16 +68,15 @@ export default function TaskMenu() {
             <Grow
               {...TransitionProps}
               style={{
-                transformOrigin:
-                  placement === 'bottom-start' ? 'left top' : 'left bottom',
+                transformOrigin: placement === 'bottom-start' ? 'left top' : 'left bottom'
               }}
             >
               <Paper>
                 <ClickAwayListener onClickAway={handleClose}>
                   <MenuList
                     autoFocusItem={open}
-                    id="composition-menu"
-                    aria-labelledby="composition-button"
+                    id='composition-menu'
+                    aria-labelledby='composition-button'
                     onKeyDown={handleListKeyDown}
                   >
                     <MenuItem onClick={handleClose}>Sort By Date</MenuItem>
@@ -93,5 +91,5 @@ export default function TaskMenu() {
         </Popper>
       </div>
     </Stack>
-  );
+  )
 }

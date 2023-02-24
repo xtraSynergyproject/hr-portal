@@ -25,6 +25,7 @@ function Termination() {
           <UserProfile />
         </Paper>
 
+
       <TerminationTable />
     </div>
   )

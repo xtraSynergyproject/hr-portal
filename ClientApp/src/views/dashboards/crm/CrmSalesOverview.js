@@ -79,9 +79,9 @@ const CrmSalesOverview = () => {
   return (
     <Card>
       <CardHeader
-        title='Sales Overview'
+        title='My Services'
         titleTypographyProps={{
-          sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' }
+          sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important',fontSize: '1rem !important', }
         }}
         action={
           <OptionsMenu

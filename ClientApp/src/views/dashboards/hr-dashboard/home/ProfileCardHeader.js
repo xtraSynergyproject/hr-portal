@@ -42,8 +42,8 @@ const CardUser = () => {
                         />
 
                         <Box sx={{ pl: 2, mt:4 }}>
-                            <Typography variant='h6'>HR</Typography>
-                            <Typography variant='h6' >HR Department</Typography>
+                            <Typography variant='h6'>Administrator</Typography>
+                            <Typography variant='p' >System Administrator</Typography>
 
                             <AvatarGroup max={4} sx={{mt:3}}>
                                 <Avatar src='/images/avatars/8.png' alt='Alice Cobb' />

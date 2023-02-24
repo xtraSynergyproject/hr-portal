@@ -1,6 +1,7 @@
 // ** React Imports
 import { useState, useEffect, useCallback } from 'react'
-
+//import Model
+import Policymodel from './Policymodel'
 // ** Next Imports
 import Link from 'next/link'
 
@@ -22,7 +23,7 @@ import FormControl from '@mui/material/FormControl'
 import CardContent from '@mui/material/CardContent'
 import Select from '@mui/material/Select'
 import Icon from 'src/@core/components/icon'
-import Model from './Policymodel'
+
 
 // ** Store Imports
 import { useDispatch, useSelector } from 'react-redux'
@@ -134,24 +135,25 @@ const RowOptions = ({ id }) => {
         }}
         PaperProps={{ style: { minWidth: '8rem' } }}
       >
-        <MenuItem
+        {/* <MenuItem
           component={Link}
           sx={{ '& svg': { mr: 2 } }}
           onClick={handleRowOptionsClose}
           href='/apps/user/view/overview/'
+          
         >
           <Icon icon='mdi:eye-outline' fontSize={20} />
           View
-          {/* <Policymodel/> */}
-        </MenuItem>
+       
+        </MenuItem> */}
         <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
-          <Icon icon='mdi:pencil-outline' fontSize={20} />
-          Edit
+          <Icon icon='mdi:eye-outline' fontSize={20} />
+          <Policymodel/>
         </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 } }}>
+        {/* <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:delete-outline' fontSize={20} />
           Delete
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
     </>
   )

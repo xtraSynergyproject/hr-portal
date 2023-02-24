@@ -61,20 +61,28 @@ export default function MenuBtn() {
 
   return (
     <div>
-      <Button
+      <Typography
         id='demo-customized-button'
         aria-controls={open ? 'demo-customized-menu' : undefined}
         aria-haspopup='true'
         aria-expanded={open ? 'true' : undefined}
         // variant='contained'
-        sx={{ height: '105px', borderRadius: '50px', display: 'flex', flexDirection: 'column' }}
+        sx={{
+          height: '105px',
+          borderRadius: '50px',
+          fontSize: '13px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          cursor:"pointer"
+        }}
         component='label'
         disableElevation
         onClick={handleClick}
       >
-        <Icon icon='mdi:menu' />
+        <Icon icon='mdi:menu' fontSize='18px' />
         Menu
-      </Button>
+      </Typography>
 
       <StyledMenu
         id='demo-customized-menu'
@@ -86,22 +94,22 @@ export default function MenuBtn() {
         onClose={handleClose}
       >
         <MenuItem onClick={handleClose} disableRipple>
-        <Icon icon='mdi:lan' />
+          <Icon icon='mdi:lan' />
           Workflow
         </MenuItem>
         <MenuItem onClick={handleClose} disableRipple>
-        <Icon icon='mdi:email' />
+          <Icon icon='mdi:email' />
           {/* <Typography > <a href='gmail.com' target='-main' > */}
-            Email
-            {/* </a></Typography> */}
+          Email
+          {/* </a></Typography> */}
         </MenuItem>
         <MenuItem onClick={handleClose} disableRipple>
-        <Icon icon='mdi:attachment-plus' />
-          <MenuTagModal/>
+          <Icon icon='mdi:attachment-plus' />
+          <MenuTagModal />
         </MenuItem>
         <MenuItem onClick={handleClose} disableRipple>
-        <Icon icon='mdi:attachment-plus' />
-          <MenuLogModal/>
+          <Icon icon='mdi:attachment-plus' />
+          <MenuLogModal />
         </MenuItem>
       </StyledMenu>
     </div>

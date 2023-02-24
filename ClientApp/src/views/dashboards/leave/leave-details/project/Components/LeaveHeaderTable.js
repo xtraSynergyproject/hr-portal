@@ -20,7 +20,7 @@ const TableHeader = props => {
       
       </Button> */}
 
-     <b> Leave Transaction Details</b>
+      <b> Leave Transaction Details</b>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
         <TextField
           size='small'

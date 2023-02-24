@@ -4,26 +4,23 @@ import CardMedia from '@mui/material/CardMedia'
 import MyTaskSidebar from './MyTaskSidebar'
 import { Typography } from '@mui/material'
 import TaskCallPage from './TaskCallPage'
-import TaskTotalProfitcard from './TaskTotalProfitcard'
-
 const TaskHomePage = ({ folder, label }) => {
-
   return (
-    <Box>
+    <Box sx={{ marginTop: '-60px' }}>
       <Box>
-        <Typography sx={{ fontFamily: "sans-serif", fontSize: "30px", display: 'flex', marginLeft: '20px' }}><h5>Task Home</h5></Typography>
+        <Typography sx={{ fontFamily: 'sans-serif', fontSize: '30px', display: 'flex', marginLeft: '20px' }}>
+          <h5>Task Home</h5>
+        </Typography>
         <Card>
           <CardMedia
             component='img'
             alt='Coding'
             image='https://contentstatic.timesjobs.com/img/64858386/Master.jpg'
             sx={{
-              height: "150px"
+              height: '150px'
             }}
           />
         </Card>
-
-
       </Box>
 
       <Box
@@ -32,16 +29,12 @@ const TaskHomePage = ({ folder, label }) => {
           display: 'flex',
           borderRadius: 1,
           overflow: 'hidden',
-          position: 'relative',
-
+          position: 'relative'
         }}
       >
         <MyTaskSidebar />
         <div>
           <TaskCallPage />
-          <Box>
-            <TaskTotalProfitcard />
-          </Box>
         </div>
       </Box>
     </Box>

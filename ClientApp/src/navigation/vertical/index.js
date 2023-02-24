@@ -32,6 +32,11 @@ const navigation = () => {
     
   },
 
+  {
+title:'Note HR Location',
+icon:'mdi:pen',
+path:'/dashboards/note_hr_location'
+  },
    // HR
    {
     title: 'HR Portal',
@@ -47,12 +52,12 @@ const navigation = () => {
         
         {
           title: 'Home',
-          path: '/dashboards/hr-dashboard/home'
+          path: '/dashboards/hr/home'
         },
 
         {
           title: 'HR Direct',
-          path: '/dashboards/employee-dashboard'
+          path: '/dashboards/hr/hr-direct'
         },
 
         {
@@ -66,7 +71,7 @@ const navigation = () => {
         },
         {
           title: 'Master Data',
-          path: '/dashboards/'
+          path: '/dashboards/hr/master-data'
         }
       ]
     },
@@ -259,7 +264,7 @@ const navigation = () => {
    //Leave
    {
     title: 'Leave',
-    icon: 'mdi:shield-outline',
+    icon: 'mdi:account-edit',
     children: [
      {
         title: 'Leave Details',

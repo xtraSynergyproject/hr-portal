@@ -80,7 +80,7 @@ function SalaryInfoPage() {
           </Card>
         </Grid>
         <Grid item xs={6}>
-          <Card sx={{ p: 17 }}>
+          <Card sx={{ p: 19 }}>
             <Typography component='h3' variant='p'>
               Pay Calender
             </Typography>
@@ -92,7 +92,7 @@ function SalaryInfoPage() {
             <br />
             <FormControlLabel checked={isEligibleForSalaryTransferLetter} control={<Switch />} label='Is Eligible For Salary Transfer Letter' />
             <br />
-            <br />
+            
             <Typography sx={{ display: 'flex', m: 2 }}>
               Overtime Payment Type: <b> {overtimePaymentType}</b>
             </Typography>
