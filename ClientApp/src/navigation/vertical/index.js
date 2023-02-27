@@ -218,19 +218,19 @@ path:'/dashboards/note_hr_location'
       children: [
         {
           title: 'Position Hierarchy',
-          path: '/apps/user/list'
+          // path:  '/dashboards/hierarchy-chart/position-hierarchy'
         },
         {
           title: 'Department Hierarchy',
-          path: '/apps/user/list'
+          path: '/dashboards/hierarchy-chart/department-hierarchy'
         },
         {
           title: 'Business Hierarchy',
-          path: '/apps/user/list'
+          path: '/dashboards/hierarchy-chart/business-hierarchy'
         },
         {
           title: 'Approval Hierarchy',
-          path: '/apps/user/list'
+          path: '/dashboards/hierarchy-chart/approval-hierarchy'
         },
         // {
         //   title: 'Department Hierarchy',
