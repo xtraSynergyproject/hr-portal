@@ -1,5 +1,5 @@
 import React from 'react'
-import RemoteSignInOut from 'src/views/dashboards/attendance/RemoteSignInOut/RemoteSignInOut'
+import RemoteSignInOut from 'src/views/dashboards/attendance/RemoteSignInOut/components/RemoteSignInOut'
 
 
 function index() {

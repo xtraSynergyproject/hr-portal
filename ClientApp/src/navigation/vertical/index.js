@@ -306,7 +306,8 @@ path:'/dashboards/note_hr_location'
       children: [
         {
           title: 'Remote Sign In/Out Request',
-          path: '/dashboards/attendance/RemoteSignInOut'
+          path: 
+            '/dashboards/attendance/Remote-Sign-in-out'
         },
         {
           title: 'Attendance Details',
