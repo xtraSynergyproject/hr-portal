@@ -1,120 +1,18 @@
-// ** React Imports
-import { useEffect, useState } from 'react'
+import { Box } from '@mui/material'
+import DocumentsView from './components/documents-view/DocumentsView'
+import Header from './components/header/Header'
+import Sidebar from './components/sidebar/Sidebar'
 
-// ** MUI Imports
-import Box from '@mui/material/Box'
-import { useTheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
-
-// ** Store & Actions Imports
-import { useDispatch, useSelector } from 'react-redux'
-import { sendMsg, selectChat, fetchUserProfile, fetchChatsContacts, removeSelectedChat } from 'src/store/apps/chat'
-
-// ** Hooks
-import { useSettings } from './imports/useSettings'
-
-// ** Utils Imports
-import { getInitials } from './imports/get-initials'
-import { formatDateToMonthShort } from './imports/format'
-
-// ** Chat App Components Imports
-import SidebarLeft from './imports/SidebarLeft'
-// import ChatContent from 'src/views/apps/chat/ChatContent'
-import ChatContent from './imports/chat/ChatContent'
-import Tble from './imports/Tble'
-import { Grid } from '@mui/material'
-
-const AppChat = () => {
-  // ** States
-  // const [userStatus, setUserStatus] = useState('online')
-  // const [leftSidebarOpen, setLeftSidebarOpen] = useState(false)
-  // const [userProfileLeftOpen, setUserProfileLeftOpen] = useState(false)
-  // const [userProfileRightOpen, setUserProfileRightOpen] = useState(false)
-
-  // ** Hooks
-  const theme = useTheme()
-  const { settings } = useSettings()
-  const dispatch = useDispatch()
-  const hidden = useMediaQuery(theme.breakpoints.down('lg'))
-  const store = useSelector(state => state.chat)
-
-  // ** Vars
-  const { skin } = settings
-  const smAbove = useMediaQuery(theme.breakpoints.up('sm'))
-  const sidebarWidth = smAbove ? 370 : 300
-  const mdAbove = useMediaQuery(theme.breakpoints.up('md'))
-
-  const statusObj = {
-    busy: 'error',
-    away: 'warning',
-    online: 'success',
-    offline: 'secondary'
-  }
-  useEffect(() => {
-    dispatch(fetchUserProfile())
-    dispatch(fetchChatsContacts())
-  }, [dispatch])
-  const handleLeftSidebarToggle = () => setLeftSidebarOpen(!leftSidebarOpen)
-  const handleUserProfileLeftSidebarToggle = () => setUserProfileLeftOpen(!userProfileLeftOpen)
-  const handleUserProfileRightSidebarToggle = () => setUserProfileRightOpen(!userProfileRightOpen)
-
+function Document() {
   return (
-    <Box
-      // className='app-chat'
-      sx={{
-        width: '100%',
-        display: 'flex',
-        borderRadius: 1,
-        overflow: 'hidden',
-        position: 'relative',
-        backgroundColor: 'background.paper',
-        boxShadow: skin === 'bordered' ? 0 : 6,
-        ...(skin === 'bordered' && { border: `1px solid ${theme.palette.divider}` })
-      }}
-    >
-      <SidebarLeft
-        store={store}
-        hidden={hidden}
-        mdAbove={mdAbove}
-        dispatch={dispatch}
-        statusObj={statusObj}
-        // userStatus={userStatus}
-        selectChat={selectChat}
-        getInitials={getInitials}
-        sidebarWidth={sidebarWidth}
-        // setUserStatus={setUserStatus}
-        // leftSidebarOpen={leftSidebarOpen}
-        removeSelectedChat={removeSelectedChat}
-        // userProfileLeftOpen={userProfileLeftOpen}
-        formatDateToMonthShort={formatDateToMonthShort}
-        handleLeftSidebarToggle={handleLeftSidebarToggle}
-        handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
-      />
-      {/* <ChatContent
-        store={store}
-        hidden={hidden}
-        sendMsg={sendMsg}
-        mdAbove={mdAbove}
-        dispatch={dispatch}
-        statusObj={statusObj}
-        getInitials={getInitials}
-        sidebarWidth={sidebarWidth}
-        // userProfileRightOpen={userProfileRightOpen}
-        handleLeftSidebarToggle={handleLeftSidebarToggle}
-        handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
-      />  */}
-    
-      <Grid container spacing={6}>
-       <Grid item xs={1} md={12} sx={{ order: 0, alignSelf: 'flex-end' }}>
-       <Tble />   
-          
-        </Grid>
-      </Grid>
-    </Box>
+    <>
+      <Header />
+      <Box sx={{ display: 'flex', gap: '10px' }}>
+        <Sidebar />
+        <DocumentsView />
+      </Box>
+    </>
   )
 }
-// AppChat.contentHeightFixed = true
 
-export default AppChat
-
-
+export default Document
