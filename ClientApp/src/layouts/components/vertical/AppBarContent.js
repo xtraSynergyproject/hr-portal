@@ -4,7 +4,8 @@ import IconButton from '@mui/material/IconButton'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-
+import { useState,useEffect } from 'react'
+import axios from 'axios'
 // ** Components
 import Autocomplete from 'src/layouts/components/Autocomplete'
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
@@ -12,6 +13,7 @@ import UserDropdown from 'src/@core/layouts/components/shared-components/UserDro
 import LanguageDropdown from 'src/@core/layouts/components/shared-components/LanguageDropdown'
 import NotificationDropdown from 'src/@core/layouts/components/shared-components/NotificationDropdown'
 import ShortcutsDropdown from 'src/@core/layouts/components/shared-components/ShortcutsDropdown'
+import MessageBox from 'src/@core/layouts/components/shared-components/MessageBox'
 
 const notifications = [
   {
@@ -57,6 +59,56 @@ const notifications = [
     title: 'Finance report has been generated'
   }
 ]
+// const message=[
+//   {
+    
+//     avatarAlt: 'Flora',
+//     title: 'Administrator',
+//     title1:'to notify',
+//     avatarImg: '/images/avatars/4.png',
+//     subtitle: '7 hours ago'
+//   },
+//   {
+    
+//     avatarAlt: 'Flora',
+//     title: 'Administrator',
+//     title1:'service request submitted',
+//     avatarImg: '/images/avatars/4.png',
+//     subtitle: '6 hours ago'
+//   },
+  // {
+    
+  //   avatarAlt: 'Flora',
+  //   title: 'Administrator',
+  //   title1:'service request submitted',
+  //   avatarImg: '/images/avatars/4.png',
+  //   subtitle: '6 hours ago'
+  // },
+  // {
+    
+  //   avatarAlt: 'Flora',
+  //   title: 'Administrator',
+  //   title1:'test',
+  //   avatarImg: '/images/avatars/1.png',
+  //   subtitle: '5 hours ago'
+  // },
+  // {
+  //   
+  //   avatarAlt: 'Flora',
+  //   title: 'Administrator',
+  //   meta:'to notify',
+  //   avatarImg: '/images/avatars/4.png',
+  //   subtitle: '6 hours ago'
+  // },
+  // {
+  //   meta: '',
+  //   avatarAlt: 'Flora',
+  //   title: 'Administrator',
+  //   meta:'to notify',
+  //   avatarImg: '/images/avatars/4.png',
+  //   subtitle: '6 hours ago'
+  // }
+//]
 
 const shortcuts = [
   {
@@ -111,6 +163,12 @@ const shortcuts = [
 
 
 const AppBarContent = props => {
+  const[message,setData]=useState([])
+  useEffect(()=>{
+    axios
+    .get("https://webapidev.aitalkx.com/portaladmin/notification/GetAllNotifications?userId=60da8f8f195197515042a1f2&portalId=c8dce908-74b1-4111-a809-a5e6995db660")
+    .then((res)=> setData(res.data.slice(0,4)))
+    },[])
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
 
@@ -122,16 +180,18 @@ const AppBarContent = props => {
             <Icon icon='mdi:menu' />
           </IconButton>
         ) : null}
-        {/* <Autocomplete hidden={hidden} settings={settings} /> */}
+        <Autocomplete hidden={hidden} settings={settings} />
       </Box>
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }} >
         <LanguageDropdown settings={settings} saveSettings={saveSettings} />
          {/* <Icon icon='mdi:email-outline' /> */}
 
-        <Icon icon='mdi:email-outline' onClick={() => ('/apps/email')} />
+        {/* <Icon icon='mdi:email-outline' onClick={() => ('/apps/email')} /> */}
+        <MessageBox settings={settings} message={message}/>
         <ModeToggler settings={settings} saveSettings={saveSettings} />
         <ShortcutsDropdown settings={settings} shortcuts={shortcuts} />
         <NotificationDropdown settings={settings} notifications={notifications} />
+        
         <UserDropdown settings={settings} />
       </Box>
     </Box>
