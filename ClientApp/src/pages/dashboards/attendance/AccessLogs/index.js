@@ -1,10 +1,12 @@
 import React from 'react'
-import AccessLogs from '../../../../views/dashboards/attendance/AccessLogs/components/AccessLogs'
+import AccessLogs from 'src/views/dashboards/attendance/AccessLogs/AccessLogs'
+
+
 
 function index() {
   return (
     <>
-    <AccessLogs />
+    <AccessLogs/>
     </>
   )
 }

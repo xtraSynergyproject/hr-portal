@@ -13,7 +13,7 @@ const MenuProps = {
       maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
       width: 250,
     },
-  },
+  },                 
 };
 
 const names = [
@@ -79,7 +79,7 @@ export default function MultipleSelectPlaceholder() {
           {names.map((name) => (
             <MenuItem
               key={name}
-              value={name}
+              value={name}                                                      
               style={getStyles(name, personName, theme)}
             >
               {name}
