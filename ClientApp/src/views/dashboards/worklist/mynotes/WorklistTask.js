@@ -9,8 +9,8 @@ import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import WorklistSearch from '../Dashboard/WorklistSearch'
-import WorklistModal from '../Dashboard/WorklistModal'
+import WorklistSearch from '../components/Dashboard/WorklistSearch'
+import WorklistModal from './WorklistModal'
 
 
 
