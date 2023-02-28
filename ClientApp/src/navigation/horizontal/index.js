@@ -15,6 +15,11 @@ const navigation = () => {
           path: '/dashboards/analytics'
         },
         {
+          icon:"mdi-mail-outline",
+          title:'message',
+          path:'/dashboards/message-box1'
+     },
+        {
           icon: 'mdi:cart-outline',
           title: 'eCommerce',
           path: '/dashboards/ecommerce'

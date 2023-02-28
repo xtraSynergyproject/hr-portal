@@ -218,19 +218,19 @@ path:'/dashboards/note_hr_location'
       children: [
         {
           title: 'Position Hierarchy',
-          path: '/apps/user/list'
+          // path:  '/dashboards/hierarchy-chart/position-hierarchy'
         },
         {
           title: 'Department Hierarchy',
-          path: '/apps/user/list'
+          path: '/dashboards/hierarchy-chart/department-hierarchy'
         },
         {
           title: 'Business Hierarchy',
-          path: '/apps/user/list'
+          path: '/dashboards/hierarchy-chart/business-hierarchy'
         },
         {
           title: 'Approval Hierarchy',
-          path: '/apps/user/list'
+          path: '/dashboards/hierarchy-chart/approval-hierarchy'
         },
         // {
         //   title: 'Department Hierarchy',
@@ -325,30 +325,30 @@ path:'/dashboards/note_hr_location'
     },
 
     //Work List
-    {
-      title: 'WorkList',
-      icon: 'mdi:file-document-outline',
-      children: [
-        {
-          title: 'Dashboard',
-          path: '/dashboards/worklist',
-        },
-        {
-          title: 'My Services',
-          path: '/pages/help-center'
-        },
-        {
-          title: 'My Tasks',
-          path: '/pages/help-center'
-        },
-        {
-          title: 'My Notes',
-          path: '/pages/help-center'
-        }
-        
-      ]
-    },
-
+       {
+        title: 'WorkList',
+        icon: 'mdi:file-document-outline',
+        children: [
+          {
+            title: 'Dashboard',
+            path: '/dashboards/worklist/dashboard',
+          },
+          {
+            title: 'My Services',
+            path: '/dashboards/worklist/myservices',
+          },
+          {
+            title: 'My Tasks',
+            path: '/dashboards/worklist/mytasks',
+          },
+          {
+            title: 'My Notes',
+            path: '/dashboards/worklist/mynotes',
+          }
+          
+        ]
+      },
+  
 
 
     //Help Disk
