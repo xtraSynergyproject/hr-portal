@@ -7,7 +7,7 @@ const AddWorkspace = ({ toggleDrawer }) => {
   let [documentTemplate, setDocumentTemplate] = useState([])
   let [dataGrid, setDataGrid] = useState([])
   let [fullWidth, setFullWidth] = useState(false)
-  let [legalEntity, setLegalEntity] = useState('')
+  let [legalEntities, setLegalEntity] = useState('')
   let [parentWorkspace, setParentWorkspace] = useState('')
 
   const fetchDocumentTemplate = async () => {
@@ -20,6 +20,15 @@ const AddWorkspace = ({ toggleDrawer }) => {
     } catch (error) {
       console.log(error)
     }
+  }
+
+  const getLegalEntityList = async () => {
+        try {
+             const response = await axios.get("https://webapidev.aitalkx.com/cms/legalEntity/GetLegalEntityList")
+
+        }catch(error) {
+          console.log(error);
+        }
   }
 
   const fetchDataGrid = async () => {

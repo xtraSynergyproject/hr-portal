@@ -109,7 +109,7 @@ const DocumentsViewTable = () => {
                         <Box sx={{ display: 'flex', gap: '10px' }}>
                           <Folder
                             sx={{
-                              color: document.Workspace ? 'blue' : '#fde047'
+                              color: document.Workspace ? '#9155FD' : ' #FFB400'
                             }}
                           />
                           {document.title}

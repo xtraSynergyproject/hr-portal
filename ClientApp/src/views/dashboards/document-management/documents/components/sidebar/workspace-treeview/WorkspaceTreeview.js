@@ -57,7 +57,7 @@ const WorkspaceTreeview = ({ sourceFolder, setActive, active }) => {
           onClick={handleExpand}
         >
           {expand ? <ExpandMoreIcon /> : <ChevronRightIcon />}
-          <Folder sx={{ color: sourceFolder.folder ? '#fde047' : 'blue' }} />
+          <Folder sx={{ color: sourceFolder.folder ? ' #FFB400' : '#9155FD' }} />
           {sourceFolder?.title}
           <span
             style={{
@@ -107,7 +107,7 @@ const WorkspaceTreeview = ({ sourceFolder, setActive, active }) => {
           }}
         >
           {expand ? <ExpandMoreIcon /> : <ChevronRightIcon />}
-          <Folder sx={{ color: sourceFolder.folder ? '#fde047' : 'blue' }} />
+          <Folder sx={{ color: sourceFolder.folder ? ' #FFB400' : '#9155FD' }} />
           {sourceFolder?.title}
           <span
             style={{
