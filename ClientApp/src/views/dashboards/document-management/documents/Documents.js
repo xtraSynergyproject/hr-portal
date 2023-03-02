@@ -6,6 +6,7 @@ import Sidebar from './components/sidebar/Sidebar'
 function Document() {
   return (
     <>
+     // Main 
       <Header />
       <Box sx={{ display: 'flex', gap: '10px' }}>
         <Sidebar />
